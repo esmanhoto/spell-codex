@@ -1,0 +1,314 @@
+{
+  "id": "anti_recycle_thieves",
+  "title": "Anti-Recycle Thieves",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "anti recycle deck\n\nMagic Items:\nNo (or few) magic items because of sand golem ally.\n\nCombos:\nElyk the Bard ignored Doomgrinder so The Fates can be played.",
+  "deckSize": 75,
+  "cards": [
+    {
+      "setId": "CQ",
+      "cardNumber": 2
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 4
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 54
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 125
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 5
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 103
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 34
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 12
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 54
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 422
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 116
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 114
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 73
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 42
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 3
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 28
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 32
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 33
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 35
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 36
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 45
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 124
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 74
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 144
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 16
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 210
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 123
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 74
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 159
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 135
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 82
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 16
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 14
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 26
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 96
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 86
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 63
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 67
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 34
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 40
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 57
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 59
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 78
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 68
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 106
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 107
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 105
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 59
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 1
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 3
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 6
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 7
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 8
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 8
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 5
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 5
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 22
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 31
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 108
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 75
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 428
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 125
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 21
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 40
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 172
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 23
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 18
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 20
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 85
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 18
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 500
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 61
+    }
+  ]
+}

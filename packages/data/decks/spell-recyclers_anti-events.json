@@ -1,0 +1,234 @@
+{
+  "id": "spell-recyclers_anti-events",
+  "title": "Spell-Recyclers Anti-Events",
+  "authorName": "",
+  "authorEmail": "{}",
+  "notes": "need a way to destroy cavern of  ancient knowledge.\n\nPhilosophy:\nRe-cast spells from discard pile. Lots of realm- and champion-destroying spells.\n\nChampions:\n-Spell recyclers\n-Cleric & Wizard spellcasters\n-dragons (for resurrection with Dragon Cultist)\n-flyers (for brining Remnis into play).\n\nRealms:\nKill champions / painful to attack.\n\nPlay tips:\n-use dungeon to get Drawmij's Instant Summons & bring Throne of the Pharaohs into play\n-put chest of many things or book of infinite spells on gib occav so he can play mindkiller from discards and bagual can pull it, so it's like the occav/hags recycle combo, but with bagual and mindkiller.\n-play Geneva Conclave on front realm, then play Siege (combo doesn't work once A Good Defense is in play)\n\nWould love to find room for:\nrod of 7 parts part 7\nogre's horned helm",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "CQ",
+      "cardNumber": 46
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 268
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 481
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 400
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 34
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 48
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 56
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 393
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 437
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 63
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 46
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 94
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 25
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 420
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 107
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 65
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 71
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 70
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 102
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 109
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 35
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 29
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 112
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 7
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 268
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 33
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 2
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 124
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 124
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 74
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 402
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 84
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 113
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 117
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 16
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 52
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 11
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 104
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 14
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 59
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 80
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 30
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 466
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 38
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 29
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 83
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 171
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 389
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 411
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 416
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 32
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 9
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 39
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+node_modules/
+dist/
+.env
+.DS_Store
+
+# Generated image conversions (originals are committed, WebP is generated at deploy time)
+packages/data/assets/**/*.webp
+
+# Bun
+bun.lock
+*.tsbuildinfo
+
+# Vite/React
+packages/web/dist/
+packages/web/.vite/
+
+# API/Engine/DB
+packages/api/dist/
+packages/engine/dist/
+packages/db/dist/
+packages/data/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.*
+
+# Docker
+*.dockerignore
+docker-compose.yml
+
+# Misc
+.claude/
+.tool-versions
+
+# IDE
+.vscode/
+.idea/
+
+# Test outputs
+packages/engine/test/*.out
+
+# CrossFire READONLY and data_bp_READONLY
+CrossFire READONLY/
+data_bp_READONLY/
+
+# Ignore build artifacts
+packages/*/build/
+packages/*/out/
+
+# Ignore coverage
+coverage/
+packages/*/coverage/
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.bak
+
+# Ignore extracted images
+packages/data/images/
+
+# Ignore local database
+packages/db/.local/
+
+# Ignore Markdown backups
+*.md.bak
+
+# Ignore extracted formats
+packages/data/formats/*.out
+
+# Ignore extracted decks
+packages/data/decks/*.out

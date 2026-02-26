@@ -1,0 +1,314 @@
+{
+  "id": "lucky_draw_spellcasters",
+  "title": "Lucky Draw Spellcaster",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Philosophy: Based on Seal of Lost Arak artifact.  Put on a ravenloft spellcaster and use other cards to put opponents' Disintegrate and Estate Transference spells on top of their decks so the Seal can use it in phase 3.  Lots of Sure Thing (draw and discard) cards also.\n\nRealms:\nHigh last digit for Lady Luck.\n\nMagic Items:\nLast digit of 9 or 7 so Moraster can put one on the top and then play The Fates.\n\nChampions:\nGreyhawk and Ravenloft for Ren's Crystal Ball and Seal of Lost Arak.  Wizards for Tenser's Crystal Ball and Dalamar's Ring of Healing.  Odd last digit of wizards is good for using the Ring to put them on top, then play The Fates.\n\nCombos/Playing tips:\n-Espionage! + Three Card Monte = put 3 realms in abyss\n-Provocation + Mebhaigl Surge = Only I get spells back\n-Lady Luck doesn't work when Sure Thing is in play:\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind0502B&L=spellfire-l&P=R2209\n-Rahil the Falcon's power is once per turn:\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind9805E&L=spellfire-l&P=R2824\n-Dalamar's Ring of Healing put DUc/19 Rary's Apprentice, 4th/357 Bride of Malice, CH/013 Marius, RL/093 Gabrielle Aderre or 3rd/161 Rary the Traitor on top of deck, then play The Fates\n-Dalamar's Ring of Healing to put high level wizard on top of deck, then play Three Card Monte",
+  "deckSize": 75,
+  "cards": [
+    {
+      "setId": "AR",
+      "cardNumber": 12
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 123
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 18
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 9
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 74
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 350
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 50
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 68
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 116
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 13
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 257
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 68
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 62
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 63
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 83
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 437
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 100
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 319
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 140
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 389
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 171
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 199
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 43
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 135
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 103
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 383
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 77
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 93
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 106
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 76
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 67
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 73
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 42
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 18
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 1
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 17
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 5
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 7
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 89
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 17
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 67
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 89
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 87
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 59
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 29
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 393
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 74
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 16
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 121
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 104
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 384
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 113
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 339
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 391
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 40
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 161
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 119
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 17
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 279
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 43
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 39
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 93
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 106
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 139
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 68
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 419
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 144
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 125
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 199
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 119
+    }
+  ]
+}

@@ -1,0 +1,314 @@
+{
+  "id": "instant_win_battle",
+  "title": "Instant Win Battle",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Philosophy:\nInstant win champs, attack champs in pool directly via Arena.\n\nChampions:\nInstantly win (but are not instantly defeated like Living Scroll and King of the Elves). AD&D for artifacts.  Dragons for Orb of GreenDragonkind.\n\nCombos:\n-Stryck + Wand of Orcus = pick low level defender for auto-win\n-Jacqueline Renier + Whip of Disarming = attack non-spellcaster for auto-win\n-Sword and Helm on Undead Htimsen so any Psionicist that defends is defeated\n-Arena, then attack flyer with Gloriana discards them, or attack undead with Corpse Dragon discards them, or attack a non-cleric, -psionicist, -hero and attack Sword and Helm to discard him also.\n-Corpse Dragon + Arena = kill an undead\nruling here:\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind0412C&L=spellfire-l&P=R1064\nDragon Hatching can kill Dragons by attacking them too.",
+  "deckSize": 75,
+  "cards": [
+    {
+      "setId": "PO",
+      "cardNumber": 58
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 60
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 17
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 462
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 456
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 56
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 102
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 56
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 13
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 120
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 65
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 2
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 3
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 7
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 18
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 106
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 6
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 89
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 34
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 88
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 443
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 425
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 68
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 206
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 22
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 9
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 116
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 422
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 46
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 94
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 384
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 461
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 26
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 70
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 82
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 7
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 393
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 437
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 124
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 122
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 125
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 121
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 71
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 70
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 171
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 94
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 162
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 32
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 457
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 48
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 83
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 63
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 61
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 382
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 46
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 29
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 81
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 79
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 41
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 466
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 43
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 114
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 5
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 39
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 103
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 78
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 11
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 98
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 10
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "id": "battle_mages",
+  "title": "Battle Mages",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Philosophy:\nAttack and raze realms, or blow away realms with spells.  Get avatar in play for recursive spell/realm abuse.\n\nChampions:\nWizards with good battle powers.  Flyers for bringing out avatar.\n\nMagic Items:\nHigh bonus to help bring out Avatar.\n\nRealms:\nAD&D for holding Cavern of Ancien Knowledge.  Help in battle, help dragons.\n\nCombos:\n-Bloodstone of Fistandantilus + Blood Challenge/Arena of Dori the Barbarian",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "MI",
+      "cardNumber": 30
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 401
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 137
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 112
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 56
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 312
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 31
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 33
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 17
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 76
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 108
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 63
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 71
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 37
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 481
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 68
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 116
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 29
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 120
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 3
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 14
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 384
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 382
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 65
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 61
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 5
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 437
+    },
+    {
+      "setId": "NO",
+      "cardNumber": 393
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 83
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 171
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 67
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 2
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 124
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 7
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 106
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 18
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 65
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 124
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 105
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 74
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 16
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 6
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 39
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 121
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 116
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 422
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 93
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 344
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 70
+    }
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "id": "ad&d_dragon_flyers",
+  "title": "AD&D Dragon Flyers",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Playing tips:\nPlay champions into pool right away for Favorable Winds.  Attach flyer magic items to non-flyers before event appears.\n\nPhilosophy:\nAttack and raze realms, or blow away realms with spells.  Get Remnis in play for recursive spell/realm abuse.\n\nChampions:\nDragons.  Flyers for bringing out Remnis.  AD&D for artifacts.\n\nMagic Items:\nHigh bonus to help bring out Avatars.  Lots of them for use with Loric the Fence.  Speed Bags.\n\nRealms:\nHelp in battle, help dragons, draw cards.\n\nCombos:\n-raze realm thru combat, then discard it with Dissolution, then retrieve Dissolution with Remnis to repeat next turn\n-attach Geneva Conclave to lead realm, then play Siege to destroy opposing lead realms.\n-not always the thing to do, but if during phase 2, Front Lines is the only realm in Hand, might as well play Siege before playing Front Lines.",
+  "deckSize": 110,
+  "cards": [
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 63
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 71
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 481
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 29
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 384
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 382
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 65
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 437
+    },
+    {
+      "setId": "NO",
+      "cardNumber": 393
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 83
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 2
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 124
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 106
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 18
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 65
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 124
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 105
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 14
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 115
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 112
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 103
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 26
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 31
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 82
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 24
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 78
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 465
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 100
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 319
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 140
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 16
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 12
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 89
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 25
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 108
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 456
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 449
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 6
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 4
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 89
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 43
+    },
+    {
+      "setId": "NO",
+      "cardNumber": 203
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 104
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 3
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 74
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 49
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 114
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 120
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 424
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 14
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 401
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 120
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 43
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 109
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 446
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 442
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 116
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 422
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 16
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 445
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 101
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 36
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 17
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 4
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 61
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 56
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 171
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 70
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 56
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 67
+    },
+    {
+      "setId": "NO",
+      "cardNumber": 201
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 206
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 7
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 55
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 99
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 111
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 92
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 5
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 118
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 7
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 17
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 82
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 32
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "PR",
+      "cardNumber": 2
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 111
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 78
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 52
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 420
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 28
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 419
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 123
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 63
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 513
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 383
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 42
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 50
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 112
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 21
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 312
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 24
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 48
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 115
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 104
+    }
+  ]
+}

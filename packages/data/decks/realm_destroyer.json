@@ -1,0 +1,234 @@
+{
+  "id": "realm_destroyer",
+  "title": "Realm Destroyer",
+  "authorName": "",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Philosophy:\nDestroy realms from afar with spells & events.\n\nChampions:\nWizard & Cleric spell casters. Preferably heroes for Thrice Hearty Cup.\n\nPlay tips:\nReincarnate level 10+ champs into Jerome. Recycle spells with Jerome.\n\n\nDungeon protects spells from Siege!\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind9903D&L=SPELLFIRE-L&P=R3838&I=-3",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "DU",
+      "cardNumber": 6
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 117
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 31
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 16
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 9
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 23
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 135
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 99
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 134
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 134
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 203
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 213
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 213
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 216
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 401
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 122
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 437
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 104
+    },
+    {
+      "setId": "NO",
+      "cardNumber": 393
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 25
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 400
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 111
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 29
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 33
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 34
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 101
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 89
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 508
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 323
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 262
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 53
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 92
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 93
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 48
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 56
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 59
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 504
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 62
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 6
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 83
+    },
+    {
+      "setId": "PR",
+      "cardNumber": 2
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 45
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 431
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 1
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 26
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 130
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 366
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 118
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 384
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 108
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 137
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 436
+    }
+  ]
+}

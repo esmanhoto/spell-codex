@@ -1,0 +1,314 @@
+{
+  "id": "undead_wizards_&_regents",
+  "title": "Undead Wizards & Regents",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Find room for holding Civil War because reducing opponent's base level is good for Negative Planar Energy instant kill.\n\nThemes:\n-Make high level undead champs for use with Negative Planar Energy.\n-Anti-Event.\n\nSub-themes:\n-Discard opponent cards from hand and pool.\n-Make opponents attack with Necba, Curse of the Wolves and/or The Siren so my defensive realms can help in battle.\n\nPlay tips:\n-usually play Curse of the Wolves Blood on enemy champ like Hettman unless I need immunity to off magic items for my own champ\n-try not to put more than one magic item on a champion for when No Funny Biz rule comes into play\n-Consider discarding champions from hand at end of turn or to unraze realms if Create Minion and Armor of the High King are in play so that they can be brought back as undead.\n-Drawmij's Instand Summons -> Runes of the Future -> Pelath -> Create Minion -> Armor of the High King -> Negative Planar Energy\n-reincarnate into wizard so Drawmij can copy power\n\nRealms:\nLimit cards an attacker can play.\n\nChampions:\n-Wizards for Bloodstone of Fistandantilus, Arcane Formula for a Lich, & so Drawmij has powers to copy\n-Undead for rule Negative Planar\n-Blood ability and thief skill users\n-Awnshegh for playing Corruption\n-Greyhawk for Johydee's Mask\n\nAllies:\nInstant win or discard cards from hand.  High level for Gib Hcivonad/Negative Planar Energy.  Mostly non-undead so Orb of Delight can retrieve them.\n\nCombos:\n-IQ/070 Reincarnate Necba as a Wizard so Drawmij can copy his power.\n-lose with Starving Artist (preferably with Varney so he can regenerate), then next round play Athasian Sloth to leave opponent with no cards\n-when defending no ally realms (Daggerdale, Urik, Crystal Cave), play Ki-Rin for auto-win\n-when defending no magic item realms (Ur Draxa, Battle-Fens, Celik, Crystal Cave), play Loup-Garou for auto-win\n-Bloodstone of Fistandantilus + Arena of Dori the Barbarian ( + Kanchelsis and/or Negative Planar Energy) = kill champions in pools to steal their powers\n-Tummbutt, put all magic items/artifacts on one champ, then Death Field them or play rule No Funny Biz",
+  "deckSize": 75,
+  "cards": [
+    {
+      "setId": "NS",
+      "cardNumber": 110
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 69
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 93
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 357
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 345
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 71
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 46
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 393
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 103
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 63
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 70
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 71
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 3
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 29
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 79
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 81
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 116
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 76
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 41
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 73
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 218
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 114
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 122
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 38
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 466
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 114
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 40
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 40
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 82
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 96
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 32
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 41
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 7
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 27
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 11
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 171
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 483
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 68
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 248
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 79
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 6
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 230
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 439
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 49
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 29
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 30
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 113
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 68
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 84
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 7
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 56
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 56
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 437
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 252
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 235
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 247
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 119
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 16
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 124
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 43
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 97
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 46
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 105
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 461
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 50
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 29
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 6
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 246
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 35
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 239
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 1
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 61
+    }
+  ]
+}

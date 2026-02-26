@@ -1,0 +1,9 @@
+{
+  "name": "spell",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "extract": "bun run --cwd packages/data extract",
+    "test": "bun test --cwd packages/engine"
+  }
+}

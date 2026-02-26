@@ -1,0 +1,234 @@
+{
+  "id": "tough_champs_blood_battle",
+  "title": "Tough Champs Blood Battle",
+  "authorName": "",
+  "authorEmail": "{}",
+  "notes": "Champions:\nTough battle abilities. Instant win, limit defender, kill champions.\n\nRealms:\nNo limit attacker or cause attacker to discard so that Logistics rule doesn't work against me.\n\nCombos:\n-Spider attack razed realm and win to bring Drawsemaj into play:\n\nConsidering...:\n-Myalasia, Sir Edmund Bloodsworth\n-slap, deflection\n-curse of the wolves blood, blood of azhul\n-tasselhoff, son of tass, stryck...\n-add one more realm? greater chance of spoils being a realm\n-Fighting Dirty? (so hard to get a chance to play it...)\n-Corruption blood ability and more Awnshegh like The Magian & The Gorgon.\n-Iuz so he can lose, discard realm and bring Drawsemaj into play, Winged boots combo.\n\nRules:\n-The Spider gets spoils when attacking razed realm:\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind0202C&L=SPELLFIRE-L&P=R2751&I=-3\nHe's awesome, just as good as Tithian if not better...\n-Must discard a realm from play (not from hand) for Drawsemaj to come into play.",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "CH",
+      "cardNumber": 5
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 79
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 81
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 29
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 17
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 58
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 119
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 2
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 89
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 9
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 106
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 16
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 52
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 7
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 6
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 4
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 461
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 121
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 65
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 71
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 102
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 23
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 34
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 88
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 123
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 41
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 21
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 59
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 17
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 2
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 27
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 70
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 65
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 213
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 122
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 203
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 129
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 107
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 401
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 114
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 46
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 508
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 46
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 29
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 36
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 64
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 137
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 82
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 112
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 46
+    }
+  ]
+}

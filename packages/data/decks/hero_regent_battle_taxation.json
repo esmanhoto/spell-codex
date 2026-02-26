@@ -1,0 +1,234 @@
+{
+  "id": "hero_regent_battle_taxation",
+  "title": "Hero Regent Battle Taxation",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Add Gib Thiaf? She can use both blood abilities and thief skills...\n\nSwitch to regular speed realms?  Or switch to greyhawk realms plus holding for draw cards from thief skills?  My champs can win without dungeon due to high magic items.  Take out Joliet the Rash for Son of Tasselhof and level 2 wizard who doubles levels?\n\nFind room for Divine Right, Ring of All Seeing, Tankity, Scroll of 7 Leagues\n\nWin with high levels from dungeon.  Or from magic item help.\nMost champs should be able to earthwalk or fly.\nAttack every turn if possible and kill all those defensive speed decks! :P",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "IQ",
+      "cardNumber": 43
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 41
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 81
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 30
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 5
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 118
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 21
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 70
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 71
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 114
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 92
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 5
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 9
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 40
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 44
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 3
+    },
+    {
+      "setId": "NO",
+      "cardNumber": 2
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 100
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 319
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 140
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 29
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 71
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 34
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 201
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 4
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 9
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 186
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 65
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 14
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 27
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 7
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 82
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 86
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 78
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 114
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 255
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 266
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 32
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 120
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 78
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 401
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 45
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 102
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 106
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 79
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 39
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 26
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 61
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 301
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 436
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 112
+    }
+  ]
+}

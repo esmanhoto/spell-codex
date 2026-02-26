@@ -1,0 +1,25 @@
+{
+  "name": "@spell/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.43.1",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.9",
+    "drizzle-kit": "^0.31.1",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "@spell/engine": "workspace:*"
+  }
+}

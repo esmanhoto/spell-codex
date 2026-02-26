@@ -1,0 +1,234 @@
+{
+  "id": "gencon",
+  "title": "GenCon's Most Wanted",
+  "authorName": "1999 GenCon Spellfire World Championship Players",
+  "authorEmail": "spellfire-l@oracle.wizards.com",
+  "notes": "",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "4th",
+      "cardNumber": 120
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 17
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 140
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 210
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 384
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 270
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 131
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 255
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 28
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 119
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 3
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 92
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 116
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 111
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 120
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 117
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 135
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 118
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 508
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 24
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 56
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 88
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 400
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 39
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 32
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 6
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 400
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 137
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 382
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 246
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 110
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 114
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 288
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 38
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 437
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 103
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 58
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 61
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 82
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 450
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 93
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 3
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 74
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 122
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 167
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 389
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 504
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 31
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 422
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 393
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 53
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 1
+    }
+  ]
+}

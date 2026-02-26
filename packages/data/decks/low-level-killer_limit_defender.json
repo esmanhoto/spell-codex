@@ -1,0 +1,314 @@
+{
+  "id": "low-level-killer_limit_defender",
+  "title": "Low-Level-Killer Limit Defender",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Philosophy:\nLimit who can defend (by events, artifacts, magic items).\n\nSubthemes:\n-kill low level champs\n-recycle\n-negate immunities for offensive magic items and harmful events\n-activate power first while defending\n\nAllies:\nInstant kill, especially low level champs. Some undead for Acererak.\n\nChamps:\nAD&D or Dragonlance for Artifacts, level 5 or less for Brandobaris.  Thieves or thief skill users.\n\nCombos:\nLimit defender:\n-Wrath of the Immortals + Midas Orb = no one can defend\n-Trapped! + Wrath of the Immortals = no one can defend\n-Midas Orb + Brandobaris's Inversion = level 6 or higher champs can't defend\n-Apple of His Eye + Sword and Helm of Garion + Skull of Fistandantilus = any two of those three together means no one can defend (throw in the Ring of Human Influence for good measure or play Wrath of the Immortals on a champion type that can't defend against one of those items)\n-Humiliation (put champion type or level that can't defend against another card, since that champ has to defend first, the realm is razed).\n\nAuto-win:\n-Sword of Sharpness + Sword of the High King/Skeletal Lord/Wraith = low enough base level for auto win\n-Tarokka Deck + Vorpal Blade = discard top card with Tarokka if it will allow Vorpal to auto-win\n-Cockatrice + Louie the Pit Boss = Reroll for auto-win\n-Net of Entrapment + Ki-Rin = auto win since opponent can't play ally (also works nicely when Hcivonad makes Ki-Rin into champion)\n-Wand of Orcus + allies that reduce level (Skeletal Lord, Dreaded Ghost, Wraith, White Weird, Bumbling Idiot, Firedrake) = auto win\n-Whip of Disarming + Loup-Garou = auto win since Magic Item can't be played also works nicely when Hcivonad makes Loup-Garou into champion)\n\nRecycle:\n-Arena of Dori the Barbarian + Halcyon/Julio = attack champ, win, pull power card from discard like psionic disintigration or Blamblower to repeat",
+  "deckSize": 75,
+  "cards": [
+    {
+      "setId": "1st",
+      "cardNumber": 456
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 34
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 40
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 46
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 78
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 246
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 217
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 82
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 114
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 74
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 3
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 112
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 56
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 39
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 121
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 56
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 456
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 5
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 65
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 65
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 64
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 118
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 106
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 116
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 22
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 117
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 2
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 7
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 46
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 78
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 16
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 17
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 30
+    },
+    {
+      "setId": "DL",
+      "cardNumber": 110
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 17
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 86
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 46
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 17
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 157
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 80
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 30
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 432
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 29
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 48
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 339
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 22
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 169
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 6
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 422
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 68
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 6
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 9
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 53
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 248
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 112
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 84
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 51
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 119
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 125
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 18
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 61
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 79
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 329
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 124
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 3
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 7
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 56
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 27
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 23
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 73
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 508
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 38
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 206
+    }
+  ]
+}

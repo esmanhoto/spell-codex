@@ -1,0 +1,177 @@
+[
+  {
+    "id": "1st",
+    "name": "1st Edition",
+    "class": "edition",
+    "cardCount": 465,
+    "chaseCount": 25
+  },
+  {
+    "id": "2nd",
+    "name": "2nd Edition",
+    "class": "edition",
+    "cardCount": 420,
+    "chaseCount": 0
+  },
+  {
+    "id": "3rd",
+    "name": "3rd Edition",
+    "class": "edition",
+    "cardCount": 400,
+    "chaseCount": 0
+  },
+  {
+    "id": "4th",
+    "name": "4th Edition",
+    "class": "edition",
+    "cardCount": 520,
+    "chaseCount": 0
+  },
+  {
+    "id": "PR",
+    "name": "Promo",
+    "class": "booster",
+    "cardCount": 3,
+    "chaseCount": 0
+  },
+  {
+    "id": "RL",
+    "name": "Ravenloft",
+    "class": "booster",
+    "cardCount": 100,
+    "chaseCount": 0
+  },
+  {
+    "id": "DL",
+    "name": "DragonLance",
+    "class": "booster",
+    "cardCount": 125,
+    "chaseCount": 25
+  },
+  {
+    "id": "FR",
+    "name": "Forgotten Realms",
+    "class": "booster",
+    "cardCount": 125,
+    "chaseCount": 25
+  },
+  {
+    "id": "AR",
+    "name": "Artifacts",
+    "class": "booster",
+    "cardCount": 120,
+    "chaseCount": 20
+  },
+  {
+    "id": "PO",
+    "name": "Powers",
+    "class": "booster",
+    "cardCount": 120,
+    "chaseCount": 20
+  },
+  {
+    "id": "UD",
+    "name": "The Underdark",
+    "class": "booster",
+    "cardCount": 125,
+    "chaseCount": 25
+  },
+  {
+    "id": "RR",
+    "name": "Runes & Ruins",
+    "class": "booster",
+    "cardCount": 125,
+    "chaseCount": 25
+  },
+  {
+    "id": "BR",
+    "name": "Birthright",
+    "class": "booster",
+    "cardCount": 125,
+    "chaseCount": 25
+  },
+  {
+    "id": "DR",
+    "name": "Draconomicon",
+    "class": "booster",
+    "cardCount": 125,
+    "chaseCount": 25
+  },
+  {
+    "id": "NS",
+    "name": "Night Stalkers",
+    "class": "booster",
+    "cardCount": 125,
+    "chaseCount": 25
+  },
+  {
+    "id": "DU",
+    "name": "Dungeons",
+    "class": "booster",
+    "cardCount": 125,
+    "chaseCount": 25
+  },
+  {
+    "id": "IQ",
+    "name": "Inquisition",
+    "class": "community",
+    "cardCount": 99,
+    "chaseCount": 0
+  },
+  {
+    "id": "MI",
+    "name": "Millennium",
+    "class": "community",
+    "cardCount": 99,
+    "chaseCount": 0
+  },
+  {
+    "id": "CH",
+    "name": "Chaos",
+    "class": "community",
+    "cardCount": 72,
+    "chaseCount": 0
+  },
+  {
+    "id": "CQ",
+    "name": "Conquest",
+    "class": "community",
+    "cardCount": 81,
+    "chaseCount": 0
+  },
+  {
+    "id": "FRN",
+    "name": "French Edition",
+    "class": "international",
+    "cardCount": 425,
+    "chaseCount": 25
+  },
+  {
+    "id": "DE",
+    "name": "German Edition",
+    "class": "international",
+    "cardCount": 425,
+    "chaseCount": 25
+  },
+  {
+    "id": "IT",
+    "name": "Italian Edition",
+    "class": "international",
+    "cardCount": 425,
+    "chaseCount": 25
+  },
+  {
+    "id": "POR",
+    "name": "Portuguese Edition",
+    "class": "international",
+    "cardCount": 425,
+    "chaseCount": 25
+  },
+  {
+    "id": "SP",
+    "name": "Spanish Edition",
+    "class": "international",
+    "cardCount": 425,
+    "chaseCount": 25
+  }
+]

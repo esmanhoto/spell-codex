@@ -1,0 +1,234 @@
+{
+  "id": "monster_realm_destroyers",
+  "title": "Monster Realm Destroyers",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Champions: Monsters.\n\nEvents: Discard realms.\n\nRealms: Greyhawk, no attack limiters so Logistics doesn't work against me.\n\nCombos:\n-Living Scroll + Sword & Helm of Garion\n-Gib Drawsemaj into play via:\n1. realm destroying events\n2. Iuz the Evil losing\n3. The Spider attacking a razed realm\nFun champion power combos to pick for Drawsemaj:\nLiving Wall + Stryck/Arijani\n\nConsidering:\n-trade out Earth Elemental for Headless Horseman?\n-trade out Sir Edmund Bloodsworth for Cistern Fiend?\n-trade out Arijani for Mul Savage?\n\nFind room for:\nFighting Dirty!\n\nRuling links:\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind0006D&L=spellfire-l&P=R529\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind9903D&L=spellfire-l&D=0&P=4455",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "DR",
+      "cardNumber": 107
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 58
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 206
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 65
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 121
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 147
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 1
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 31
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 1
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 5
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 19
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 16
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 14
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 135
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 134
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 117
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 134
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 500
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 6
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 167
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 203
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 213
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 112
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 118
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 453
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 64
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 183
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 71
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 70
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 461
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 120
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 59
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 401
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 216
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 34
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 102
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 120
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 186
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 442
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 122
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 65
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 129
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 408
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 34
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 457
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 504
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 89
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 95
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 88
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 46
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    }
+  ]
+}

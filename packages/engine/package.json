@@ -1,0 +1,15 @@
+{
+  "name": "@spell/engine",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "repl": "bun run scripts/repl.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.9",
+    "typescript": "^5.9.3"
+  }
+}

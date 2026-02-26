@@ -1,0 +1,98 @@
+{
+  "id": "undead_greyhawk_spellcasters",
+  "title": "Undead Greyhawk Spellcasters",
+  "authorName": "",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "NS",
+      "cardNumber": 51
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 462
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 19
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 155
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 488
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 41
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 69
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 121
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 218
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 452
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 71
+    },
+    {
+      "setId": "NO",
+      "cardNumber": 199
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 53
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 74
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 56
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 110
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 73
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 1
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 25
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 107
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 144
+    }
+  ]
+}

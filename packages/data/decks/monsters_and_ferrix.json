@@ -1,0 +1,234 @@
+{
+  "id": "monsters_and_ferrix",
+  "title": "Monsters and Ferrix",
+  "authorName": "Simon Dorfman",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "Find room for?:\nHeadless horseman\nBess's Revenge\n\nChampions: Monsters.\n\nEvents: Discard/raze realms.\n\nRealms: Greyhawk, no attack limiters so Logistics doesn't work against me.\n\nRuling links:\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind0006D&L=spellfire-l&P=R529\nhttp://oracle.wizards.com/scripts/wa.exe?A2=ind9903D&L=spellfire-l&D=0&P=4455",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "4th",
+      "cardNumber": 484
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 16
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 107
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 58
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 206
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 27
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 65
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 121
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 147
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 520
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 99
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 1
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 31
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 1
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 5
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 19
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 16
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 14
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 135
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 134
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 117
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 134
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 500
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 6
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 167
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 203
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 213
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 112
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 65
+    },
+    {
+      "setId": "NS",
+      "cardNumber": 118
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 453
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 64
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 183
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 71
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 70
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 461
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 60
+    },
+    {
+      "setId": "DR",
+      "cardNumber": 108
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 120
+    },
+    {
+      "setId": "CH",
+      "cardNumber": 59
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 401
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 216
+    },
+    {
+      "setId": "BR",
+      "cardNumber": 34
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 102
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 120
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 460
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 186
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 117
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 104
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 428
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 123
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 284
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 442
+    },
+    {
+      "setId": "RL",
+      "cardNumber": 88
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 282
+    }
+  ]
+}

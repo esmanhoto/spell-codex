@@ -1,0 +1,234 @@
+{
+  "id": "greyhawk_clerics_and_heros",
+  "title": "Greyhawk Clerics & Heros",
+  "authorName": "",
+  "authorEmail": "simon@simondorfman.com",
+  "notes": "champs:\ngreyhawk only,  heros and clerics\ncleric spells:\nmostly defensive so they can be retrieved by Jerome\ncombos:\nTergoz + Romeis",
+  "deckSize": 55,
+  "cards": [
+    {
+      "setId": "CQ",
+      "cardNumber": 44
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 60
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 452
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 25
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 400
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 48
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 34
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 81
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 42
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 283
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 45
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 28
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 29
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 6
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 117
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 31
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 16
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 19
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 9
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 23
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 135
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 99
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 102
+    },
+    {
+      "setId": "PO",
+      "cardNumber": 5
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 134
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 136
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 134
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 136
+    },
+    {
+      "setId": "UD",
+      "cardNumber": 56
+    },
+    {
+      "setId": "NO",
+      "cardNumber": 218
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 48
+    },
+    {
+      "setId": "CQ",
+      "cardNumber": 54
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 257
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 203
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 213
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 213
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 216
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 123
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 101
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 28
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 29
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 401
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 84
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 43
+    },
+    {
+      "setId": "MI",
+      "cardNumber": 44
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 428
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 189
+    },
+    {
+      "setId": "3rd",
+      "cardNumber": 216
+    },
+    {
+      "setId": "AR",
+      "cardNumber": 111
+    },
+    {
+      "setId": "1st",
+      "cardNumber": 157
+    },
+    {
+      "setId": "DU",
+      "cardNumber": 55
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 23
+    },
+    {
+      "setId": "4th",
+      "cardNumber": 284
+    },
+    {
+      "setId": "RR",
+      "cardNumber": 47
+    },
+    {
+      "setId": "FR",
+      "cardNumber": 1
+    },
+    {
+      "setId": "IQ",
+      "cardNumber": 32
+    }
+  ]
+}
