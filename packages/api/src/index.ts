@@ -7,6 +7,7 @@ import { movesRouter } from "./routes/moves.ts"
 import { cardsRouter } from "./routes/cards.ts"
 import { decksRouter } from "./routes/decks.ts"
 import { startDeadlineChecker } from "./deadline.ts"
+import { wsHandlers } from "./ws.ts"
 
 const app = new Hono()
 
@@ -20,6 +21,9 @@ app.use(cors())
 app.get("/health", (c) => c.json({ ok: true }))
 app.route("/cards", cardsRouter)
 app.route("/decks", decksRouter)
+
+// ─── WebSocket upgrade (handled in Bun.serve fetch, not Hono) ────────────────
+// The /ws path is intercepted before Hono in the default export below.
 
 // ─── Authenticated routes ─────────────────────────────────────────────────────
 
@@ -39,5 +43,16 @@ startDeadlineChecker()
 
 export default {
   port,
-  fetch: app.fetch,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  fetch(req: Request, server: any) {
+    // Intercept WebSocket upgrade requests before passing to Hono
+    const url = new URL(req.url)
+    if (url.pathname === "/ws") {
+      const upgraded = server.upgrade(req)
+      if (upgraded) return undefined as unknown as Response
+      return new Response("WebSocket upgrade required", { status: 426 })
+    }
+    return app.fetch(req)
+  },
+  websocket: wsHandlers,
 }

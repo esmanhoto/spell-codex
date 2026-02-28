@@ -1,0 +1,35 @@
+.tracker {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.pill {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  color: var(--text-dim);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(80, 120, 80, 0.2);
+  transition: all 0.2s;
+  font-family: monospace;
+  letter-spacing: 0.03em;
+}
+
+.pill.active {
+  color: #111;
+  background: var(--gold);
+  border-color: var(--gold);
+  font-weight: bold;
+}
+
+.pill.past {
+  color: var(--text-muted);
+  border-color: rgba(80, 120, 80, 0.4);
+}
+
+.arrow {
+  color: var(--text-dim);
+  font-size: 10px;
+  margin: 0 2px;
+}

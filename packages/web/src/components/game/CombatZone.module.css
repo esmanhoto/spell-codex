@@ -1,0 +1,159 @@
+.combat {
+  background: var(--combat-bg);
+  border: 1px solid var(--combat-border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  color: #faa;
+  font-size: 13px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.target {
+  color: var(--gold);
+}
+
+.phase {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.scoreRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 6px 0 14px;
+}
+
+.scoreBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.scoreLarge {
+  font-size: 3rem;
+  font-weight: bold;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  transition: color 0.2s;
+}
+
+.scoreLarge.winning { color: #faa; }
+.scoreLarge.defWinning { color: #7ec8e3; }
+.scoreLarge.losing { color: #444; }
+
+.vs {
+  font-size: 1.5rem;
+  color: var(--combat-border);
+  font-weight: bold;
+}
+
+.sides {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+}
+
+.side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sideAtk { align-items: flex-start; padding-right: 16px; }
+.sideDef { align-items: flex-end; padding-left: 16px; }
+
+.centerDivider {
+  width: 1px;
+  background: var(--combat-border);
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+.sideLabel {
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.75;
+}
+
+.cardsRow {
+  display: flex;
+  gap: 5px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.championImg {
+  width: 60px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 2px solid var(--combat-border);
+}
+
+.extraImg {
+  width: 44px;
+  height: 62px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid #5a3a6a;
+}
+
+.levelDetail {
+  color: #aaa;
+  font-size: 11px;
+}
+
+.levelDetail strong {
+  color: var(--gold);
+  font-size: 13px;
+}
+
+.manualTag {
+  font-size: 10px;
+  color: var(--gold);
+  font-style: italic;
+}
+
+.levelEdit {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  align-items: center;
+}
+
+.levelInput {
+  width: 80px;
+  padding: 3px 6px;
+  font-size: 11px;
+  background: var(--combat-bg);
+  border: 1px solid var(--combat-border);
+  color: #faa;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.setBtn {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: #1a3a6a;
+  color: #7ec8e3;
+  border: 1px solid #2a5a9a;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: monospace;
+}
+
+.setBtn:hover { background: #2a4a8a; }

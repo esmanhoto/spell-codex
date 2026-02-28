@@ -1,0 +1,79 @@
+.hand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 12px 20px;
+  min-height: 180px;
+}
+
+.fan {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  min-height: 160px;
+  flex: 1;
+}
+
+.cardSlot {
+  position: relative;
+  transition: transform 0.2s ease, z-index 0s;
+  margin-left: -20px;
+}
+
+.cardSlot:first-child {
+  margin-left: 0;
+}
+
+/* Own hand: face-up, hoverable */
+.own .cardSlot:hover {
+  transform: translateY(-60px) scale(1.8) rotate(0deg) !important;
+  z-index: var(--z-hover) !important;
+}
+
+.own .cardSlot:hover .cardWrap {
+  box-shadow: 0 0 12px var(--gold-dim), 0 0 0 2px var(--gold);
+  border-radius: 5px;
+}
+
+/* Selected card in hand */
+.cardSlot.selected .cardWrap {
+  box-shadow: 0 0 0 2px var(--gold);
+  border-radius: 5px;
+}
+
+.cardWrap {
+  width: var(--card-hand-w);
+  height: var(--card-hand-h);
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(80, 120, 80, 0.4);
+  transition: box-shadow 0.15s;
+  cursor: pointer;
+  background: #0f1f10;
+}
+
+.cardImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Card back for opponent */
+.cardBack {
+  width: var(--card-hand-w);
+  height: var(--card-hand-h);
+  border-radius: 5px;
+  background: url("/api/cards/cardback.jpg") center/cover no-repeat;
+  border: 1px solid rgba(80, 120, 80, 0.3);
+}
+
+/* Piles on either side */
+.piles {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

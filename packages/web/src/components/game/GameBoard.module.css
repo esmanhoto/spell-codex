@@ -1,0 +1,31 @@
+.table {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg-table);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 14px;
+  position: relative;
+}
+
+.content {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.error {
+  color: #e05;
+  font-size: 13px;
+  padding: 8px 20px;
+  text-align: center;
+}
+
+.overlays {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

@@ -1,0 +1,36 @@
+.pile {
+  position: relative;
+  width: var(--card-pile-w);
+  height: var(--card-pile-h);
+  flex-shrink: 0;
+}
+
+.cardBack {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  background: url("/api/cards/cardback.jpg") center/cover no-repeat;
+  border: 1px solid rgba(80, 120, 80, 0.3);
+  opacity: 0.6;
+}
+
+.count {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-muted);
+  text-shadow: 0 1px 4px #000;
+}
+
+.label {
+  text-align: center;
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

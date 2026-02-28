@@ -267,6 +267,7 @@ enum CardTypeId {
   WizardSpell   = 19,
   Wizard        = 20,  // Champion subtype
   Dungeon       = 21,
+  Champion      = 22   // Meta
 }
 
 // Champion subtypes: 5, 7, 10, 12, 14, 16, 20
@@ -494,41 +495,36 @@ This is extended over time as more effects are promoted from Tier 2 to Tier 1.
 
 ```ts
 type CardEffect =
-  // Combat stat modifications
+  // ── Group A · Combat level modifications ─────────────────────────────────
   | { type: "LEVEL_BONUS";         value: number; condition?: EffectCondition }
   | { type: "LEVEL_BONUS_VS";      value: number; targetAttribute: string }  // e.g. "+3 vs Undead"
-  | { type: "NEGATE_ALLY_BONUS" }                   // Some spells nullify ally bonuses
-  | { type: "SET_LEVEL";           value: number }  // Fix champion at exact level
+  | { type: "LEVEL_BONUS_VS_TYPE"; value: number; typeId: number }           // e.g. "+2 vs monsters (typeId 10)"
 
-  // Card access / spell permissions
-  | { type: "GRANT_SPELL_ACCESS";  spellTypeId: CardTypeId; window: "offense" | "defense" | "both" }
-  | { type: "REVOKE_SPELL_ACCESS"; spellTypeId: CardTypeId }
+  // ── Group A · Spell access ────────────────────────────────────────────────
+  | { type: "GRANT_SPELL_ACCESS";  spellTypeId: number; window: "offense" | "defense" | "both" }
 
-  // World bonus — automatic, Tier 1, always applied
-  // (not a CardEffect — applied directly in calculateCombatLevel)
-  // +3 to adjusted level when champion's world === target realm's world
-
-  // Immunity
-  // Default: immunity applies to OFFENSIVE powers only (per official rules).
-  // A defensive immunity must be explicitly specified via scope: "defensive".
+  // ── Group A · Immunity ────────────────────────────────────────────────────
+  // World bonus (+3 when champion.worldId === realm.worldId) is automatic — not a CardEffect.
   | { type: "IMMUNE_TO_SPELLS";    scope?: "offensive" | "defensive" | "both" }
-  | { type: "IMMUNE_TO_ATTRIBUTE"; attribute: string; scope?: "offensive" | "defensive" | "both" }
-  | { type: "IMMUNE_TO_TYPE";      typeId: CardTypeId; scope?: "offensive" | "defensive" | "both" }
+  | { type: "IMMUNE_TO_ATTRIBUTE"; attribute: string }
+  | { type: "IMMUNE_TO_ALL_MAGIC" }
 
-  // Card draw / hand effects
+  // ── Group A · Card draw / hand ────────────────────────────────────────────
   | { type: "DRAW_CARD";           count: number }
   | { type: "DISCARD_CARD";        target: "self" | "opponent"; count: number }
-  | { type: "RETURN_TO_HAND";      target: "self" }
 
-  // Realm effects
-  | { type: "EXTRA_REALM_PLAY";    count: number }
-  | { type: "REALM_UNTARGETABLE" }                  // Realm cannot be attacked this turn
-  | { type: "HOLDING_BONUS";       value: number }  // Holding adds to realm defense
+  // ── Group A · Combat bonus ────────────────────────────────────────────────
+  // typeIds: which card types benefit; typeId 0 = all, 1 = Ally, [5,7,10,12,14,16,20] = champions
+  | { type: "COMBAT_BONUS";        value: number; typeIds: number[] }
 
-  // Card lifecycle
-  | { type: "DISCARD_AFTER_USE" }
-  | { type: "DISCARD_AFTER_COMBAT" }
-  | { type: "PERMANENT" }                           // Card stays in play indefinitely
+  // ── Group B · Passive / structural ───────────────────────────────────────
+  | { type: "HAND_SIZE_BONUS";           count: number }
+  | { type: "DRAW_PER_TURN";             count: number }
+  | { type: "DRAW_ON_REALM_PLAY";        count: number }
+  | { type: "REALM_GRANTS_SPELL_ACCESS"; spellTypeId: number; window: "offense" | "defense" | "both" }
+  | { type: "NEGATE_ITEM_BONUS" }
+  | { type: "RESTRICTED_ATTACKERS";      attribute?: string; typeId?: number }
+  | { type: "REALM_SELF_DEFENDS";        level: number; typeId: number }
 
 type EffectCondition =
   | { when: "attacking" }
@@ -1086,8 +1082,8 @@ Effects fall into four groups based on engine implementation difficulty.
 
 ### Group A — Already expressible with current `CardEffect` types
 
-These effects can be populated into `effects/1st.json` immediately once extraction
-is complete. No engine changes required.
+These effects can be populated directly into the `effects[]` array inside `cards/1st.json`
+immediately once extraction is complete. No engine changes required.
 
 | Pattern | `CardEffect` encoding | Example cards |
 |---------|----------------------|---------------|
@@ -1095,17 +1091,13 @@ is complete. No engine changes required.
 | +N (Def) ally/item | `LEVEL_BONUS { value, condition: { when:"defending" } }` | Shield of Destruction, Magical Barding |
 | +N always | `LEVEL_BONUS { value }` | Banner of the One-Eyed God |
 | +N vs attribute | `LEVEL_BONUS_VS { value, targetAttribute }` | Staff of Striking (+3 vs clerics), Magic Sword (+5 vs undead) |
-| +N vs champion type | `LEVEL_BONUS_VS { value, targetAttribute }` (use typeId-named attr) | Bruenor (+2 vs monsters), Vargas (+3 vs monsters) |
 | Draw N cards | `DRAW_CARD { count }` | Good Fortune, Temple of Elemental Evil |
 | Discard N cards | `DISCARD_CARD { target, count }` | Transformation! |
-| Return to hand | `RETURN_TO_HAND { target:"self" }` | Raise Dead (with condition) |
 | Spell access for champion | `GRANT_SPELL_ACCESS { spellTypeId, window }` | Dracolich (wizard), Harpers (both) |
 | Immune to offensive spells | `IMMUNE_TO_SPELLS { scope:"offensive" }` | Elminster, Alias the Sell-Sword |
-| Immune to attribute | `IMMUNE_TO_ATTRIBUTE { attribute, scope }` | Treants (vs wizard spells) |
-| Immune to card type | `IMMUNE_TO_TYPE { typeId, scope }` | Various champions |
-| Discard after use | `DISCARD_AFTER_USE` | Potion of Fire-Breathing |
-| Holding defense bonus | `HOLDING_BONUS { value }` | Fortifications, Arms of Nyrond |
-| Negate ally bonuses | `NEGATE_ALLY_BONUS` | Various |
+| Immune to attribute | `IMMUNE_TO_ATTRIBUTE { attribute }` | Treants (vs wizard spells) |
+| Immune to all magic | `IMMUNE_TO_ALL_MAGIC` | Gib Htimsen, Gib Evets |
+| Defender/ally combat bonus | `COMBAT_BONUS { value, typeIds }` | Fortifications (all defenders: `typeIds:[0]`), Moonshae (allies: `typeIds:[1]`) |
 
 **Note on attributes:** "Flyer.", "Undead.", "Dwarf.", race tags etc. are already stored in
 `CardData.attributes[]` extracted from the TCL file. They do **not** need a `CardEffect`
@@ -1124,33 +1116,27 @@ Small, deterministic additions to the TypeScript union. Each type needs:
 
 | New type | Fields | When applied | Example cards |
 |----------|--------|--------------|---------------|
-| `HAND_SIZE_BONUS` | `count: number` | Passive while realm/holding in formation | Myth Drannor (+1), The Great Kingdom (+2), Mud Palace (+2) |
-| `DRAW_PER_TURN` | `count: number` | Start-of-turn draw phase, while realm in formation | Arkhold (+1/turn), Mulmaster (on spell played) |
+| `HAND_SIZE_BONUS` | `count: number` | Passive — scanned at start of each turn across all cards in play | Myth Drannor (+1), The Great Kingdom (+2), Mud Palace (+2) |
+| `DRAW_PER_TURN` | `count: number` | Start-of-turn draw — scanned across all cards in play | Arkhold (+1/turn), Mulmaster (on spell played) |
 | `DRAW_ON_REALM_PLAY` | `count: number` | When this realm card is placed | Haunted Hall of Eveningstar, Temple of Elemental Evil |
-| `REALM_GRANTS_SPELL_ACCESS` | `spellTypeId: number; window: "offense"\|"defense"\|"both"` | Passive: any champion defending this realm gains spell access | Waterdeep (wizard, both), Shadowdale (cleric, both), Evermeet (wizard) |
-| `LEVEL_BONUS_VS_TYPE` | `value: number; typeId: number` | In combat | "+3 vs monsters" where monsters = typeId 10 |
-| `IMMUNE_TO_ALL_MAGIC` | `scope: "offensive"\|"defensive"\|"both"` | In combat | Gib Htimsen, Gib Evets (magic-resistant) |
-| `NEGATE_ITEM_BONUS` | _(none)_ | In combat | Midnight (destroys opponent items), Codex of Infinite Planes |
-| `EXTRA_REALM_SLOT` | `count: number` | Pool phase, expands formation size | Rare expansion cards |
-| `MONSTERS_CANT_ATTACK` | _(none)_ | Combat declaration, while holding in formation | Arms of Nyrond, Orb of Dragonkind |
+| `REALM_GRANTS_SPELL_ACCESS` | `spellTypeId: number; window: "offense"\|"defense"\|"both"` | Passive: any champion at this realm gains spell access | Waterdeep (wizard, defense), Shadowdale (cleric+wizard, defense), Evermeet (wizard) |
+| `LEVEL_BONUS_VS_TYPE` | `value: number; typeId: number` | In combat | "+3 vs monsters" (typeId 10) — Bruenor, Vargas |
+| `NEGATE_ITEM_BONUS` | _(none)_ | In combat, negates opponent's magical item level bonuses | Dwarven Hammer, Codex of Infinite Planes |
+| `RESTRICTED_ATTACKERS` | `attribute?: string; typeId?: number` | Combat declaration — some attacker type cannot attack this realm | Pirate Isles (Flyers), Arms of Nyrond (Monsters typeId:10) |
+| `REALM_SELF_DEFENDS` | `level: number; typeId: number` | If no champion defends, realm acts as champion of given level/type | Arabel (level 4 Monster), Zhentil Keep (level 5 Cleric) |
 
-**Open design question — passive effects outside combat:**
-Effects like `HAND_SIZE_BONUS` and `DRAW_PER_TURN` fire at the turn boundary or phase
-boundary, not inside `calculateCombatLevel`. Two options:
+**Decision — passive effects outside combat:**
+Passive effects like `HAND_SIZE_BONUS` and `DRAW_PER_TURN` are evaluated by a **dynamic
+scan at phase boundaries** (start of turn and phase 5 hand-limit check). No dedicated
+`PlayerState` fields are added.
 
-> **Option A — Dedicated `PlayerState` fields**: Add `handSizeBonus: number`,
-> `extraDrawPerTurn: number` etc. to `PlayerState`. The engine scans formation/holding
-> for these effects when a realm is placed or razed, and updates the fields.
-> Pros: fast, explicit. Cons: each new passive type needs a new state field.
->
-> **Option B — Dynamic scan at phase triggers**: At start-of-turn draw and phase 5
-> hand-limit checks, scan all formations for `HAND_SIZE_BONUS` and `DRAW_PER_TURN`
-> effects and apply them on the fly. No new state fields needed.
-> Pros: fully declarative, no proliferation of state fields. Cons: slightly more work
-> per phase evaluation.
->
-> **Recommendation: Option B for simplicity** — the scan is O(#realms × #effects)
-> which is trivially fast. Avoids state synchronization bugs when realms are razed.
+The scan covers **every card currently in play for that player**:
+- All formation slots (realms) and their attached holdings
+- All pool champions and their attachments (magical items, artifacts)
+
+This is necessary because champions and magical items can also carry passive bonuses
+(not only realms). The scan is O(cards-in-play) — trivially fast in practice.
+No state synchronization bugs when realms are razed or champions are discarded.
 
 **Estimated additional coverage:** +18% → ~58% total.
 
@@ -1161,19 +1147,20 @@ boundary, not inside `calculateCombatLevel`. Two options:
 These need deeper engine integration: new state tracking, modified combat flow, or
 interactions across multiple game objects. Implement one at a time with tests.
 
-| New type | Fields | Description | Example cards |
-|----------|--------|-------------|---------------|
-| `LEVEL_DOUBLED_DEFENDING` | `condition?: EffectCondition` | Double the defending champion's level if condition met | Damara (doubles FR champion), South Ledopolus |
-| `AURA_LEVEL_BONUS` | `value: number` | +N to ALL allied allies currently in combat | King Azoun IV, Charge! event |
-| `LEVEL_BONUS_PER_ALLY` | `value: number` | +N for each friendly ally in combat | Aurum Gold Dragon |
-| `REALM_SELF_DEFENDS` | `level: number; typeId: number` | Realm counts as a champion of given level/type if no champion defends | Zhentil Keep (level 5 cleric) |
-| `MUST_DEFEAT_TWICE` | _(none)_ | Champion is not discarded on first defeat; second defeat in same battle discards | Drizzt Do'Urden |
-| `STEAL_ALLY` | `count: number` | Shift N opponent allies to your side during combat round | Maligor the Red, Mind Flayer |
-| `WALL_BARRIER` | `crossCondition: "flyer_only"\|"min_level"; minLevel?: number` | Spell creates a wall; only flyers (or level ≥ N) can attack across it | Wall of Fire, Wall of Iron, Wall of Thorns |
-| `DESTROY_ALL_ATTRIBUTE` | `attribute: string; scope: "global"\|"offensive"\|"defensive"` | Immediately destroy all cards bearing the attribute | Wind Dancers (flyers), Water Hunters (undead), Holy Word (undead) |
-| `SURVIVE_DEFEAT_RETURN` | `destination: "pool"\|"hand"` | Instead of being discarded after combat loss, return to pool/hand | Labyrinth Map of Shuuc artifact |
-| `LEVEL_BONUS_AT_REALM` | `realmCardNumber: number; setId: string; value: number` | +N bonus when defending the named realm | Drow Matron (+3 at Menzoberranzan), Torg (+doubled at Great Rift) |
-| `IMMUNE_TO_MONSTERS` | _(none)_ | Champion cannot be attacked or harmed by monsters | King of the Elves |
+| New type | Fields | Description | ~Cards | Example cards |
+|----------|--------|-------------|--------|---------------|
+| `DESTROY_ATTACHMENT` | `scope: "opponent_item"\|"opponent_holding"\|"any_item"` | Destroys one or more attached items/holdings from a champion or realm | ~33 | Icewind Dale (discard magic item), Midnight, Crime Lord |
+| `LEVEL_PENALTY` | `value: number; condition?: EffectCondition` | Champion loses N levels during combat | ~8 | Anauroch, Peasant Militia, Mind Flayer |
+| `AURA_LEVEL_BONUS` | `value: number` | +N to ALL allied allies currently in combat | ~15 | King Azoun IV, Charge! event |
+| `MUST_DEFEAT_TWICE` | _(none)_ | Champion is not discarded on first defeat; second defeat in same battle discards | ~17 | Drizzt Do'Urden, Amarill, Lolth |
+| `STEAL_ALLY` | `count: number` | Shift N opponent allies to your side during combat round | ~5 | Maligor the Red, Mind Flayer |
+| `WALL_BARRIER` | `crossCondition: "flyer_only"\|"min_level"; minLevel?: number` | Spell creates a wall; only flyers (or level ≥ N) can attack across it | ~5 | Wall of Fire, Wall of Iron, Wall of Thorns |
+| `DESTROY_ALL_ATTRIBUTE` | `attribute: string; scope: "global"\|"offensive"\|"defensive"` | Immediately destroy all cards bearing the attribute | ~5 | Wind Dancers (flyers), Holy Word (undead) |
+| `SURVIVE_DEFEAT_RETURN` | `destination: "pool"\|"hand"` | Instead of being discarded after combat loss, return to pool/hand | ~3 | Labyrinth Map of Shuuc artifact |
+| `LEVEL_DOUBLED_DEFENDING` | `condition?: EffectCondition` | Double the defending champion's level if condition met | ~3 | Damara (doubles FR champion), South Ledopolus |
+| `LEVEL_BONUS_PER_ALLY` | `value: number` | +N for each friendly ally in combat | ~3 | Aurum Gold Dragon |
+| `LEVEL_BONUS_AT_REALM` | `realmCardNumber: number; setId: string; value: number` | +N bonus when defending the named realm | ~3 | Drow Matron (+3 at Menzoberranzan) |
+| `IMMUNE_TO_MONSTERS` | _(none)_ | Champion cannot be attacked or harmed by monsters | ~2 | King of the Elves |
 
 **Estimated additional coverage:** +22% → ~80% total.
 
@@ -1201,68 +1188,84 @@ rare enough that the manual fallback suffices for a long time.
 ### Source
 `CrossFire READONLY/DataBase/1st.tcl` — already parsed into `packages/data/cards/1st.json`.
 The `description` field of each card record contains plain-English rules text.
-The `attributes` field contains tags like `{Flyer.}`, `{Undead.}`, `{Dwarf.}` etc.
+The `attributes` field contains tags like `Flyer`, `Undead`, `Dwarf` etc.
 
-### Recommended approach: LLM-assisted extraction with human review
+### Approach: Chat-based LLM extraction with a versioned prompt file
 
-**Script: `packages/data/src/extract-effects.ts`**
+**Two artefacts:**
 
 ```
-Input:  packages/data/cards/1st.json
-Output: packages/data/effects/1st.json
+packages/data/prompts/extract-effects.md   ← versioned prompt (human-editable)
+packages/data/src/validate-effects.ts      ← Zod-based schema validator
 ```
 
-For each card with a non-empty `description`:
-1. Call the Claude API (claude-sonnet-4-6) with a structured prompt containing:
-   - The card name, type, level, and description text
-   - The full `CardEffect` TypeScript union definition
-   - 5–10 worked examples (few-shot)
-   - Instruction to output `{ trigger: EffectTrigger, effects: CardEffect[] }[]`
-2. Validate the JSON output against the TypeScript schema (using `zod`)
-3. Flag cards where the LLM returned no effects but the description is non-empty
-4. Write validated specs to `effects/1st.json`
+**`extract-effects.md`** contains everything the LLM needs to produce correct output:
+- Task instructions and output format rules
+- The `CardEffect` TypeScript union (Groups A + B only; trimmed to types with ≥2 confirmed occurrences in the target set)
+- 20+ worked few-shot examples covering all Group A + B patterns
+- A list of Group C/D patterns to leave as `effects: []` rather than guess
 
-**Human review pass**: Review the ~20% flagged cards manually.
-Cards with Group C/D effects get placeholder `effects: []` (stays as Tier 2 fallback) until
-the engine supports the required type.
+**Workflow:**
+1. Open a Claude chat session (claude.ai or similar)
+2. Paste the contents of `prompts/extract-effects.md` as context
+3. Attach / paste the target `cards/{setId}.json` (or a ~100-card slice of it)
+4. The LLM fills in `effects[]` for each card and returns the modified JSON
+5. Paste the result back into the file
+6. Run `bun run src/validate-effects.ts` to confirm the output is schema-valid
+7. Repeat for the next batch or next edition
 
-**Accuracy expectation:**
-- Group A effects: ~95% accuracy (simple, formulaic descriptions)
-- Group B effects: ~80% accuracy (some ambiguity in phrasing)
-- Group C effects: ~50% (complex, needs human review)
-- Group D effects: excluded entirely from first extraction pass
+When the prompt improves, edit the `.md` file and re-run with a new chat session — no code changes needed. The prompt version number in the header makes it easy to track which version produced which outputs.
 
-### Output format
+**`validate-effects.ts`** does:
+1. Read `cards/{setId}.json` (default: `cards/1st.json`)
+2. For every card, validate that each entry in `effects[]` matches the Zod schema
+3. Report invalid effects by card number + card name + path + error message
+4. Exit with code 1 if any validation fails
+
+**Why in-place editing of `cards/1st.json` (not a separate file):**
+Effects are part of `CardData` and ship inside each player's `deckSnapshot` at game start.
+A separate lookup file would require runtime joins. Inline is simpler and already supported
+by the engine's `CardData.effects[]` field. Re-running `extract-cards.ts` would overwrite
+effects, but that script only needs to run when the upstream TCL data changes (rare;
+1st edition is a fixed historical set).
+
+**Human review pass**: After LLM output, scan for cards that received `effects: []` despite
+having non-trivial description text — those are candidates for Group C/D or for improving
+the prompt. Cards with unsupported Group C/D effects stay as `effects: []` (Tier 2 fallback)
+until the engine adds the required type.
+
+**Accuracy expectation (Groups A + B only):**
+- Group A effects: ~95% (simple, formulaic patterns)
+- Group B effects: ~85% (slightly more phrasing variation)
+- Group C/D effects: left as `[]` by design
+
+### Target output (inline in `cards/1st.json`)
 
 ```jsonc
-// packages/data/effects/1st.json
-[
-  {
-    "cardRef": { "setId": "1st", "cardNumber": 1 },   // Waterdeep
-    "trigger": "PASSIVE",
-    "effects": [
-      { "type": "REALM_GRANTS_SPELL_ACCESS", "spellTypeId": 19, "window": "both" }
-    ]
-  },
-  {
-    "cardRef": { "setId": "1st", "cardNumber": 54 },  // War Party (+4 Off)
-    "trigger": "PASSIVE",
-    "effects": [
-      { "type": "LEVEL_BONUS", "value": 4, "condition": { "when": "attacking" } }
-    ]
-  },
-  {
-    "cardRef": { "setId": "1st", "cardNumber": 28 },  // Haunted Hall of Eveningstar
-    "trigger": "ON_PLAY",
-    "effects": [
-      { "type": "DRAW_ON_REALM_PLAY", "count": 1 }
-    ]
-  }
-]
-```
+// cards/1st.json — card #1 after extraction
+{
+  "setId": "1st", "cardNumber": 1, "name": "Waterdeep",
+  "typeId": 13, "description": "Any champion can use wizard spells when defending Waterdeep.",
+  // ... other fields unchanged ...
+  "effects": [
+    { "type": "REALM_GRANTS_SPELL_ACCESS", "spellTypeId": 19, "window": "defense" }
+  ]
+}
 
-Cards with no extractable Tier 1 effect (Group D) are simply omitted from the file.
-The engine falls back to `requiresManualResolution` for those.
+// card #54 — War Party (+4 Off ally)
+{
+  "effects": [
+    { "type": "LEVEL_BONUS", "value": 4, "condition": { "when": "attacking" } }
+  ]
+}
+
+// card #28 — Haunted Hall of Eveningstar
+{
+  "effects": [
+    { "type": "DRAW_ON_REALM_PLAY", "count": 1 }
+  ]
+}
+```
 
 ---
 
@@ -1278,10 +1281,17 @@ of current Tier 2 fallbacks with zero engine code changes.
 
 1. Add new `CardEffect` union variants (TypeScript)
 2. In `handlePlayRealm`: scan the new realm's `effects` for `DRAW_ON_REALM_PLAY` and apply
-3. In `handlePass` (start of turn / draw phase): scan player's formation for `DRAW_PER_TURN` and `HAND_SIZE_BONUS` effects; apply draw and pass updated hand-size limit forward
-4. In `getPoolMoves` / phase 5 discard check: use computed hand-size limit that accounts for `HAND_SIZE_BONUS`
-5. In `getCombatDeclarationMoves`: check for `MONSTERS_CANT_ATTACK` / wall effects
-6. In `calculateCombatLevel`: add handlers for `LEVEL_BONUS_VS_TYPE`, `IMMUNE_TO_ALL_MAGIC`, `NEGATE_ITEM_BONUS`
+3. Add a helper `collectPassiveEffects(player: PlayerState): CardEffect[]` that gathers all
+   effects from every card currently in play for that player:
+   - Formation slots (realm cards)
+   - Holdings on each realm slot
+   - Pool champion cards
+   - Attachments (magical items, artifacts) on each pool champion
+4. In the draw phase handler: call `collectPassiveEffects` to sum `DRAW_PER_TURN` bonuses
+   and apply extra draws; sum `HAND_SIZE_BONUS` to get the effective max hand size
+5. In the phase 5 discard check: call `collectPassiveEffects` to get effective max hand size
+6. In `getCombatDeclarationMoves`: call `collectPassiveEffects` for `RESTRICTED_ATTACKERS` and `REALM_SELF_DEFENDS`
+7. In `calculateCombatLevel`: add handlers for `LEVEL_BONUS_VS_TYPE`, `IMMUNE_TO_ALL_MAGIC`, `NEGATE_ITEM_BONUS`, `COMBAT_BONUS`
 
 ### Phase 3 — Add Group C types
 
@@ -1291,16 +1301,18 @@ One sub-phase per type. Each gets:
 - At least 2 unit tests (effect active, effect inactive)
 
 Priority order within Group C (highest card count first):
-1. `REALM_SELF_DEFENDS` — affects formation defense legality
-2. `AURA_LEVEL_BONUS` — affects combat math
-3. `WALL_BARRIER` — affects attack legality
-4. `DESTROY_ALL_ATTRIBUTE` — triggers on play
-5. `LEVEL_DOUBLED_DEFENDING` — combat math
-6. `MUST_DEFEAT_TWICE` — combat state tracking
-7. `STEAL_ALLY` — mid-combat state change
-8. `SURVIVE_DEFEAT_RETURN` — post-combat routing
-9. `LEVEL_BONUS_PER_ALLY` — combat math
-10. `LEVEL_BONUS_AT_REALM` — combat math with realm lookup
+1. `DESTROY_ATTACHMENT` (~33 cards) — mid-combat item/holding removal
+2. `MUST_DEFEAT_TWICE` (~17 cards) — combat state tracking
+3. `AURA_LEVEL_BONUS` (~15 cards) — affects combat math
+4. `LEVEL_PENALTY` (~8 cards) — combat math reduction
+5. `WALL_BARRIER` (~5 cards) — affects attack legality
+6. `STEAL_ALLY` (~5 cards) — mid-combat state change
+7. `DESTROY_ALL_ATTRIBUTE` (~5 cards) — triggers on play
+8. `SURVIVE_DEFEAT_RETURN` (~3 cards) — post-combat routing
+9. `LEVEL_DOUBLED_DEFENDING` (~3 cards) — combat math
+10. `LEVEL_BONUS_PER_ALLY` (~3 cards) — combat math
+11. `LEVEL_BONUS_AT_REALM` (~3 cards) — combat math with realm lookup
+12. `IMMUNE_TO_MONSTERS` (~2 cards) — combat immunity
 
 ---
 
@@ -1309,21 +1321,25 @@ Priority order within Group C (highest card count first):
 | Milestone | Work | Cumulative Tier 1 coverage |
 |-----------|------|---------------------------|
 | **Now** | Pure-level allies/items (already handled) | ~17% |
-| **After LLM extraction + Group A wiring** | Populate `effects/1st.json`, no engine changes | ~40% |
-| **After Group B engine work** | Add 9 new types, wire passive effects | ~58% |
-| **After Group C engine work** | Add 11 complex types | ~80% |
+| **After chat extraction + Group A wiring** | Populate `effects[]` via chat prompt, no engine changes | ~40% |
+| **After Group B engine work** | Add 8 new types, wire passive effects | ~58% |
+| **After Group C engine work** | Add 12 complex types (incl. newly found destroy/defeat/penalty) | ~80% |
 | **After Group D (post-MVP)** | Rule cards, triggered effects | ~90%+ |
 
 ---
 
-## 5. Open Questions (Decisions Needed Before Implementation)
+## 5. Decisions Made
 
-| # | Question | Options |
-|---|----------|---------|
-| 1 | **Passive effect evaluation** — how do `HAND_SIZE_BONUS`, `DRAW_PER_TURN` etc. get applied? | (A) Dedicated `PlayerState` fields updated on realm play/raze vs (B) Dynamic scan at phase boundaries. Recommend B. |
-| 2 | **Extraction approach** — automated LLM script vs manual annotation | LLM script recommended for scale (~465 cards × 10+ sets); manual for edge cases |
-| 3 | **Where are effect specs loaded?** — at game start (from `deckSnapshot` card data) or from a separate file looked up at runtime | Recommend: embed inline in `CardData.effects[]` after extraction, not a separate lookup at runtime |
-| 4 | **Multi-set scope** — extract all sets at once or start with 1st edition only? | Start with 1st edition; same pipeline reused for each set |
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | **Passive effect evaluation** | Dynamic scan of all cards in play at phase boundaries (`collectPassiveEffects`). Covers formation realms + holdings + pool champions + attachments. No dedicated `PlayerState` fields. |
+| 2 | **Extraction approach** | Chat-based LLM extraction: paste `prompts/extract-effects.md` + the cards JSON into a Claude chat session; get back the modified JSON; validate with `validate-effects.ts`. No API script. |
+| 3 | **Where effects live** | Inline in `CardData.effects[]` inside `cards/1st.json`. Patched in-place via chat output. No separate effects lookup file at runtime. |
+| 4 | **Multi-set scope** | 1st edition only for now. Same prompt file reused for each additional set when needed. |
+| 5 | **Prompt scope** | Types in `extract-effects.md` are trimmed to types with ≥2 confirmed occurrences in the target edition (verified against the actual card descriptions). Absent/singleton types are excluded from both the prompt and `engine/src/types.ts` until implemented. |
+| 6 | **`COMBAT_BONUS` replaces `HOLDING_BONUS`** | The flat "defenders gain N levels" bonus applies to specific card type categories, not just "holdings". `typeIds: number[]` specifies which card types benefit; typeId 0 = all, 1 = Ally. Previously called `HOLDING_BONUS { value }`. |
+| 7 | **`RESTRICTED_ATTACKERS` replaces `MONSTERS_CANT_ATTACK`** | Generalized to cover any movement type (Flyer, Earthwalker) or card type restriction on who can attack a realm. Use `attribute` for movement types, `typeId` for card type IDs. |
+| 8 | **`REALM_SELF_DEFENDS` promoted to Group B** | Moved from Group C (complex) to Group B (simple passive). Encodes "realm can defend as a level N type-X champion if no champion defends." Realms with a non-null `level` field self-defend implicitly; this effect is only needed for holdings that grant the ability. |
 
 ---
 

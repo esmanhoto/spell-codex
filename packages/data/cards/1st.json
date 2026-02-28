@@ -17,7 +17,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -34,7 +40,12 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "attribute": "Flyer"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -55,7 +66,13 @@
       "o4"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 5,
+        "typeId": 5
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -75,7 +92,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "defense"
+      },
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -130,7 +158,18 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 2,
+        "typeId": 7
+      },
+      {
+        "type": "COMBAT_BONUS",
+        "value": 3,
+        "typeIds": [1]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -148,7 +187,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -182,7 +227,12 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "attribute": "Flyer"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -202,7 +252,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -217,7 +273,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "attribute": "Flyer"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -235,7 +296,17 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      },
+      {
+        "type": "HAND_SIZE_BONUS",
+        "count": 1
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -271,7 +342,13 @@
       1
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 5,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -318,7 +395,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": -1,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -335,7 +418,13 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 1,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -369,7 +458,13 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 4,
+        "typeIds": [10]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -448,7 +543,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "typeIds": 1
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -480,7 +580,12 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "DRAW_ON_REALM_PLAY",
+        "count": 1
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -490,7 +595,7 @@
     "worldId": 1,
     "isAvatar": false,
     "name": "Evermeet",
-    "description": "Any champion can use wiizard spells when defending Evermeet. Flyers cannot attack.",
+    "description": "Any champion can use wizard spells when defending Evermeet. Flyers cannot attack.",
     "rarity": "M",
     "attributes": [],
     "supportIds": [
@@ -498,7 +603,17 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      },
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "attribute": "Flyer"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -528,7 +643,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 3,
+        "typeIds": [5, 20]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -573,7 +694,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 3,
+        "typeIds": [22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -591,7 +718,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -611,7 +744,13 @@
       "o9"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 4,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -626,7 +765,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 2,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -641,7 +786,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 3,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -656,7 +807,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "attribute": "Undead"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -693,7 +849,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeIds": [4, 19],
+        "scope": "offensive"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -715,7 +877,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 1,
+        "typeIds": [1]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -759,7 +927,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeIds": [4, 19],
+        "scope": "offensive"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -851,7 +1025,13 @@
       "o9"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 2,
+        "typeIds": [1]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -875,7 +1055,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 2,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -923,7 +1109,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      },
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -973,7 +1170,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      },
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1036,7 +1244,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 1,
+        "typeIds": [1]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1060,7 +1274,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 4,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1363,7 +1583,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1387,7 +1613,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 3,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1409,7 +1641,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 3,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1455,7 +1693,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 3,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1523,7 +1767,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 4,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1543,7 +1793,18 @@
       "o9"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS",
+        "value": 4,
+        "targetAttribute": "Dragon"
+      },
+      {
+        "type": "LEVEL_BONUS_VS",
+        "value": 4,
+        "targetAttribute": "Undead"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1673,7 +1934,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeIds": [4, 19],
+        "scope": "offensive"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1810,7 +2077,14 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS",
+        "value": 2,
+        "condition": "champion_type",
+        "typeId": 5
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1891,7 +2165,13 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "DRAW_CARD",
+        "count": 5,
+        "target": "self"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1923,7 +2203,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 1,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -1941,7 +2227,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2072,7 +2364,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "defense"
+      },
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2092,7 +2395,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2109,7 +2418,14 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS",
+        "value": 3,
+        "condition": "champion_type",
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2130,7 +2446,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 1,
+        "typeId": 22
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2162,7 +2484,13 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 2,
+        "typeIds": [2, 9]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2211,7 +2539,14 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS",
+        "value": 5,
+        "condition": "champion_type",
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2244,7 +2579,13 @@
       "o4"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2276,7 +2617,16 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "attribute": "Undead"
+      },
+      {
+        "type": "HAND_SIZE_BONUS",
+        "count": 2
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2291,7 +2641,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "DRAW_ON_REALM_PLAY",
+        "count": 3
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2370,7 +2725,12 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "typeId": 7
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2452,7 +2812,13 @@
       "o4"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2486,7 +2852,14 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS",
+        "value": 4,
+        "condition": "champion_type",
+        "typeId": 7
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2548,7 +2921,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": -2,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2563,7 +2942,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 2,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2585,7 +2970,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 5,
+        "typeId": 7
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2603,7 +2994,13 @@
       "o4"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2648,7 +3045,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeIds": [6]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2663,7 +3065,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2678,7 +3085,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 4,
+        "typeIds": [22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2693,7 +3106,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeIds": [4, 19],
+        "scope": "offensive"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2725,7 +3144,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 1,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2807,7 +3232,22 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS",
+        "value": 5,
+        "condition": {
+          "when": "attacking"
+        }
+      },
+      {
+        "type": "LEVEL_BONUS",
+        "value": 2,
+        "condition": {
+          "when": "defending"
+        }
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2852,7 +3292,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS",
+        "value": 3
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2889,7 +3334,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 3,
+        "typeId": 20
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -2959,7 +3410,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      },
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3007,7 +3469,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      },
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3029,7 +3502,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3367,7 +3846,23 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 3,
+        "typeId": 10
+      },
+      {
+        "type": "LEVEL_BONUS_VS",
+        "value": 3,
+        "targetAttribute": "Undead"
+      },
+      {
+        "type": "LEVEL_BONUS_VS",
+        "value": 3,
+        "targetAttribute": "Flyer"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3432,7 +3927,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3613,7 +4114,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_ATTRIBUTE",
+        "attribute": ["Swimmer", "Earthwalker"]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3745,7 +4251,13 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS",
+        "value": 5,
+        "targetAttribute": "Undead"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3760,7 +4272,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS",
+        "value": 3,
+        "targetAttribute": "Flyer"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3871,7 +4389,13 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "DRAW_CARD",
+        "value": 3,
+        "target": "all"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -3991,7 +4515,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 1,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4010,7 +4540,17 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 4,
+        "typeId": 22
+      },
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeId": 1
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4029,7 +4569,17 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "DRAW_PER_TURN",
+        "count": 1
+      },
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 5,
+        "typeId": 7
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4097,7 +4647,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "HAND_SIZE_BONUS",
+        "count": 2
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4152,7 +4707,13 @@
       "o4"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "REALM_GRANTS_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "defense"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4167,7 +4728,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4197,7 +4763,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 1,
+        "typeIds": [1, 22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4212,7 +4784,14 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS",
+        "value": 4,
+        "condition": "champion_type",
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4227,7 +4806,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "DRAW_PER_TURN",
+        "count": 1
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4242,7 +4826,13 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 2,
+        "typeIds": [22]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4257,7 +4847,17 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "attribute": "Flyer"
+      },
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeIds": [4, 19],
+        "scope": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -4332,7 +4932,12 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "COMBAT_BONUS",
+        "value": 5
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -5428,7 +6033,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -5456,7 +6067,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      },
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -5697,7 +6319,13 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -5719,7 +6347,13 @@
       "o4"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "scope": "offensive",
+        "typeIds": [19]
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -5760,7 +6394,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      },
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -6281,7 +6926,15 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS",
+        "value": 2,
+        "condition": {
+          "when": "defending"
+        }
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -6493,7 +7146,12 @@
     ],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_ATTRIBUTE",
+        "attribute": "Undead"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -7041,7 +7699,16 @@
     "attributes": [],
     "supportIds": [],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "typeId": 5
+      },
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "typeId": 20
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -7340,7 +8007,13 @@
       "d102"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeIds": [4, 6, 19],
+        "scope": "offensive"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -7491,7 +8164,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      },
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -7508,7 +8192,17 @@
       1
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "RESTRICTED_ATTACKERS",
+        "attribute": "Swimmer"
+      },
+      {
+        "type": "REALM_SELF_DEFENDS",
+        "level": 6,        
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -7554,7 +8248,18 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 4,
+        "window": "both"
+      },
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -7937,7 +8642,18 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 2,
+        "typeId": 5
+      },
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 2,
+        "typeId": 20
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -7957,7 +8673,13 @@
       "o9"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "IMMUNE_TO_TYPE",
+        "typeIds": [2, 4, 6, 9, 19],
+        "scope": "both"
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -7979,7 +8701,13 @@
       "o18"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "LEVEL_BONUS_VS_TYPE",
+        "value": 4,
+        "typeId": 10
+      }
+    ]
   },
   {
     "setId": "1st",
@@ -8231,6 +8959,12 @@
       "o19"
     ],
     "weight": 1,
-    "effects": []
+    "effects": [
+      {
+        "type": "GRANT_SPELL_ACCESS",
+        "spellTypeId": 19,
+        "window": "both"
+      }
+    ]
   }
 ]

@@ -25,9 +25,7 @@ async function getCardsForSet(setId: string): Promise<Map<number, object>> {
 
 /** GET /decks — list available deck names */
 decksRouter.get("/", async (c) => {
-  const dir   = Bun.file(DECKS_DIR)
   const names = (await Array.fromAsync(
-    // @ts-expect-error — Bun-specific FS iteration
     new Bun.Glob("*.json").scan({ cwd: DECKS_DIR })
   ) as string[])
     .map(f => f.replace(/\.json$/, ""))

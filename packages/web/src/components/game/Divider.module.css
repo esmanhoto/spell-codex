@@ -1,0 +1,57 @@
+.divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  gap: 16px;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), var(--gold), var(--gold-dim), transparent);
+}
+
+.playerLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: #0d1f14;
+  padding: 0 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.center {
+  position: relative;
+  z-index: 1;
+  background: #0d1f14;
+  padding: 0 12px;
+}
+
+.turnInfo {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.winner {
+  font-size: 13px;
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.activeLabel {
+  font-size: 10px;
+  color: #7ec8e3;
+  text-align: center;
+  margin-top: 2px;
+}

@@ -14,6 +14,12 @@ import { calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "./combat.t
 /**
  * Returns all legal moves for the given player in the current state.
  * Called after every applyMove to populate EngineResult.legalMoves.
+ *
+ * Priority chain:
+ * 1. Response window open → only respondingPlayer: PASS_RESPONSE + Events in hand
+ * 2. Pending effects (no response window) → triggering player: SKIP_EFFECT + MANUAL_* + MANUAL_AFFECT_OPPONENT
+ * 3. Active combat → combat-specific moves
+ * 4. Normal phase moves + MANUAL_* for own cards always included on active player's turn
  */
 export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   if (state.winner !== null) return []
@@ -21,17 +27,23 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]
   if (!player) return []
 
-  // If effects are pending, only the triggering player may act (to resolve them)
+  // 1. Response window: only the responding player acts
+  if (state.responseWindow !== null) {
+    if (state.responseWindow.respondingPlayerId !== playerId) return []
+    return getResponseWindowMoves(state, playerId)
+  }
+
+  // 2. Pending effects (no response window): only the triggering player acts
   if (state.pendingEffects.length > 0) {
     return getPendingEffectMoves(state, playerId)
   }
 
-  // During active combat, use combat-specific move set
+  // 3. During active combat, use combat-specific move set
   if (state.combatState) {
     return getCombatMoves(state, playerId)
   }
 
-  // Out-of-combat: only the active player may act
+  // 4. Out-of-combat: only the active player may act
   if (state.activePlayer !== playerId) return []
 
   switch (state.phase) {
@@ -272,6 +284,13 @@ function getDefenderMoves(
     }
   }
 
+  // Self-defending realm — realm can act as its own defender if it has a level
+  const targetSlot = player.formation.slots[combat.targetRealmSlot]
+  if (targetSlot && !targetSlot.isRazed && targetSlot.realm.card.level != null &&
+      !combat.championsUsedThisBattle.includes(targetSlot.realm.instanceId)) {
+    moves.push({ type: "DECLARE_DEFENSE", championId: targetSlot.realm.instanceId })
+  }
+
   return moves
 }
 
@@ -332,6 +351,17 @@ function getCardPlayMoves(
     moves.push(...getEventMoves(player))
   }
 
+  // Either combat participant may set manual level or switch card sides during CARD_PLAY
+  if (isAttacker || isDefender) {
+    moves.push({ type: "MANUAL_SET_COMBAT_LEVEL", playerId, level: attackerLevel })
+    for (const card of combat.attackerCards) {
+      moves.push({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+    }
+    for (const card of combat.defenderCards) {
+      moves.push({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+    }
+  }
+
   return moves
 }
 
@@ -359,8 +389,20 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
 }
 
 /**
+ * Moves available when a response window is open.
+ * Only the responding player acts: PASS_RESPONSE + Events from hand.
+ */
+function getResponseWindowMoves(state: GameState, playerId: PlayerId): Move[] {
+  const player = state.players[playerId]!
+  const moves: Move[] = [{ type: "PASS_RESPONSE" }]
+  moves.push(...getEventMoves(player))
+  return moves
+}
+
+/**
  * Generates resolution moves for the first pending effect.
  * Only the triggering player gets moves; the opponent sees an empty list (they wait).
+ * Includes MANUAL_* moves for full board control.
  */
 function getPendingEffectMoves(state: GameState, playerId: PlayerId): Move[] {
   const effect = state.pendingEffects[0]
@@ -372,27 +414,142 @@ function getPendingEffectMoves(state: GameState, playerId: PlayerId): Move[] {
   // SKIP_EFFECT is always available
   const moves: Move[] = [{ type: "SKIP_EFFECT" }]
 
-  if (effect.targetScope === "none") return moves
+  if (effect.targetScope !== "none") {
+    // Generate RESOLVE_EFFECT moves for each valid target based on scope
+    const combat = state.combatState
+    if (combat) {
+      if (effect.targetScope === "opposing_combat_cards" || effect.targetScope === "any_combat_card") {
+        const opposing = playerId === combat.attackingPlayer
+          ? combat.defenderCards
+          : combat.attackerCards
+        for (const card of opposing) {
+          moves.push({ type: "RESOLVE_EFFECT", targetId: card.instanceId })
+        }
+      }
 
-  // Generate RESOLVE_EFFECT moves for each valid target based on scope
-  const combat = state.combatState
-  if (!combat) return moves  // no combat targets without active combat
-
-  if (effect.targetScope === "opposing_combat_cards" || effect.targetScope === "any_combat_card") {
-    const opposing = playerId === combat.attackingPlayer
-      ? combat.defenderCards
-      : combat.attackerCards
-    for (const card of opposing) {
-      moves.push({ type: "RESOLVE_EFFECT", targetId: card.instanceId })
+      if (effect.targetScope === "own_combat_cards" || effect.targetScope === "any_combat_card") {
+        const own = playerId === combat.attackingPlayer
+          ? combat.attackerCards
+          : combat.defenderCards
+        for (const card of own) {
+          moves.push({ type: "RESOLVE_EFFECT", targetId: card.instanceId })
+        }
+      }
     }
   }
 
-  if (effect.targetScope === "own_combat_cards" || effect.targetScope === "any_combat_card") {
-    const own = playerId === combat.attackingPlayer
-      ? combat.attackerCards
-      : combat.defenderCards
-    for (const card of own) {
-      moves.push({ type: "RESOLVE_EFFECT", targetId: card.instanceId })
+  // Manual board control moves (own cards)
+  moves.push(...getManualOwnMoves(state, playerId))
+
+  // Manual opponent moves — available when effects are pending
+  moves.push(...getManualOpponentMoves(state, playerId))
+
+  return moves
+}
+
+/**
+ * Generates MANUAL_* moves for a player's own board.
+ * These give the player full control to execute card effects manually.
+ */
+function getManualOwnMoves(state: GameState, playerId: PlayerId): Move[] {
+  const player = state.players[playerId]!
+  const moves: Move[] = []
+
+  // MANUAL_DISCARD: any card in hand, pool (champion+attachments), formation holdings
+  for (const card of player.hand) {
+    moves.push({ type: "MANUAL_DISCARD", cardInstanceId: card.instanceId })
+  }
+  for (const entry of player.pool) {
+    moves.push({ type: "MANUAL_DISCARD", cardInstanceId: entry.champion.instanceId })
+    for (const att of entry.attachments) {
+      moves.push({ type: "MANUAL_DISCARD", cardInstanceId: att.instanceId })
+    }
+  }
+  for (const realmSlot of Object.values(player.formation.slots)) {
+    if (!realmSlot) continue
+    for (const h of realmSlot.holdings) {
+      moves.push({ type: "MANUAL_DISCARD", cardInstanceId: h.instanceId })
+    }
+  }
+
+  // MANUAL_TO_LIMBO: pool champions
+  for (const entry of player.pool) {
+    moves.push({ type: "MANUAL_TO_LIMBO", cardInstanceId: entry.champion.instanceId })
+  }
+
+  // MANUAL_TO_ABYSS: same scope as MANUAL_DISCARD
+  for (const card of player.hand) {
+    moves.push({ type: "MANUAL_TO_ABYSS", cardInstanceId: card.instanceId })
+  }
+  for (const entry of player.pool) {
+    moves.push({ type: "MANUAL_TO_ABYSS", cardInstanceId: entry.champion.instanceId })
+    for (const att of entry.attachments) {
+      moves.push({ type: "MANUAL_TO_ABYSS", cardInstanceId: att.instanceId })
+    }
+  }
+
+  // MANUAL_TO_HAND: discard and abyss
+  for (const card of player.discardPile) {
+    moves.push({ type: "MANUAL_TO_HAND", cardInstanceId: card.instanceId })
+  }
+  for (const card of player.abyss) {
+    moves.push({ type: "MANUAL_TO_HAND", cardInstanceId: card.instanceId })
+  }
+
+  // MANUAL_RAZE_REALM: own unrazed realms
+  for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+    if (realmSlot && !realmSlot.isRazed) {
+      moves.push({ type: "MANUAL_RAZE_REALM", slot: slot as FormationSlot })
+    }
+  }
+
+  // MANUAL_DRAW_CARDS: draw 1 (standard single-draw action)
+  if (player.drawPile.length > 0) {
+    moves.push({ type: "MANUAL_DRAW_CARDS", count: 1 })
+  }
+
+  // MANUAL_RETURN_TO_POOL: champions in discard pile
+  for (const card of player.discardPile) {
+    if (isChampionType(card.card.typeId)) {
+      moves.push({ type: "MANUAL_RETURN_TO_POOL", cardInstanceId: card.instanceId })
+    }
+  }
+
+  return moves
+}
+
+/**
+ * Generates MANUAL_AFFECT_OPPONENT moves for opponent's cards.
+ * Only offered when a pending effect is active (triggering player executes effect).
+ */
+function getManualOpponentMoves(state: GameState, playerId: PlayerId): Move[] {
+  const opponentId = state.playerOrder.find(id => id !== playerId)
+  if (!opponentId) return []
+  const opponent = state.players[opponentId]!
+  const moves: Move[] = []
+
+  // Discard / to_abyss: opponent's hand
+  for (const card of opponent.hand) {
+    moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: card.instanceId, action: "discard" })
+    moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: card.instanceId, action: "to_abyss" })
+  }
+  for (const entry of opponent.pool) {
+    // to_limbo only applies to champions
+    moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: entry.champion.instanceId, action: "to_limbo" })
+    // discard/to_abyss applies to champion and attachments
+    for (const action of (["discard", "to_abyss"] as const)) {
+      moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: entry.champion.instanceId, action })
+      for (const att of entry.attachments) {
+        moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: att.instanceId, action })
+      }
+    }
+  }
+
+  // Raze realm: opponent's unrazed formation slots
+  for (const [slot, realmSlot] of Object.entries(opponent.formation.slots)) {
+    if (realmSlot && !realmSlot.isRazed) {
+      moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: realmSlot.realm.instanceId, action: "raze_realm" })
+      void slot  // slot info is recoverable from the cardInstanceId
     }
   }
 

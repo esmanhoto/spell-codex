@@ -1,0 +1,76 @@
+.pile {
+  position: relative;
+  width: var(--card-pile-w);
+  height: var(--card-pile-h);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.cardBack {
+  position: absolute;
+  width: var(--card-pile-w);
+  height: var(--card-pile-h);
+  border-radius: 5px;
+  background: url("/api/cards/cardback.jpg") center/cover no-repeat;
+  border: 1px solid rgba(80, 120, 80, 0.4);
+}
+
+.cardBack:nth-child(1) { top: 4px; left: 4px; }
+.cardBack:nth-child(2) { top: 2px; left: 2px; }
+.cardBack:nth-child(3) { top: 0; left: 0; }
+
+.count {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--gold);
+  text-shadow: 0 1px 4px #000;
+  z-index: 10;
+}
+
+.label {
+  text-align: center;
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pile:hover .cardBack:nth-child(3) {
+  border-color: var(--gold-dim);
+}
+
+.drawInput {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-overlay);
+  display: flex;
+  gap: 4px;
+  background: #111;
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.drawInput input {
+  width: 50px;
+  padding: 2px 4px;
+  font-size: 11px;
+  background: #1a1a2e;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.drawInput button {
+  font-size: 10px;
+  padding: 2px 8px;
+}

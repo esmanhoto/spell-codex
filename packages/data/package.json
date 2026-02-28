@@ -9,10 +9,14 @@
     "extract:formats": "bun run src/extract-formats.ts",
     "extract:decks": "bun run src/extract-decks.ts",
     "copy:images": "bun run src/copy-images.ts",
+    "validate:effects": "bun run src/validate-effects.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "^1.3.9",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
   }
 }

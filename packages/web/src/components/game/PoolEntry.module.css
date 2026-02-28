@@ -1,0 +1,17 @@
+.entry {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.entry.dragOver {
+  outline: 2px dashed var(--gold);
+  outline-offset: 2px;
+}
+
+.stack {
+  position: relative;
+}
+
+.stackCard {
+  position: absolute;
+}

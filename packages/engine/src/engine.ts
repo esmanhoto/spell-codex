@@ -1,8 +1,8 @@
 import type {
   GameState, GameEvent, Move, EngineResult,
   PlayerId, CardInstanceId, FormationSlot,
-  CombatState, PoolEntry, LimboEntry,
-  PendingEffect,
+  CombatState, CardInstance, PoolEntry, LimboEntry,
+  PendingEffect, ResponseWindow, ManualAction,
 } from "./types.ts"
 import { Phase } from "./types.ts"
 import { CardTypeId, HAND_SIZES } from "./constants.ts"
@@ -105,6 +105,39 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "SKIP_EFFECT":
       newState = handleSkipEffect(state, playerId, events)
       break
+    case "PASS_RESPONSE":
+      newState = handlePassResponse(state, playerId, events)
+      break
+    case "MANUAL_DISCARD":
+      newState = handleManualDiscard(state, playerId, move, events)
+      break
+    case "MANUAL_TO_LIMBO":
+      newState = handleManualToLimbo(state, playerId, move, events)
+      break
+    case "MANUAL_TO_ABYSS":
+      newState = handleManualToAbyss(state, playerId, move, events)
+      break
+    case "MANUAL_TO_HAND":
+      newState = handleManualToHand(state, playerId, move, events)
+      break
+    case "MANUAL_RAZE_REALM":
+      newState = handleManualRazeRealm(state, playerId, move, events)
+      break
+    case "MANUAL_DRAW_CARDS":
+      newState = handleManualDrawCards(state, playerId, move, events)
+      break
+    case "MANUAL_RETURN_TO_POOL":
+      newState = handleManualReturnToPool(state, playerId, move, events)
+      break
+    case "MANUAL_AFFECT_OPPONENT":
+      newState = handleManualAffectOpponent(state, playerId, move, events)
+      break
+    case "MANUAL_SET_COMBAT_LEVEL":
+      newState = handleManualSetCombatLevel(state, playerId, move, events)
+      break
+    case "MANUAL_SWITCH_COMBAT_SIDE":
+      newState = handleManualSwitchCombatSide(state, playerId, move, events)
+      break
     default:
       throw new EngineError("UNKNOWN_MOVE", `Unrecognised move type`)
   }
@@ -119,6 +152,28 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
 // ─── Out-of-turn validation ───────────────────────────────────────────────────
 
 function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move): boolean {
+  // Response window: the responding player acts (even though they may not be activePlayer
+  // in normal turns). Validate that here.
+  if (state.responseWindow !== null) {
+    if (state.responseWindow.respondingPlayerId === playerId) {
+      return move.type === "PASS_RESPONSE" || move.type === "PLAY_EVENT"
+    }
+  }
+
+  // Pending effects (no response window): triggering player acts
+  if (state.pendingEffects.length > 0 && state.responseWindow === null) {
+    const effect = state.pendingEffects[0]!
+    if (effect.triggeringPlayerId === playerId) {
+      const manualMoveTypes = new Set([
+        "SKIP_EFFECT", "RESOLVE_EFFECT",
+        "MANUAL_DISCARD", "MANUAL_TO_LIMBO", "MANUAL_TO_ABYSS",
+        "MANUAL_TO_HAND", "MANUAL_RAZE_REALM", "MANUAL_DRAW_CARDS",
+        "MANUAL_RETURN_TO_POOL", "MANUAL_AFFECT_OPPONENT",
+      ])
+      return manualMoveTypes.has(move.type)
+    }
+  }
+
   const combat = state.combatState
   if (!combat) return false
 
@@ -133,7 +188,9 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
     return (
       move.type === "PLAY_COMBAT_CARD" ||
       move.type === "STOP_PLAYING" ||
-      move.type === "PLAY_EVENT"
+      move.type === "PLAY_EVENT" ||
+      move.type === "MANUAL_SET_COMBAT_LEVEL" ||
+      move.type === "MANUAL_SWITCH_COMBAT_SIDE"
     )
   }
 
@@ -190,7 +247,6 @@ function handlePass(state: GameState, playerId: PlayerId, events: GameEvent[]): 
       events.push({ type: "TURN_ENDED", playerId })
       let s = { ...state, phase: Phase.EndTurn }
       s = checkZeroRealmCondition(s, events)
-      s = checkWinCondition(s, events)
 
       if (s.winner) return s
 
@@ -205,6 +261,8 @@ function handlePass(state: GameState, playerId: PlayerId, events: GameEvent[]): 
       }
       events.push({ type: "TURN_STARTED", playerId: nextId, turn: s.currentTurn })
       events.push({ type: "PHASE_CHANGED", phase: Phase.StartOfTurn })
+      // Win condition: next player wins if they have a full formation of unrazed realms
+      s = checkWinCondition(s, events)
       return s
     }
 
@@ -237,8 +295,18 @@ function handlePlayRuleCard(
   }
   events.push({ type: "EFFECT_QUEUED", effect })
 
+  const respondingPlayerId = state.playerOrder.find(id => id !== playerId)!
+  const responseWindow: ResponseWindow = {
+    triggeringPlayerId:   playerId,
+    respondingPlayerId,
+    effectCardInstanceId: card.instanceId,
+    effectCardName:       card.card.name,
+    effectCardDescription: card.card.description,
+  }
+  events.push({ type: "RESPONSE_WINDOW_OPENED", respondingPlayerId })
+
   return updatePlayer(
-    { ...state, pendingEffects: [...state.pendingEffects, effect], activePlayer: playerId },
+    { ...state, pendingEffects: [...state.pendingEffects, effect], activePlayer: respondingPlayerId, responseWindow },
     playerId,
     { hand: newHand, discardPile: [...player.discardPile, card] },
   )
@@ -456,6 +524,12 @@ function handlePlaySpellCard(
     abyss: newAbyss,
   })
 
+  // If playing during an active response window (responder countering), don't queue
+  // a new pending effect — the card acts as a counter and the window stays open.
+  if (s.responseWindow !== null) {
+    return s
+  }
+
   // Queue a manual effect if no Tier 1 spec covers this card
   if (requiresManualResolution(card, s.combatState?.effectSpecs ?? [])) {
     const effect: PendingEffect = {
@@ -466,7 +540,23 @@ function handlePlaySpellCard(
       targetScope:        "none",  // out-of-combat plays default to "none"; extend per card later
     }
     events.push({ type: "EFFECT_QUEUED", effect })
-    s = { ...s, pendingEffects: [...s.pendingEffects, effect], activePlayer: playerId }
+
+    // Outside combat with no existing response window: open one for the opponent
+    if (!s.combatState) {
+      const respondingPlayerId = s.playerOrder.find(id => id !== playerId)!
+      const responseWindow: ResponseWindow = {
+        triggeringPlayerId:   playerId,
+        respondingPlayerId,
+        effectCardInstanceId: card.instanceId,
+        effectCardName:       card.card.name,
+        effectCardDescription: card.card.description,
+      }
+      events.push({ type: "RESPONSE_WINDOW_OPENED", respondingPlayerId })
+      s = { ...s, pendingEffects: [...s.pendingEffects, effect], activePlayer: respondingPlayerId, responseWindow }
+    } else {
+      // During combat: triggering player stays active to resolve
+      s = { ...s, pendingEffects: [...s.pendingEffects, effect], activePlayer: playerId }
+    }
   }
   // else: TODO apply Tier 1 effects from card.card.effects
 
@@ -550,6 +640,8 @@ function handleDeclareAttack(
     defenderCards: [],
     championsUsedThisBattle: [move.championId],
     effectSpecs: [],
+    attackerManualLevel: null,
+    defenderManualLevel: null,
   }
 
   return {
@@ -583,22 +675,34 @@ function handleDeclareDefense(
   if (poolEntry) {
     defenderChampion = poolEntry.champion
   } else {
-    // Check hand — champion played directly from hand to defend
     const player = s.players[playerId]!
     const handIdx = player.hand.findIndex(c => c.instanceId === move.championId)
-    if (handIdx === -1) {
-      throw new EngineError("CHAMPION_NOT_FOUND", "Defender champion not in pool or hand")
+    if (handIdx !== -1) {
+      // Check hand — champion played directly from hand to defend
+      const [card, newHand] = removeFromHand(player.hand, move.championId)
+      if (!isChampionType(card.card.typeId)) {
+        throw new EngineError("NOT_A_CHAMPION")
+      }
+      // Move from hand into pool
+      s = updatePlayer(s, playerId, {
+        hand: newHand,
+        pool: [...player.pool, { champion: card, attachments: [] }],
+      })
+      defenderChampion = card
+    } else {
+      // Check self-defending realm in formation
+      const realmSlot = s.players[playerId]!.formation.slots[combat.targetRealmSlot]
+      if (
+        realmSlot && !realmSlot.isRazed &&
+        realmSlot.realm.instanceId === move.championId &&
+        realmSlot.realm.card.level != null
+      ) {
+        defenderChampion = realmSlot.realm
+        // Realm stays in formation — not moved anywhere
+      } else {
+        throw new EngineError("CHAMPION_NOT_FOUND", "Defender champion not in pool, hand, or as self-defending realm")
+      }
     }
-    const [card, newHand] = removeFromHand(player.hand, move.championId)
-    if (!isChampionType(card.card.typeId)) {
-      throw new EngineError("NOT_A_CHAMPION")
-    }
-    // Move from hand into pool
-    s = updatePlayer(s, playerId, {
-      hand: newHand,
-      pool: [...player.pool, { champion: card, attachments: [] }],
-    })
-    defenderChampion = card
   }
 
   if (combat.championsUsedThisBattle.includes(defenderChampion.instanceId)) {
@@ -728,14 +832,15 @@ function handleStopPlaying(
   const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
   const realmWorldId = realmSlot?.realm.card.worldId ?? 0
 
-  const attackerLevel = calculateCombatLevel(
+  // Use manual override if set, otherwise auto-compute
+  const attackerLevel = combat.attackerManualLevel ?? calculateCombatLevel(
     combat.attacker!,
     combat.attackerCards,
     hasWorldMatch(combat.attacker!, realmWorldId),
     combat.effectSpecs,
     "offensive",
   )
-  const defenderLevel = calculateCombatLevel(
+  const defenderLevel = combat.defenderManualLevel ?? calculateCombatLevel(
     combat.defender!,
     combat.defenderCards,
     hasWorldMatch(combat.defender!, realmWorldId),
@@ -782,6 +887,8 @@ function handleContinueAttack(
     attackerCards: [],
     defenderCards: [],
     championsUsedThisBattle: [...combat.championsUsedThisBattle, move.championId],
+    attackerManualLevel: null,
+    defenderManualLevel: null,
   }
 
   return {
@@ -869,6 +976,430 @@ function handleSkipEffect(
   return s
 }
 
+// ─── Response Window Handler ──────────────────────────────────────────────────
+
+function handlePassResponse(
+  state: GameState,
+  playerId: PlayerId,
+  events: GameEvent[],
+): GameState {
+  if (!state.responseWindow) {
+    throw new EngineError("NO_RESPONSE_WINDOW", "No response window is currently open")
+  }
+  if (state.responseWindow.respondingPlayerId !== playerId) {
+    throw new EngineError("NOT_RESPONDER", "Only the responding player can pass the response")
+  }
+
+  events.push({ type: "RESPONSE_WINDOW_CLOSED" })
+
+  // Give turn back to triggering player to execute the effect manually
+  return { ...state, responseWindow: null, activePlayer: state.responseWindow.triggeringPlayerId }
+}
+
+// ─── Manual Board Control Handlers ───────────────────────────────────────────
+
+/**
+ * Searches all zones of a player's board for a card by instanceId.
+ * Returns the card and a mutation function that removes it from its zone.
+ */
+function findAndRemoveFromOwnZones(
+  state: GameState,
+  ownerId: PlayerId,
+  cardId: CardInstanceId,
+): { card: CardInstance; newState: GameState } | null {
+  const player = state.players[ownerId]!
+
+  // Hand
+  const handIdx = player.hand.findIndex(c => c.instanceId === cardId)
+  if (handIdx !== -1) {
+    const card = player.hand[handIdx]!
+    return {
+      card,
+      newState: updatePlayer(state, ownerId, {
+        hand: player.hand.filter((_, i) => i !== handIdx),
+      }),
+    }
+  }
+
+  // Pool (champion)
+  const poolEntryIdx = player.pool.findIndex(e => e.champion.instanceId === cardId)
+  if (poolEntryIdx !== -1) {
+    const entry = player.pool[poolEntryIdx]!
+    const card = entry.champion
+    const newPool = player.pool.filter((_, i) => i !== poolEntryIdx)
+    return {
+      card,
+      newState: updatePlayer(state, ownerId, {
+        pool: newPool,
+        // Attachments are discarded when champion is removed
+        discardPile: [...player.discardPile, ...entry.attachments],
+      }),
+    }
+  }
+
+  // Pool (attachment)
+  for (let ei = 0; ei < player.pool.length; ei++) {
+    const entry = player.pool[ei]!
+    const attIdx = entry.attachments.findIndex(a => a.instanceId === cardId)
+    if (attIdx !== -1) {
+      const card = entry.attachments[attIdx]!
+      const newPool = [...player.pool]
+      newPool[ei] = { ...entry, attachments: entry.attachments.filter((_, i) => i !== attIdx) }
+      return { card, newState: updatePlayer(state, ownerId, { pool: newPool }) }
+    }
+  }
+
+  // Discard pile
+  const discardIdx = player.discardPile.findIndex(c => c.instanceId === cardId)
+  if (discardIdx !== -1) {
+    const card = player.discardPile[discardIdx]!
+    return {
+      card,
+      newState: updatePlayer(state, ownerId, {
+        discardPile: player.discardPile.filter((_, i) => i !== discardIdx),
+      }),
+    }
+  }
+
+  // Abyss
+  const abyssIdx = player.abyss.findIndex(c => c.instanceId === cardId)
+  if (abyssIdx !== -1) {
+    const card = player.abyss[abyssIdx]!
+    return {
+      card,
+      newState: updatePlayer(state, ownerId, {
+        abyss: player.abyss.filter((_, i) => i !== abyssIdx),
+      }),
+    }
+  }
+
+  // Formation holdings
+  for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+    if (!realmSlot) continue
+    const holdingIdx = realmSlot.holdings.findIndex(h => h.instanceId === cardId)
+    if (holdingIdx !== -1) {
+      const card = realmSlot.holdings[holdingIdx]!
+      const newSlots = {
+        ...player.formation.slots,
+        [slot]: { ...realmSlot, holdings: realmSlot.holdings.filter((_, i) => i !== holdingIdx) },
+      }
+      return {
+        card,
+        newState: updatePlayer(state, ownerId, {
+          formation: { ...player.formation, slots: newSlots },
+        }),
+      }
+    }
+  }
+
+  return null
+}
+
+function handleManualDiscard(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_DISCARD" }>,
+  events: GameEvent[],
+): GameState {
+  const result = findAndRemoveFromOwnZones(state, playerId, move.cardInstanceId)
+  if (!result) throw new EngineError("CARD_NOT_FOUND", "Card not found in any own zone")
+
+  events.push({ type: "MANUAL_ZONE_MOVE", playerId, instanceId: move.cardInstanceId, from: "board", to: "discard" })
+
+  const player = result.newState.players[playerId]!
+  return updatePlayer(result.newState, playerId, {
+    discardPile: [...player.discardPile, result.card],
+  })
+}
+
+function handleManualToLimbo(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_TO_LIMBO" }>,
+  events: GameEvent[],
+): GameState {
+  const player = state.players[playerId]!
+
+  // Champion must be in pool
+  const poolEntryIdx = player.pool.findIndex(e => e.champion.instanceId === move.cardInstanceId)
+  if (poolEntryIdx === -1) throw new EngineError("CHAMPION_NOT_IN_POOL", "Only pool champions can be sent to limbo")
+
+  const entry = player.pool[poolEntryIdx]!
+  const returnsInTurns = move.returnsInTurns ?? 3
+  const limboEntry: LimboEntry = {
+    champion:     entry.champion,
+    attachments:  entry.attachments,
+    returnsOnTurn: state.currentTurn + returnsInTurns,
+  }
+
+  events.push({ type: "CHAMPION_TO_LIMBO", playerId, instanceId: entry.champion.instanceId, returnsOnTurn: limboEntry.returnsOnTurn })
+
+  return updatePlayer(state, playerId, {
+    pool:  player.pool.filter((_, i) => i !== poolEntryIdx),
+    limbo: [...player.limbo, limboEntry],
+  })
+}
+
+function handleManualToAbyss(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_TO_ABYSS" }>,
+  events: GameEvent[],
+): GameState {
+  const result = findAndRemoveFromOwnZones(state, playerId, move.cardInstanceId)
+  if (!result) throw new EngineError("CARD_NOT_FOUND", "Card not found in any own zone")
+
+  events.push({ type: "CARD_TO_ABYSS", playerId, instanceId: move.cardInstanceId })
+
+  const player = result.newState.players[playerId]!
+  return updatePlayer(result.newState, playerId, {
+    abyss: [...player.abyss, result.card],
+  })
+}
+
+function handleManualToHand(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_TO_HAND" }>,
+  events: GameEvent[],
+): GameState {
+  const player = state.players[playerId]!
+
+  // Search discard pile
+  const discardIdx = player.discardPile.findIndex(c => c.instanceId === move.cardInstanceId)
+  if (discardIdx !== -1) {
+    const card = player.discardPile[discardIdx]!
+    events.push({ type: "MANUAL_ZONE_MOVE", playerId, instanceId: move.cardInstanceId, from: "discard", to: "hand" })
+    return updatePlayer(state, playerId, {
+      discardPile: player.discardPile.filter((_, i) => i !== discardIdx),
+      hand: [...player.hand, card],
+    })
+  }
+
+  // Search abyss
+  const abyssIdx = player.abyss.findIndex(c => c.instanceId === move.cardInstanceId)
+  if (abyssIdx !== -1) {
+    const card = player.abyss[abyssIdx]!
+    events.push({ type: "MANUAL_ZONE_MOVE", playerId, instanceId: move.cardInstanceId, from: "abyss", to: "hand" })
+    return updatePlayer(state, playerId, {
+      abyss: player.abyss.filter((_, i) => i !== abyssIdx),
+      hand: [...player.hand, card],
+    })
+  }
+
+  throw new EngineError("CARD_NOT_FOUND", "Card not found in discard or abyss")
+}
+
+function handleManualRazeRealm(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_RAZE_REALM" }>,
+  events: GameEvent[],
+): GameState {
+  const player = state.players[playerId]!
+  const realmSlot = player.formation.slots[move.slot]
+  if (!realmSlot || realmSlot.isRazed) {
+    throw new EngineError("INVALID_REALM", "Target slot has no active realm to raze")
+  }
+
+  events.push({ type: "MANUAL_REALM_RAZED", playerId, slot: move.slot })
+
+  const discarded = realmSlot.holdings
+  const newSlot = { ...realmSlot, isRazed: true, holdings: [] }
+  let s = updatePlayer(state, playerId, {
+    discardPile: [...player.discardPile, ...discarded],
+    formation: {
+      ...player.formation,
+      slots: { ...player.formation.slots, [move.slot]: newSlot },
+    },
+  })
+
+  s = checkZeroRealmCondition(s, events)
+  return s
+}
+
+function handleManualDrawCards(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_DRAW_CARDS" }>,
+  events: GameEvent[],
+): GameState {
+  const count = Math.max(0, Math.min(move.count, 20))  // safety cap: max 20
+  const player = state.players[playerId]!
+  const [drawn, remaining] = takeCards(player.drawPile, count)
+
+  if (drawn.length === 0) return state
+
+  events.push({ type: "MANUAL_CARDS_DRAWN", playerId, count: drawn.length })
+  return updatePlayer(state, playerId, {
+    hand:     [...player.hand, ...drawn],
+    drawPile: remaining,
+  })
+}
+
+function handleManualReturnToPool(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_RETURN_TO_POOL" }>,
+  events: GameEvent[],
+): GameState {
+  const player = state.players[playerId]!
+  const discardIdx = player.discardPile.findIndex(c => c.instanceId === move.cardInstanceId)
+  if (discardIdx === -1) throw new EngineError("CARD_NOT_FOUND", "Champion not found in discard pile")
+
+  const card = player.discardPile[discardIdx]!
+  events.push({ type: "CHAMPION_PLACED", playerId, instanceId: card.instanceId })
+
+  return updatePlayer(state, playerId, {
+    discardPile: player.discardPile.filter((_, i) => i !== discardIdx),
+    pool: [...player.pool, { champion: card, attachments: [] }],
+  })
+}
+
+function handleManualAffectOpponent(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_AFFECT_OPPONENT" }>,
+  events: GameEvent[],
+): GameState {
+  if (state.pendingEffects.length === 0) {
+    throw new EngineError("NO_PENDING_EFFECT", "Can only affect opponent cards while a pending effect is active")
+  }
+
+  const opponentId = state.playerOrder.find(id => id !== playerId)!
+
+  switch (move.action as ManualAction) {
+    case "discard": {
+      const result = findAndRemoveFromOwnZones(state, opponentId, move.cardInstanceId)
+      if (!result) throw new EngineError("CARD_NOT_FOUND", "Card not found on opponent's board")
+      events.push({ type: "MANUAL_ZONE_MOVE", playerId: opponentId, instanceId: move.cardInstanceId, from: "board", to: "discard" })
+      const opp = result.newState.players[opponentId]!
+      return updatePlayer(result.newState, opponentId, { discardPile: [...opp.discardPile, result.card] })
+    }
+
+    case "to_limbo": {
+      const oppPlayer = state.players[opponentId]!
+      const poolEntryIdx = oppPlayer.pool.findIndex(e => e.champion.instanceId === move.cardInstanceId)
+      if (poolEntryIdx === -1) throw new EngineError("CHAMPION_NOT_IN_POOL", "Opponent champion not in pool")
+      const entry = oppPlayer.pool[poolEntryIdx]!
+      const limboEntry: LimboEntry = {
+        champion:      entry.champion,
+        attachments:   entry.attachments,
+        returnsOnTurn: state.currentTurn + 3,
+      }
+      events.push({ type: "CHAMPION_TO_LIMBO", playerId: opponentId, instanceId: entry.champion.instanceId, returnsOnTurn: limboEntry.returnsOnTurn })
+      return updatePlayer(state, opponentId, {
+        pool:  oppPlayer.pool.filter((_, i) => i !== poolEntryIdx),
+        limbo: [...oppPlayer.limbo, limboEntry],
+      })
+    }
+
+    case "to_abyss": {
+      const result = findAndRemoveFromOwnZones(state, opponentId, move.cardInstanceId)
+      if (!result) throw new EngineError("CARD_NOT_FOUND", "Card not found on opponent's board")
+      events.push({ type: "CARD_TO_ABYSS", playerId: opponentId, instanceId: move.cardInstanceId })
+      const opp = result.newState.players[opponentId]!
+      return updatePlayer(result.newState, opponentId, { abyss: [...opp.abyss, result.card] })
+    }
+
+    case "raze_realm": {
+      // Find which formation slot contains this realm
+      const oppPlayer = state.players[opponentId]!
+      const slotEntry = Object.entries(oppPlayer.formation.slots)
+        .find(([, s]) => s && s.realm.instanceId === move.cardInstanceId)
+      if (!slotEntry) throw new EngineError("CARD_NOT_FOUND", "Opponent realm not found in formation")
+      const [slot, realmSlotData] = slotEntry
+      if (realmSlotData!.isRazed) throw new EngineError("ALREADY_RAZED", "Realm is already razed")
+
+      events.push({ type: "REALM_RAZED", playerId: opponentId, slot: slot as FormationSlot })
+      const discarded = realmSlotData!.holdings
+      let s = updatePlayer(state, opponentId, {
+        discardPile: [...oppPlayer.discardPile, ...discarded],
+        formation: {
+          ...oppPlayer.formation,
+          slots: { ...oppPlayer.formation.slots, [slot]: { ...realmSlotData!, isRazed: true, holdings: [] } },
+        },
+      })
+      s = checkZeroRealmCondition(s, events)
+      return s
+    }
+
+    default:
+      throw new EngineError("UNKNOWN_ACTION", `Unknown manual action: ${move.action}`)
+  }
+}
+
+function handleManualSetCombatLevel(
+  state: GameState,
+  _playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_SET_COMBAT_LEVEL" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.combatState) {
+    throw new EngineError("NOT_IN_COMBAT", "MANUAL_SET_COMBAT_LEVEL requires active combat")
+  }
+  const combat = state.combatState
+  const isAttacker = combat.attackingPlayer === move.playerId
+  const isDefender = combat.defendingPlayer === move.playerId
+
+  if (!isAttacker && !isDefender) {
+    throw new EngineError("INVALID_PLAYER", "Player is not a combat participant")
+  }
+
+  events.push({ type: "COMBAT_LEVEL_SET", playerId: move.playerId, level: move.level })
+
+  const newCombat: CombatState = isAttacker
+    ? { ...combat, attackerManualLevel: move.level }
+    : { ...combat, defenderManualLevel: move.level }
+
+  return { ...state, combatState: newCombat }
+}
+
+function handleManualSwitchCombatSide(
+  state: GameState,
+  _playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_SWITCH_COMBAT_SIDE" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.combatState) {
+    throw new EngineError("NOT_IN_COMBAT", "MANUAL_SWITCH_COMBAT_SIDE requires active combat")
+  }
+  const combat = state.combatState
+  const { cardInstanceId } = move
+
+  const inAttacker = combat.attackerCards.some(c => c.instanceId === cardInstanceId)
+  const inDefender = combat.defenderCards.some(c => c.instanceId === cardInstanceId)
+
+  if (!inAttacker && !inDefender) {
+    throw new EngineError("TARGET_NOT_FOUND", "Card is not in active combat")
+  }
+
+  const card = (inAttacker ? combat.attackerCards : combat.defenderCards)
+    .find(c => c.instanceId === cardInstanceId)!
+
+  events.push({
+    type: "MANUAL_ZONE_MOVE",
+    playerId: inAttacker ? combat.attackingPlayer : combat.defendingPlayer,
+    instanceId: cardInstanceId,
+    from: inAttacker ? "attacker_combat" : "defender_combat",
+    to:   inAttacker ? "defender_combat" : "attacker_combat",
+  })
+
+  const newCombat: CombatState = inAttacker
+    ? {
+        ...combat,
+        attackerCards: combat.attackerCards.filter(c => c.instanceId !== cardInstanceId),
+        defenderCards: [...combat.defenderCards, card],
+      }
+    : {
+        ...combat,
+        defenderCards: combat.defenderCards.filter(c => c.instanceId !== cardInstanceId),
+        attackerCards: [...combat.attackerCards, card],
+      }
+
+  return { ...state, combatState: newCombat }
+}
+
 /** Removes a card from the active combat (either side) and discards it. */
 function removeCardFromCombat(
   state: GameState,
@@ -930,6 +1461,47 @@ function handleAttackerWins(
 ): GameState {
   const defendingPlayer = state.players[combat.defendingPlayer]!
 
+  // Check if the defender is the self-defending realm (not a pool champion)
+  const targetRealmSlot = defendingPlayer.formation.slots[combat.targetRealmSlot]
+  const isRealmDefender = !defendingPlayer.pool.some(
+    e => e.champion.instanceId === combat.defender!.instanceId,
+  ) && targetRealmSlot?.realm.instanceId === combat.defender!.instanceId
+
+  // Discard attacker's combat cards (allies/spells); their champion stays in pool
+  const attackerDiscards = combat.attackerCards
+  if (attackerDiscards.length > 0) {
+    events.push({
+      type: "CARDS_DISCARDED",
+      playerId: combat.attackingPlayer,
+      instanceIds: attackerDiscards.map(c => c.instanceId),
+    })
+  }
+
+  let s = state
+  const attackingPlayer = s.players[combat.attackingPlayer]!
+  s = updatePlayer(s, combat.attackingPlayer, {
+    discardPile: [...attackingPlayer.discardPile, ...attackerDiscards],
+  })
+
+  if (isRealmDefender) {
+    // Realm self-defended and lost — raze the realm, discard any combat cards, end battle
+    const defenderCardDiscards = combat.defenderCards
+    if (defenderCardDiscards.length > 0) {
+      events.push({
+        type: "CARDS_DISCARDED",
+        playerId: combat.defendingPlayer,
+        instanceIds: defenderCardDiscards.map(c => c.instanceId),
+      })
+      const dp = s.players[combat.defendingPlayer]!
+      s = updatePlayer(s, combat.defendingPlayer, {
+        discardPile: [...dp.discardPile, ...defenderCardDiscards],
+      })
+    }
+    s = razeRealm(s, combat.defendingPlayer, combat.targetRealmSlot, events)
+    s = earnSpoils(s, combat.attackingPlayer, events)
+    return endBattle(s, combat.attackingPlayer, events)
+  }
+
   // Discard defender champion + pool entry attachments + all combat cards
   const defenderEntry = defendingPlayer.pool.find(
     e => e.champion.instanceId === combat.defender!.instanceId,
@@ -949,28 +1521,13 @@ function handleAttackerWins(
     ...(defenderEntry ? [defenderEntry.champion, ...defenderEntry.attachments] : []),
     ...combat.defenderCards,
   ]
-  const newDefenderPool = defendingPlayer.pool.filter(
+  const newDefenderPool = s.players[combat.defendingPlayer]!.pool.filter(
     e => e.champion.instanceId !== combat.defender!.instanceId,
   )
-
-  // Discard attacker's combat cards (allies/spells); their champion stays in pool
-  const attackerDiscards = combat.attackerCards
-  if (attackerDiscards.length > 0) {
-    events.push({
-      type: "CARDS_DISCARDED",
-      playerId: combat.attackingPlayer,
-      instanceIds: attackerDiscards.map(c => c.instanceId),
-    })
-  }
-
-  let s = updatePlayer(state, combat.defendingPlayer, {
+  const dp2 = s.players[combat.defendingPlayer]!
+  s = updatePlayer(s, combat.defendingPlayer, {
     pool: newDefenderPool,
-    discardPile: [...defendingPlayer.discardPile, ...defenderDiscardCards],
-  })
-
-  const attackingPlayer = s.players[combat.attackingPlayer]!
-  s = updatePlayer(s, combat.attackingPlayer, {
-    discardPile: [...attackingPlayer.discardPile, ...attackerDiscards],
+    discardPile: [...dp2.discardPile, ...defenderDiscardCards],
   })
 
   // Transition to AWAITING_ATTACKER for potential next round
@@ -981,6 +1538,7 @@ function handleAttackerWins(
     defender: null,
     attackerCards: [],
     defenderCards: [],
+    championsUsedThisBattle: [...combat.championsUsedThisBattle, combat.defender!.instanceId],
   }
 
   return {
@@ -1155,19 +1713,16 @@ function checkZeroRealmCondition(state: GameState, events: GameEvent[]): GameSta
 }
 
 function checkWinCondition(state: GameState, events: GameEvent[]): GameState {
-  // A player wins when their opponent has ALL realms razed (and has placed at least one)
-  for (const [winnerId, _] of Object.entries(state.players)) {
-    const opponentId = state.playerOrder.find(id => id !== winnerId)!
-    const opponent = state.players[opponentId]!
+  // A player wins when they have a full formation of unrazed realms at the start of their turn.
+  const playerId = state.activePlayer
+  const player = state.players[playerId]!
 
-    const slots = Object.values(opponent.formation.slots).filter(Boolean)
-    if (slots.length === 0) continue  // opponent hasn't placed any realms yet
+  const unrazedCount = Object.values(player.formation.slots)
+    .filter(slot => slot && !slot.isRazed).length
 
-    const allRazed = slots.every(slot => slot!.isRazed)
-    if (allRazed) {
-      events.push({ type: "GAME_OVER", winner: winnerId })
-      return { ...state, winner: winnerId }
-    }
+  if (unrazedCount >= player.formation.size) {
+    events.push({ type: "GAME_OVER", winner: playerId })
+    return { ...state, winner: playerId }
   }
 
   return state

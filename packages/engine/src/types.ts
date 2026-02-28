@@ -147,6 +147,26 @@ export interface CombatState {
   championsUsedThisBattle: CardInstanceId[]
   /** Tier 1 effect specs relevant to this battle */
   effectSpecs: CardEffectSpec[]
+  /**
+   * Manual combat level override — null means use the auto-computed value.
+   * Set via MANUAL_SET_COMBAT_LEVEL when a card effect changes the total.
+   */
+  attackerManualLevel: number | null
+  defenderManualLevel: number | null
+}
+
+// ─── Response Window ──────────────────────────────────────────────────────────
+
+/**
+ * When a text-effect card is played outside combat, the opponent gets a window
+ * to play a counter (Events) before the triggering player executes the effect.
+ */
+export interface ResponseWindow {
+  triggeringPlayerId:   PlayerId
+  respondingPlayerId:   PlayerId
+  effectCardInstanceId: CardInstanceId
+  effectCardName:       string
+  effectCardDescription: string
 }
 
 // ─── Pending Effects (Tier 2 manual resolution queue) ────────────────────────
@@ -210,6 +230,12 @@ export interface GameState {
    * First entry is the one currently awaiting resolution.
    */
   pendingEffects: PendingEffect[]
+  /**
+   * Non-null while the opponent is deciding whether to counter a played card.
+   * The responding player may play Events or PASS_RESPONSE.
+   * Once cleared (PASS_RESPONSE), the triggering player executes the effect manually.
+   */
+  responseWindow: ResponseWindow | null
   winner: PlayerId | null
   /** Full event log for determinism / replay */
   events: GameEvent[]
@@ -220,6 +246,11 @@ export interface GameState {
   /** True after PLAY_REALM or REBUILD_REALM — only one realm action allowed per Phase 2 */
   hasPlayedRealmThisTurn: boolean
 }
+
+// ─── Manual Action ────────────────────────────────────────────────────────────
+
+/** Zone transition actions used in MANUAL_AFFECT_OPPONENT */
+export type ManualAction = "discard" | "to_limbo" | "to_abyss" | "raze_realm"
 
 // ─── Moves ────────────────────────────────────────────────────────────────────
 
@@ -260,6 +291,38 @@ export type Move =
   /** Waive the pending effect — it has no mechanical consequence this time */
   | { type: "SKIP_EFFECT" }
 
+  // Response window
+  /** Responding player accepts the effect without playing a counter */
+  | { type: "PASS_RESPONSE" }
+
+  // Manual board control — own cards (always legal on your turn)
+  /** Move any own card (hand/pool/formation/discard) to own discard pile */
+  | { type: "MANUAL_DISCARD";         cardInstanceId: CardInstanceId }
+  /** Move a pool champion (and its attachments) to limbo */
+  | { type: "MANUAL_TO_LIMBO";        cardInstanceId: CardInstanceId; returnsInTurns?: number }
+  /** Move any own card to the abyss */
+  | { type: "MANUAL_TO_ABYSS";        cardInstanceId: CardInstanceId }
+  /** Move a card from own discard/abyss back to hand */
+  | { type: "MANUAL_TO_HAND";         cardInstanceId: CardInstanceId }
+  /** Raze one of own formation realms (and discard its holdings) */
+  | { type: "MANUAL_RAZE_REALM";      slot: FormationSlot }
+  /** Draw N cards from own draw pile to hand */
+  | { type: "MANUAL_DRAW_CARDS";      count: number }
+  /** Return a champion from own discard pile to pool */
+  | { type: "MANUAL_RETURN_TO_POOL";  cardInstanceId: CardInstanceId }
+
+  // Manual board control — opponent cards (only legal when pendingEffects queue is non-empty)
+  /** Execute an effect action on an opponent's card */
+  | { type: "MANUAL_AFFECT_OPPONENT"; cardInstanceId: CardInstanceId; action: ManualAction }
+
+  // Combat level override — only legal during CARD_PLAY combat phase
+  /** Override the auto-computed combat level for a participant */
+  | { type: "MANUAL_SET_COMBAT_LEVEL"; playerId: PlayerId; level: number }
+
+  // Combat side switch — move a combat support card from one side to the other
+  /** Move a card from attacker's combat cards to defender's (or vice versa) */
+  | { type: "MANUAL_SWITCH_COMBAT_SIDE"; cardInstanceId: CardInstanceId }
+
 // ─── Engine Result ────────────────────────────────────────────────────────────
 
 export interface EngineResult {
@@ -293,43 +356,71 @@ export type GameEvent =
   | { type: "COMBAT_RESOLVED";           outcome: CombatRoundOutcome; attackerLevel: number; defenderLevel: number }
   | { type: "SPOILS_EARNED";             playerId: PlayerId }
   | { type: "POOL_CLEARED";              playerId: PlayerId }
-  | { type: "EFFECT_QUEUED";   effect: PendingEffect }
-  | { type: "EFFECT_RESOLVED"; cardInstanceId: CardInstanceId; targetId: CardInstanceId | null }
+  | { type: "EFFECT_QUEUED";              effect: PendingEffect }
+  | { type: "EFFECT_RESOLVED";           cardInstanceId: CardInstanceId; targetId: CardInstanceId | null }
+  | { type: "RESPONSE_WINDOW_OPENED";    respondingPlayerId: PlayerId }
+  | { type: "RESPONSE_WINDOW_CLOSED" }
+  | { type: "MANUAL_ZONE_MOVE";          playerId: PlayerId; instanceId: CardInstanceId; from: string; to: string }
+  | { type: "MANUAL_REALM_RAZED";        playerId: PlayerId; slot: FormationSlot }
+  | { type: "MANUAL_CARDS_DRAWN";        playerId: PlayerId; count: number }
+  | { type: "COMBAT_LEVEL_SET";          playerId: PlayerId; level: number }
   | { type: "TURN_ENDED";               playerId: PlayerId }
   | { type: "GAME_OVER";                winner: PlayerId }
 
-// ─── Card Effects (Tier 1) ────────────────────────────────────────────────────
+// ─── Card Effects (Tier 1 — Groups A and B only) ─────────────────────────────
+// Types for Groups C and D are added to this union as those groups are implemented.
 
 export type CardEffect =
-  // Combat stat modifications
+  // ── Group A: Combat level modifications ──────────────────────────────────
   | { type: "LEVEL_BONUS";         value: number; condition?: EffectCondition }
   | { type: "LEVEL_BONUS_VS";      value: number; targetAttribute: string }
-  | { type: "NEGATE_ALLY_BONUS" }
+  /** Flat level bonus when fighting a champion of a specific typeId */
+  | { type: "LEVEL_BONUS_VS_TYPE"; value: number; typeId: number }
+  /** Override the champion's base level (world bonus still applies on top) */
   | { type: "SET_LEVEL";           value: number }
+  /** Opponent's ally bonuses are ignored for this combat */
+  | { type: "NEGATE_ALLY_BONUS" }
 
-  // Spell access
+  // ── Group A: Spell access ─────────────────────────────────────────────────
   | { type: "GRANT_SPELL_ACCESS";  spellTypeId: number; window: "offense" | "defense" | "both" }
-  | { type: "REVOKE_SPELL_ACCESS"; spellTypeId: number }
 
-  // Immunity — default scope is "offensive" per official rules
-  | { type: "IMMUNE_TO_SPELLS";    scope?: "offensive" | "defensive" | "both" }
-  | { type: "IMMUNE_TO_ATTRIBUTE"; attribute: string; scope?: "offensive" | "defensive" | "both" }
-  | { type: "IMMUNE_TO_TYPE";      typeId: number; scope?: "offensive" | "defensive" | "both" }
+  // ── Group A: Immunity ─────────────────────────────────────────────────────
+  | { type: "IMMUNE_TO_TYPE";      typeIds: number[]; scope?: "offensive" | "defensive" | "both" }
+  | { type: "IMMUNE_TO_ATTRIBUTE"; attribute: string[] }
 
-  // Card draw / hand effects
-  | { type: "DRAW_CARD";           count: number }
+  // ── Group A: Card draw / hand ─────────────────────────────────────────────
+  | { type: "DRAW_CARD";           target: "self" | "opponent" | "all"; count: number }
   | { type: "DISCARD_CARD";        target: "self" | "opponent"; count: number }
-  | { type: "RETURN_TO_HAND";      target: "self" }
 
-  // Realm effects
-  | { type: "EXTRA_REALM_PLAY";    count: number }
-  | { type: "REALM_UNTARGETABLE" }
-  | { type: "HOLDING_BONUS";       value: number }
+  // ── Group A: Combat bonus ─────────────────────────────────────────────────
+  /**
+   * Grants +value levels in combat to all cards of the specified typeIds.
+   * typeIds: card type IDs that benefit (e.g. [1] = allies, [0] = all types).
+   * typeId 0 is a wildcard meaning "any card type".
+   * Applies while this realm/holding/card is in play during the relevant combat.
+   */
+  | { type: "COMBAT_BONUS";        value: number; typeIds: number[] }
 
-  // Card lifecycle
-  | { type: "DISCARD_AFTER_USE" }
-  | { type: "DISCARD_AFTER_COMBAT" }
-  | { type: "PERMANENT" }
+  // ── Group B: Passive / structural (evaluated at phase boundaries) ─────────
+  /** Increases the owner's maximum hand size while this card is in play */
+  | { type: "HAND_SIZE_BONUS";           count: number }
+  /** Owner draws extra cards during the Draw phase each turn */
+  | { type: "DRAW_PER_TURN";             count: number }
+  /** Owner draws cards immediately when this realm is played or rebuilt */
+  | { type: "DRAW_ON_REALM_PLAY";        count: number }
+  /** While defending this realm, ANY champion may use the given spell type */
+  | { type: "REALM_GRANTS_SPELL_ACCESS"; spellTypeId: number; window: "offense" | "defense" | "both" }
+  /** Opponents' magical items and artifacts grant no combat bonus against this card */
+  | { type: "NEGATE_ITEM_BONUS" }
+  /** Attackers with this attribute or typeId cannot attack this realm */
+  | { type: "RESTRICTED_ATTACKERS";      attribute?: string; typeId?: number }
+  /**
+   * This realm (or a realm with this holding attached) can defend itself as a
+   * champion of the given level and typeId when no champion is placed to defend.
+   * Note: realms that already carry a non-null `level` field self-defend implicitly;
+   * use this type for holdings that grant the ability to the attached realm.
+   */
+  | { type: "REALM_SELF_DEFENDS";        level: number; typeId: number }
 
 export type EffectCondition =
   | { when: "attacking" }

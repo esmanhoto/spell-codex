@@ -1,0 +1,41 @@
+:root {
+  /* Colors */
+  --gold: #c9a84c;
+  --gold-dim: #c9a84c88;
+  --gold-glow: #c9a84c55;
+  --bg-table: radial-gradient(ellipse at center, #1a3d2a 0%, #0a1910 50%, #010201 100%);
+  --bg-panel: rgba(10, 18, 12, 0.7);
+  --bg-panel-border: rgba(80, 120, 80, 0.3);
+  --text-primary: #e0e0e0;
+  --text-muted: #888;
+  --text-dim: #555;
+  --combat-bg: #2a1010;
+  --combat-border: #7a3a2a;
+  --effect-bg: #1a2a10;
+  --effect-border: #4a7a2a;
+  --response-bg: #1a2a30;
+  --response-border: #7ec8e3;
+
+  /* Card sizes */
+  --card-hand-w: 100px;
+  --card-hand-h: 140px;
+  --card-pool-w: 100px;
+  --card-pool-h: 140px;
+  --card-formation-w: 110px;
+  --card-formation-h: 154px;
+  --card-pile-w: 80px;
+  --card-pile-h: 112px;
+
+  /* Z-index layers */
+  --z-base: 1;
+  --z-cards: 10;
+  --z-hover: 50;
+  --z-overlay: 100;
+  --z-tooltip: 200;
+  --z-context-menu: 300;
+  --z-modal: 400;
+}
+
+@keyframes pulse-target {
+  to { box-shadow: 0 0 24px #e05566aa; }
+}

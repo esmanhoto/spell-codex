@@ -1,0 +1,29 @@
+.pool {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  min-height: 40px;
+}
+
+.dropHint {
+  color: var(--gold);
+}
+
+.pool.dragOver {
+  outline: 2px dashed var(--gold);
+  outline-offset: 2px;
+}

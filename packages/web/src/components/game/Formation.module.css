@@ -1,0 +1,121 @@
+.formation {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.pyramid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.slot {
+  border: 1px solid rgba(80, 120, 80, 0.3);
+  border-radius: 6px;
+  padding: 6px 8px;
+  width: var(--card-formation-w);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.slot.empty {
+  border-style: dashed;
+  opacity: 0.45;
+  min-height: 80px;
+  justify-content: center;
+}
+
+.slot.filled {
+  border-color: #3a7a4a;
+  background: rgba(10, 31, 16, 0.6);
+  cursor: pointer;
+}
+
+.slot.razed {
+  border-color: #7a3a2a;
+  background: rgba(31, 10, 5, 0.6);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.slot.selected,
+.slot:hover.filled {
+  border-color: var(--gold);
+  box-shadow: 0 0 8px var(--gold-glow);
+}
+
+.slot.targeted {
+  border-color: #e05 !important;
+  box-shadow: 0 0 14px #e0556677 !important;
+  animation: pulse-target 0.9s ease-in-out infinite alternate;
+}
+
+.slot.dragOver {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 10px var(--gold-dim) !important;
+  background: rgba(26, 42, 10, 0.6) !important;
+}
+
+.slotLabel {
+  font-size: 9px;
+  color: var(--text-dim);
+  align-self: flex-start;
+}
+
+.realmImg {
+  width: calc(var(--card-formation-w) - 20px);
+  height: calc((var(--card-formation-w) - 20px) * 0.7);
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.cardBack {
+  width: calc(var(--card-formation-w) - 20px);
+  height: calc((var(--card-formation-w) - 20px) * 0.7);
+  border-radius: 3px;
+  background: url("/api/cards/cardback.jpg") center/cover no-repeat;
+  border: 1px solid rgba(80, 120, 80, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.realmName {
+  font-size: 10px;
+  color: #adb;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(var(--card-formation-w) - 16px);
+}
+
+.holding {
+  font-size: 10px;
+  color: #7ec8e3;
+}
+
+.emptyLabel {
+  font-size: 10px;
+  color: #444;
+}
