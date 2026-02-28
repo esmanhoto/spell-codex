@@ -5,7 +5,7 @@ import styles from "./DrawPile.module.css"
 export function DrawPile({ count }: { count: number }) {
   const { legalMoves, onMove } = useGame()
   const [showInput, setShowInput] = useState(false)
-  const [drawCount, setDrawCount] = useState("1")
+  const [drawCount, setDrawCount] = useState("3")
 
   const drawMove = legalMoves.find(m => m.type === "MANUAL_DRAW_CARDS")
 
@@ -25,7 +25,7 @@ export function DrawPile({ count }: { count: number }) {
     if (!isNaN(n) && n > 0) {
       onMove({ type: "MANUAL_DRAW_CARDS", count: n })
       setShowInput(false)
-      setDrawCount("1")
+      setDrawCount("3")
     }
   }
 

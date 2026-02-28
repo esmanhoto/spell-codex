@@ -5,6 +5,8 @@
   gap: 24px;
   padding: 12px 20px;
   min-height: 180px;
+  position: relative;
+  z-index: var(--z-base);
 }
 
 .fan {

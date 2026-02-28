@@ -4,7 +4,6 @@ import { cardImageUrl } from "../../utils/card-helpers.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
 import { DrawPile } from "./DrawPile.tsx"
 import { DiscardPile } from "./DiscardPile.tsx"
-import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./PlayerHand.module.css"
 
 export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
@@ -71,16 +70,14 @@ export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
                 openContextMenu(e.clientX, e.clientY, contextActions)
               } : undefined}
             >
-              <CardTooltip card={card}>
-                <div className={styles.cardWrap}>
-                  <img
-                    src={cardImageUrl(card.setId, card.cardNumber)}
-                    alt={card.name}
-                    className={styles.cardImg}
-                    onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
-                  />
-                </div>
-              </CardTooltip>
+              <div className={styles.cardWrap}>
+                <img
+                  src={cardImageUrl(card.setId, card.cardNumber)}
+                  alt={card.name}
+                  className={styles.cardImg}
+                  onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                />
+              </div>
             </div>
           )
         })}

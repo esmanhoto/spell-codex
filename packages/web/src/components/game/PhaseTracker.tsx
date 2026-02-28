@@ -1,10 +1,10 @@
 import styles from "./PhaseTracker.module.css"
 
 const PHASES = [
-  { key: "PHASE_ONE",   label: "Draw" },
-  { key: "PHASE_TWO",   label: "Realm" },
-  { key: "PHASE_THREE", label: "Pool" },
-  { key: "PHASE_FOUR",  label: "Combat" },
+  { key: "START_OF_TURN",   label: "Draw" },
+  { key: "PLAY_REALM",   label: "Realm" },
+  { key: "POOL", label: "Pool" },
+  { key: "COMBAT",  label: "Combat" },
   { key: "PHASE_FIVE",  label: "End" },
 ]
 

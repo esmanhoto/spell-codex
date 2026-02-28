@@ -2,7 +2,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   padding: 8px 20px;
   gap: 16px;
 }
@@ -26,6 +26,14 @@
   padding: 0 8px;
   position: relative;
   z-index: 1;
+}
+
+.playerB {
+align-self: flex-start;
+}
+
+.playerA {
+align-self: flex-end
 }
 
 .center {

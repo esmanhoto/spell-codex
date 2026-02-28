@@ -50,11 +50,13 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
     }
   }
 
+  const displayRows = isOpponent ? [...ROWS].reverse() : ROWS;
+
   return (
     <div className={styles.formation}>
       <span className={styles.label}>Formation</span>
       <div className={styles.pyramid}>
-        {ROWS.map((row, ri) => (
+        {displayRows.map((row, ri) => (
           <div key={ri} className={styles.row}>
             {row.map(slot => {
               const s = slots[slot]
@@ -80,17 +82,23 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
                   {s ? (
                     <>
                       {s.isRazed ? (
-                        <div className={styles.cardBack} title={`${s.realm.name} (razed)`}>
-                          <span style={{ opacity: 0.5 }}>R</span>
+                        <div className={styles.cardBackWrap} title={`${s.realm.name} (razed)`}>
+                          <img
+                            src="/api/cards/cardback.jpg"
+                            alt="Razed"
+                            className={styles.cardBackImg}
+                          />
                         </div>
                       ) : (
                         <CardTooltip card={s.realm}>
-                          <img
-                            src={cardImageUrl(s.realm.setId, s.realm.cardNumber)}
-                            alt={s.realm.name}
-                            className={styles.realmImg}
-                            onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
-                          />
+                          <div className={styles.realmImgWrap}>
+                            <img
+                              src={cardImageUrl(s.realm.setId, s.realm.cardNumber)}
+                              alt={s.realm.name}
+                              className={styles.realmImg}
+                              onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                            />
+                          </div>
                         </CardTooltip>
                       )}
                       <span className={styles.realmName}>{s.realm.name}{s.isRazed ? " (razed)" : ""}</span>

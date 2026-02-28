@@ -16,7 +16,7 @@
   padding: 8px;
   width: 260px;
   box-shadow: 0 4px 20px #000000aa;
-  pointer-events: none;
+  pointer-events: auto;
   display: flex;
   align-items: flex-start;
   gap: 8px;

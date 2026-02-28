@@ -27,7 +27,7 @@
   border: 1px solid rgba(80, 120, 80, 0.3);
   border-radius: 6px;
   padding: 6px 8px;
-  width: var(--card-formation-w);
+  width: 170px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -81,23 +81,44 @@
   align-self: flex-start;
 }
 
-.realmImg {
-  width: calc(var(--card-formation-w) - 20px);
-  height: calc((var(--card-formation-w) - 20px) * 0.7);
-  object-fit: cover;
+.realmImgWrap {
+  width: 150px;
+  height: 107px;
+  overflow: hidden;
   border-radius: 3px;
+  position: relative;
 }
 
-.cardBack {
-  width: calc(var(--card-formation-w) - 20px);
-  height: calc((var(--card-formation-w) - 20px) * 0.7);
+.realmImg {
+  /* Card images are stored portrait (e.g. 225x315). Rotate 90° to show landscape. */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 107px;
+  height: 150px;
+  object-fit: cover;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center;
+}
+
+.cardBackWrap {
+  width: 150px;
+  height: 107px;
+  overflow: hidden;
   border-radius: 3px;
-  background: url("/api/cards/cardback.jpg") center/cover no-repeat;
   border: 1px solid rgba(80, 120, 80, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
+  position: relative;
+}
+
+.cardBackImg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 107px;
+  height: 150px;
+  object-fit: cover;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center;
 }
 
 .realmName {

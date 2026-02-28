@@ -16,6 +16,7 @@ export function Game() {
   const [eventLog, setEventLog] = useState<GameEvent[]>([])
   const [wsError, setWsError] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
+  const [lastMoveType, setLastMoveType] = useState<string | null>(null)
   const wsRef = useRef<ReturnType<typeof createWsClient> | null>(null)
 
   const openContextMenu = useCallback((x: number, y: number, actions: ContextMenuState["actions"]) => {
@@ -61,6 +62,7 @@ export function Game() {
 
   const sendMove = useCallback((m: Move) => {
     setSelectedId(null)
+    setLastMoveType(m.type)
     if (wsRef.current?.sendMove(m)) return
     const asUser = data?.activePlayer === playerA ? playerA : playerB
     submitMove(gameId!, asUser, m).then(() => refetch()).catch(console.error)
@@ -73,6 +75,7 @@ export function Game() {
     sendMove,
     data?.activePlayer ?? "",
     playerA,
+    lastMoveType,
   )
 
   if (isLoading) return <div className="page"><p>Loading...</p></div>

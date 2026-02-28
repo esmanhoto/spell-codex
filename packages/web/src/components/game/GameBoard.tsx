@@ -27,6 +27,9 @@ export function GameBoard({ events, wsError }: {
       <div className={styles.content}>
         {wsError && <p className={styles.error}>{wsError}</p>}
 
+        {/* Move panel for player B (when they have moves) */}
+        <MovePanel playerId={playerB} />
+
         {/* Opponent hand (top) */}
         {boardB && (
           <PlayerHand
@@ -42,8 +45,6 @@ export function GameBoard({ events, wsError }: {
           <PlayerArea board={boardB} playerId={playerB} isOpponent attackedSlot={attackedSlotB} />
         )}
 
-        {/* Move panel for player B (when they have moves) */}
-        <MovePanel playerId={playerB} />
 
         {/* Overlays: combat, pending effects, response window */}
         <div className={styles.overlays}>
@@ -54,9 +55,6 @@ export function GameBoard({ events, wsError }: {
 
         {/* Divider with phase tracker */}
         <Divider />
-
-        {/* Move panel for player A */}
-        <MovePanel playerId={playerA} />
 
         {/* Own area */}
         {boardA && (
@@ -72,6 +70,9 @@ export function GameBoard({ events, wsError }: {
             isOpponent={false}
           />
         )}
+
+        {/* Move panel for player A */}
+        <MovePanel playerId={playerA} />
 
         {/* Event log sidebar */}
         <EventLog events={events} />
