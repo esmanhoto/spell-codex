@@ -88,9 +88,9 @@ export function GameBoard({ events, wsError }: {
   const attackedSlotA = combat?.defendingPlayer === playerA ? combat.targetSlot : undefined
 
   return (
-    <div className={styles.table}>
+    <div className={styles.table} data-testid="game-board">
       <div className={styles.content}>
-        {wsError && <p className={styles.error}>{wsError}</p>}
+        {wsError && <p className={styles.error} data-testid="ws-error">{wsError}</p>}
 
         {/* Move panel for player B (when they have moves) */}
         <MovePanel playerId={playerB} />

@@ -57,6 +57,8 @@ packages/*/out/
 # Ignore coverage
 coverage/
 packages/*/coverage/
+packages/web/playwright-report/
+packages/web/test-results/
 
 # Ignore temporary files
 *.tmp

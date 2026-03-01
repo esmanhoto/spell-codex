@@ -52,30 +52,38 @@ export function NewGame() {
   const decks = deckList?.decks ?? []
 
   return (
-    <div className="page">
+    <div className="page" data-testid="new-game-page">
       <h1>Spellfire</h1>
       <h2>New Game</h2>
 
       <div className="form">
         <label>
           Player A (UUID)
-          <input value={playerA} onChange={e => setPlayerA(e.target.value)} />
+          <input
+            data-testid="player-a-input"
+            value={playerA}
+            onChange={e => setPlayerA(e.target.value)}
+          />
         </label>
         <label>
           Player A — Deck
-          <select value={deckA} onChange={e => setDeckA(e.target.value)}>
+          <select data-testid="deck-a-select" value={deckA} onChange={e => setDeckA(e.target.value)}>
             {decks.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </label>
 
         <label>
           Player B (UUID)
-          <input value={playerB} onChange={e => setPlayerB(e.target.value)} />
+          <input
+            data-testid="player-b-input"
+            value={playerB}
+            onChange={e => setPlayerB(e.target.value)}
+          />
         </label>
 
         <label>
           Player B — Deck
-          <select value={deckB} onChange={e => setDeckB(e.target.value)}>
+          <select data-testid="deck-b-select" value={deckB} onChange={e => setDeckB(e.target.value)}>
             {decks.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
         </label>
@@ -84,9 +92,9 @@ export function NewGame() {
           You will control both players from this browser.
         </p>
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error" data-testid="new-game-error">{error}</p>}
 
-        <button onClick={handleStart} disabled={loading || decks.length === 0}>
+        <button data-testid="start-game-btn" onClick={handleStart} disabled={loading || decks.length === 0}>
           {loading ? "Starting…" : "Start Game"}
         </button>
       </div>

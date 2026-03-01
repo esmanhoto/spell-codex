@@ -11,15 +11,15 @@ export function Divider() {
   return (
     <div className={styles.divider}>
       <span className={`${styles.playerLabel} ${styles.playerB}`}>Player B</span><div className={styles.center}>
-        <div className={styles.turnInfo}>Turn {turnNumber}</div>
+        <div className={styles.turnInfo} data-testid="turn-info">Turn {turnNumber}</div>
         {winner ? (
-          <div className={styles.winner}>
+          <div className={styles.winner} data-testid="winner-info">
             {winner === playerA ? "Player A" : "Player B"} wins!
           </div>
         ) : (
           <>
             <PhaseTracker phase={phase} />
-            <div className={styles.activeLabel}>Active: {activeLabel}</div>
+            <div className={styles.activeLabel} data-testid="active-player-label">Active: {activeLabel}</div>
           </>
         )}
       </div><span className={`${styles.playerLabel} ${styles.playerA}`}>Player A</span>
