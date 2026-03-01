@@ -134,13 +134,6 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
-        },
-        "is_bot": {
-          "name": "is_bot",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         }
       },
       "indexes": {

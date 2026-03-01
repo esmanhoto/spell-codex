@@ -8,7 +8,7 @@ import {
   setGameStatus, touchGame,
   hashState,
 } from "@spell/db"
-import { applyMove, pickMove } from "@spell/engine"
+import { applyMove } from "@spell/engine"
 
 // ─── Move schema ──────────────────────────────────────────────────────────────
 // We accept any JSON object with a `type` string — the engine validates the rest.
@@ -66,29 +66,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   })
   seq = action.sequence
 
-  // 7. Auto-apply bot moves until it is a human's turn (or game over).
-  //    Safety cap: 200 iterations prevents infinite loops on degenerate states.
-  const botPlayerIds = new Set(players.filter(p => p.isBot).map(p => p.userId))
-  let currentState = result.newState
-  let iterations = 0
-
-  while (!currentState.winner && botPlayerIds.has(currentState.activePlayer) && iterations < 200) {
-    iterations++
-    const botId   = currentState.activePlayer
-    const botMove = pickMove(currentState, botId)
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const botResult = applyMove(currentState, botId, botMove as any)
-    seq++
-    await saveAction({
-      gameId,
-      sequence:  seq,
-      playerId:  botId,
-      move:      botMove as Parameters<typeof saveAction>[0]["move"],
-      stateHash: hashState(botResult.newState),
-    })
-    currentState = botResult.newState
-  }
+  const currentState = result.newState
 
   // 8. Update game metadata + set the next turn deadline (24 h from now)
   const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
@@ -107,4 +85,3 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
     winner:       currentState.winner ?? null,
   }, 201)
 })
-

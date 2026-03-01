@@ -24,7 +24,6 @@ const CardDataSchema = z.object({
 const PlayerInputSchema = z.object({
   userId:       z.string().uuid(),
   deckSnapshot: z.array(CardDataSchema).min(55).max(110),
-  isBot:        z.boolean().default(false),
 })
 
 const CreateGameSchema = z.object({
@@ -54,7 +53,6 @@ gamesRouter.post("/", zValidator("json", CreateGameSchema), async (c) => {
       userId:       p.userId,
       seatPosition: i,
       deckSnapshot: p.deckSnapshot,
-      isBot:        p.isBot,
     })),
   })
 
