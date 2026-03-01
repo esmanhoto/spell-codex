@@ -2,6 +2,10 @@
 
 This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 
+## Plan Status
+- Active plan document: `GAME_STRATEGY.md`.
+- Legacy plan documents moved to `archive/GAME_PLAN.md` and `archive/NEW_PLAN.md` for historical reference only.
+
 ## Ideas
 - Build a deterministic, replayable engine core that enforces game structure (turns, phases, legal moves, formation, uniqueness rules).
 - Keep API as orchestration/persistence (event log + replay), not rule logic.
@@ -19,11 +23,24 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 - Removed Tier 1/Tier 2 effect runtime pipeline and response-window/pending-effect mechanics.
 
 ## Future Implementation
+- Increase test coverage with priority on web and end-to-end gameplay flows (create game, turn progression, combat resolution).
+- Add API contract tests to lock web/api response shape.
 - Enforce spell phase-direction metadata from card descriptions (e.g. defensive 4 vs defensive 3/4) in legal-move checks.
+- Add selected combat options in small vertical slices with tests.
+- Integrate Supabase for auth and managed Postgres usage.
+- Add Vercel deployment pipeline (web first, then API path decided by hosting constraints).
+- Add staging environment before production rollout.
+- Add observability baseline (structured logs + error tracking).
+- Add backup/restore + migration safety checklist.
 - Gradually reintroduce selective high-value automation only where it reduces friction and is low-risk.
-- Expand integration tests around multiplayer/manual workflows and phase constraints.
 - Add release automation around tagged versions when deployment cadence stabilizes.
 - Revisit async-turn/deadline features after real-time UX is stable.
+
+## Delivery Guardrails
+- Keep milestone scope explicit: define what is in/out before each implementation cycle.
+- Prefer vertical slices (engine + api + web + tests) over broad unfinished refactors.
+- Use semantic tags (`vX.Y.Z`) for releases and maintain a short changelog.
+- Maintain a small ADR log for major decisions (manual mode, bot removal, deploy choices).
 
 ## Learnings
 - Full card-text automation early creates complexity and slows delivery.
