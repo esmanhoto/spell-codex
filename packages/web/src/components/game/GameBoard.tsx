@@ -10,6 +10,7 @@ import { ResponseWindowOverlay } from "./ResponseWindow.tsx"
 import { EventLog } from "./EventLog.tsx"
 import { MovePanel } from "./MovePanel.tsx"
 import { CardContextMenu } from "./CardContextMenu.tsx"
+import { WarningModal } from "./WarningModal.tsx"
 import styles from "./GameBoard.module.css"
 
 function AttackLine({ combat }: { combat: { targetSlot: string } }) {
@@ -78,7 +79,10 @@ export function GameBoard({ events, wsError }: {
   events:  GameEvent[]
   wsError: string | null
 }) {
-  const { playerA, playerB, allBoards, combat, pendingEffects, responseWindow, contextMenu, closeContextMenu, onMove } = useGame()
+  const {
+    playerA, playerB, allBoards, combat, pendingEffects, responseWindow,
+    contextMenu, closeContextMenu, onMove, warningMessage, clearWarning,
+  } = useGame()
 
   const boardA = allBoards[playerA]
   const boardB = allBoards[playerB]
@@ -154,6 +158,10 @@ export function GameBoard({ events, wsError }: {
             onAction={onMove}
             onClose={closeContextMenu}
           />
+        )}
+
+        {warningMessage && (
+          <WarningModal message={warningMessage} onClose={clearWarning} />
         )}
       </div>
     </div>

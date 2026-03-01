@@ -12,7 +12,7 @@ export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
   discardCount:   number
   isOpponent:     boolean
 }) {
-  const { selectedId, onSelect, openContextMenu } = useGame()
+  const { selectedId, onSelect, openContextMenu, legalMoves } = useGame()
   const total = cards.length
 
   function fanTransform(index: number): React.CSSProperties {
@@ -28,8 +28,17 @@ export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
 
   function buildContextActions(card: CardInfo): ContextMenuAction[] {
     if (isOpponent) return []
+    const canUsePhaseDiscard = legalMoves.some(m =>
+      m.type === "DISCARD_CARD" &&
+      (m as { cardInstanceId: string }).cardInstanceId === card.instanceId,
+    )
     return [
-      { label: "Discard",  move: { type: "MANUAL_DISCARD",  cardInstanceId: card.instanceId } },
+      {
+        label: "Discard",
+        move: canUsePhaseDiscard
+          ? { type: "DISCARD_CARD", cardInstanceId: card.instanceId }
+          : { type: "MANUAL_DISCARD", cardInstanceId: card.instanceId },
+      },
       { label: "To Abyss", move: { type: "MANUAL_TO_ABYSS", cardInstanceId: card.instanceId } },
     ]
   }

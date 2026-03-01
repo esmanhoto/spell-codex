@@ -39,6 +39,11 @@ export interface GameContextType {
   contextMenu:     ContextMenuState | null
   openContextMenu: (x: number, y: number, actions: ContextMenuAction[]) => void
   closeContextMenu: () => void
+
+  // Warnings
+  warningMessage: string | null
+  showWarning: (message: string) => void
+  clearWarning: () => void
 }
 
 export const GameContext = React.createContext<GameContextType>({
@@ -60,6 +65,9 @@ export const GameContext = React.createContext<GameContextType>({
   contextMenu:     null,
   openContextMenu: () => {},
   closeContextMenu: () => {},
+  warningMessage:  null,
+  showWarning:     () => {},
+  clearWarning:    () => {},
 })
 
 export function useGame() {

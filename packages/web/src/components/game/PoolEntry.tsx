@@ -11,12 +11,23 @@ export function PoolEntry({ entry, isOpponent }: {
   entry:       PoolEntryType
   isOpponent?: boolean
 }) {
-  const { legalMoves, onMove, selectedId, onSelect, pendingEffects, responseWindow } = useGame()
+  const {
+    legalMoves, onMove, selectedId, onSelect, pendingEffects, responseWindow,
+    allBoards, phase, showWarning,
+  } = useGame()
   const [attachDragOver, setAttachDragOver] = useState(false)
   const hasPendingEffect = pendingEffects.length > 0 && !responseWindow
 
   const stackCards = [...entry.attachments, entry.champion]
   const n = stackCards.length
+
+  function findDraggedHandCard(instanceId: string) {
+    for (const board of Object.values(allBoards)) {
+      const c = board.hand.find(card => card.instanceId === instanceId)
+      if (c) return c
+    }
+    return undefined
+  }
 
   function handleAttachDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -28,7 +39,21 @@ export function PoolEntry({ entry, isOpponent }: {
       (m as { cardInstanceId: string; championId: string }).cardInstanceId === id &&
       (m as { cardInstanceId: string; championId: string }).championId === entry.champion.instanceId
     )
-    if (move) onMove(move)
+    if (move) {
+      onMove(move)
+      return
+    }
+
+    const card = findDraggedHandCard(id)
+    if (!card) {
+      showWarning("That card cannot be attached right now.")
+      return
+    }
+    if (phase !== "POOL" && phase !== "PLAY_REALM") {
+      showWarning(`Cannot attach item now. Current phase: ${phase.replaceAll("_", " ")}.`)
+      return
+    }
+    showWarning(`Cannot attach ${card.name} to ${entry.champion.name}.`)
   }
 
   return (

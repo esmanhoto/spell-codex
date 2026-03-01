@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
-import type { SlotState } from "../../api.ts"
+import type { CardInfo, SlotState } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./Formation.module.css"
@@ -13,8 +13,101 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
   isOpponent:        boolean
   attackedSlot?:     string
 }) {
-  const { legalMoves, onMove, selectedId, onSelect, openContextMenu } = useGame()
+  const {
+    legalMoves, onMove, selectedId, onSelect, openContextMenu,
+    allBoards, phase, showWarning, myPlayerId, activePlayer, turnNumber,
+  } = useGame()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
+
+  function findDraggedHandCard(instanceId: string): CardInfo | undefined {
+    for (const board of Object.values(allBoards)) {
+      const c = board.hand.find(card => card.instanceId === instanceId)
+      if (c) return c
+    }
+    return undefined
+  }
+
+  function isCardAlreadyInPlay(card: CardInfo): boolean {
+    return Object.values(allBoards).some(board => {
+      const inFormation = Object.values(board.formation).some(slotState => (
+        !!slotState && (
+          (slotState.realm.name === card.name && slotState.realm.typeId === card.typeId) ||
+          slotState.holdings.some(h => h.name === card.name && h.typeId === card.typeId)
+        )
+      ))
+      if (inFormation) return true
+
+      return board.pool.some(entry =>
+        (entry.champion.name === card.name && entry.champion.typeId === card.typeId) ||
+        entry.attachments.some(a => a.name === card.name && a.typeId === card.typeId),
+      )
+    })
+  }
+
+  function findDraggedPoolChampion(instanceId: string): CardInfo | undefined {
+    for (const board of Object.values(allBoards)) {
+      const c = board.pool.find(entry => entry.champion.instanceId === instanceId)?.champion
+      if (c) return c
+    }
+    return undefined
+  }
+
+  function warnInvalidHandDrop(card: CardInfo, slot: string) {
+    const phaseLabel = phase.replaceAll("_", " ")
+
+    if (card.typeId === 13 && phase !== "PLAY_REALM") {
+      showWarning(`Cannot play realm now. Current phase: ${phaseLabel}.`)
+      return
+    }
+    if (card.typeId === 8 && phase !== "PLAY_REALM") {
+      showWarning(`Cannot play holding now. Current phase: ${phaseLabel}.`)
+      return
+    }
+    if (isCardAlreadyInPlay(card)) {
+      showWarning(`${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`)
+      return
+    }
+
+    if (card.typeId === 13) {
+      showWarning(`Realm cannot be played in slot ${slot} right now.`)
+      return
+    }
+    if (card.typeId === 8) {
+      showWarning(`Holding cannot be attached to slot ${slot} right now.`)
+      return
+    }
+    showWarning("That card cannot be played there right now.")
+  }
+
+  function warnInvalidAttackDrop(champion: CardInfo, targetPlayerId: string, targetSlot: string) {
+    if (targetPlayerId === myPlayerId) {
+      showWarning("Cannot attack your own realm.")
+      return
+    }
+    if (activePlayer !== myPlayerId) {
+      showWarning("Not your turn.")
+      return
+    }
+    if (phase !== "PLAY_REALM" && phase !== "POOL" && phase !== "COMBAT") {
+      showWarning(`Cannot declare attack now. Current phase: ${phase.replaceAll("_", " ")}.`)
+      return
+    }
+
+    const championHasAnyAttack = legalMoves.some(m =>
+      m.type === "DECLARE_ATTACK" &&
+      (m as { championId: string }).championId === champion.instanceId,
+    )
+    if (!championHasAnyAttack && turnNumber <= 2) {
+      showWarning("Cannot attack during round 1.")
+      return
+    }
+    if (!championHasAnyAttack) {
+      showWarning(`${champion.name} cannot declare an attack right now.`)
+      return
+    }
+
+    showWarning(`Cannot attack slot ${targetSlot} with ${champion.name}.`)
+  }
 
   function handleSlotDrop(e: React.DragEvent, slot: string) {
     e.preventDefault()
@@ -24,6 +117,8 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
     if (!id) return
 
     if (source === "hand") {
+      const card = findDraggedHandCard(id)
+
       const realmMove = legalMoves.find(m =>
         m.type === "PLAY_REALM" &&
         (m as { cardInstanceId: string; slot: string }).cardInstanceId === id &&
@@ -37,9 +132,17 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
         (m as { cardInstanceId: string; realmSlot: string }).realmSlot === slot
       )
       if (holdingMove) { onMove(holdingMove); return }
+
+      if (card) {
+        warnInvalidHandDrop(card, slot)
+      } else {
+        showWarning("That card cannot be played there right now.")
+      }
+      return
     }
 
     if (source === "pool") {
+      const champion = findDraggedPoolChampion(id)
       const attackMove = legalMoves.find(m =>
         m.type === "DECLARE_ATTACK" &&
         (m as { championId: string; targetRealmSlot: string; targetPlayerId: string }).championId === id &&
@@ -47,6 +150,12 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
         (m as { championId: string; targetRealmSlot: string; targetPlayerId: string }).targetPlayerId === formationOwnerId
       )
       if (attackMove) { onMove(attackMove); return }
+      if (champion) {
+        warnInvalidAttackDrop(champion, formationOwnerId, slot)
+      } else {
+        showWarning("Cannot declare attack with that card.")
+      }
+      return
     }
   }
 

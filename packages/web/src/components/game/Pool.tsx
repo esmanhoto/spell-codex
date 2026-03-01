@@ -8,15 +8,48 @@ export function Pool({ entries, isOpponent }: {
   entries:     PoolEntryType[]
   isOpponent?: boolean
 }) {
-  const { legalMoves, onMove } = useGame()
+  const { legalMoves, onMove, allBoards, phase, showWarning } = useGame()
   const [dragOver, setDragOver] = useState(false)
+
+  function findDraggedHandCard(instanceId: string) {
+    for (const board of Object.values(allBoards)) {
+      const c = board.hand.find(card => card.instanceId === instanceId)
+      if (c) return c
+    }
+    return undefined
+  }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     setDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
     const move = legalMoves.find(m => m.type === "PLACE_CHAMPION" && (m as { cardInstanceId: string }).cardInstanceId === id)
-    if (move) onMove(move)
+    if (move) {
+      onMove(move)
+      return
+    }
+
+    const card = findDraggedHandCard(id)
+    if (!card) {
+      showWarning("That card cannot be placed in pool right now.")
+      return
+    }
+
+    if (phase !== "POOL" && phase !== "PLAY_REALM") {
+      showWarning(`Cannot place champion now. Current phase: ${phase.replaceAll("_", " ")}.`)
+      return
+    }
+
+    const alreadyInPlay = Object.values(allBoards).some(board =>
+      board.pool.some(entry => entry.champion.name === card.name && entry.champion.typeId === card.typeId) ||
+      Object.values(board.formation).some(slotState => !!slotState && slotState.realm.name === card.name && slotState.realm.typeId === card.typeId),
+    )
+    if (alreadyInPlay) {
+      showWarning(`${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`)
+      return
+    }
+
+    showWarning("Cannot place that card in pool right now.")
   }
 
   return (

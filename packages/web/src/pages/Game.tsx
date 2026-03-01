@@ -17,12 +17,15 @@ export function Game() {
   const [wsError, setWsError] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
   const [lastMoveType, setLastMoveType] = useState<string | null>(null)
+  const [warningMessage, setWarningMessage] = useState<string | null>(null)
   const wsRef = useRef<ReturnType<typeof createWsClient> | null>(null)
 
   const openContextMenu = useCallback((x: number, y: number, actions: ContextMenuState["actions"]) => {
     setContextMenu({ x, y, actions })
   }, [])
   const closeContextMenu = useCallback(() => setContextMenu(null), [])
+  const showWarning = useCallback((message: string) => setWarningMessage(message), [])
+  const clearWarning = useCallback(() => setWarningMessage(null), [])
 
   const playerA = sessionStorage.getItem(`game:${gameId}:playerA`) ?? ""
   const playerB = sessionStorage.getItem(`game:${gameId}:playerB`) ?? ""
@@ -46,6 +49,7 @@ export function Game() {
       }
     } else if (msg.type === "ERROR") {
       setWsError(`${msg.code}: ${msg.message}`)
+      if (msg.message) setWarningMessage(msg.message)
       setTimeout(() => setWsError(null), 5000)
     }
   }, [gameId, qc])
@@ -65,7 +69,19 @@ export function Game() {
     setLastMoveType(m.type)
     if (wsRef.current?.sendMove(m)) return
     const asUser = data?.activePlayer === playerA ? playerA : playerB
-    submitMove(gameId!, asUser, m).then(() => refetch()).catch(console.error)
+    submitMove(gameId!, asUser, m)
+      .then(() => refetch())
+      .catch((err: unknown) => {
+        const raw = err instanceof Error ? err.message : String(err)
+        const detail = raw.replace(/^\d+:\s*/, "")
+        try {
+          const parsed = JSON.parse(detail) as { error?: string }
+          setWarningMessage(parsed.error ?? raw)
+        } catch {
+          setWarningMessage(raw)
+        }
+        console.error(err)
+      })
   }, [data, gameId, playerA, playerB, refetch])
 
   // Auto-phase advancement
@@ -103,6 +119,9 @@ export function Game() {
       contextMenu,
       openContextMenu,
       closeContextMenu,
+      warningMessage,
+      showWarning,
+      clearWarning,
     }}>
       <GameBoard events={eventLog} wsError={wsError} />
     </GameContext.Provider>
