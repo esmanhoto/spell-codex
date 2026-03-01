@@ -19,7 +19,9 @@ import { calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "./combat.t
  * 1. Response window open → only respondingPlayer: PASS_RESPONSE + Events in hand
  * 2. Pending effects (no response window) → triggering player: SKIP_EFFECT + MANUAL_* + MANUAL_AFFECT_OPPONENT
  * 3. Active combat → combat-specific moves
- * 4. Normal phase moves + MANUAL_* for own cards always included on active player's turn
+ * 4. Normal: StartOfTurn shows Draw (PASS) + events/rules.
+ *    PlayRealm through Combat: collects moves from current phase + all forward phases.
+ *    Players can skip phases freely (forward only). Engine auto-advances phase on action.
  */
 export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   if (state.winner !== null) return []
@@ -48,14 +50,61 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
 
   switch (state.phase) {
     case Phase.StartOfTurn: return getStartOfTurnMoves(state, playerId)
-    case Phase.Draw:        return []  // auto-draw, no player choice
-    case Phase.PlayRealm:   return getPlayRealmMoves(state, playerId)
-    case Phase.Pool:        return getPoolMoves(state, playerId)
-    case Phase.Combat:      return getCombatDeclarationMoves(state, playerId)
+    case Phase.Draw:        return []
+    case Phase.PlayRealm:   return getForwardPhaseMoves(state, playerId, Phase.PlayRealm)
+    case Phase.Pool:        return getForwardPhaseMoves(state, playerId, Phase.Pool)
+    case Phase.Combat:      return getForwardPhaseMoves(state, playerId, Phase.Combat)
     case Phase.PhaseFive:   return getPhaseFiveMoves(state, playerId)
     case Phase.EndTurn:     return []
     default:                return []
   }
+}
+
+// ─── Forward Phase Composition ───────────────────────────────────────────────
+
+/** Phase order for forward-move collection */
+const PHASE_ORDER = [Phase.PlayRealm, Phase.Pool, Phase.Combat] as const
+
+/**
+ * Collects moves from the given phase and all forward phases.
+ * This lets players skip phases freely — the engine auto-advances
+ * the phase field when a handler from a later phase executes.
+ *
+ * Also adds: PLAY_EVENT, TOGGLE_HOLDING_REVEAL, DISCARD_CARD, END_TURN.
+ */
+function getForwardPhaseMoves(state: GameState, playerId: PlayerId, fromPhase: Phase): Move[] {
+  const player = state.players[playerId]!
+  const moves: Move[] = []
+  const startIdx = PHASE_ORDER.indexOf(fromPhase as typeof PHASE_ORDER[number])
+
+  // Collect moves from current phase onward
+  for (let i = startIdx; i < PHASE_ORDER.length; i++) {
+    switch (PHASE_ORDER[i]) {
+      case Phase.PlayRealm: moves.push(...getRealmOnlyMoves(state, playerId)); break
+      case Phase.Pool:      moves.push(...getPoolOnlyMoves(state, player)); break
+      case Phase.Combat:    moves.push(...getCombatDeclOnlyMoves(state, playerId)); break
+    }
+  }
+
+  // Available from any post-draw phase
+  moves.push(...getEventMoves(player))
+  moves.push(...getHoldingRevealMoves(player))
+  moves.push(...getDiscardMoves(player))
+
+  const { maxEnd } = HAND_SIZES[state.deckSize]!
+  if (player.hand.length <= maxEnd) {
+    moves.push({ type: "END_TURN" })
+  }
+
+  return moves
+}
+
+/** Discard moves — one per hand card */
+function getDiscardMoves(player: PlayerState): Move[] {
+  return player.hand.map(card => ({
+    type: "DISCARD_CARD" as const,
+    cardInstanceId: card.instanceId,
+  }))
 }
 
 // ─── Phase Move Generators ────────────────────────────────────────────────────
@@ -70,27 +119,26 @@ function getStartOfTurnMoves(state: GameState, playerId: PlayerId): Move[] {
     }
   }
   moves.push(...getEventMoves(player))
+  moves.push(...getHoldingRevealMoves(player))
 
   return moves
 }
 
-function getPlayRealmMoves(state: GameState, playerId: PlayerId): Move[] {
-  const moves: Move[] = [{ type: "PASS" }]
+/** Realm-only moves: play/rebuild realm, play holding */
+function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
+  const moves: Move[] = []
   const player = state.players[playerId]!
   const legalSlots = getLegalRealmSlots(player.formation)
 
-  // Phase 2 allows exactly ONE of: play realm, replace razed realm, rebuild realm, OR play a holding.
   if (!state.hasPlayedRealmThisTurn) {
     for (const card of player.hand) {
       if (card.card.typeId === CardTypeId.Realm) {
         if (!isUniqueInPlay(card.card, state)) continue
-        // Empty slots following pyramid order
         for (const slot of legalSlots) {
           if (!player.formation.slots[slot]) {
             moves.push({ type: "PLAY_REALM", cardInstanceId: card.instanceId, slot })
           }
         }
-        // Razed slots — new realm replaces (discards) the razed one
         for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
           if (realmSlot?.isRazed) {
             moves.push({ type: "PLAY_REALM", cardInstanceId: card.instanceId, slot: slot as FormationSlot })
@@ -99,7 +147,6 @@ function getPlayRealmMoves(state: GameState, playerId: PlayerId): Move[] {
       }
     }
 
-    // Rebuild a razed realm (costs 3 hand cards) — also counts as the realm action
     if (player.hand.length >= 3) {
       for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
         if (realmSlot?.isRazed) {
@@ -108,13 +155,12 @@ function getPlayRealmMoves(state: GameState, playerId: PlayerId): Move[] {
       }
     }
 
-    // Attach a holding to a same-world unrazed realm (mutually exclusive with realm plays)
     for (const card of player.hand) {
       if (card.card.typeId === CardTypeId.Holding) {
         if (!isUniqueInPlay(card.card, state)) continue
         for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
           if (!realmSlot || realmSlot.isRazed) continue
-          if (realmSlot.holdings.length > 0) continue  // already has a holding
+          if (realmSlot.holdings.length > 0) continue
           if (!worldCompatible(card.card, realmSlot.realm.card)) continue
           moves.push({
             type: "PLAY_HOLDING",
@@ -126,15 +172,13 @@ function getPlayRealmMoves(state: GameState, playerId: PlayerId): Move[] {
     }
   }
 
-  moves.push(...getEventMoves(player))
   return moves
 }
 
-function getPoolMoves(state: GameState, playerId: PlayerId): Move[] {
-  const moves: Move[] = [{ type: "PASS" }]
-  const player = state.players[playerId]!
+/** Pool-only moves: place champion, attach items, phase 3 spells */
+function getPoolOnlyMoves(state: GameState, player: PlayerState): Move[] {
+  const moves: Move[] = []
 
-  // Place a champion from hand into pool — requires at least one unrazed realm
   const hasUnrazedRealm = Object.values(player.formation.slots).some(
     slot => slot && !slot.isRazed,
   )
@@ -147,7 +191,6 @@ function getPoolMoves(state: GameState, playerId: PlayerId): Move[] {
     }
   }
 
-  // Attach an artifact to a pool champion (one per champion, same world)
   for (const card of player.hand) {
     if (card.card.typeId === CardTypeId.Artifact) {
       if (!isUniqueInPlay(card.card, state)) continue
@@ -166,7 +209,6 @@ function getPoolMoves(state: GameState, playerId: PlayerId): Move[] {
     }
   }
 
-  // Attach a magical item to any pool champion (no world restriction, any number)
   for (const card of player.hand) {
     if (card.card.typeId === CardTypeId.MagicalItem) {
       for (const entry of player.pool) {
@@ -179,7 +221,6 @@ function getPoolMoves(state: GameState, playerId: PlayerId): Move[] {
     }
   }
 
-  // Play phase-3 spell/ability if a qualifying champion is in pool
   if (player.pool.length > 0) {
     for (const card of player.hand) {
       if (isPhase3Card(card.card.typeId)) {
@@ -189,37 +230,33 @@ function getPoolMoves(state: GameState, playerId: PlayerId): Move[] {
       }
     }
   }
-  moves.push(...getEventMoves(player))
 
   return moves
 }
 
-function getCombatDeclarationMoves(state: GameState, playerId: PlayerId): Move[] {
-  const moves: Move[] = [{ type: "PASS" }]
+/** Combat declaration-only moves: declare attack */
+function getCombatDeclOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
+  const moves: Move[] = []
   const player = state.players[playerId]!
 
-  // No combat in round 1 — every player must have taken at least one turn first
   const isRoundOne = state.currentTurn <= state.playerOrder.length
+  if (isRoundOne || state.hasAttackedThisTurn || player.pool.length === 0) return moves
 
-  if (!isRoundOne && !state.hasAttackedThisTurn && player.pool.length > 0) {
-    for (const entry of player.pool) {
-      for (const [otherPlayerId, otherPlayer] of Object.entries(state.players)) {
-        if (otherPlayerId === playerId) continue
-
-        for (const [slot, realmSlot] of Object.entries(otherPlayer.formation.slots)) {
-          if (!realmSlot || realmSlot.isRazed) continue
-          if (!isAttackable(otherPlayer.formation, slot as FormationSlot, entry.champion)) continue
-          moves.push({
-            type: "DECLARE_ATTACK",
-            championId: entry.champion.instanceId,
-            targetRealmSlot: slot as FormationSlot,
-            targetPlayerId: otherPlayerId,
-          })
-        }
+  for (const entry of player.pool) {
+    for (const [otherPlayerId, otherPlayer] of Object.entries(state.players)) {
+      if (otherPlayerId === playerId) continue
+      for (const [slot, realmSlot] of Object.entries(otherPlayer.formation.slots)) {
+        if (!realmSlot || realmSlot.isRazed) continue
+        if (!isAttackable(otherPlayer.formation, slot as FormationSlot, entry.champion)) continue
+        moves.push({
+          type: "DECLARE_ATTACK",
+          championId: entry.champion.instanceId,
+          targetRealmSlot: slot as FormationSlot,
+          targetPlayerId: otherPlayerId,
+        })
       }
     }
   }
-  moves.push(...getEventMoves(player))
 
   return moves
 }
@@ -350,6 +387,7 @@ function getCardPlayMoves(
     // Winning player may play events
     moves.push(...getEventMoves(player))
   }
+  moves.push(...getHoldingRevealMoves(player))
 
   // Either combat participant may set manual level or switch card sides during CARD_PLAY
   if (isAttacker || isDefender) {
@@ -369,7 +407,7 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]!
   const { maxEnd } = HAND_SIZES[state.deckSize]!
 
-  // Must discard to meet hand limit before PASSing
+  // Must discard to meet hand limit before ending turn
   if (player.hand.length > maxEnd) {
     return player.hand.map(card => ({
       type: "DISCARD_CARD" as const,
@@ -377,13 +415,15 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
     }))
   }
 
-  const moves: Move[] = [{ type: "PASS" }]
+  // Hand is within limit — player can end turn or play events
+  const moves: Move[] = [{ type: "END_TURN" }]
 
   for (const card of player.hand) {
     if (card.card.typeId === CardTypeId.Event) {
       moves.push({ type: "PLAY_PHASE5_CARD", cardInstanceId: card.instanceId })
     }
   }
+  moves.push(...getHoldingRevealMoves(player))
 
   return moves
 }
@@ -440,6 +480,7 @@ function getPendingEffectMoves(state: GameState, playerId: PlayerId): Move[] {
 
   // Manual board control moves (own cards)
   moves.push(...getManualOwnMoves(state, playerId))
+  moves.push(...getHoldingRevealMoves(state.players[playerId]!))
 
   // Manual opponent moves — available when effects are pending
   moves.push(...getManualOpponentMoves(state, playerId))
@@ -660,6 +701,16 @@ function getEventMoves(player: PlayerState): Move[] {
   return player.hand
     .filter(c => c.card.typeId === CardTypeId.Event)
     .map(c => ({ type: "PLAY_EVENT" as const, cardInstanceId: c.instanceId }))
+}
+
+/** Returns TOGGLE_HOLDING_REVEAL moves for every own realm with at least one holding. */
+function getHoldingRevealMoves(player: PlayerState): Move[] {
+  const moves: Move[] = []
+  for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+    if (!realmSlot || realmSlot.isRazed || realmSlot.holdings.length === 0) continue
+    moves.push({ type: "TOGGLE_HOLDING_REVEAL", realmSlot: slot as FormationSlot })
+  }
+  return moves
 }
 
 /** Returns true if the card type is playable in Phase 3 */

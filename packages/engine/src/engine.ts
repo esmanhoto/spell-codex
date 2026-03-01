@@ -60,6 +60,9 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "PLAY_HOLDING":
       newState = handlePlayHolding(state, playerId, move, events)
       break
+    case "TOGGLE_HOLDING_REVEAL":
+      newState = handleToggleHoldingReveal(state, playerId, move, events)
+      break
     case "PLACE_CHAMPION":
       newState = handlePlaceChampion(state, playerId, move, events)
       break
@@ -95,6 +98,9 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
       break
     case "DISCARD_CARD":
       newState = handleDiscardCard(state, playerId, move, events)
+      break
+    case "END_TURN":
+      newState = handleEndTurn(state, playerId, events)
       break
     case "PLAY_EVENT":
       newState = handlePlaySpellCard(state, playerId, move, events)
@@ -344,7 +350,7 @@ function handlePlayRealm(
     ? [...player.discardPile, existingSlot.realm]
     : player.discardPile
 
-  return {
+  let s = {
     ...updatePlayer(state, playerId, {
       hand: newHand,
       discardPile: newDiscardPile,
@@ -352,12 +358,18 @@ function handlePlayRealm(
         ...player.formation,
         slots: {
           ...player.formation.slots,
-          [move.slot]: { realm: card, isRazed: false, holdings: [] },
+          [move.slot]: { realm: card, isRazed: false, holdings: [], holdingRevealedToAll: false },
         },
       },
     }),
     hasPlayedRealmThisTurn: true,
   }
+
+  // Auto-advance to Pool phase after playing a realm
+  if (s.phase === Phase.PlayRealm) {
+    s = advanceToPhase(s, playerId, Phase.Pool, events)
+  }
+  return s
 }
 
 function handleRebuildRealm(
@@ -381,7 +393,7 @@ function handleRebuildRealm(
   const discardedIds = discarded.map(c => c.instanceId)
   events.push({ type: "REALM_REBUILT", playerId, slot: move.slot, discardedIds })
 
-  return {
+  let s = {
     ...updatePlayer(state, playerId, {
       hand: player.hand.slice(3),
       discardPile: [...player.discardPile, ...discarded],
@@ -395,6 +407,12 @@ function handleRebuildRealm(
     }),
     hasPlayedRealmThisTurn: true,
   }
+
+  // Auto-advance to Pool phase after rebuilding
+  if (s.phase === Phase.PlayRealm) {
+    s = advanceToPhase(s, playerId, Phase.Pool, events)
+  }
+  return s
 }
 
 function handlePlayHolding(
@@ -423,19 +441,55 @@ function handlePlayHolding(
 
   events.push({ type: "HOLDING_PLAYED", playerId, instanceId: card.instanceId, slot: move.realmSlot })
 
-  return {
+  let s = {
     ...updatePlayer(state, playerId, {
       hand: newHand,
       formation: {
         ...player.formation,
         slots: {
           ...player.formation.slots,
-          [move.realmSlot]: { ...realmSlot, holdings: [...realmSlot.holdings, card] },
+          [move.realmSlot]: { ...realmSlot, holdings: [...realmSlot.holdings, card], holdingRevealedToAll: false },
         },
       },
     }),
     hasPlayedRealmThisTurn: true,
   }
+
+  // Auto-advance to Pool phase after playing a holding
+  if (s.phase === Phase.PlayRealm) {
+    s = advanceToPhase(s, playerId, Phase.Pool, events)
+  }
+  return s
+}
+
+function handleToggleHoldingReveal(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "TOGGLE_HOLDING_REVEAL" }>,
+  events: GameEvent[],
+): GameState {
+  const player = state.players[playerId]!
+  const realmSlot = player.formation.slots[move.realmSlot]
+
+  if (!realmSlot || realmSlot.isRazed) {
+    throw new EngineError("INVALID_REALM", "Target realm must be in play and unrazed")
+  }
+  if (realmSlot.holdings.length === 0) {
+    throw new EngineError("NO_HOLDING", "Realm has no holding to reveal")
+  }
+
+  const revealedToAll = !(realmSlot.holdingRevealedToAll ?? false)
+  events.push({ type: "HOLDING_REVEAL_TOGGLED", playerId, slot: move.realmSlot, revealedToAll })
+
+  return updatePlayer(state, playerId, {
+    formation: {
+      ...player.formation,
+      slots: {
+        ...player.formation.slots,
+        [move.realmSlot]: { ...realmSlot, holdingRevealedToAll: revealedToAll },
+      },
+    },
+  })
 }
 
 function handlePlaceChampion(
@@ -444,6 +498,10 @@ function handlePlaceChampion(
   move: Extract<Move, { type: "PLACE_CHAMPION" }>,
   events: GameEvent[],
 ): GameState {
+  // Auto-advance from PlayRealm to Pool
+  if (state.phase === Phase.PlayRealm) {
+    state = advanceToPhase(state, playerId, Phase.Pool, events)
+  }
   assertPhase(state, Phase.Pool)
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
@@ -469,6 +527,10 @@ function handleAttachItem(
   move: Extract<Move, { type: "ATTACH_ITEM" }>,
   events: GameEvent[],
 ): GameState {
+  // Auto-advance from PlayRealm to Pool
+  if (state.phase === Phase.PlayRealm) {
+    state = advanceToPhase(state, playerId, Phase.Pool, events)
+  }
   assertPhase(state, Phase.Pool)
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
@@ -510,6 +572,10 @@ function handlePlaySpellCard(
     | Extract<Move, { type: "PLAY_EVENT" }>,
   events: GameEvent[],
 ): GameState {
+  // Auto-advance PLAY_PHASE3_CARD from PlayRealm to Pool
+  if (move.type === "PLAY_PHASE3_CARD" && state.phase === Phase.PlayRealm) {
+    state = advanceToPhase(state, playerId, Phase.Pool, events)
+  }
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
 
@@ -569,6 +635,10 @@ function handleDiscardCard(
   move: Extract<Move, { type: "DISCARD_CARD" }>,
   events: GameEvent[],
 ): GameState {
+  // Auto-advance from PlayRealm, Pool, or Combat to PhaseFive
+  if (state.phase === Phase.PlayRealm || state.phase === Phase.Pool || state.phase === Phase.Combat) {
+    state = advanceToPhase(state, playerId, Phase.PhaseFive, events)
+  }
   assertPhase(state, Phase.PhaseFive)
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
@@ -597,6 +667,10 @@ function handleDeclareAttack(
   move: Extract<Move, { type: "DECLARE_ATTACK" }>,
   events: GameEvent[],
 ): GameState {
+  // Auto-advance from PlayRealm or Pool to Combat phase
+  if (state.phase === Phase.PlayRealm || state.phase === Phase.Pool) {
+    state = advanceToPhase(state, playerId, Phase.Combat, events)
+  }
   assertPhase(state, Phase.Combat)
   if (state.hasAttackedThisTurn) {
     throw new EngineError("ALREADY_ATTACKED", "Only one attack per turn")
@@ -1726,6 +1800,61 @@ function checkWinCondition(state: GameState, events: GameEvent[]): GameState {
   }
 
   return state
+}
+
+// ─── Phase Advancement Helper ─────────────────────────────────────────────────
+
+/** Phase order for auto-advancement */
+const PHASE_ORDER = [Phase.PlayRealm, Phase.Pool, Phase.Combat, Phase.PhaseFive] as const
+
+/**
+ * Advances through intermediate phases from the current phase to the target phase,
+ * running each phase's PASS side-effects (limbo returns, etc.) along the way.
+ */
+function advanceToPhase(
+  state: GameState,
+  playerId: PlayerId,
+  targetPhase: Phase,
+  events: GameEvent[],
+): GameState {
+  let s = state
+  const startIdx = PHASE_ORDER.indexOf(s.phase as typeof PHASE_ORDER[number])
+  const endIdx = PHASE_ORDER.indexOf(targetPhase as typeof PHASE_ORDER[number])
+
+  if (startIdx < 0 || endIdx < 0 || startIdx >= endIdx) return s
+
+  // Walk through each intermediate phase via handlePass
+  for (let i = startIdx; i < endIdx; i++) {
+    s = handlePass(s, playerId, events)
+  }
+  return s
+}
+
+/**
+ * Handles END_TURN move — skips remaining phases and ends the turn.
+ * Only valid when hand ≤ maxEnd (no forced discards needed).
+ */
+function handleEndTurn(
+  state: GameState,
+  playerId: PlayerId,
+  events: GameEvent[],
+): GameState {
+  assertNotInCombat(state)
+
+  const player = state.players[playerId]!
+  const { maxEnd } = HAND_SIZES[state.deckSize]!
+  if (player.hand.length > maxEnd) {
+    throw new EngineError("HAND_TOO_LARGE", `Discard down to ${maxEnd} cards before ending turn`)
+  }
+
+  // Advance to PhaseFive first (running side-effects for skipped phases)
+  let s = state
+  if (s.phase !== Phase.PhaseFive) {
+    s = advanceToPhase(s, playerId, Phase.PhaseFive, events)
+  }
+
+  // Now do the PhaseFive → EndTurn transition (same as PASS from PhaseFive)
+  return handlePass(s, playerId, events)
 }
 
 // ─── Assertions ───────────────────────────────────────────────────────────────

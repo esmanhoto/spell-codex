@@ -16,15 +16,23 @@ export function card(inst: CardInstance) {
   }
 }
 
-function serializeFormation(f: Formation) {
+function serializeFormation(
+  f: Formation,
+  ownerPlayerId: string,
+  viewerPlayerId?: string,
+) {
+  const isOwnerView = viewerPlayerId != null && viewerPlayerId === ownerPlayerId
   const SLOTS = ["A","B","C","D","E","F","G","H","I","J"].slice(0, f.size)
   return Object.fromEntries(SLOTS.map(s => {
     const slot = f.slots[s as keyof typeof f.slots]
     if (!slot) return [s, null]
+    const revealedToAll = slot.holdingRevealedToAll ?? false
+    const canSeeHoldings = isOwnerView || revealedToAll
     return [s, {
       realm:    card(slot.realm),
-      holdings: slot.holdings.map(card),
+      holdings: canSeeHoldings ? slot.holdings.map(card) : [],
       isRazed:  slot.isRazed,
+      holdingRevealedToAll: revealedToAll,
     }]
   }))
 }
@@ -64,12 +72,12 @@ function serializeCombat(state: GameState) {
   }
 }
 
-export function serializeBoard(state: GameState) {
+export function serializeBoard(state: GameState, viewerPlayerId?: string) {
   return {
     players: Object.fromEntries(
       Object.entries(state.players).map(([id, p]) => [id, {
         hand:          p.hand.map(card),
-        formation:     serializeFormation(p.formation),
+        formation:     serializeFormation(p.formation, id, viewerPlayerId),
         pool:          serializePool(p.pool),
         drawPileCount: p.drawPile.length,
         discardCount:  p.discardPile.length,
@@ -86,7 +94,7 @@ export function serializeBoard(state: GameState) {
 export function serializeGameState(state: GameState, extra?: {
   status?: string
   turnDeadline?: Date | string | null
-}) {
+}, viewerPlayerId?: string) {
   const dl = extra?.turnDeadline
   const turnDeadline = dl instanceof Date ? dl.toISOString() : (dl ?? null)
   return {
@@ -103,7 +111,7 @@ export function serializeGameState(state: GameState, extra?: {
     ),
     pendingEffects: state.pendingEffects,
     responseWindow: state.responseWindow ?? null,
-    board:          serializeBoard(state),
+    board:          serializeBoard(state, viewerPlayerId),
     events:         state.events,
   }
 }

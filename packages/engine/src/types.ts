@@ -63,6 +63,8 @@ export interface RealmSlot {
   realm: CardInstance
   isRazed: boolean
   holdings: CardInstance[]
+  /** False = only owner can see holding details; true = all players can see */
+  holdingRevealedToAll?: boolean
 }
 
 export interface Formation {
@@ -262,6 +264,7 @@ export type Move =
   | { type: "PLAY_REALM";        cardInstanceId: CardInstanceId; slot: FormationSlot }
   | { type: "REBUILD_REALM";     slot: FormationSlot }                              // costs 3 cards from hand
   | { type: "PLAY_HOLDING";      cardInstanceId: CardInstanceId; realmSlot: FormationSlot }
+  | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: FormationSlot }
 
   // Phase 3 — pool
   | { type: "PLACE_CHAMPION";    cardInstanceId: CardInstanceId }
@@ -284,6 +287,8 @@ export type Move =
   // Any phase
   | { type: "PLAY_EVENT";        cardInstanceId: CardInstanceId }
   | { type: "PASS" }
+  /** Skip remaining phases and end the turn (only when hand ≤ maxEnd) */
+  | { type: "END_TURN" }
 
   // Manual fallback — when engine queues a Tier 2 effect
   /** Execute the pending effect by removing/targeting the given card */
@@ -342,6 +347,7 @@ export type GameEvent =
   | { type: "REALM_REBUILT";             playerId: PlayerId; slot: FormationSlot; discardedIds: CardInstanceId[] }
   | { type: "REALM_RAZED";               playerId: PlayerId; slot: FormationSlot }
   | { type: "HOLDING_PLAYED";            playerId: PlayerId; instanceId: CardInstanceId; slot: FormationSlot }
+  | { type: "HOLDING_REVEAL_TOGGLED";    playerId: PlayerId; slot: FormationSlot; revealedToAll: boolean }
   | { type: "CHAMPION_PLACED";           playerId: PlayerId; instanceId: CardInstanceId }
   | { type: "ITEM_ATTACHED";             playerId: PlayerId; itemId: CardInstanceId; championId: CardInstanceId }
   | { type: "CHAMPION_DISCARDED";        playerId: PlayerId; instanceId: CardInstanceId }

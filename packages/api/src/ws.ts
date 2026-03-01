@@ -102,16 +102,21 @@ export async function processWsMove(
     touchGame(gameId, turnDeadline),
   ])
 
-  // Broadcast updated state to all players in the game (serialized to API shape)
+  // Broadcast updated state to all players in the game (player-specific visibility)
   const newTurnDeadline = result.newState.winner ? null : new Date(Date.now() + TURN_DEADLINE_MS).toISOString()
-  broadcastToGame(gameId, {
-    type:    "STATE_UPDATE",
-    gameId,
-    state:   serializeGameState(result.newState, {
-      status:      result.newState.winner ? "finished" : "active",
-      turnDeadline: newTurnDeadline,
-    }),
-  })
+  const sockets = registry.get(gameId)
+  if (sockets) {
+    for (const [viewerPlayerId, socket] of sockets.entries()) {
+      send(socket, {
+        type:  "STATE_UPDATE",
+        gameId,
+        state: serializeGameState(result.newState, {
+          status:      result.newState.winner ? "finished" : "active",
+          turnDeadline: newTurnDeadline,
+        }, viewerPlayerId),
+      })
+    }
+  }
 
   if (result.newState.winner) {
     broadcastToGame(gameId, { type: "GAME_OVER", gameId, winner: result.newState.winner })
@@ -179,7 +184,7 @@ export const wsHandlers = {
 
         // Send current state (serialized to the API shape the client expects)
         const { state } = await reconstructState(gameId, game.seed)
-        send(ws, { type: "STATE_UPDATE", gameId, state: serializeGameState(state) })
+        send(ws, { type: "STATE_UPDATE", gameId, state: serializeGameState(state, undefined, playerId) })
         return
       }
 

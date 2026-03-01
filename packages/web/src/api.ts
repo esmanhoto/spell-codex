@@ -22,6 +22,7 @@ export interface SlotState {
   realm:    CardInfo
   holdings: CardInfo[]
   isRazed:  boolean
+  holdingRevealedToAll: boolean
 }
 
 export interface PoolEntry {
@@ -104,9 +105,11 @@ export type ManualAction = "discard" | "to_limbo" | "to_abyss" | "raze_realm"
 
 export type Move =
   | { type: "PASS" }
+  | { type: "END_TURN" }
   | { type: "PLAY_REALM";              cardInstanceId: string; slot: string }
   | { type: "REBUILD_REALM";           slot: string }
   | { type: "PLAY_HOLDING";            cardInstanceId: string; realmSlot: string }
+  | { type: "TOGGLE_HOLDING_REVEAL";   realmSlot: string }
   | { type: "PLACE_CHAMPION";          cardInstanceId: string }
   | { type: "ATTACH_ITEM";             cardInstanceId: string; championId: string }
   | { type: "PLAY_PHASE3_CARD";        cardInstanceId: string }

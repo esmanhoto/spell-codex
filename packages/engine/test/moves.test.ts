@@ -9,7 +9,7 @@ import {
   DEFAULT_CONFIG,
   REALM_FR, REALM_GENERIC,
   CHAMPION_CLERIC_FR, CHAMPION_WIZARD_FR,
-  ALLY_PLUS4,
+  ALLY_PLUS4, HOLDING_FR,
 } from "./fixtures.ts"
 
 beforeEach(() => {
@@ -227,6 +227,63 @@ describe("DISCARD_CARD in Phase 5", () => {
   })
 })
 
+// ─── Holding reveal toggle ───────────────────────────────────────────────────
+
+describe("TOGGLE_HOLDING_REVEAL", () => {
+  test("owner can toggle reveal state for a realm holding", () => {
+    let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.PlayRealm)
+    const realm: CardInstance = { instanceId: "realm-a", card: REALM_FR }
+    const holding: CardInstance = { instanceId: "holding-a", card: HOLDING_FR }
+
+    s = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          formation: {
+            size: 6,
+            slots: {
+              A: { realm, isRazed: false, holdings: [holding], holdingRevealedToAll: false },
+            },
+          },
+        },
+      },
+    }
+
+    const { newState, events } = applyMove(s, "p1", { type: "TOGGLE_HOLDING_REVEAL", realmSlot: "A" })
+    expect(newState.players["p1"]!.formation.slots["A"]!.holdingRevealedToAll).toBe(true)
+    expect(events.some(e => e.type === "HOLDING_REVEAL_TOGGLED")).toBe(true)
+  })
+
+  test("legal moves include TOGGLE_HOLDING_REVEAL when holding is attached", () => {
+    let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.PlayRealm)
+    const realm: CardInstance = { instanceId: "realm-a", card: REALM_FR }
+    const holding: CardInstance = { instanceId: "holding-a", card: HOLDING_FR }
+
+    s = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          formation: {
+            size: 6,
+            slots: {
+              A: { realm, isRazed: false, holdings: [holding], holdingRevealedToAll: false },
+            },
+          },
+        },
+      },
+    }
+
+    const moves = getLegalMoves(s, "p1")
+    expect(
+      moves.some(m => m.type === "TOGGLE_HOLDING_REVEAL" && (m as { realmSlot: string }).realmSlot === "A"),
+    ).toBe(true)
+  })
+})
+
 // ─── getLegalMoves ────────────────────────────────────────────────────────────
 
 describe("getLegalMoves", () => {
@@ -254,11 +311,11 @@ describe("getLegalMoves", () => {
     expect(moves.some(m => m.type === "PASS")).toBe(false)
   })
 
-  test("PHASE_FIVE includes PASS when hand is at limit", () => {
+  test("PHASE_FIVE includes END_TURN when hand is at limit", () => {
     const s = advanceTo(initGame(DEFAULT_CONFIG), Phase.PhaseFive)
     const moves = getLegalMoves(s, "p1")
     // After drawing, hand is at 5 (starting) + 3 (drawn) = 8, which equals maxEnd for 55-card
-    expect(moves.some(m => m.type === "PASS")).toBe(true)
+    expect(moves.some(m => m.type === "END_TURN")).toBe(true)
   })
 
   test("finished game returns no legal moves", () => {

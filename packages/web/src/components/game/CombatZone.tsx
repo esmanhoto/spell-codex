@@ -1,132 +1,259 @@
 import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
+import { getTypeInfo } from "../../utils/type-labels.ts"
 import type { CardInfo } from "../../api.ts"
-import { CardTooltip } from "./CardTooltip.tsx"
+import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import { CombatTooltip } from "./CombatTooltip.tsx"
 import styles from "./CombatZone.module.css"
 
 export function CombatZone() {
-  const { combat, playerA, playerB, legalMoves, onMove } = useGame()
-  const [atkInput, setAtkInput] = useState("")
-  const [defInput, setDefInput] = useState("")
+  const { combat, playerA, playerB, legalMoves, onMove, openContextMenu } = useGame()
+  const [inputA, setInputA] = useState("")
+  const [inputB, setInputB] = useState("")
+  const [editingA, setEditingA] = useState(false)
+  const [editingB, setEditingB] = useState(false)
 
   if (!combat) return null
 
-  const atkLabel = combat.attackingPlayer === playerA ? "Player A" : "Player B"
-  const defLabel = combat.defendingPlayer === playerA ? "Player A" : "Player B"
+  const aIsAttacker = combat.attackingPlayer === playerA
 
+  // Player A data (always bottom)
+  const champA = aIsAttacker ? combat.attacker : combat.defender
+  const cardsA = aIsAttacker ? combat.attackerCards : combat.defenderCards
+  const levelA = aIsAttacker
+    ? (combat.attackerManualLevel ?? combat.attackerLevel)
+    : (combat.defenderManualLevel ?? combat.defenderLevel)
+  const manualA = aIsAttacker ? combat.attackerManualLevel : combat.defenderManualLevel
+  const roleA = aIsAttacker ? "Attacker" : "Defender"
+
+  // Player B data (always top)
+  const champB = aIsAttacker ? combat.defender : combat.attacker
+  const cardsB = aIsAttacker ? combat.defenderCards : combat.attackerCards
+  const levelB = aIsAttacker
+    ? (combat.defenderManualLevel ?? combat.defenderLevel)
+    : (combat.attackerManualLevel ?? combat.attackerLevel)
+  const manualB = aIsAttacker ? combat.defenderManualLevel : combat.attackerManualLevel
+  const roleB = aIsAttacker ? "Defender" : "Attacker"
+
+  const aWinning = levelA > levelB
+  const bWinning = levelB > levelA
   const hasLevels = combat.attacker !== null && combat.defender !== null
-  const displayAtkLevel = combat.attackerManualLevel ?? combat.attackerLevel
-  const displayDefLevel = combat.defenderManualLevel ?? combat.defenderLevel
-  const atkWinning = displayAtkLevel > displayDefLevel
-  const defWinning = displayDefLevel >= displayAtkLevel
 
   const canEditLevel = legalMoves.some(m => m.type === "MANUAL_SET_COMBAT_LEVEL")
 
-  function submitLevel(playerId: string, input: string, setter: (v: string) => void) {
+  function submitLevel(playerId: string, input: string, setter: (v: string) => void, closeFn: (v: boolean) => void) {
     const level = parseInt(input, 10)
     if (!isNaN(level)) {
       onMove({ type: "MANUAL_SET_COMBAT_LEVEL", playerId, level })
-      setter("")
+    }
+    setter("")
+    closeFn(false)
+  }
+
+  function buildContextActions(card: CardInfo): ContextMenuAction[] {
+    if (!canEditLevel) return []
+    return [
+      { label: "Discard", move: { type: "MANUAL_DISCARD", cardInstanceId: card.instanceId } },
+      { label: "Return to pool", move: { type: "MANUAL_RETURN_TO_POOL", cardInstanceId: card.instanceId } },
+      { label: "Switch sides", move: { type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId } },
+    ]
+  }
+
+  function handleCardContextMenu(e: React.MouseEvent, card: CardInfo) {
+    e.preventDefault()
+    const actions = buildContextActions(card)
+    if (actions.length > 0) {
+      openContextMenu(e.clientX, e.clientY, actions)
     }
   }
 
-  function switchableImg(c: CardInfo) {
+  // PEEK = how many px of each support card peek out below the champion
+  const PEEK = 34
+  // Card dimensions (must match CSS vars)
+  const CARD_H = 168
+
+  function renderCardStack(champion: CardInfo | null, supportCards: CardInfo[], flipped: boolean) {
+    const totalSupportHeight = supportCards.length * PEEK
+
     return (
-      <CardTooltip key={c.instanceId} card={c}>
-        <img
-          src={cardImageUrl(c.setId, c.cardNumber)}
-          alt={c.name}
-          className={styles.extraImg}
-          onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
-          onContextMenu={canEditLevel ? e => { e.preventDefault(); onMove({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: c.instanceId }) } : undefined}
-          style={canEditLevel ? { cursor: "context-menu" } : undefined}
-          title={canEditLevel ? "Right-click to switch sides" : c.description}
-        />
-      </CardTooltip>
+      <div
+        className={styles.cardStack}
+        style={{ paddingBottom: flipped ? 0 : totalSupportHeight, paddingTop: flipped ? totalSupportHeight : 0 }}
+      >
+        {/* Champion — always on top (highest z-index) */}
+        {champion && (
+          <div className={`${styles.championCard} ${flipped ? styles.flipped : ""}`}>
+            <CombatTooltip card={champion}>
+              <div
+                data-combat-champion={champion.instanceId}
+                onContextMenu={e => handleCardContextMenu(e, champion)}
+                className={styles.championInner}
+              >
+                <img
+                  src={cardImageUrl(champion.setId, champion.cardNumber)}
+                  alt={champion.name}
+                  onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                />
+              </div>
+            </CombatTooltip>
+          </div>
+        )}
+
+        {/* Support cards — full size, positioned so only PEEK px peek below champion */}
+        {supportCards.map((c, i) => {
+          const typeInfo = getTypeInfo(c.typeId)
+          // Position: card is mostly behind the champion, only bottom PEEK*(i+1) px visible
+          // For normal (bottom player): top = CARD_H - CARD_H + PEEK*(i+1) = PEEK*(i+1)
+          //   but we want the card to start higher so it's hidden behind the champ.
+          //   The card top edge should be at: CARD_H - PEEK*(i+1) from champion top
+          //   Since support is absolutely positioned relative to cardStack which has
+          //   the champion at top=0, the support top = championBottom - (CARD_H - PEEK*(i+1))
+          //   = CARD_H - CARD_H + PEEK*(i+1) = PEEK*(i+1)
+          // Wait — simpler: support card should be positioned so its bottom is PEEK*(i+1) below champion's bottom.
+          // Champion occupies 0..CARD_H. Support card of height CARD_H, bottom at CARD_H + PEEK*(i+1).
+          // So top = CARD_H + PEEK*(i+1) - CARD_H = PEEK*(i+1).
+          // That means support top = PEEK * (i+1), and since support is CARD_H tall, only the bottom PEEK px
+          // peeks below the champion.
+          // Actually no — the card top at PEEK*(i+1) means the card starts at y=PEEK*(i+1)
+          // and ends at y=PEEK*(i+1)+CARD_H. The champion ends at y=CARD_H.
+          // Visible portion = (PEEK*(i+1)+CARD_H) - CARD_H = PEEK*(i+1). That's too much for i>0.
+          // We want exactly PEEK px visible per card. Each card peeks PEEK below the previous.
+          // Card 0: bottom edge at CARD_H + PEEK → top = CARD_H + PEEK - CARD_H = PEEK
+          //   visible below champion: PEEK. Correct.
+          // Card 1: bottom edge at CARD_H + 2*PEEK → top = 2*PEEK
+          //   visible below champion: 2*PEEK. But card 0 covers PEEK..PEEK+CARD_H, so
+          //   card 1 visible portion = bottom PEEK that's below card 0's bottom.
+          //   Card 0 bottom = PEEK+CARD_H, card 1 bottom = 2*PEEK+CARD_H.
+          //   Card 1 visible = PEEK. Correct (since card 0 covers the rest with higher z).
+          // So z-index must decrease with each support card.
+          const topPos = PEEK * (i + 1)
+          const zIndex = supportCards.length - i // first support card has highest z among supports
+
+          return (
+            <div
+              key={c.instanceId}
+              className={`${styles.supportCard} ${flipped ? styles.flipped : ""}`}
+              style={flipped
+                ? { bottom: topPos, zIndex }
+                : { top: topPos, zIndex }
+              }
+              onContextMenu={e => handleCardContextMenu(e, c)}
+            >
+              <CombatTooltip card={c}>
+                <div className={styles.supportInner}>
+                  <img
+                    src={cardImageUrl(c.setId, c.cardNumber)}
+                    alt={c.name}
+                    onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                  />
+                </div>
+              </CombatTooltip>
+            </div>
+          )
+        })}
+      </div>
     )
   }
 
+  function levelColorClass(winning: boolean, losing: boolean): string {
+    if (winning) return styles.winning
+    if (losing) return styles.losing
+    return styles.neutral
+  }
+
   return (
-    <div className={styles.combat}>
+    <div className={styles.combat} data-combat-panel>
+      {/* Header */}
       <div className={styles.header}>
-        <span>
-          <strong>Combat</strong>
-          <span className={styles.target}> — {atkLabel} → {defLabel}'s slot <strong>{combat.targetSlot}</strong></span>
-        </span>
+        <span className={styles.title}>Combat</span>
         <span className={styles.phase}>{combat.roundPhase.replace(/_/g, " ")}</span>
       </div>
 
-      {hasLevels && (
-        <div className={styles.scoreRow}>
-          <div className={styles.scoreBlock}>
-            <span className={`${styles.scoreLarge} ${atkWinning ? styles.winning : styles.losing}`}>{displayAtkLevel}</span>
-            {combat.attackerManualLevel != null && <span className={styles.manualTag}>manual</span>}
-          </div>
-          <span className={styles.vs}>vs</span>
-          <div className={styles.scoreBlock}>
-            <span className={`${styles.scoreLarge} ${defWinning ? styles.defWinning : styles.losing}`}>{displayDefLevel}</span>
-            {combat.defenderManualLevel != null && <span className={styles.manualTag}>manual</span>}
-          </div>
-        </div>
-      )}
-
-      <div className={styles.sides}>
-        <div className={`${styles.side} ${styles.sideAtk}`}>
-          <div className={styles.sideLabel}>Attacker · {atkLabel}</div>
-          <div className={styles.cardsRow}>
-            {combat.attacker && (
-              <CardTooltip card={combat.attacker}>
-                <img src={cardImageUrl(combat.attacker.setId, combat.attacker.cardNumber)} alt={combat.attacker.name}
-                  className={styles.championImg} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
-              </CardTooltip>
-            )}
-            {combat.attackerCards.map(c => switchableImg(c))}
-          </div>
-          <div className={styles.levelDetail}>
-            {combat.attacker && <>base {combat.attacker.level ?? 0}</>}
-            {combat.attackerCards.map(c => <span key={c.instanceId}> +{c.name}</span>)}
-            {combat.attacker && <> = <strong>{displayAtkLevel}</strong></>}
-          </div>
-          {canEditLevel && (
-            <div className={styles.levelEdit}>
-              <input type="number" placeholder="Override…" value={atkInput}
-                onChange={e => setAtkInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && submitLevel(combat.attackingPlayer, atkInput, setAtkInput)}
-                className={styles.levelInput} />
-              <button className={styles.setBtn} onClick={() => submitLevel(combat.attackingPlayer, atkInput, setAtkInput)}>Set</button>
+      {/* Player B section (top — cards flipped/upside-down) */}
+      <div className={styles.sideSection}>
+        {renderCardStack(champB, cardsB, true)}
+        <div className={styles.infoPanel}>
+          {hasLevels && (
+            <>
+              <span className={`${styles.levelDisplay} ${levelColorClass(bWinning, aWinning)}`}
+                onClick={() => canEditLevel && setEditingB(true)}
+                title={canEditLevel ? "Click to override level" : undefined}
+              >
+                {levelB}
+              </span>
+              {manualB != null && <span className={styles.manualTag}>manual</span>}
+            </>
+          )}
+          <span className={styles.roleLabel}>{roleB}</span>
+          {editingB && canEditLevel && (
+            <div className={styles.levelEditRow}>
+              <input
+                type="number"
+                autoFocus
+                placeholder={String(levelB)}
+                value={inputB}
+                onChange={e => setInputB(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") submitLevel(playerB, inputB, setInputB, setEditingB)
+                  if (e.key === "Escape") { setEditingB(false); setInputB("") }
+                }}
+                onBlur={() => { setEditingB(false); setInputB("") }}
+                className={styles.levelInput}
+              />
+              <button className={styles.setBtn} onMouseDown={e => { e.preventDefault(); submitLevel(playerB, inputB, setInputB, setEditingB) }}>Set</button>
             </div>
           )}
         </div>
+      </div>
 
-        <div className={styles.centerDivider} />
+      {/* VS Divider */}
+      <div className={styles.vsDivider}>
+        <div className={styles.vsLine} />
+        <span className={styles.vsText}>VS</span>
+        <div className={styles.vsLine} />
+      </div>
 
-        <div className={`${styles.side} ${styles.sideDef}`}>
-          <div className={styles.sideLabel}>Defender · {defLabel}</div>
-          <div className={styles.cardsRow}>
-            {combat.defenderCards.map(c => switchableImg(c))}
-            {combat.defender && (
-              <CardTooltip card={combat.defender}>
-                <img src={cardImageUrl(combat.defender.setId, combat.defender.cardNumber)} alt={combat.defender.name}
-                  className={styles.championImg} onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />
-              </CardTooltip>
-            )}
-          </div>
-          <div className={styles.levelDetail}>
-            {combat.defender && <>base {combat.defender.level ?? 0}</>}
-            {combat.defenderCards.map(c => <span key={c.instanceId}> +{c.name}</span>)}
-            {combat.defender && <> = <strong>{displayDefLevel}</strong></>}
-          </div>
-          {canEditLevel && (
-            <div className={styles.levelEdit}>
-              <input type="number" placeholder="Override…" value={defInput}
-                onChange={e => setDefInput(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && submitLevel(combat.defendingPlayer, defInput, setDefInput)}
-                className={styles.levelInput} />
-              <button className={styles.setBtn} onClick={() => submitLevel(combat.defendingPlayer, defInput, setDefInput)}>Set</button>
+      {/* Player A section (bottom — cards normal orientation) */}
+      <div className={styles.sideSection}>
+        {renderCardStack(champA, cardsA, false)}
+        <div className={styles.infoPanel}>
+          <span className={styles.roleLabel}>{roleA}</span>
+          {hasLevels && (
+            <>
+              <span className={`${styles.levelDisplay} ${levelColorClass(aWinning, bWinning)}`}
+                onClick={() => canEditLevel && setEditingA(true)}
+                title={canEditLevel ? "Click to override level" : undefined}
+              >
+                {levelA}
+              </span>
+              {manualA != null && <span className={styles.manualTag}>manual</span>}
+            </>
+          )}
+          {editingA && canEditLevel && (
+            <div className={styles.levelEditRow}>
+              <input
+                type="number"
+                autoFocus
+                placeholder={String(levelA)}
+                value={inputA}
+                onChange={e => setInputA(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Enter") submitLevel(playerA, inputA, setInputA, setEditingA)
+                  if (e.key === "Escape") { setEditingA(false); setInputA("") }
+                }}
+                onBlur={() => { setEditingA(false); setInputA("") }}
+                className={styles.levelInput}
+              />
+              <button className={styles.setBtn} onMouseDown={e => { e.preventDefault(); submitLevel(playerA, inputA, setInputA, setEditingA) }}>Set</button>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Target info */}
+      <div className={styles.targetInfo}>
+        Player A attacking Player B's realm <strong>{combat.targetSlot}</strong>
       </div>
     </div>
   )

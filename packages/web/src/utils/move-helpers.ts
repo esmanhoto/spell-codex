@@ -28,10 +28,12 @@ export function labelMove(m: Move, nameOf: (id: string) => string, phase?: strin
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const a = m as any
   switch (m.type) {
-    case "PASS":             return phase === "PHASE_FIVE" ? "Pass turn" : "Next phase"
+    case "PASS":             return phase === "START_OF_TURN" ? "Draw cards" : "Next phase"
+    case "END_TURN":         return "End Turn"
     case "PLAY_REALM":       return `Play ${nameOf(a.cardInstanceId)} \u2192 slot ${a.slot}`
     case "REBUILD_REALM":    return `Rebuild slot ${a.slot}`
     case "PLAY_HOLDING":     return `Play ${nameOf(a.cardInstanceId)} \u2192 slot ${a.realmSlot}`
+    case "TOGGLE_HOLDING_REVEAL": return "Toggle holding reveal"
     case "PLACE_CHAMPION":   return `Place ${nameOf(a.cardInstanceId)}`
     case "ATTACH_ITEM":      return `Attach ${nameOf(a.cardInstanceId)} \u2192 ${nameOf(a.championId)}`
     case "PLAY_PHASE3_CARD": return `Cast ${nameOf(a.cardInstanceId)}`
@@ -64,6 +66,6 @@ export function labelMove(m: Move, nameOf: (id: string) => string, phase?: strin
 }
 
 export const ANCHOR_FREE_TYPES = new Set([
-  "PASS", "PASS_RESPONSE", "STOP_PLAYING", "CONTINUE_ATTACK",
+  "PASS", "END_TURN", "PASS_RESPONSE", "STOP_PLAYING", "CONTINUE_ATTACK",
   "END_ATTACK", "DECLINE_DEFENSE", "REBUILD_REALM",
 ])

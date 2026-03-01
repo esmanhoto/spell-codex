@@ -89,6 +89,12 @@
   position: relative;
 }
 
+.realmStack {
+  width: 150px;
+  height: 107px;
+  position: relative;
+}
+
 .realmImg {
   /* Card images are stored portrait (e.g. 225x315). Rotate 90° to show landscape. */
   position: absolute;
@@ -98,6 +104,30 @@
   height: 150px;
   object-fit: cover;
   transform: translate(-50%, -50%) rotate(-90deg);
+  transform-origin: center center;
+}
+
+.holdingPeekWrap {
+  position: absolute;
+  left: -24px;
+  top: 0;
+  width: 30px;
+  height: 107px;
+  /* overflow: hidden; */
+  border-radius: 3px 0 0 3px;
+  border: 1px solid rgba(80, 120, 80, 0.3);
+  background: #0b1220;
+  z-index: 0;
+}
+
+.holdingPeekImg {
+  position: absolute;
+  top: 50%;
+  left: 86px;
+  width: 107px;
+  height: 150px;
+  object-fit: cover;
+  transform: translate(-79%, -50%) rotate(90deg);
   transform-origin: center center;
 }
 

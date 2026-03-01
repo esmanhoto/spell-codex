@@ -33,6 +33,7 @@ export function EventLog({ events }: { events: GameEvent[] }) {
       case "REALM_RAZED":        return `  ${p} realm slot ${e.slot as string} razed!`
       case "REALM_REBUILT":      return `  ${p} rebuilt realm slot ${e.slot as string}`
       case "HOLDING_PLAYED":     return `  ${p} played holding`
+      case "HOLDING_REVEAL_TOGGLED": return `  ${p} ${(e.revealedToAll as boolean) ? "revealed" : "hid"} a holding`
       case "ITEM_ATTACHED":      return `  ${p} attached item`
       case "ATTACK_DECLARED":    return `  ${playerLabel(e.attackingPlayer as string)} attacks ${playerLabel(e.defendingPlayer as string)} slot ${e.slot as string}`
       case "DEFENSE_DECLARED":   return `  ${p} defends`

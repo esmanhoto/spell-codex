@@ -13,7 +13,7 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
   isOpponent:        boolean
   attackedSlot?:     string
 }) {
-  const { legalMoves, onMove, selectedId, onSelect } = useGame()
+  const { legalMoves, onMove, selectedId, onSelect, openContextMenu } = useGame()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
 
   function handleSlotDrop(e: React.DragEvent, slot: string) {
@@ -62,10 +62,20 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
               const s = slots[slot]
               const isSelected  = !!s && selectedId === s.realm.instanceId
               const isDragTarget = dragOverSlot === slot
+              const toggleHoldingMove = s?.holdings.length
+                ? legalMoves.find(m =>
+                  m.type === "TOGGLE_HOLDING_REVEAL" &&
+                  (m as { realmSlot: string }).realmSlot === slot
+                )
+                : undefined
+              const tooltipCards = s ? [s.realm, ...s.holdings] : []
+              const showHoldingStack = !!(s && s.holdings.length > 0 && s.holdingRevealedToAll)
+              const holdingForStack = showHoldingStack ? s.holdings[0] : null
 
               return (
                 <div
                   key={slot}
+                  data-targeted-slot={attackedSlot === slot ? slot : undefined}
                   className={[
                     styles.slot,
                     s ? (s.isRazed ? styles.razed : styles.filled) : styles.empty,
@@ -77,6 +87,13 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
                   onDragOver={e => { e.preventDefault(); setDragOverSlot(slot) }}
                   onDragLeave={() => setDragOverSlot(null)}
                   onDrop={e => handleSlotDrop(e, slot)}
+                  onContextMenu={toggleHoldingMove ? e => {
+                    e.preventDefault()
+                    openContextMenu(e.clientX, e.clientY, [{
+                      label: s?.holdingRevealedToAll ? "Hide holding" : "Reveal holding",
+                      move: toggleHoldingMove,
+                    }])
+                  } : undefined}
                 >
                   <span className={styles.slotLabel}>{slot}</span>
                   {s ? (
@@ -90,22 +107,32 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
                           />
                         </div>
                       ) : (
-                        <CardTooltip card={s.realm}>
-                          <div className={styles.realmImgWrap}>
-                            <img
-                              src={cardImageUrl(s.realm.setId, s.realm.cardNumber)}
-                              alt={s.realm.name}
-                              className={styles.realmImg}
-                              onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
-                            />
+                        <CardTooltip cards={tooltipCards}>
+                          <div className={styles.realmStack}>
+                            {holdingForStack && (
+                              <div className={styles.holdingPeekWrap}>
+                                <img
+                                  src={cardImageUrl(holdingForStack.setId, holdingForStack.cardNumber)}
+                                  alt={holdingForStack.name}
+                                  className={styles.holdingPeekImg}
+                                  onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                                />
+                              </div>
+                            )}
+                            <div className={styles.realmImgWrap}>
+                              <img
+                                src={cardImageUrl(s.realm.setId, s.realm.cardNumber)}
+                                alt={s.realm.name}
+                                className={styles.realmImg}
+                                onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                              />
+                            </div>
                           </div>
                         </CardTooltip>
                       )}
                       <span className={styles.realmName}>{s.realm.name}{s.isRazed ? " (razed)" : ""}</span>
                       {s.holdings.map(h => (
-                        isOpponent
-                          ? <span key={h.instanceId} className={styles.holding}>Holding</span>
-                          : <span key={h.instanceId} className={styles.holding} title={h.description}>{h.name}</span>
+                        <span key={h.instanceId} className={styles.holding} title={h.description}>{h.name}</span>
                       ))}
                     </>
                   ) : (

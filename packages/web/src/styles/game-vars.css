@@ -26,6 +26,11 @@
   --card-pile-w: 80px;
   --card-pile-h: 112px;
 
+  /* Combat panel card sizes */
+  --card-combat-w: 120px;
+  --card-combat-h: 168px;
+  --card-combat-support-peek: 34px;
+
   /* Z-index layers */
   --z-base: 1;
   --z-cards: 10;

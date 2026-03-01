@@ -78,7 +78,7 @@ gamesRouter.get("/:id", async (c) => {
   const { state, errors } = await reconstructState(gameId, game.seed)
 
   return c.json({
-    ...serializeGameState(state, { status: game.status, turnDeadline: game.turnDeadline }),
+    ...serializeGameState(state, { status: game.status, turnDeadline: game.turnDeadline }, userId),
     integrityErrors: errors.length > 0 ? errors : undefined,
   })
 })

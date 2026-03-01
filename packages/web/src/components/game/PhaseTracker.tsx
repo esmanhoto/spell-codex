@@ -5,7 +5,7 @@ const PHASES = [
   { key: "PLAY_REALM",   label: "Realm" },
   { key: "POOL", label: "Pool" },
   { key: "COMBAT",  label: "Combat" },
-  { key: "PHASE_FIVE",  label: "End" },
+  { key: "PHASE_FIVE",  label: "Discard" },
 ]
 
 export function PhaseTracker({ phase }: { phase: string }) {
