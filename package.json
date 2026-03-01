@@ -5,6 +5,10 @@
   "scripts": {
     "extract": "bun run --cwd packages/data extract",
     "test": "bun test --cwd packages/engine",
+    "db:up": "docker-compose up -d",
+    "db:down": "docker-compose down",
+    "db:down:volumes": "docker-compose down -v",
+    "db:migrate": "DATABASE_URL=postgres://spell:spell@localhost:5433/spell bun run --cwd packages/db db:migrate",
     "lint": "eslint \"packages/*/{src,test,scripts}/**/*.{ts,tsx}\" \"packages/*/*.ts\"",
     "ci:lint": "bun run lint",
     "ci:typecheck": "bun run --cwd packages/engine typecheck && bun run --cwd packages/db typecheck && bun run --cwd packages/api typecheck && bun run --cwd packages/data typecheck && bun run --cwd packages/web typecheck",

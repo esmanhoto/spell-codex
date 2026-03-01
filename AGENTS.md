@@ -32,6 +32,11 @@
 - Add/adjust tests with behavior changes (`bun:test` used across engine/api/db).
 - Use existing package boundaries; avoid cross-package leakage.
 
+## Git Workflow
+- Create a dedicated branch for non-trivial work.
+- Commit in small logical groups; do not bundle unrelated changes.
+- Prefer commit groups like: engine rules, API contract, UI, DB/migrations, docs.
+
 ## Add Code
 1. Choose package by concern:
 - rules/simulation -> `engine`
