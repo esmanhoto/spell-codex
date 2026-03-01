@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
 import type { GameEvent } from "../../api.ts"
-import { nameOfCard } from "../../utils/card-helpers.ts"
 import styles from "./EventLog.module.css"
 
 export function EventLog({ events }: { events: GameEvent[] }) {
@@ -41,9 +40,6 @@ export function EventLog({ events }: { events: GameEvent[] }) {
       case "COMBAT_CARD_PLAYED": return `  ${p} played combat card`
       case "COMBAT_RESOLVED":    return `  Combat: ${e.attackerLevel as number} vs ${e.defenderLevel as number} → ${(e.outcome as string).replace(/_/g, " ")}`
       case "SPOILS_EARNED":      return `  ${p} earned spoils`
-      case "EFFECT_QUEUED":      return `  Effect: ${(e.effect as { cardName: string }).cardName}`
-      case "RESPONSE_WINDOW_OPENED": return `  ${playerLabel(e.respondingPlayerId as string)} may counter`
-      case "RESPONSE_WINDOW_CLOSED": return `  Response window closed`
       case "MANUAL_ZONE_MOVE":   return `  ${p} moved card (${e.from as string} → ${e.to as string})`
       case "MANUAL_REALM_RAZED": return `  ${p} manually razed realm slot ${e.slot as string}`
       case "MANUAL_CARDS_DRAWN": return `  ${p} manually drew ${e.count as number} card(s)`

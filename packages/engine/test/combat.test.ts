@@ -101,79 +101,45 @@ describe("hasWorldMatch", () => {
 describe("calculateCombatLevel", () => {
   test("base level with no cards or world match", () => {
     const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6
-    expect(calculateCombatLevel(champ, [], false, [], "offensive")).toBe(6)
+    expect(calculateCombatLevel(champ, [], false, "offensive")).toBe(6)
   })
 
   test("world bonus adds 3 when matched", () => {
     const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // worldId=1, level=6
-    expect(calculateCombatLevel(champ, [], true, [], "offensive")).toBe(9)  // 6+3
+    expect(calculateCombatLevel(champ, [], true, "offensive")).toBe(9)  // 6+3
   })
 
   test("ally +4 adds to offensive level", () => {
     const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6
     const ally = createInstance(ALLY_PLUS4, "test-ally-plus4")
-    expect(calculateCombatLevel(champ, [ally], false, [], "offensive")).toBe(10)  // 6+4
+    expect(calculateCombatLevel(champ, [ally], false, "offensive")).toBe(10)  // 6+4
   })
 
   test("slash ally: offensive bonus for attacker", () => {
     const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6
     const ally = createInstance(ALLY_SLASH, "test-ally-slash")  // +3/+2
-    expect(calculateCombatLevel(champ, [ally], false, [], "offensive")).toBe(9)   // 6+3
-    expect(calculateCombatLevel(champ, [ally], false, [], "defensive")).toBe(8)   // 6+2
+    expect(calculateCombatLevel(champ, [ally], false, "offensive")).toBe(9)   // 6+3
+    expect(calculateCombatLevel(champ, [ally], false, "defensive")).toBe(8)   // 6+2
   })
 
   test("magical item +2/+1 applies correct bonus by side", () => {
     const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ")  // level 8
     const item = createInstance(MAGICAL_ITEM_PLUS2_PLUS1, "test-item")
-    expect(calculateCombatLevel(champ, [item], false, [], "offensive")).toBe(10)  // 8+2
-    expect(calculateCombatLevel(champ, [item], false, [], "defensive")).toBe(9)   // 8+1
+    expect(calculateCombatLevel(champ, [item], false, "offensive")).toBe(10)  // 8+2
+    expect(calculateCombatLevel(champ, [item], false, "defensive")).toBe(9)   // 8+1
   })
 
   test("level never goes below 0", () => {
     const champ = createInstance(CHAMPION_HERO_GENERIC, "test-champ")  // level 5
     // No negative case in standard rules but ensure the floor holds
-    expect(calculateCombatLevel(champ, [], false, [], "offensive")).toBeGreaterThanOrEqual(0)
+    expect(calculateCombatLevel(champ, [], false, "offensive")).toBeGreaterThanOrEqual(0)
   })
 
   test("world bonus + ally stack correctly", () => {
     const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6, worldId=1
     const ally = createInstance(ALLY_PLUS4, "test-ally-plus4")
     // FR champion attacking FR realm: 6 + 3 (world) + 4 (ally) = 13
-    expect(calculateCombatLevel(champ, [ally], true, [], "offensive")).toBe(13)
-  })
-
-  test("SET_LEVEL effect overrides base level", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6
-    const specs = [{
-      cardRef: { setId: champ.card.setId, cardNumber: champ.card.cardNumber },
-      trigger: "PASSIVE" as const,
-      effects: [{ type: "SET_LEVEL" as const, value: 10 }],
-    }]
-    // SET_LEVEL 10, no world match → 10
-    expect(calculateCombatLevel(champ, [], false, specs, "offensive")).toBe(10)
-  })
-
-  test("SET_LEVEL + world bonus = set value + 3", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")
-    const specs = [{
-      cardRef: { setId: champ.card.setId, cardNumber: champ.card.cardNumber },
-      trigger: "PASSIVE" as const,
-      effects: [{ type: "SET_LEVEL" as const, value: 10 }],
-    }]
-    expect(calculateCombatLevel(champ, [], true, specs, "offensive")).toBe(13)  // 10+3
-  })
-
-  test("NEGATE_ALLY_BONUS from effect spec zeroes ally contributions", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")
-    const ally = createInstance(ALLY_PLUS4, "test-ally-plus4")
-    const negator = createInstance({ ...MAGICAL_ITEM_PLUS2_PLUS1, cardNumber: 999, name: "Negator" }, "test-negator")
-    const specs = [{
-      cardRef: { setId: negator.card.setId, cardNumber: negator.card.cardNumber },
-      trigger: "PASSIVE" as const,
-      effects: [{ type: "NEGATE_ALLY_BONUS" as const }],
-    }]
-    // Ally bonus is negated — only base 6 remains
-    expect(calculateCombatLevel(champ, [ally, negator], false, specs, "offensive")).toBe(6)
+    expect(calculateCombatLevel(champ, [ally], true, "offensive")).toBe(13)
   })
 })
 

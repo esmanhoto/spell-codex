@@ -16,8 +16,6 @@ export type ClientMessage =
 
 export type ServerMessage =
   | { type: "STATE_UPDATE";            gameId: string; state: unknown }
-  | { type: "RESPONSE_WINDOW_OPEN";    gameId: string; respondingPlayerId: string; effectCardName: string; effectCardDescription: string }
-  | { type: "RESPONSE_WINDOW_CLOSED";  gameId: string }
   | { type: "GAME_OVER";               gameId: string; winner: string }
   | { type: "PONG" }
   | { type: "ERROR";                   code: string; message: string }
@@ -50,7 +48,7 @@ export function broadcastToGame(gameId: string, msg: ServerMessage): void {
   }
 }
 
-// ─── Move processing (shared with HTTP route for bot games) ──────────────────
+// ─── Move processing ──────────────────────────────────────────────────────────
 
 const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
 
@@ -120,17 +118,6 @@ export async function processWsMove(
 
   if (result.newState.winner) {
     broadcastToGame(gameId, { type: "GAME_OVER", gameId, winner: result.newState.winner })
-  } else if (result.newState.responseWindow) {
-    broadcastToGame(gameId, {
-      type:                  "RESPONSE_WINDOW_OPEN",
-      gameId,
-      respondingPlayerId:    result.newState.responseWindow.respondingPlayerId,
-      effectCardName:        result.newState.responseWindow.effectCardName,
-      effectCardDescription: result.newState.responseWindow.effectCardDescription,
-    })
-  } else if (!result.newState.responseWindow) {
-    // Only close if previous state had one open (clients track this themselves)
-    // The STATE_UPDATE already carries the full state so clients will self-correct
   }
 
   return { ok: true }
@@ -152,53 +139,66 @@ export const wsHandlers = {
       return
     }
 
-    switch (msg.type) {
-      case "PING":
-        send(ws, { type: "PONG" })
-        return
+    try {
+      switch (msg.type) {
+        case "PING":
+          send(ws, { type: "PONG" })
+          return
 
-      case "JOIN_GAME": {
-        const { gameId, playerId } = msg
+        case "JOIN_GAME": {
+          const { gameId, playerId } = msg
 
-        // Leave previous game if any
-        if (ws.data.gameId) {
-          registry.get(ws.data.gameId)?.delete(ws.data.playerId ?? "")
-        }
+          // Leave previous game if any
+          if (ws.data.gameId) {
+            registry.get(ws.data.gameId)?.delete(ws.data.playerId ?? "")
+          }
 
-        ws.data = { gameId, playerId }
+          ws.data = { gameId, playerId }
 
-        if (!registry.has(gameId)) registry.set(gameId, new Map())
-        registry.get(gameId)!.set(playerId, ws)
+          if (!registry.has(gameId)) registry.set(gameId, new Map())
+          registry.get(gameId)!.set(playerId, ws)
 
-        // Verify participant
-        const game = await getGame(gameId)
-        if (!game) {
-          send(ws, { type: "ERROR", code: "NOT_FOUND", message: "Game not found" })
+          // Verify participant
+          const game = await getGame(gameId)
+          if (!game) {
+            send(ws, { type: "ERROR", code: "NOT_FOUND", message: "Game not found" })
+            return
+          }
+          const players = await getGamePlayers(gameId)
+          if (!players.some(p => p.userId === playerId)) {
+            send(ws, { type: "ERROR", code: "FORBIDDEN", message: "Not a participant" })
+            return
+          }
+
+          // Send current state (serialized to the API shape the client expects)
+          const { state } = await reconstructState(gameId, game.seed)
+          send(ws, { type: "STATE_UPDATE", gameId, state: serializeGameState(state, undefined, playerId) })
           return
         }
-        const players = await getGamePlayers(gameId)
-        if (!players.some(p => p.userId === playerId)) {
-          send(ws, { type: "ERROR", code: "FORBIDDEN", message: "Not a participant" })
+
+        case "SUBMIT_MOVE": {
+          const { gameId, playerId, move } = msg
+          const result = await processWsMove(gameId, playerId, move)
+          if (!result.ok) {
+            send(ws, { type: "ERROR", code: result.code, message: result.message })
+          }
           return
         }
 
-        // Send current state (serialized to the API shape the client expects)
-        const { state } = await reconstructState(gameId, game.seed)
-        send(ws, { type: "STATE_UPDATE", gameId, state: serializeGameState(state, undefined, playerId) })
+        default:
+          send(ws, { type: "ERROR", code: "UNKNOWN_MSG", message: "Unknown message type" })
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      if (message.includes("ECONNREFUSED")) {
+        send(ws, {
+          type: "ERROR",
+          code: "DB_UNAVAILABLE",
+          message: "Database unavailable. Start Postgres and verify DATABASE_URL.",
+        })
         return
       }
-
-      case "SUBMIT_MOVE": {
-        const { gameId, playerId, move } = msg
-        const result = await processWsMove(gameId, playerId, move)
-        if (!result.ok) {
-          send(ws, { type: "ERROR", code: result.code, message: result.message })
-        }
-        return
-      }
-
-      default:
-        send(ws, { type: "ERROR", code: "UNKNOWN_MSG", message: "Unknown message type" })
+      send(ws, { type: "ERROR", code: "INTERNAL", message: "Internal server error" })
     }
   },
 

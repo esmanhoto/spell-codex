@@ -50,10 +50,10 @@ function serializeCombat(state: GameState) {
   const realmWorldId = realmSlot?.realm.card.worldId ?? 0
 
   const attackerLevel = c.attacker
-    ? calculateCombatLevel(c.attacker, c.attackerCards, hasWorldMatch(c.attacker, realmWorldId), c.effectSpecs, "offensive")
+    ? calculateCombatLevel(c.attacker, c.attackerCards, hasWorldMatch(c.attacker, realmWorldId), "offensive")
     : 0
   const defenderLevel = c.defender
-    ? calculateCombatLevel(c.defender, c.defenderCards, hasWorldMatch(c.defender, realmWorldId), c.effectSpecs, "defensive")
+    ? calculateCombatLevel(c.defender, c.defenderCards, hasWorldMatch(c.defender, realmWorldId), "defensive")
     : 0
 
   return {
@@ -109,8 +109,6 @@ export function serializeGameState(state: GameState, extra?: {
     legalMovesPerPlayer: Object.fromEntries(
       state.playerOrder.map(id => [id, getLegalMoves(state, id)]),
     ),
-    pendingEffects: state.pendingEffects,
-    responseWindow: state.responseWindow ?? null,
     board:          serializeBoard(state, viewerPlayerId),
     events:         state.events,
   }

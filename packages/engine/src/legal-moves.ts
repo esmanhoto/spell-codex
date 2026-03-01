@@ -16,10 +16,8 @@ import { calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "./combat.t
  * Called after every applyMove to populate EngineResult.legalMoves.
  *
  * Priority chain:
- * 1. Response window open → only respondingPlayer: PASS_RESPONSE + Events in hand
- * 2. Pending effects (no response window) → triggering player: SKIP_EFFECT + MANUAL_* + MANUAL_AFFECT_OPPONENT
- * 3. Active combat → combat-specific moves
- * 4. Normal: StartOfTurn shows Draw (PASS) + events/rules.
+ * 1. Active combat → combat-specific moves
+ * 2. Normal: StartOfTurn shows Draw (PASS) + events/rules.
  *    PlayRealm through Combat: collects moves from current phase + all forward phases.
  *    Players can skip phases freely (forward only). Engine auto-advances phase on action.
  */
@@ -29,23 +27,12 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]
   if (!player) return []
 
-  // 1. Response window: only the responding player acts
-  if (state.responseWindow !== null) {
-    if (state.responseWindow.respondingPlayerId !== playerId) return []
-    return getResponseWindowMoves(state, playerId)
-  }
-
-  // 2. Pending effects (no response window): only the triggering player acts
-  if (state.pendingEffects.length > 0) {
-    return getPendingEffectMoves(state, playerId)
-  }
-
-  // 3. During active combat, use combat-specific move set
+  // 1. During active combat, use combat-specific move set
   if (state.combatState) {
     return getCombatMoves(state, playerId)
   }
 
-  // 4. Out-of-combat: only the active player may act
+  // 2. Out-of-combat: only the active player may act
   if (state.activePlayer !== playerId) return []
 
   switch (state.phase) {
@@ -90,6 +77,8 @@ function getForwardPhaseMoves(state: GameState, playerId: PlayerId, fromPhase: P
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
   moves.push(...getDiscardMoves(player))
+  moves.push(...getManualOwnMoves(state, playerId))
+  moves.push(...getManualOpponentMoves(state, playerId))
 
   const { maxEnd } = HAND_SIZES[state.deckSize]!
   if (player.hand.length <= maxEnd) {
@@ -120,6 +109,8 @@ function getStartOfTurnMoves(state: GameState, playerId: PlayerId): Move[] {
   }
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
+  moves.push(...getManualOwnMoves(state, playerId))
+  moves.push(...getManualOpponentMoves(state, playerId))
 
   return moves
 }
@@ -350,7 +341,6 @@ function getCardPlayMoves(
         combat.attacker,
         combat.attackerCards,
         hasWorldMatch(combat.attacker, realmWorldId),
-        combat.effectSpecs,
         "offensive",
       )
     : 0
@@ -360,7 +350,6 @@ function getCardPlayMoves(
         combat.defender,
         combat.defenderCards,
         hasWorldMatch(combat.defender, realmWorldId),
-        combat.effectSpecs,
         "defensive",
       )
     : 0
@@ -424,65 +413,7 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
     }
   }
   moves.push(...getHoldingRevealMoves(player))
-
-  return moves
-}
-
-/**
- * Moves available when a response window is open.
- * Only the responding player acts: PASS_RESPONSE + Events from hand.
- */
-function getResponseWindowMoves(state: GameState, playerId: PlayerId): Move[] {
-  const player = state.players[playerId]!
-  const moves: Move[] = [{ type: "PASS_RESPONSE" }]
-  moves.push(...getEventMoves(player))
-  return moves
-}
-
-/**
- * Generates resolution moves for the first pending effect.
- * Only the triggering player gets moves; the opponent sees an empty list (they wait).
- * Includes MANUAL_* moves for full board control.
- */
-function getPendingEffectMoves(state: GameState, playerId: PlayerId): Move[] {
-  const effect = state.pendingEffects[0]
-  if (!effect) return []
-
-  // Non-triggering player has no moves — they wait
-  if (effect.triggeringPlayerId !== playerId) return []
-
-  // SKIP_EFFECT is always available
-  const moves: Move[] = [{ type: "SKIP_EFFECT" }]
-
-  if (effect.targetScope !== "none") {
-    // Generate RESOLVE_EFFECT moves for each valid target based on scope
-    const combat = state.combatState
-    if (combat) {
-      if (effect.targetScope === "opposing_combat_cards" || effect.targetScope === "any_combat_card") {
-        const opposing = playerId === combat.attackingPlayer
-          ? combat.defenderCards
-          : combat.attackerCards
-        for (const card of opposing) {
-          moves.push({ type: "RESOLVE_EFFECT", targetId: card.instanceId })
-        }
-      }
-
-      if (effect.targetScope === "own_combat_cards" || effect.targetScope === "any_combat_card") {
-        const own = playerId === combat.attackingPlayer
-          ? combat.attackerCards
-          : combat.defenderCards
-        for (const card of own) {
-          moves.push({ type: "RESOLVE_EFFECT", targetId: card.instanceId })
-        }
-      }
-    }
-  }
-
-  // Manual board control moves (own cards)
   moves.push(...getManualOwnMoves(state, playerId))
-  moves.push(...getHoldingRevealMoves(state.players[playerId]!))
-
-  // Manual opponent moves — available when effects are pending
   moves.push(...getManualOpponentMoves(state, playerId))
 
   return moves
@@ -561,7 +492,6 @@ function getManualOwnMoves(state: GameState, playerId: PlayerId): Move[] {
 
 /**
  * Generates MANUAL_AFFECT_OPPONENT moves for opponent's cards.
- * Only offered when a pending effect is active (triggering player executes effect).
  */
 function getManualOpponentMoves(state: GameState, playerId: PlayerId): Move[] {
   const opponentId = state.playerOrder.find(id => id !== playerId)
@@ -758,7 +688,7 @@ function canPlayInCombat(
   if (isSpellType(typeId) && activeChampion) {
     const dirRef = `${side === "offensive" ? "o" : "d"}${typeId}`
     const { supportIds } = activeChampion.card
-    return supportIds.includes(dirRef) || supportIds.includes(typeId as unknown as string)
+    return supportIds.includes(dirRef) || supportIds.includes(typeId)
   }
 
   return false

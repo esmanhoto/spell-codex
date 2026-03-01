@@ -1,25 +1,17 @@
-import type { CardInstance, CardEffectSpec, CombatState, PlayerId } from "./types.ts"
+import type { CardInstance, CombatState, PlayerId } from "./types.ts"
 import { CardTypeId, WORLD_BONUS } from "./constants.ts"
-import { parseLevel, parseMagicalItemBonus, findEffectSpec, conditionMet } from "./utils.ts"
+import { parseLevel, parseMagicalItemBonus } from "./utils.ts"
 
 /**
  * Calculates the adjusted combat level for a champion, applying:
  *   1. World bonus (+3 if champion's world matches target realm's world)
- *   2. SET_LEVEL effects (override base level)
- *   3. NEGATE_ALLY_BONUS effects (from opponent's cards)
- *   4. Ally bonuses (type 1 cards)
- *   5. Magical item bonuses (type 9 cards)
- *   6. LEVEL_BONUS and LEVEL_BONUS_VS from Tier 1 effect specs
- *
- * Cards without a matching effect spec are handled purely by level math.
- * Cards that need special handling beyond level math should have been
- * flagged for manual resolution before this is called.
+ *   2. Ally bonuses (type 1 cards)
+ *   3. Magical item bonuses (type 9 cards)
  */
 export function calculateCombatLevel(
   champion: CardInstance,
   combatCards: CardInstance[],
   worldMatch: boolean,
-  effectSpecs: CardEffectSpec[],
   side: "offensive" | "defensive",
 ): number {
   let level = parseLevel(champion.card.level)
@@ -27,53 +19,12 @@ export function calculateCombatLevel(
   // World bonus
   if (worldMatch) level += WORLD_BONUS
 
-  // Check for SET_LEVEL on the champion (overrides base level, keeps world bonus)
-  const championSpec = findEffectSpec(champion, effectSpecs)
-  if (championSpec) {
-    for (const effect of championSpec.effects) {
-      if (effect.type === "SET_LEVEL") {
-        level = effect.value + (worldMatch ? WORLD_BONUS : 0)
-        break
-      }
-    }
-  }
-
-  // Pre-pass: detect NEGATE_ALLY_BONUS before applying any ally contributions
-  const negateAllyBonus = combatCards.some(card => {
-    const spec = findEffectSpec(card, effectSpecs)
-    return spec?.effects.some(e => e.type === "NEGATE_ALLY_BONUS") ?? false
-  })
-
   for (const card of combatCards) {
-    const spec = findEffectSpec(card, effectSpecs)
-
-    if (spec) {
-      for (const effect of spec.effects) {
-        switch (effect.type) {
-          case "NEGATE_ALLY_BONUS":
-            break  // already handled in pre-pass
-          case "LEVEL_BONUS":
-            if (conditionMet(effect.condition, champion, side)) {
-              level += effect.value
-            }
-            break
-          case "LEVEL_BONUS_VS":
-            if (champion.card.attributes.includes(effect.targetAttribute)) {
-              level += effect.value
-            }
-            break
-        }
-      }
-    } else {
-      // No spec — apply type-based level math
-      if (card.card.typeId === CardTypeId.Ally) {
-        if (!negateAllyBonus) {
-          level += parseLevel(card.card.level, side)
-        }
-      } else if (card.card.typeId === CardTypeId.MagicalItem) {
-        const bonus = parseMagicalItemBonus(card.card.description)
-        level += side === "offensive" ? bonus.offensive : bonus.defensive
-      }
+    if (card.card.typeId === CardTypeId.Ally) {
+      level += parseLevel(card.card.level, side)
+    } else if (card.card.typeId === CardTypeId.MagicalItem) {
+      const bonus = parseMagicalItemBonus(card.card.description)
+      level += side === "offensive" ? bonus.offensive : bonus.defensive
     }
   }
 

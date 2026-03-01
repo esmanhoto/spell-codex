@@ -9,7 +9,6 @@ export {
   seededShuffle, createInstance, createInstanceId, _resetInstanceCounter,
   parseLevel, parseMagicalItemBonus,
   isChampionType, isSpellType, isCosmosCard,
-  requiresManualResolution,
   updatePlayer, removeFromHand, takeCards, nextPlayer, opponentOf,
 } from "./utils.ts"
 
@@ -32,12 +31,6 @@ export type {
   Move, EngineResult, GameEvent,
   // Config
   PlayerConfig, GameConfig,
-  // Effects
-  CardEffect, EffectCondition, EffectTrigger, CardEffectSpec,
-  // Pending effects (Tier 2 manual resolution)
-  TargetScope, PendingEffect,
 } from "./types.ts"
 
 export { Phase } from "./types.ts"
-
-export { pickMove } from "./bot.ts"

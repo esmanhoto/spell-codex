@@ -46,8 +46,8 @@ export interface CardData {
   description: string
   attributes: string[]
   supportIds: SupportRef[]
-  /** Tier 1 effect specs. Empty = Tier 2 fallback (manual resolution required). */
-  effects: CardEffect[]
+  /** Reserved for future card automation; ignored by current engine runtime. */
+  effects: unknown[]
 }
 
 // ─── Card Instance (runtime — unique in-game object) ─────────────────────────
@@ -147,59 +147,12 @@ export interface CombatState {
   defenderCards: CardInstance[]
   /** Champion instanceIds used in any round — cannot reuse in later rounds */
   championsUsedThisBattle: CardInstanceId[]
-  /** Tier 1 effect specs relevant to this battle */
-  effectSpecs: CardEffectSpec[]
   /**
    * Manual combat level override — null means use the auto-computed value.
    * Set via MANUAL_SET_COMBAT_LEVEL when a card effect changes the total.
    */
   attackerManualLevel: number | null
   defenderManualLevel: number | null
-}
-
-// ─── Response Window ──────────────────────────────────────────────────────────
-
-/**
- * When a text-effect card is played outside combat, the opponent gets a window
- * to play a counter (Events) before the triggering player executes the effect.
- */
-export interface ResponseWindow {
-  triggeringPlayerId:   PlayerId
-  respondingPlayerId:   PlayerId
-  effectCardInstanceId: CardInstanceId
-  effectCardName:       string
-  effectCardDescription: string
-}
-
-// ─── Pending Effects (Tier 2 manual resolution queue) ────────────────────────
-
-/**
- * Constrains what cards RESOLVE_EFFECT can target when resolving a pending effect.
- *   any_combat_card        — any card currently in combat (either side)
- *   opposing_combat_cards  — only cards on the opposing side in combat
- *   own_combat_cards       — only cards on your own side in combat
- *   none                   — no targetable component; use SKIP_EFFECT to acknowledge
- */
-export type TargetScope =
-  | "any_combat_card"
-  | "opposing_combat_cards"
-  | "own_combat_cards"
-  | "none"
-
-/**
- * An unresolved card effect that the engine could not handle automatically (Tier 2).
- * Pushed onto GameState.pendingEffects. The triggering player must resolve or skip it
- * before normal play resumes.
- */
-export interface PendingEffect {
-  cardInstanceId:     CardInstanceId
-  cardName:           string
-  /** Full card rules text shown verbatim to both players */
-  cardDescription:    string
-  /** Player who triggered this effect — they pick the resolution */
-  triggeringPlayerId: PlayerId
-  /** Constrains valid targets for RESOLVE_EFFECT */
-  targetScope:        TargetScope
 }
 
 // ─── Phases ───────────────────────────────────────────────────────────────────
@@ -226,18 +179,6 @@ export interface GameState {
   playerOrder: PlayerId[]
   phase: Phase
   combatState: CombatState | null
-  /**
-   * Queue of card effects the engine could not resolve automatically (Tier 2).
-   * When non-empty, only RESOLVE_EFFECT / SKIP_EFFECT moves are legal.
-   * First entry is the one currently awaiting resolution.
-   */
-  pendingEffects: PendingEffect[]
-  /**
-   * Non-null while the opponent is deciding whether to counter a played card.
-   * The responding player may play Events or PASS_RESPONSE.
-   * Once cleared (PASS_RESPONSE), the triggering player executes the effect manually.
-   */
-  responseWindow: ResponseWindow | null
   winner: PlayerId | null
   /** Full event log for determinism / replay */
   events: GameEvent[]
@@ -290,16 +231,6 @@ export type Move =
   /** Skip remaining phases and end the turn (only when hand ≤ maxEnd) */
   | { type: "END_TURN" }
 
-  // Manual fallback — when engine queues a Tier 2 effect
-  /** Execute the pending effect by removing/targeting the given card */
-  | { type: "RESOLVE_EFFECT";    targetId: CardInstanceId }
-  /** Waive the pending effect — it has no mechanical consequence this time */
-  | { type: "SKIP_EFFECT" }
-
-  // Response window
-  /** Responding player accepts the effect without playing a counter */
-  | { type: "PASS_RESPONSE" }
-
   // Manual board control — own cards (always legal on your turn)
   /** Move any own card (hand/pool/formation/discard) to own discard pile */
   | { type: "MANUAL_DISCARD";         cardInstanceId: CardInstanceId }
@@ -316,7 +247,7 @@ export type Move =
   /** Return a champion from own discard pile to pool */
   | { type: "MANUAL_RETURN_TO_POOL";  cardInstanceId: CardInstanceId }
 
-  // Manual board control — opponent cards (only legal when pendingEffects queue is non-empty)
+  // Manual board control — opponent cards
   /** Execute an effect action on an opponent's card */
   | { type: "MANUAL_AFFECT_OPPONENT"; cardInstanceId: CardInstanceId; action: ManualAction }
 
@@ -362,91 +293,12 @@ export type GameEvent =
   | { type: "COMBAT_RESOLVED";           outcome: CombatRoundOutcome; attackerLevel: number; defenderLevel: number }
   | { type: "SPOILS_EARNED";             playerId: PlayerId }
   | { type: "POOL_CLEARED";              playerId: PlayerId }
-  | { type: "EFFECT_QUEUED";              effect: PendingEffect }
-  | { type: "EFFECT_RESOLVED";           cardInstanceId: CardInstanceId; targetId: CardInstanceId | null }
-  | { type: "RESPONSE_WINDOW_OPENED";    respondingPlayerId: PlayerId }
-  | { type: "RESPONSE_WINDOW_CLOSED" }
   | { type: "MANUAL_ZONE_MOVE";          playerId: PlayerId; instanceId: CardInstanceId; from: string; to: string }
   | { type: "MANUAL_REALM_RAZED";        playerId: PlayerId; slot: FormationSlot }
   | { type: "MANUAL_CARDS_DRAWN";        playerId: PlayerId; count: number }
   | { type: "COMBAT_LEVEL_SET";          playerId: PlayerId; level: number }
   | { type: "TURN_ENDED";               playerId: PlayerId }
   | { type: "GAME_OVER";                winner: PlayerId }
-
-// ─── Card Effects (Tier 1 — Groups A and B only) ─────────────────────────────
-// Types for Groups C and D are added to this union as those groups are implemented.
-
-export type CardEffect =
-  // ── Group A: Combat level modifications ──────────────────────────────────
-  | { type: "LEVEL_BONUS";         value: number; condition?: EffectCondition }
-  | { type: "LEVEL_BONUS_VS";      value: number; targetAttribute: string }
-  /** Flat level bonus when fighting a champion of a specific typeId */
-  | { type: "LEVEL_BONUS_VS_TYPE"; value: number; typeId: number }
-  /** Override the champion's base level (world bonus still applies on top) */
-  | { type: "SET_LEVEL";           value: number }
-  /** Opponent's ally bonuses are ignored for this combat */
-  | { type: "NEGATE_ALLY_BONUS" }
-
-  // ── Group A: Spell access ─────────────────────────────────────────────────
-  | { type: "GRANT_SPELL_ACCESS";  spellTypeId: number; window: "offense" | "defense" | "both" }
-
-  // ── Group A: Immunity ─────────────────────────────────────────────────────
-  | { type: "IMMUNE_TO_TYPE";      typeIds: number[]; scope?: "offensive" | "defensive" | "both" }
-  | { type: "IMMUNE_TO_ATTRIBUTE"; attribute: string[] }
-
-  // ── Group A: Card draw / hand ─────────────────────────────────────────────
-  | { type: "DRAW_CARD";           target: "self" | "opponent" | "all"; count: number }
-  | { type: "DISCARD_CARD";        target: "self" | "opponent"; count: number }
-
-  // ── Group A: Combat bonus ─────────────────────────────────────────────────
-  /**
-   * Grants +value levels in combat to all cards of the specified typeIds.
-   * typeIds: card type IDs that benefit (e.g. [1] = allies, [0] = all types).
-   * typeId 0 is a wildcard meaning "any card type".
-   * Applies while this realm/holding/card is in play during the relevant combat.
-   */
-  | { type: "COMBAT_BONUS";        value: number; typeIds: number[] }
-
-  // ── Group B: Passive / structural (evaluated at phase boundaries) ─────────
-  /** Increases the owner's maximum hand size while this card is in play */
-  | { type: "HAND_SIZE_BONUS";           count: number }
-  /** Owner draws extra cards during the Draw phase each turn */
-  | { type: "DRAW_PER_TURN";             count: number }
-  /** Owner draws cards immediately when this realm is played or rebuilt */
-  | { type: "DRAW_ON_REALM_PLAY";        count: number }
-  /** While defending this realm, ANY champion may use the given spell type */
-  | { type: "REALM_GRANTS_SPELL_ACCESS"; spellTypeId: number; window: "offense" | "defense" | "both" }
-  /** Opponents' magical items and artifacts grant no combat bonus against this card */
-  | { type: "NEGATE_ITEM_BONUS" }
-  /** Attackers with this attribute or typeId cannot attack this realm */
-  | { type: "RESTRICTED_ATTACKERS";      attribute?: string; typeId?: number }
-  /**
-   * This realm (or a realm with this holding attached) can defend itself as a
-   * champion of the given level and typeId when no champion is placed to defend.
-   * Note: realms that already carry a non-null `level` field self-defend implicitly;
-   * use this type for holdings that grant the ability to the attached realm.
-   */
-  | { type: "REALM_SELF_DEFENDS";        level: number; typeId: number }
-
-export type EffectCondition =
-  | { when: "attacking" }
-  | { when: "defending" }
-  | { when: "champion_type";      typeId: number }
-  | { when: "champion_attribute"; attribute: string }
-
-export type EffectTrigger =
-  | "ON_PLAY"
-  | "ON_COMBAT_START"
-  | "ON_SUPPORT_PLAYED"
-  | "ON_COMBAT_RESOLVE"
-  | "ON_DISCARD"
-  | "PASSIVE"
-
-export interface CardEffectSpec {
-  cardRef: { setId: string; cardNumber: number }
-  trigger: EffectTrigger
-  effects: CardEffect[]
-}
 
 // ─── Game Config ──────────────────────────────────────────────────────────────
 

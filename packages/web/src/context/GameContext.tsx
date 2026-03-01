@@ -1,5 +1,5 @@
 import React from "react"
-import type { Move, PlayerBoard, CombatInfo, PendingEffect, ResponseWindow } from "../api.ts"
+import type { Move, PlayerBoard, CombatInfo } from "../api.ts"
 
 export interface ContextMenuAction {
   label: string
@@ -23,8 +23,6 @@ export interface GameContextType {
   winner:          string | null
   allBoards:       Record<string, PlayerBoard>
   combat:          CombatInfo | null
-  pendingEffects:  PendingEffect[]
-  responseWindow:  ResponseWindow | null
 
   // Moves
   legalMoves:      Move[]
@@ -56,8 +54,6 @@ export const GameContext = React.createContext<GameContextType>({
   winner:          null,
   allBoards:       {},
   combat:          null,
-  pendingEffects:  [],
-  responseWindow:  null,
   legalMoves:      [],
   onMove:          () => {},
   selectedId:      null,

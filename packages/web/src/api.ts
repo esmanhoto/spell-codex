@@ -53,28 +53,6 @@ export interface CombatInfo {
   defenderManualLevel: number | null
 }
 
-export interface ResponseWindow {
-  triggeringPlayerId:    string
-  respondingPlayerId:    string
-  effectCardInstanceId:  string
-  effectCardName:        string
-  effectCardDescription: string
-}
-
-export type TargetScope =
-  | "any_combat_card"
-  | "opposing_combat_cards"
-  | "own_combat_cards"
-  | "none"
-
-export interface PendingEffect {
-  cardInstanceId:     string
-  cardName:           string
-  cardDescription:    string
-  triggeringPlayerId: string
-  targetScope:        TargetScope
-}
-
 export interface GameState {
   gameId:               string
   status:               string
@@ -85,8 +63,6 @@ export interface GameState {
   winner:               string | null
   legalMoves:           Move[]
   legalMovesPerPlayer?: Record<string, Move[]>
-  pendingEffects:       PendingEffect[]
-  responseWindow:       ResponseWindow | null
   board: {
     players: Record<string, PlayerBoard>
     combat:  CombatInfo | null
@@ -124,9 +100,6 @@ export type Move =
   | { type: "CONTINUE_ATTACK";         championId: string }
   | { type: "END_ATTACK" }
   | { type: "DISCARD_CARD";            cardInstanceId: string }
-  | { type: "RESOLVE_EFFECT";          targetId: string }
-  | { type: "SKIP_EFFECT" }
-  | { type: "PASS_RESPONSE" }
   | { type: "MANUAL_DISCARD";          cardInstanceId: string }
   | { type: "MANUAL_TO_LIMBO";         cardInstanceId: string; returnsInTurns?: number }
   | { type: "MANUAL_TO_ABYSS";         cardInstanceId: string }
@@ -159,12 +132,11 @@ export async function getDeck(name: string): Promise<{ name: string; cards: obje
 }
 
 export async function createGame(opts: {
-  playerAId:    string
-  playerBId:    string
-  playerBIsBot: boolean
-  seed:         number
-  deckA:        object[]
-  deckB:        object[]
+  playerAId: string
+  playerBId: string
+  seed:      number
+  deckA:     object[]
+  deckB:     object[]
 }): Promise<{ gameId: string }> {
   return request("/games", {
     method:  "POST",
@@ -173,8 +145,8 @@ export async function createGame(opts: {
       formatId: "standard-55",
       seed:     opts.seed,
       players: [
-        { userId: opts.playerAId, deckSnapshot: opts.deckA, isBot: false },
-        { userId: opts.playerBId, deckSnapshot: opts.deckB, isBot: opts.playerBIsBot },
+        { userId: opts.playerAId, deckSnapshot: opts.deckA },
+        { userId: opts.playerBId, deckSnapshot: opts.deckB },
       ],
     }),
   })
@@ -198,8 +170,6 @@ export async function submitMove(gameId: string, asUserId: string, move: Move): 
 
 export type WsClientMessage =
   | { type: "STATE_UPDATE";           gameId: string; state: GameState }
-  | { type: "RESPONSE_WINDOW_OPEN";   gameId: string; respondingPlayerId: string; effectCardName: string; effectCardDescription: string }
-  | { type: "RESPONSE_WINDOW_CLOSED"; gameId: string }
   | { type: "GAME_OVER";              gameId: string; winner: string }
   | { type: "PONG" }
   | { type: "ERROR";                  code: string; message: string }

@@ -41,8 +41,6 @@ export function initGame(config: GameConfig): GameState {
     playerOrder: [p1Config.id, p2Config.id],
     phase: Phase.StartOfTurn,
     combatState: null,
-    pendingEffects: [],
-    responseWindow: null,
     winner: null,
     events: [{ type: "GAME_STARTED", players: [p1Config.id, p2Config.id] }],
     deckSize,

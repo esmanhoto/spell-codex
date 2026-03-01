@@ -48,9 +48,6 @@ export function labelMove(m: Move, nameOf: (id: string) => string, phase?: strin
     case "CONTINUE_ATTACK":  return `Continue with ${nameOf(a.championId)}`
     case "END_ATTACK":       return "End attack"
     case "DISCARD_CARD":     return `Discard ${nameOf(a.cardInstanceId)}`
-    case "RESOLVE_EFFECT":          return `Remove ${nameOf(a.targetId)} from combat`
-    case "SKIP_EFFECT":             return `No effect / Skip`
-    case "PASS_RESPONSE":           return `Pass (accept effect)`
     case "MANUAL_DISCARD":          return `Discard ${nameOf(a.cardInstanceId)}`
     case "MANUAL_TO_LIMBO":         return `Limbo: ${nameOf(a.cardInstanceId)}`
     case "MANUAL_TO_ABYSS":         return `Abyss: ${nameOf(a.cardInstanceId)}`
@@ -66,6 +63,6 @@ export function labelMove(m: Move, nameOf: (id: string) => string, phase?: strin
 }
 
 export const ANCHOR_FREE_TYPES = new Set([
-  "PASS", "END_TURN", "PASS_RESPONSE", "STOP_PLAYING", "CONTINUE_ATTACK",
+  "PASS", "END_TURN", "STOP_PLAYING", "CONTINUE_ATTACK",
   "END_ATTACK", "DECLINE_DEFENSE", "REBUILD_REALM",
 ])
