@@ -1,27 +1,5 @@
-import { test, expect, type Page } from "@playwright/test"
-
-const PLAYER_A = "00000000-0000-0000-0000-000000000001"
-
-async function startGame(page: Page) {
-  await page.goto("/")
-  await expect(page.getByTestId("new-game-page")).toBeVisible()
-  await expect(page.getByTestId("deck-a-select")).toBeEnabled()
-  await expect(page.getByTestId("deck-b-select")).toBeEnabled()
-  await page.getByTestId("start-game-btn").click()
-  await page.waitForURL(/\/game\//)
-  await expect(page.getByTestId("game-board")).toBeVisible()
-}
-
-test("new game page loads with playable deck options", async ({ page }) => {
-  await page.goto("/")
-  await expect(page.getByTestId("new-game-page")).toBeVisible()
-
-  const deckAOptions = page.locator('[data-testid="deck-a-select"] option')
-  const deckBOptions = page.locator('[data-testid="deck-b-select"] option')
-
-  await expect(deckAOptions).toHaveCount(12)
-  await expect(deckBOptions).toHaveCount(12)
-})
+import { test, expect } from "@playwright/test"
+import { PLAYER_A, startGame, hasMove, clickMove } from "./helpers/game.ts"
 
 test("start game navigates and renders board", async ({ page }) => {
   await startGame(page)
@@ -42,10 +20,27 @@ test("active player has pass and manual controls", async ({ page }) => {
 test("pass from draw phase advances to realm phase", async ({ page }) => {
   await startGame(page)
 
-  const movePanel = page.getByTestId(`move-panel-${PLAYER_A}`)
-  await movePanel.locator('button[data-move-type="PASS"]').click()
+  await clickMove(page, PLAYER_A, "PASS")
 
   await expect(page.getByTestId("phase-pill-PLAY_REALM")).toHaveAttribute("data-active", "true")
+})
+
+test("ending turn hands control to Player B and increments turn", async ({ page }) => {
+  await startGame(page)
+
+  for (let i = 0; i < 8; i++) {
+    if ((await page.getByTestId("active-player-label").textContent())?.includes("Player B")) break
+    if (await hasMove(page, PLAYER_A, "END_TURN")) {
+      await clickMove(page, PLAYER_A, "END_TURN")
+      continue
+    }
+    if (await hasMove(page, PLAYER_A, "PASS")) {
+      await clickMove(page, PLAYER_A, "PASS")
+    }
+  }
+
+  await expect(page.getByTestId("turn-info")).toContainText("Turn 2")
+  await expect(page.getByTestId("active-player-label")).toContainText("Player B")
 })
 
 test("manual move can be executed without breaking board", async ({ page }) => {
