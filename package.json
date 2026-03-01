@@ -4,6 +4,18 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "extract": "bun run --cwd packages/data extract",
-    "test": "bun test --cwd packages/engine"
+    "test": "bun test --cwd packages/engine",
+    "lint": "eslint \"packages/*/{src,test,scripts}/**/*.{ts,tsx}\" \"packages/*/*.ts\"",
+    "ci:lint": "bun run lint",
+    "ci:typecheck": "bun run --cwd packages/engine typecheck && bun run --cwd packages/db typecheck && bun run --cwd packages/api typecheck && bun run --cwd packages/data typecheck && bun run --cwd packages/web typecheck",
+    "ci:test": "bun run --cwd packages/engine test && bun run --cwd packages/db test && bun run --cwd packages/api test",
+    "ci:build": "bun run --cwd packages/web build",
+    "ci": "bun run ci:lint && bun run ci:typecheck && bun run ci:test && bun run ci:build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.23.0",
+    "eslint": "^9.23.0",
+    "globals": "^16.0.0",
+    "typescript-eslint": "^8.28.0"
   }
 }

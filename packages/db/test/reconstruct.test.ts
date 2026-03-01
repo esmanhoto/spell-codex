@@ -5,7 +5,7 @@
  * without a Postgres connection.
  */
 
-import { describe, it, expect, beforeEach } from "bun:test"
+import { describe, it, expect } from "bun:test"
 import { initGame, applyMove, _resetInstanceCounter } from "@spell/engine"
 import type { CardData, Move } from "@spell/engine"
 import { Phase } from "@spell/engine"
@@ -14,8 +14,17 @@ import { hashState } from "../src/hash.ts"
 // ─── Minimal deck ─────────────────────────────────────────────────────────────
 
 const REALM: CardData = {
-  id: "r1", setId: "01", cardNumber: 1, name: "Forest",
-  typeId: 3, worldId: 1, level: 0, gold: 0, description: "",
+  setId: "01",
+  cardNumber: 1,
+  name: "Forest",
+  typeId: 13,
+  worldId: 1,
+  isAvatar: false,
+  level: null,
+  description: "",
+  attributes: [],
+  supportIds: [],
+  effects: [],
 }
 
 function makeDeck(total = 55): CardData[] {
