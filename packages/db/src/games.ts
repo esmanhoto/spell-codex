@@ -16,7 +16,6 @@ export interface CreateGameInput {
     userId: string
     seatPosition: number
     deckSnapshot: CardData[]
-    isBot?: boolean
   }>
 }
 
@@ -30,7 +29,6 @@ export async function createGame(input: CreateGameInput): Promise<Game> {
       userId:       p.userId,
       seatPosition: p.seatPosition,
       deckSnapshot: p.deckSnapshot,
-      isBot:        p.isBot ?? false,
     }))
   )
 

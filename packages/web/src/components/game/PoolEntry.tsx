@@ -12,11 +12,10 @@ export function PoolEntry({ entry, isOpponent }: {
   isOpponent?: boolean
 }) {
   const {
-    legalMoves, onMove, selectedId, onSelect, pendingEffects, responseWindow,
+    legalMoves, onMove, selectedId, onSelect,
     allBoards, phase, showWarning,
   } = useGame()
   const [attachDragOver, setAttachDragOver] = useState(false)
-  const hasPendingEffect = pendingEffects.length > 0 && !responseWindow
 
   const stackCards = [...entry.attachments, entry.champion]
   const n = stackCards.length
@@ -80,7 +79,7 @@ export function PoolEntry({ entry, isOpponent }: {
             if (isChampion) {
               contextActions.push({ label: "Send to Limbo", move: { type: "MANUAL_TO_LIMBO", cardInstanceId: c.instanceId } })
             }
-          } else if (hasPendingEffect) {
+          } else {
             contextActions.push({ label: "Discard (opponent)",  move: { type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: c.instanceId, action: "discard" } })
             contextActions.push({ label: "To Abyss (opponent)", move: { type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: c.instanceId, action: "to_abyss" } })
             if (isChampion) {

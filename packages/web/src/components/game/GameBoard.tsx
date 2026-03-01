@@ -5,8 +5,6 @@ import { PlayerHand } from "./PlayerHand.tsx"
 import { PlayerArea } from "./PlayerArea.tsx"
 import { Divider } from "./Divider.tsx"
 import { CombatZone } from "./CombatZone.tsx"
-import { PendingEffects } from "./PendingEffects.tsx"
-import { ResponseWindowOverlay } from "./ResponseWindow.tsx"
 import { EventLog } from "./EventLog.tsx"
 import { MovePanel } from "./MovePanel.tsx"
 import { CardContextMenu } from "./CardContextMenu.tsx"
@@ -80,7 +78,7 @@ export function GameBoard({ events, wsError }: {
   wsError: string | null
 }) {
   const {
-    playerA, playerB, allBoards, combat, pendingEffects, responseWindow,
+    playerA, playerB, allBoards, combat,
     contextMenu, closeContextMenu, onMove, warningMessage, clearWarning,
   } = useGame()
 
@@ -111,13 +109,6 @@ export function GameBoard({ events, wsError }: {
         {boardB && (
           <PlayerArea board={boardB} playerId={playerB} isOpponent attackedSlot={attackedSlotB} />
         )}
-
-
-        {/* Overlays: pending effects, response window (combat moved to fixed position) */}
-        <div className={styles.overlays}>
-          {responseWindow && <ResponseWindowOverlay />}
-          {pendingEffects.length > 0 && !responseWindow && <PendingEffects />}
-        </div>
 
         {/* Divider with phase tracker */}
         <Divider />

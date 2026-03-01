@@ -2,13 +2,13 @@ import type {
   GameState, GameEvent, Move, EngineResult,
   PlayerId, CardInstanceId, FormationSlot,
   CombatState, CardInstance, PoolEntry, LimboEntry,
-  PendingEffect, ResponseWindow, ManualAction,
+  ManualAction,
 } from "./types.ts"
 import { Phase } from "./types.ts"
 import { CardTypeId, HAND_SIZES } from "./constants.ts"
 import {
   updatePlayer, removeFromHand, takeCards, nextPlayer,
-  requiresManualResolution, isChampionType,
+  isChampionType,
 } from "./utils.ts"
 import { calculateCombatLevel, hasWorldMatch, resolveCombatRound, getLosingPlayer } from "./combat.ts"
 import { getLegalMoves, getLegalRealmSlots, isAttackable, isUniqueInPlay } from "./legal-moves.ts"
@@ -105,15 +105,6 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "PLAY_EVENT":
       newState = handlePlaySpellCard(state, playerId, move, events)
       break
-    case "RESOLVE_EFFECT":
-      newState = handleResolveEffect(state, playerId, move, events)
-      break
-    case "SKIP_EFFECT":
-      newState = handleSkipEffect(state, playerId, events)
-      break
-    case "PASS_RESPONSE":
-      newState = handlePassResponse(state, playerId, events)
-      break
     case "MANUAL_DISCARD":
       newState = handleManualDiscard(state, playerId, move, events)
       break
@@ -158,28 +149,6 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
 // ─── Out-of-turn validation ───────────────────────────────────────────────────
 
 function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move): boolean {
-  // Response window: the responding player acts (even though they may not be activePlayer
-  // in normal turns). Validate that here.
-  if (state.responseWindow !== null) {
-    if (state.responseWindow.respondingPlayerId === playerId) {
-      return move.type === "PASS_RESPONSE" || move.type === "PLAY_EVENT"
-    }
-  }
-
-  // Pending effects (no response window): triggering player acts
-  if (state.pendingEffects.length > 0 && state.responseWindow === null) {
-    const effect = state.pendingEffects[0]!
-    if (effect.triggeringPlayerId === playerId) {
-      const manualMoveTypes = new Set([
-        "SKIP_EFFECT", "RESOLVE_EFFECT",
-        "MANUAL_DISCARD", "MANUAL_TO_LIMBO", "MANUAL_TO_ABYSS",
-        "MANUAL_TO_HAND", "MANUAL_RAZE_REALM", "MANUAL_DRAW_CARDS",
-        "MANUAL_RETURN_TO_POOL", "MANUAL_AFFECT_OPPONENT",
-      ])
-      return manualMoveTypes.has(move.type)
-    }
-  }
-
   const combat = state.combatState
   if (!combat) return false
 
@@ -291,31 +260,8 @@ function handlePlayRuleCard(
     throw new EngineError("NOT_A_RULE_CARD")
   }
 
-  // Rule cards always require manual resolution — their effects are too varied to auto-handle
-  const effect: PendingEffect = {
-    cardInstanceId:     card.instanceId,
-    cardName:           card.card.name,
-    cardDescription:    card.card.description,
-    triggeringPlayerId: playerId,
-    targetScope:        "none",
-  }
-  events.push({ type: "EFFECT_QUEUED", effect })
-
-  const respondingPlayerId = state.playerOrder.find(id => id !== playerId)!
-  const responseWindow: ResponseWindow = {
-    triggeringPlayerId:   playerId,
-    respondingPlayerId,
-    effectCardInstanceId: card.instanceId,
-    effectCardName:       card.card.name,
-    effectCardDescription: card.card.description,
-  }
-  events.push({ type: "RESPONSE_WINDOW_OPENED", respondingPlayerId })
-
-  return updatePlayer(
-    { ...state, pendingEffects: [...state.pendingEffects, effect], activePlayer: respondingPlayerId, responseWindow },
-    playerId,
-    { hand: newHand, discardPile: [...player.discardPile, card] },
-  )
+  events.push({ type: "CARDS_DISCARDED", playerId, instanceIds: [card.instanceId] })
+  return updatePlayer(state, playerId, { hand: newHand, discardPile: [...player.discardPile, card] })
 }
 
 function handlePlayRealm(
@@ -559,10 +505,7 @@ function handleAttachItem(
   return updatePlayer(state, playerId, { hand: newHand, pool: newPool })
 }
 
-/**
- * Generic handler for cards that may need manual resolution:
- * Phase 3 spells, Phase 5 cards, events.
- */
+/** Generic handler for Phase 3 spells, Phase 5 cards, and events. */
 function handlePlaySpellCard(
   state: GameState,
   playerId: PlayerId,
@@ -589,42 +532,6 @@ function handlePlaySpellCard(
     discardPile: newDiscardPile,
     abyss: newAbyss,
   })
-
-  // If playing during an active response window (responder countering), don't queue
-  // a new pending effect — the card acts as a counter and the window stays open.
-  if (s.responseWindow !== null) {
-    return s
-  }
-
-  // Queue a manual effect if no Tier 1 spec covers this card
-  if (requiresManualResolution(card, s.combatState?.effectSpecs ?? [])) {
-    const effect: PendingEffect = {
-      cardInstanceId:     card.instanceId,
-      cardName:           card.card.name,
-      cardDescription:    card.card.description,
-      triggeringPlayerId: playerId,
-      targetScope:        "none",  // out-of-combat plays default to "none"; extend per card later
-    }
-    events.push({ type: "EFFECT_QUEUED", effect })
-
-    // Outside combat with no existing response window: open one for the opponent
-    if (!s.combatState) {
-      const respondingPlayerId = s.playerOrder.find(id => id !== playerId)!
-      const responseWindow: ResponseWindow = {
-        triggeringPlayerId:   playerId,
-        respondingPlayerId,
-        effectCardInstanceId: card.instanceId,
-        effectCardName:       card.card.name,
-        effectCardDescription: card.card.description,
-      }
-      events.push({ type: "RESPONSE_WINDOW_OPENED", respondingPlayerId })
-      s = { ...s, pendingEffects: [...s.pendingEffects, effect], activePlayer: respondingPlayerId, responseWindow }
-    } else {
-      // During combat: triggering player stays active to resolve
-      s = { ...s, pendingEffects: [...s.pendingEffects, effect], activePlayer: playerId }
-    }
-  }
-  // else: TODO apply Tier 1 effects from card.card.effects
 
   return s
 }
@@ -713,7 +620,6 @@ function handleDeclareAttack(
     attackerCards: [],
     defenderCards: [],
     championsUsedThisBattle: [move.championId],
-    effectSpecs: [],
     attackerManualLevel: null,
     defenderManualLevel: null,
   }
@@ -799,14 +705,12 @@ function handleDeclareDefense(
     combat.attacker!,
     [],
     hasWorldMatch(combat.attacker!, realmWorldId),
-    combat.effectSpecs,
     "offensive",
   )
   const defenderLevel = calculateCombatLevel(
     defenderChampion,
     [],
     hasWorldMatch(defenderChampion, realmWorldId),
-    combat.effectSpecs,
     "defensive",
   )
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
@@ -857,21 +761,7 @@ function handlePlayCombatCard(
     ? { ...combat, attackerCards: [...combat.attackerCards, card] }
     : { ...combat, defenderCards: [...combat.defenderCards, card] }
 
-  let s = updatePlayer({ ...state, combatState: newCombat }, playerId, { hand: newHand })
-
-  // Queue a manual effect if card has no Tier 1 spec
-  if (requiresManualResolution(card, newCombat.effectSpecs)) {
-    const effect: PendingEffect = {
-      cardInstanceId:     card.instanceId,
-      cardName:           card.card.name,
-      cardDescription:    card.card.description,
-      triggeringPlayerId: playerId,
-      // Combat cards may affect any card in play — offer targeting for all combat cards
-      targetScope:        "any_combat_card",
-    }
-    events.push({ type: "EFFECT_QUEUED", effect })
-    return { ...s, activePlayer: playerId, pendingEffects: [...s.pendingEffects, effect] }
-  }
+  const s = updatePlayer({ ...state, combatState: newCombat }, playerId, { hand: newHand })
 
   // Recalculate levels and update active player (new losing side goes next)
   const realmSlot = s.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
@@ -880,14 +770,12 @@ function handlePlayCombatCard(
     newCombat.attacker!,
     newCombat.attackerCards,
     hasWorldMatch(newCombat.attacker!, realmWorldId),
-    newCombat.effectSpecs,
     "offensive",
   )
   const defenderLevel = calculateCombatLevel(
     newCombat.defender!,
     newCombat.defenderCards,
     hasWorldMatch(newCombat.defender!, realmWorldId),
-    newCombat.effectSpecs,
     "defensive",
   )
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
@@ -911,14 +799,12 @@ function handleStopPlaying(
     combat.attacker!,
     combat.attackerCards,
     hasWorldMatch(combat.attacker!, realmWorldId),
-    combat.effectSpecs,
     "offensive",
   )
   const defenderLevel = combat.defenderManualLevel ?? calculateCombatLevel(
     combat.defender!,
     combat.defenderCards,
     hasWorldMatch(combat.defender!, realmWorldId),
-    combat.effectSpecs,
     "defensive",
   )
 
@@ -983,91 +869,6 @@ function handleEndAttack(
     throw new EngineError("NOT_ATTACKER")
   }
   return endBattle(state, combat.attackingPlayer, _events)
-}
-
-// ─── Pending Effect Handlers ──────────────────────────────────────────────────
-
-/**
- * Resolves the first pending effect by targeting a specific card.
- * Only valid when targetScope !== "none". Removes the targeted card from
- * its current combat slot and discards it, then pops the effect queue.
- */
-function handleResolveEffect(
-  state: GameState,
-  playerId: PlayerId,
-  move: Extract<Move, { type: "RESOLVE_EFFECT" }>,
-  events: GameEvent[],
-): GameState {
-  const [effect, ...remaining] = state.pendingEffects
-  if (!effect) throw new EngineError("NO_PENDING_EFFECT", "No effect awaiting resolution")
-  if (effect.triggeringPlayerId !== playerId) {
-    throw new EngineError("NOT_YOUR_EFFECT", "Only the triggering player may resolve this effect")
-  }
-  if (effect.targetScope === "none") {
-    throw new EngineError("NO_TARGET_SCOPE", "This effect has no targetable component — use SKIP_EFFECT")
-  }
-  if (!state.combatState) {
-    throw new EngineError("NOT_IN_COMBAT", "RESOLVE_EFFECT with a target requires active combat")
-  }
-
-  events.push({ type: "EFFECT_RESOLVED", cardInstanceId: effect.cardInstanceId, targetId: move.targetId })
-
-  let s = removeCardFromCombat(state, move.targetId, events)
-  s = { ...s, pendingEffects: remaining }
-
-  // Once the queue is empty and we're still in CARD_PLAY, re-establish the losing player
-  if (remaining.length === 0 && s.combatState?.roundPhase === "CARD_PLAY") {
-    s = recalculateCombatActivePlayer(s)
-  }
-
-  return s
-}
-
-/**
- * Waives the first pending effect — it produces no mechanical consequence.
- * Always valid when effects are queued, regardless of targetScope.
- */
-function handleSkipEffect(
-  state: GameState,
-  playerId: PlayerId,
-  events: GameEvent[],
-): GameState {
-  const [effect, ...remaining] = state.pendingEffects
-  if (!effect) throw new EngineError("NO_PENDING_EFFECT", "No effect awaiting resolution")
-  if (effect.triggeringPlayerId !== playerId) {
-    throw new EngineError("NOT_YOUR_EFFECT", "Only the triggering player may skip this effect")
-  }
-
-  events.push({ type: "EFFECT_RESOLVED", cardInstanceId: effect.cardInstanceId, targetId: null })
-
-  let s = { ...state, pendingEffects: remaining }
-
-  // Once the queue is empty and we're still in CARD_PLAY, re-establish the losing player
-  if (remaining.length === 0 && s.combatState?.roundPhase === "CARD_PLAY") {
-    s = recalculateCombatActivePlayer(s)
-  }
-
-  return s
-}
-
-// ─── Response Window Handler ──────────────────────────────────────────────────
-
-function handlePassResponse(
-  state: GameState,
-  playerId: PlayerId,
-  events: GameEvent[],
-): GameState {
-  if (!state.responseWindow) {
-    throw new EngineError("NO_RESPONSE_WINDOW", "No response window is currently open")
-  }
-  if (state.responseWindow.respondingPlayerId !== playerId) {
-    throw new EngineError("NOT_RESPONDER", "Only the responding player can pass the response")
-  }
-
-  events.push({ type: "RESPONSE_WINDOW_CLOSED" })
-
-  // Give turn back to triggering player to execute the effect manually
-  return { ...state, responseWindow: null, activePlayer: state.responseWindow.triggeringPlayerId }
 }
 
 // ─── Manual Board Control Handlers ───────────────────────────────────────────
@@ -1336,10 +1137,6 @@ function handleManualAffectOpponent(
   move: Extract<Move, { type: "MANUAL_AFFECT_OPPONENT" }>,
   events: GameEvent[],
 ): GameState {
-  if (state.pendingEffects.length === 0) {
-    throw new EngineError("NO_PENDING_EFFECT", "Can only affect opponent cards while a pending effect is active")
-  }
-
   const opponentId = state.playerOrder.find(id => id !== playerId)!
 
   switch (move.action as ManualAction) {
@@ -1472,57 +1269,6 @@ function handleManualSwitchCombatSide(
       }
 
   return { ...state, combatState: newCombat }
-}
-
-/** Removes a card from the active combat (either side) and discards it. */
-function removeCardFromCombat(
-  state: GameState,
-  targetId: CardInstanceId,
-  events: GameEvent[],
-): GameState {
-  const combat = state.combatState!
-
-  const isAttackerCard = combat.attackerCards.some(c => c.instanceId === targetId)
-  const isDefenderCard = combat.defenderCards.some(c => c.instanceId === targetId)
-
-  if (!isAttackerCard && !isDefenderCard) {
-    throw new EngineError("TARGET_NOT_FOUND", "Target card is not in active combat")
-  }
-
-  const ownerId = isAttackerCard ? combat.attackingPlayer : combat.defendingPlayer
-  const owner = state.players[ownerId]!
-  const card = (isAttackerCard ? combat.attackerCards : combat.defenderCards)
-    .find(c => c.instanceId === targetId)!
-
-  events.push({ type: "CARDS_DISCARDED", playerId: ownerId, instanceIds: [targetId] })
-
-  const newCombat: CombatState = isAttackerCard
-    ? { ...combat, attackerCards: combat.attackerCards.filter(c => c.instanceId !== targetId) }
-    : { ...combat, defenderCards: combat.defenderCards.filter(c => c.instanceId !== targetId) }
-
-  return updatePlayer(
-    { ...state, combatState: newCombat },
-    ownerId,
-    { discardPile: [...owner.discardPile, card] },
-  )
-}
-
-/** Re-establishes activePlayer as the losing side after effects resolve in CARD_PLAY. */
-function recalculateCombatActivePlayer(state: GameState): GameState {
-  const combat = state.combatState!
-  const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
-  const realmWorldId = realmSlot?.realm.card.worldId ?? 0
-
-  const attackerLevel = calculateCombatLevel(
-    combat.attacker!, combat.attackerCards,
-    hasWorldMatch(combat.attacker!, realmWorldId), combat.effectSpecs, "offensive",
-  )
-  const defenderLevel = calculateCombatLevel(
-    combat.defender!, combat.defenderCards,
-    hasWorldMatch(combat.defender!, realmWorldId), combat.effectSpecs, "defensive",
-  )
-  const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, combat)
-  return { ...state, activePlayer: losingPlayer }
 }
 
 // ─── Combat Resolution Helpers ────────────────────────────────────────────────

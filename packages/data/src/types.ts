@@ -61,8 +61,8 @@ export interface Card {
    */
   supportIds: SupportRef[]
   weight: number | null
-  /** Tier 1 effect specs — populated separately, empty at extraction time */
-  effects: never[]
+  /** Reserved field from extraction; runtime currently ignores effects. */
+  effects: unknown[]
 }
 
 // ─── Card Set ────────────────────────────────────────────────────────────────

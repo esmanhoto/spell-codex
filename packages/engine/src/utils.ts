@@ -1,6 +1,6 @@
 import type {
-  CardData, CardInstance, CardInstanceId, CardEffectSpec,
-  GameState, PlayerId, PlayerState, EffectCondition,
+  CardData, CardInstance, CardInstanceId,
+  GameState, PlayerId, PlayerState,
 } from "./types.ts"
 import { CHAMPION_TYPE_IDS, COSMOS_TYPE_IDS, SPELL_TYPE_IDS } from "./constants.ts"
 
@@ -130,59 +130,6 @@ export function isSpellType(typeId: number): boolean {
 /** Cards subject to Rule of the Cosmos (globally unique constraint) */
 export function isCosmosCard(card: CardData): boolean {
   return COSMOS_TYPE_IDS.has(card.typeId)
-}
-
-// ─── Effect Spec Lookup ───────────────────────────────────────────────────────
-
-export function matchesCard(
-  cardRef: { setId: string; cardNumber: number },
-  instance: CardInstance,
-): boolean {
-  return cardRef.setId === instance.card.setId &&
-    cardRef.cardNumber === instance.card.cardNumber
-}
-
-export function findEffectSpec(
-  instance: CardInstance,
-  effectSpecs: CardEffectSpec[],
-): CardEffectSpec | undefined {
-  return effectSpecs.find(s => matchesCard(s.cardRef, instance))
-}
-
-/**
- * Returns true if this card needs manual resolution.
- * Pure stat cards (allies/magical items with simple bonus text) are always Tier 1.
- * All other cards without a Tier 1 spec fall back to manual resolution.
- */
-export function requiresManualResolution(
-  instance: CardInstance,
-  effectSpecs: CardEffectSpec[],
-): boolean {
-  const { card } = instance
-  if (card.effects.length > 0) return false       // already has Tier 1 spec on card
-  if (card.typeId === 1 /* Ally */ && isPureLevelCard(card)) return false
-  if (card.typeId === 9 /* MagicalItem */ && isPureLevelCard(card)) return false
-  return !findEffectSpec(instance, effectSpecs)    // needs spec or is manual
-}
-
-function isPureLevelCard(card: CardData): boolean {
-  if (typeof card.level === "number" && card.level > 0) return true
-  if (typeof card.level === "string" && /^[+-]\d+(\/[+-]\d+)?$/.test(card.level)) return true
-  return false
-}
-
-export function conditionMet(
-  condition: EffectCondition | undefined,
-  champion: CardInstance,
-  side: "offensive" | "defensive",
-): boolean {
-  if (!condition) return true
-  switch (condition.when) {
-    case "attacking":          return side === "offensive"
-    case "defending":          return side === "defensive"
-    case "champion_type":      return champion.card.typeId === condition.typeId
-    case "champion_attribute": return champion.card.attributes.includes(condition.attribute)
-  }
 }
 
 // ─── State Helpers ────────────────────────────────────────────────────────────

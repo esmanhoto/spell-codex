@@ -318,10 +318,66 @@ describe("getLegalMoves", () => {
     expect(moves.some(m => m.type === "END_TURN")).toBe(true)
   })
 
+  test("START_OF_TURN includes manual draw when draw pile has cards", () => {
+    const s = initGame(DEFAULT_CONFIG)
+    const moves = getLegalMoves(s, "p1")
+    expect(moves.some(m => m.type === "MANUAL_DRAW_CARDS" && (m as { count: number }).count === 1)).toBe(true)
+  })
+
+  test("manual affect opponent is available without pending effects", () => {
+    const s = initGame(DEFAULT_CONFIG)
+    const opponentCard = s.players["p2"]!.hand[0]
+    expect(opponentCard).toBeDefined()
+    const moves = getLegalMoves(s, "p1")
+    expect(
+      moves.some(m =>
+        m.type === "MANUAL_AFFECT_OPPONENT" &&
+        (m as { cardInstanceId: string; action: string }).cardInstanceId === opponentCard!.instanceId &&
+        (m as { cardInstanceId: string; action: string }).action === "discard",
+      ),
+    ).toBe(true)
+  })
+
   test("finished game returns no legal moves", () => {
     const s = { ...initGame(DEFAULT_CONFIG), winner: "p1" }
     expect(getLegalMoves(s, "p1")).toHaveLength(0)
     expect(getLegalMoves(s, "p2")).toHaveLength(0)
+  })
+})
+
+describe("PLAY_RULE_CARD", () => {
+  test("discards the rule card and emits CARDS_DISCARDED only", () => {
+    let s = initGame(DEFAULT_CONFIG)
+    const ruleCard: CardInstance = {
+      instanceId: "rule-test-1",
+      card: {
+        ...ALLY_PLUS4,
+        cardNumber: 9991,
+        name: "Test Rule",
+        typeId: 15,
+      },
+    }
+    s = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [ruleCard, ...s.players["p1"]!.hand],
+        },
+      },
+    }
+
+    const { newState, events } = applyMove(s, "p1", {
+      type: "PLAY_RULE_CARD",
+      cardInstanceId: "rule-test-1",
+    })
+
+    expect(newState.players["p1"]!.hand.some(c => c.instanceId === "rule-test-1")).toBe(false)
+    expect(newState.players["p1"]!.discardPile.some(c => c.instanceId === "rule-test-1")).toBe(true)
+    expect(events).toEqual([
+      { type: "CARDS_DISCARDED", playerId: "p1", instanceIds: ["rule-test-1"] },
+    ])
   })
 })
 

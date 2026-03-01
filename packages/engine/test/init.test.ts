@@ -63,10 +63,9 @@ describe("initGame", () => {
     }
   })
 
-  test("no combat or pending effects at start", () => {
+  test("no combat at start", () => {
     const state = initGame(DEFAULT_CONFIG)
     expect(state.combatState).toBeNull()
-    expect(state.pendingEffects).toHaveLength(0)
     expect(state.winner).toBeNull()
   })
 

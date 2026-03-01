@@ -109,8 +109,6 @@ export function Game() {
       winner:         data.winner,
       allBoards:      data.board.players,
       combat:         data.board.combat,
-      pendingEffects: data.pendingEffects,
-      responseWindow: data.responseWindow,
       legalMoves:     data.legalMoves,
       legalMovesPerPlayer: data.legalMovesPerPlayer,
       onMove:         sendMove,

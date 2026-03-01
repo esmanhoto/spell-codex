@@ -16,6 +16,25 @@ const app = new Hono()
 app.use(logger())
 app.use(cors())
 
+app.onError((err, c) => {
+  const message = err instanceof Error ? err.message : String(err)
+  const code = (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    typeof (err as { code?: unknown }).code === "string"
+  ) ? (err as { code: string }).code : undefined
+
+  if (code === "ECONNREFUSED" || message.includes("ECONNREFUSED")) {
+    return c.json({
+      error: "Database unavailable. Start Postgres and verify DATABASE_URL (expected localhost:5433 in dev).",
+    }, 503)
+  }
+
+  console.error(err)
+  return c.json({ error: "Internal server error" }, 500)
+})
+
 // ─── Public routes ────────────────────────────────────────────────────────────
 
 app.get("/health", (c) => c.json({ ok: true }))

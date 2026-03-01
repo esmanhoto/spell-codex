@@ -1,5 +1,5 @@
 import {
-  pgTable, uuid, text, integer, jsonb, timestamp, index, unique, boolean,
+  pgTable, uuid, text, integer, jsonb, timestamp, index, unique,
 } from "drizzle-orm/pg-core"
 
 // ─── games ────────────────────────────────────────────────────────────────────
@@ -32,8 +32,6 @@ export const gamePlayers = pgTable("game_players", {
    * Stored as CardData[] — prevents deck changes mid-game.
    */
   deckSnapshot: jsonb("deck_snapshot").notNull(),
-  /** True when this seat is controlled by the server-side AI bot. */
-  isBot:        boolean("is_bot").notNull().default(false),
 }, t => [
   index("game_players_game_id_idx").on(t.gameId),
   unique("game_players_game_user_unique").on(t.gameId, t.userId),
