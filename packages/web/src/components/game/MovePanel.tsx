@@ -19,7 +19,7 @@ export function MovePanel({ playerId }: { playerId: string }) {
   const nameOf = (id: string) => nameOfCard(id, allBoards)
 
   return (
-    <div className={styles.panel}>
+    <div className={styles.panel} data-testid={`move-panel-${playerId}`}>
       <div className={styles.header}>
         <strong>
           {selectedId
@@ -40,6 +40,8 @@ export function MovePanel({ playerId }: { playerId: string }) {
         {filteredMoves.map((m, i) => (
           <button
             key={i}
+            data-testid={`move-btn-${playerId}-${i}`}
+            data-move-type={m.type}
             className={`${styles.btn} ${m.type === "PASS" ? styles.pass : styles.action}`}
             onClick={() => onMove(m)}
           >

@@ -12,11 +12,13 @@ export function PhaseTracker({ phase }: { phase: string }) {
   const activeIndex = PHASES.findIndex(p => p.key === phase)
 
   return (
-    <div className={styles.tracker}>
+    <div className={styles.tracker} data-testid="phase-tracker">
       {PHASES.map((p, i) => (
         <span key={p.key}>
           {i > 0 && <span className={styles.arrow}>&rarr;</span>}
           <span
+            data-testid={`phase-pill-${p.key}`}
+            data-active={i === activeIndex ? "true" : "false"}
             className={[
               styles.pill,
               i === activeIndex ? styles.active : "",
