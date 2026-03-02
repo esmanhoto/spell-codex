@@ -6,7 +6,10 @@
 import path from "path"
 import { readdirSync, readFileSync, mkdirSync, writeFileSync } from "fs"
 import { parseTclList, extractTclBlock } from "./lib/tcl-parser"
-import type { Card, CardLevel, CardRarity, SupportRef, WorldId } from "./types"
+import type {
+  Card, CardLevel, CardRarity, SupportRef, WorldId,
+  SpellNature, CastPhase,
+} from "./types"
 
 const CROSSFIRE_DIR =
   process.env.CROSSFIRE_PATH ??
@@ -14,6 +17,8 @@ const CROSSFIRE_DIR =
 
 const DB_DIR = path.join(CROSSFIRE_DIR, "DataBase")
 const OUT_DIR = path.join(import.meta.dir, "..", "cards")
+const SPELL_TYPE_IDS = new Set([4, 19]) // Cleric Spell, Wizard Spell
+const SPELL_TAG_REGEX = /\((Off|Def)(?:\/(\d)(?:\/(\d))?)?\)/i
 
 // ─── Field parsers ────────────────────────────────────────────────────────────
 
@@ -57,6 +62,35 @@ function parseRefList(raw: string): SupportRef[] {
     })
 }
 
+function parseSpellMeta(
+  typeId: number,
+  description: string,
+  attributes: string[],
+): { spellNature: SpellNature | null; castPhases: CastPhase[] } {
+  if (!SPELL_TYPE_IDS.has(typeId)) {
+    return { spellNature: null, castPhases: [] }
+  }
+
+  const sources = [description, ...attributes]
+  for (const source of sources) {
+    const match = source.match(SPELL_TAG_REGEX)
+    if (!match) continue
+
+    const spellNature: SpellNature = match[1]?.toLowerCase() === "off" ? "offensive" : "defensive"
+    const castPhases = [match[2], match[3]]
+      .filter((v): v is string => v != null && v !== "")
+      .map(v => Number(v))
+      .filter((n): n is CastPhase => n === 3 || n === 4 || n === 5)
+
+    return {
+      spellNature,
+      castPhases: castPhases.length > 0 ? [...new Set(castPhases)] : [4],
+    }
+  }
+
+  return { spellNature: null, castPhases: [4] }
+}
+
 // ─── Card record parser ───────────────────────────────────────────────────────
 
 function parseCardRecord(record: string): Card | null {
@@ -91,6 +125,9 @@ function parseCardRecord(record: string): Card | null {
 
   const worldId = (parseInt(worldIdRaw, 10) || 0) as WorldId
   const weightN = parseInt(weightRaw, 10)
+  const descriptionClean = description.trim()
+  const attributes = parseAttributes(attributesRaw)
+  const { spellNature, castPhases } = parseSpellMeta(typeId, descriptionClean, attributes)
 
   return {
     setId: setId.trim(),
@@ -100,10 +137,12 @@ function parseCardRecord(record: string): Card | null {
     worldId,
     isAvatar: isAvatarRaw === "1",
     name: name.trim(),
-    description: description.trim(),
+    description: descriptionClean,
     rarity: parseRarity(rarityRaw.trim()),
-    attributes: parseAttributes(attributesRaw),
+    attributes,
     supportIds: parseRefList(supportRaw),
+    spellNature,
+    castPhases,
     weight: isNaN(weightN) ? null : weightN,
     effects: [],
   }
@@ -146,7 +185,17 @@ function extractSet(tclFile: string): { setName: string; cards: Card[] } {
 function main() {
   mkdirSync(OUT_DIR, { recursive: true })
 
-  const files = readdirSync(DB_DIR).filter((f) => f.endsWith(".tcl"))
+  const filterArgs = process.argv
+    .filter(arg => arg.startsWith("--set="))
+    .flatMap(arg => arg.replace("--set=", "").split(","))
+    .map(v => v.trim())
+    .filter(Boolean)
+  const requestedSetIds = new Set(filterArgs)
+
+  let files = readdirSync(DB_DIR).filter((f) => f.endsWith(".tcl"))
+  if (requestedSetIds.size > 0) {
+    files = files.filter(f => requestedSetIds.has(path.basename(f, ".tcl")))
+  }
   console.log(`Found ${files.length} database files in ${DB_DIR}\n`)
 
   let totalCards = 0

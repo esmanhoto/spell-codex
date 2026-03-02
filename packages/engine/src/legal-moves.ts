@@ -10,6 +10,7 @@ import {
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
 import { calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "./combat.ts"
+import { canChampionUseSpell, getCastPhases } from "./spell-gating.ts"
 
 /**
  * Returns all legal moves for the given player in the current state.
@@ -215,6 +216,12 @@ function getPoolOnlyMoves(state: GameState, player: PlayerState): Move[] {
   if (player.pool.length > 0) {
     for (const card of player.hand) {
       if (isPhase3Card(card.card.typeId)) {
+        if (isSpellType(card.card.typeId)) {
+          if (!getCastPhases(card).includes(3)) continue
+          if (!poolHasSpellCaster(player.pool, card)) continue
+          moves.push({ type: "PLAY_PHASE3_CARD", cardInstanceId: card.instanceId })
+          continue
+        }
         if (poolHasChampionFor(player.pool, card, "o")) {
           moves.push({ type: "PLAY_PHASE3_CARD", cardInstanceId: card.instanceId })
         }
@@ -363,11 +370,10 @@ function getCardPlayMoves(
 
   if (isLosing) {
     // Losing player can play any combat-legal support card
-    const activeSide = isAttacker ? "offensive" : "defensive"
     const activeChampion = isAttacker ? combat.attacker : combat.defender
 
     for (const card of player.hand) {
-      if (canPlayInCombat(card, activeChampion, activeSide)) {
+      if (canPlayInCombat(card, activeChampion)) {
         moves.push({ type: "PLAY_COMBAT_CARD", cardInstanceId: card.instanceId })
       }
     }
@@ -408,7 +414,10 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
   const moves: Move[] = [{ type: "END_TURN" }]
 
   for (const card of player.hand) {
-    if (card.card.typeId === CardTypeId.Event) {
+    if (card.card.typeId === CardTypeId.Event ||
+        (isSpellType(card.card.typeId) &&
+         getCastPhases(card).includes(5) &&
+         poolHasSpellCaster(player.pool, card))) {
       moves.push({ type: "PLAY_PHASE5_CARD", cardInstanceId: card.instanceId })
     }
   }
@@ -669,14 +678,17 @@ function poolHasChampionFor(
   })
 }
 
+function poolHasSpellCaster(pool: PoolEntry[], card: CardInstance): boolean {
+  return pool.some(entry => canChampionUseSpell(card, entry.champion))
+}
+
 /**
  * Returns true if a card can be played during CARD_PLAY phase.
- * The active champion's supportIds determine which spells they can use.
+ * The active champion determines spell access. Spell direction is card-defined.
  */
-function canPlayInCombat(
+export function canPlayInCombat(
   card: CardInstance,
   activeChampion: CardInstance | null,
-  side: "offensive" | "defensive",
 ): boolean {
   const { typeId } = card.card
   if (!COMBAT_SUPPORT_TYPE_IDS.has(typeId)) return false
@@ -684,11 +696,11 @@ function canPlayInCombat(
   // Allies and magical items can always be played (no spell access check)
   if (typeId === CardTypeId.Ally || typeId === CardTypeId.MagicalItem) return true
 
-  // Spells require the champion to have the appropriate direction access
-  if (isSpellType(typeId) && activeChampion) {
-    const dirRef = `${side === "offensive" ? "o" : "d"}${typeId}`
-    const { supportIds } = activeChampion.card
-    return supportIds.includes(dirRef) || supportIds.includes(typeId)
+  // Spells must be castable in phase 4 and usable by this champion.
+  if (isSpellType(typeId)) {
+    if (!activeChampion) return false
+    if (!getCastPhases(card).includes(4)) return false
+    return canChampionUseSpell(card, activeChampion)
   }
 
   return false
