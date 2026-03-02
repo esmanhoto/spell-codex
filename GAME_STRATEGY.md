@@ -25,7 +25,7 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 ## Future Implementation
 - Increase test coverage with priority on web and end-to-end gameplay flows (create game, turn progression, combat resolution).
 - Add API contract tests to lock web/api response shape.
-- Enforce spell phase-direction metadata from card descriptions (e.g. defensive 4 vs defensive 3/4) in legal-move checks.
+- Implement 1st-edition spell gating for Cleric/Wizard spells only (type `4`/`19`): enforce cast phase (`3`,`4`,`5`) + spell direction (`Off`/`Def`), without "any-time response" behavior for now.
 - Add selected combat options in small vertical slices with tests.
 - Integrate Supabase for auth and managed Postgres usage.
 - Add Vercel deployment pipeline (web first, then API path decided by hosting constraints).
@@ -35,6 +35,13 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 - Gradually reintroduce selective high-value automation only where it reduces friction and is low-risk.
 - Add release automation around tagged versions when deployment cadence stabilizes.
 - Revisit async-turn/deadline features after real-time UX is stable.
+- New features ideas:
+* build your own deck
+* selectable music background
+* full manual mode
+* full effects mode
+* vaquinha solidária
+* 
 
 ## Delivery Guardrails
 - Keep milestone scope explicit: define what is in/out before each implementation cycle.
@@ -54,3 +61,4 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 - Manual actions are the primary mechanism, not fallback.
 - Card descriptions remain relevant mainly for human play guidance and upcoming phase-direction constraints.
 - No JSON regeneration is required now; existing card data can be kept with effects ignored.
+- Keep `supportIds` as-is for now; revisit naming/cleanup in a separate dedicated task.
