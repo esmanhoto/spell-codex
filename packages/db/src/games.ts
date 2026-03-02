@@ -19,6 +19,13 @@ export interface CreateGameInput {
   }>
 }
 
+export interface AddGamePlayerInput {
+  gameId: string
+  userId: string
+  seatPosition: number
+  deckSnapshot: CardData[]
+}
+
 export async function createGame(input: CreateGameInput): Promise<Game> {
   const [game] = await db.insert(games).values({ formatId: input.formatId, seed: input.seed }).returning()
   if (!game) throw new Error("Failed to insert game row")
@@ -33,6 +40,18 @@ export async function createGame(input: CreateGameInput): Promise<Game> {
   )
 
   return game
+}
+
+export async function addGamePlayer(input: AddGamePlayerInput): Promise<GamePlayer> {
+  const [row] = await db.insert(gamePlayers).values({
+    gameId: input.gameId,
+    userId: input.userId,
+    seatPosition: input.seatPosition,
+    deckSnapshot: input.deckSnapshot,
+  }).returning()
+
+  if (!row) throw new Error("Failed to insert game player row")
+  return row
 }
 
 // ─── Read ─────────────────────────────────────────────────────────────────────

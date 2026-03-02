@@ -21,13 +21,21 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 - CI baseline with lint, typecheck, tests, and build checks.
 - Branch-protection-compatible CI triggers for push/PR and tags.
 - Removed Tier 1/Tier 2 effect runtime pipeline and response-window/pending-effect mechanics.
+- Supabase auth integration (email/password) with bearer-token API verification.
+- Clean lobby flow (`Create a New Game` / `Join a Game`) using sharable `gameId` and waiting room.
+- Per-view hidden-information rendering (opponent hand hidden, own hand visible) with two-tab play support.
 
 ## Future Implementation
 - Increase test coverage with priority on web and end-to-end gameplay flows (create game, turn progression, combat resolution).
 - Add API contract tests to lock web/api response shape.
 - Implement 1st-edition spell gating for Cleric/Wizard spells only (type `4`/`19`): enforce cast phase (`3`,`4`,`5`) + spell direction (`Off`/`Def`), without "any-time response" behavior for now.
 - Add selected combat options in small vertical slices with tests.
-- Integrate Supabase for auth and managed Postgres usage.
+- Keep Google OAuth disabled for now; revisit when product onboarding is stable.
+- Add real Supabase auth tests (not bypass-mode only):
+  - API integration tests for bearer-token auth paths.
+  - Web e2e for login + dual-user session flow.
+- Connect runtime DB to Supabase Postgres (remove local-only Docker dependency from default dev path).
+- Define CI strategy for DB tests when using Supabase-managed Postgres.
 - Add Vercel deployment pipeline (web first, then API path decided by hosting constraints).
 - Add staging environment before production rollout.
 - Add observability baseline (structured logs + error tracking).

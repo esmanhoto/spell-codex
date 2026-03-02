@@ -12,6 +12,11 @@ export default defineConfig({
         rewrite:   path => path.replace(/^\/api/, ""),
         changeOrigin: true,
       },
+      // Proxy WS upgrades in dev (`ws://localhost:5173/ws` -> API `:3001/ws`)
+      "/ws": {
+        target: "ws://localhost:3001",
+        ws: true,
+      },
     },
   },
 })

@@ -79,7 +79,9 @@ export function serializeBoard(state: GameState, viewerPlayerId?: string) {
   return {
     players: Object.fromEntries(
       Object.entries(state.players).map(([id, p]) => [id, {
-        hand:          p.hand.map(card),
+        hand:          viewerPlayerId == null || viewerPlayerId === id ? p.hand.map(card) : [],
+        handCount:     p.hand.length,
+        handHidden:    viewerPlayerId != null && viewerPlayerId !== id,
         formation:     serializeFormation(p.formation, id, viewerPlayerId),
         pool:          serializePool(p.pool),
         drawPileCount: p.drawPile.length,
@@ -100,18 +102,22 @@ export function serializeGameState(state: GameState, extra?: {
 }, viewerPlayerId?: string) {
   const dl = extra?.turnDeadline
   const turnDeadline = dl instanceof Date ? dl.toISOString() : (dl ?? null)
+  const legalMovesPerPlayer = viewerPlayerId == null
+    ? Object.fromEntries(state.playerOrder.map(id => [id, getLegalMoves(state, id)]))
+    : { [viewerPlayerId]: getLegalMoves(state, viewerPlayerId) }
+
   return {
     gameId:         state.id,
+    viewerPlayerId: viewerPlayerId ?? null,
+    playerOrder:    state.playerOrder,
     status:         extra?.status ?? (state.winner ? "finished" : "active"),
     phase:          state.phase,
     activePlayer:   state.activePlayer,
     turnNumber:     state.currentTurn,
     turnDeadline,
     winner:         state.winner ?? null,
-    legalMoves:     getLegalMoves(state, state.activePlayer),
-    legalMovesPerPlayer: Object.fromEntries(
-      state.playerOrder.map(id => [id, getLegalMoves(state, id)]),
-    ),
+    legalMoves:     getLegalMoves(state, viewerPlayerId ?? state.activePlayer),
+    legalMovesPerPlayer,
     board:          serializeBoard(state, viewerPlayerId),
     events:         state.events,
   }

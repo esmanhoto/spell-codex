@@ -7,14 +7,15 @@ import { DrawPile } from "./DrawPile.tsx"
 import { DiscardPile } from "./DiscardPile.tsx"
 import styles from "./PlayerHand.module.css"
 
-export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
+export function PlayerHand({ cards, hiddenCount, drawPileCount, discardCount, isOpponent }: {
   cards:          CardInfo[]
+  hiddenCount?:   number
   drawPileCount:  number
   discardCount:   number
   isOpponent:     boolean
 }) {
   const { selectedId, onSelect, openContextMenu, legalMoves, requestSpellCast } = useGame()
-  const total = cards.length
+  const total = isOpponent ? (hiddenCount ?? cards.length) : cards.length
 
   function fanTransform(index: number): React.CSSProperties {
     const center = (total - 1) / 2
@@ -54,18 +55,24 @@ export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
   return (
     <div className={styles.hand}>
       <div className={styles.piles}>
-        <DrawPile count={drawPileCount} />
+        <DrawPile count={drawPileCount} disabled={isOpponent} />
       </div>
 
       <div className={`${styles.fan} ${isOpponent ? "" : styles.own}`}>
-        {cards.map((card, i) => {
+        {(isOpponent ? Array.from({ length: hiddenCount ?? cards.length }) : cards).map((item, i) => {
           if (isOpponent) {
             return (
-              <div key={card.instanceId} className={styles.cardSlot} style={fanTransform(i)}>
+              <div
+                key={`hidden-${i}`}
+                data-testid={`opponent-card-back-${i}`}
+                className={styles.cardSlot}
+                style={fanTransform(i)}
+              >
                 <div className={styles.cardBack} />
               </div>
             )
           }
+          const card = item as CardInfo
 
           const isSelected = selectedId === card.instanceId
           const contextActions = buildContextActions(card)

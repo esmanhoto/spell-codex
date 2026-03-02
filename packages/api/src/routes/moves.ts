@@ -29,8 +29,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   // 1. Load game row
   const game = await getGame(gameId)
   if (!game)                     return c.json({ error: "Game not found" }, 404)
-  if (game.status !== "active" &&
-      game.status !== "waiting") return c.json({ error: "Game is not in progress" }, 409)
+  if (game.status !== "active") return c.json({ error: "Game is not active" }, 409)
 
   // 2. Verify the requester is a participant
   const players = await getGamePlayers(gameId)
