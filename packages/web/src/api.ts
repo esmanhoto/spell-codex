@@ -16,6 +16,9 @@ export interface CardInfo {
   setId:       string
   cardNumber:  number
   description: string
+  supportIds:  Array<number | string>
+  spellNature: "offensive" | "defensive" | null
+  castPhases:  Array<3 | 4 | 5>
 }
 
 export interface SlotState {
@@ -88,7 +91,14 @@ export type Move =
   | { type: "TOGGLE_HOLDING_REVEAL";   realmSlot: string }
   | { type: "PLACE_CHAMPION";          cardInstanceId: string }
   | { type: "ATTACH_ITEM";             cardInstanceId: string; championId: string }
-  | { type: "PLAY_PHASE3_CARD";        cardInstanceId: string }
+  | {
+      type: "PLAY_PHASE3_CARD"
+      cardInstanceId: string
+      keepInPlay?: boolean
+      casterInstanceId?: string
+      targetCardInstanceId?: string
+      targetOwner?: "self" | "opponent"
+    }
   | { type: "PLAY_PHASE5_CARD";        cardInstanceId: string }
   | { type: "PLAY_RULE_CARD";          cardInstanceId: string }
   | { type: "PLAY_EVENT";              cardInstanceId: string }

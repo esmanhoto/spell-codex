@@ -2,6 +2,7 @@ import { useGame } from "../../context/GameContext.tsx"
 import type { CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import { isSpellCard } from "../../utils/spell-casting.ts"
 import { DrawPile } from "./DrawPile.tsx"
 import { DiscardPile } from "./DiscardPile.tsx"
 import styles from "./PlayerHand.module.css"
@@ -12,7 +13,7 @@ export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
   discardCount:   number
   isOpponent:     boolean
 }) {
-  const { selectedId, onSelect, openContextMenu, legalMoves } = useGame()
+  const { selectedId, onSelect, openContextMenu, legalMoves, requestSpellCast } = useGame()
   const total = cards.length
 
   function fanTransform(index: number): React.CSSProperties {
@@ -32,7 +33,7 @@ export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
       m.type === "DISCARD_CARD" &&
       (m as { cardInstanceId: string }).cardInstanceId === card.instanceId,
     )
-    return [
+    const actions: ContextMenuAction[] = [
       {
         label: "Discard",
         move: canUsePhaseDiscard
@@ -41,6 +42,13 @@ export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
       },
       { label: "To Abyss", move: { type: "MANUAL_TO_ABYSS", cardInstanceId: card.instanceId } },
     ]
+    if (isSpellCard(card)) {
+      actions.unshift({
+        label: "Cast Spell",
+        action: () => requestSpellCast(card.instanceId),
+      })
+    }
+    return actions
   }
 
   return (
@@ -65,6 +73,7 @@ export function PlayerHand({ cards, drawPileCount, discardCount, isOpponent }: {
           return (
             <div
               key={card.instanceId}
+              data-testid={`hand-card-${card.instanceId}`}
               className={`${styles.cardSlot} ${isSelected ? styles.selected : ""}`}
               style={fanTransform(i)}
               draggable

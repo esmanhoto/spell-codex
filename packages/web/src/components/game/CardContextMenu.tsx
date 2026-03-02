@@ -31,7 +31,11 @@ export function CardContextMenu({ x, y, actions, onAction, onClose }: {
   return (
     <div ref={ref} className={styles.menu} style={menuStyle}>
       {actions.map((a, i) => (
-        <button key={i} className={styles.item} onClick={() => { onAction(a.move); onClose() }}>
+        <button key={i} className={styles.item} onClick={() => {
+          if (a.action) a.action()
+          else if (a.move) onAction(a.move)
+          onClose()
+        }}>
           {a.label}
         </button>
       ))}

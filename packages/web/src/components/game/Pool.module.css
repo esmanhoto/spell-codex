@@ -19,6 +19,31 @@
   min-height: 40px;
 }
 
+.zoneWrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.zoneBlock {
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 6px;
+}
+
+.zoneLabel {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.lingeringCard {
+  opacity: 0.96;
+}
+
 .dropHint {
   color: var(--gold);
 }
@@ -26,4 +51,10 @@
 .pool.dragOver {
   outline: 2px dashed var(--gold);
   outline-offset: 2px;
+}
+
+@media (max-width: 920px) {
+  .zoneWrap {
+    grid-template-columns: 1fr;
+  }
 }

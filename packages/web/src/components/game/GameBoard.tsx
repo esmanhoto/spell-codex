@@ -97,12 +97,14 @@ export function GameBoard({ events, wsError }: {
 
         {/* Opponent hand (top) */}
         {boardB && (
-          <PlayerHand
-            cards={boardB.hand}
-            drawPileCount={boardB.drawPileCount}
-            discardCount={boardB.discardCount}
-            isOpponent={false}
-          />
+          <div data-testid="hand-top">
+            <PlayerHand
+              cards={boardB.hand}
+              drawPileCount={boardB.drawPileCount}
+              discardCount={boardB.discardCount}
+              isOpponent={false}
+            />
+          </div>
         )}
 
         {/* Opponent area */}
@@ -120,12 +122,14 @@ export function GameBoard({ events, wsError }: {
 
         {/* Own hand (bottom) */}
         {boardA && (
-          <PlayerHand
-            cards={boardA.hand}
-            drawPileCount={boardA.drawPileCount}
-            discardCount={boardA.discardCount}
-            isOpponent={false}
-          />
+          <div data-testid="hand-bottom">
+            <PlayerHand
+              cards={boardA.hand}
+              drawPileCount={boardA.drawPileCount}
+              discardCount={boardA.discardCount}
+              isOpponent={false}
+            />
+          </div>
         )}
 
         {/* Move panel for player A */}
