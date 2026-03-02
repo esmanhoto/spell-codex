@@ -66,16 +66,12 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
         Pool {dragOver && <span className={styles.dropHint}>- drop to place champion</span>}
       </span>
       <div className={styles.zoneWrap}>
-        <div className={styles.zoneBlock}>
-          <span className={styles.zoneLabel}>Champions</span>
-          <div className={styles.row}>
-            {entries.map(e => (
-              <PoolEntry key={e.champion.instanceId} entry={e} isOpponent={isOpponent} />
-            ))}
-          </div>
+        <div className={styles.row}>
+          {entries.map(e => (
+            <PoolEntry key={e.champion.instanceId} entry={e} isOpponent={isOpponent} />
+          ))}
         </div>
-        <div className={styles.zoneBlock} data-testid={ownerId ? `lasting-spells-${ownerId}` : undefined}>
-          <span className={styles.zoneLabel}>Lasting Spells</span>
+        <div data-testid={ownerId ? `lasting-spells-${ownerId}` : undefined}>
           <div className={styles.row}>
             {(lingeringSpells ?? []).map(card => (
               <CardComponent

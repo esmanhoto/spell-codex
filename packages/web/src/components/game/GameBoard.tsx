@@ -92,17 +92,15 @@ export function GameBoard({ events, wsError }: {
       <div className={styles.content}>
         {wsError && <p className={styles.error} data-testid="ws-error">{wsError}</p>}
 
-        {/* Move panel for player B (when they have moves) */}
-        <MovePanel playerId={playerB} />
-
         {/* Opponent hand (top) */}
         {boardB && (
           <div data-testid="hand-top">
             <PlayerHand
               cards={boardB.hand}
+              hiddenCount={boardB.handCount}
               drawPileCount={boardB.drawPileCount}
               discardCount={boardB.discardCount}
-              isOpponent={false}
+              isOpponent
             />
           </div>
         )}

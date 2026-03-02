@@ -1,8 +1,8 @@
 const BASE = "/api"
 const WS_BASE = (() => {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:"
-  // In dev, Vite proxies /api → localhost:3001; WS is on the same host
-  return `${proto}//${window.location.host}/api`
+  // In dev, Vite proxies /ws → localhost:3001/ws.
+  return `${proto}//${window.location.host}`
 })()
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -35,6 +35,8 @@ export interface PoolEntry {
 
 export interface PlayerBoard {
   hand:          CardInfo[]
+  handCount:     number
+  handHidden:    boolean
   formation:     Record<string, SlotState | null>
   pool:          PoolEntry[]
   drawPileCount: number
@@ -58,6 +60,8 @@ export interface CombatInfo {
 
 export interface GameState {
   gameId:               string
+  viewerPlayerId:       string | null
+  playerOrder:          string[]
   status:               string
   phase:                string
   activePlayer:         string
@@ -77,6 +81,11 @@ export interface GameState {
 export interface GameEvent {
   type: string
   [key: string]: unknown
+}
+
+export interface AuthIdentity {
+  userId: string
+  accessToken: string | null
 }
 
 // Moves — mirror the engine's Move union (field names must match exactly)
@@ -124,6 +133,11 @@ export type Move =
 
 // ─── API calls ────────────────────────────────────────────────────────────────
 
+function authHeaders(identity: AuthIdentity): Record<string, string> {
+  if (identity.accessToken) return { Authorization: `Bearer ${identity.accessToken}` }
+  return { "X-User-Id": identity.userId }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BASE + path, init)
   if (!res.ok) {
@@ -142,7 +156,7 @@ export async function getDeck(name: string): Promise<{ name: string; cards: obje
 }
 
 export async function createGame(opts: {
-  playerAId: string
+  identity:  AuthIdentity
   playerBId: string
   seed:      number
   deckA:     object[]
@@ -150,28 +164,73 @@ export async function createGame(opts: {
 }): Promise<{ gameId: string }> {
   return request("/games", {
     method:  "POST",
-    headers: { "Content-Type": "application/json", "X-User-Id": opts.playerAId },
+    headers: { "Content-Type": "application/json", ...authHeaders(opts.identity) },
     body: JSON.stringify({
       formatId: "standard-55",
       seed:     opts.seed,
       players: [
-        { userId: opts.playerAId, deckSnapshot: opts.deckA },
+        { userId: opts.identity.userId, deckSnapshot: opts.deckA },
         { userId: opts.playerBId, deckSnapshot: opts.deckB },
       ],
     }),
   })
 }
 
-export async function getGameState(gameId: string, asUserId: string): Promise<GameState> {
-  return request(`/games/${gameId}`, {
-    headers: { "X-User-Id": asUserId },
+export async function createLobbyGame(opts: {
+  identity: AuthIdentity
+  seed: number
+  deck: object[]
+}): Promise<{ gameId: string; status: "waiting" | "active" }> {
+  return request("/games/lobby", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders(opts.identity) },
+    body: JSON.stringify({
+      formatId: "standard-55",
+      seed: opts.seed,
+      deckSnapshot: opts.deck,
+    }),
   })
 }
 
-export async function submitMove(gameId: string, asUserId: string, move: Move): Promise<unknown> {
+export async function getLobbyStatus(gameId: string, identity: AuthIdentity): Promise<{
+  gameId: string
+  status: "waiting" | "active" | "finished" | "abandoned"
+  playerCount: number
+  isFull: boolean
+}> {
+  return request(`/games/${gameId}/lobby`, {
+    headers: authHeaders(identity),
+  })
+}
+
+export async function joinLobbyGame(opts: {
+  identity: AuthIdentity
+  gameId: string
+  deck: object[]
+}): Promise<{
+  gameId: string
+  status: "waiting" | "active" | "finished" | "abandoned"
+  playerCount: number
+  joined: boolean
+  alreadyParticipant: boolean
+}> {
+  return request(`/games/${opts.gameId}/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders(opts.identity) },
+    body: JSON.stringify({ deckSnapshot: opts.deck }),
+  })
+}
+
+export async function getGameState(gameId: string, identity: AuthIdentity): Promise<GameState> {
+  return request(`/games/${gameId}`, {
+    headers: authHeaders(identity),
+  })
+}
+
+export async function submitMove(gameId: string, identity: AuthIdentity, move: Move): Promise<unknown> {
   return request(`/games/${gameId}/moves`, {
     method:  "POST",
-    headers: { "Content-Type": "application/json", "X-User-Id": asUserId },
+    headers: { "Content-Type": "application/json", ...authHeaders(identity) },
     body:    JSON.stringify(move),
   })
 }
@@ -196,7 +255,7 @@ export interface WsClient {
  */
 export function createWsClient(
   gameId:    string,
-  playerId:  string,
+  identity: AuthIdentity,
   onMessage: (msg: WsClientMessage) => void,
 ): WsClient {
   let ws: WebSocket | null = null
@@ -208,7 +267,11 @@ export function createWsClient(
     ws = new WebSocket(`${WS_BASE}/ws`)
 
     ws.onopen = () => {
-      ws!.send(JSON.stringify({ type: "JOIN_GAME", gameId, playerId }))
+      ws!.send(JSON.stringify(
+        identity.accessToken
+          ? { type: "JOIN_GAME", gameId, token: identity.accessToken }
+          : { type: "JOIN_GAME", gameId, playerId: identity.userId },
+      ))
     }
 
     ws.onmessage = (event) => {
@@ -236,7 +299,7 @@ export function createWsClient(
   return {
     sendMove(move: Move): boolean {
       if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "SUBMIT_MOVE", gameId, playerId, move }))
+        ws.send(JSON.stringify({ type: "SUBMIT_MOVE", gameId, move }))
         return true
       }
       return false

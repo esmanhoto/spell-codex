@@ -5,6 +5,7 @@ import { getGameState, submitMove, createWsClient } from "../api.ts"
 import type { GameState, Move, GameEvent, WsClientMessage, CardInfo } from "../api.ts"
 import { GameContext } from "../context/GameContext.tsx"
 import type { ContextMenuState } from "../context/GameContext.tsx"
+import { useAuth } from "../auth.tsx"
 import { GameBoard } from "../components/game/GameBoard.tsx"
 import { CasterSelectModal } from "../components/game/CasterSelectModal.tsx"
 import { Phase3SpellOutcomeModal } from "../components/game/Phase3SpellOutcomeModal.tsx"
@@ -69,6 +70,7 @@ function buildLingeringSpellsByPlayer(
 
 export function Game() {
   const { id: gameId } = useParams<{ id: string }>()
+  const { identity } = useAuth()
   const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [eventLog, setEventLog] = useState<GameEvent[]>([])
@@ -106,8 +108,7 @@ export function Game() {
   const showWarning = useCallback((message: string) => setWarningMessage(message), [])
   const clearWarning = useCallback(() => setWarningMessage(null), [])
 
-  const playerA = sessionStorage.getItem(`game:${gameId}:playerA`) ?? ""
-  const playerB = sessionStorage.getItem(`game:${gameId}:playerB`) ?? ""
+  const myPlayerId = identity?.userId ?? ""
 
   useEffect(() => {
     processedEventsRef.current = 0
@@ -117,10 +118,12 @@ export function Game() {
   }, [gameId])
 
   const { data, error, isLoading, refetch } = useQuery<GameState>({
-    queryKey: ["game", gameId],
-    queryFn:  () => getGameState(gameId!, playerA),
-    enabled:  !!gameId,
+    queryKey: ["game", gameId, myPlayerId],
+    queryFn:  () => getGameState(gameId!, identity!),
+    enabled:  !!gameId && !!identity,
     staleTime: Infinity,
+    // Keep eventual consistency even if WS reconnect/proxy has issues.
+    refetchInterval: query => query.state.data?.winner ? false : 2000,
   })
 
   const processIncomingEvents = useCallback((events: GameEvent[]) => {
@@ -133,7 +136,7 @@ export function Game() {
     for (const event of newEvents) {
       if (!isPhase3SpellCastEvent(event)) continue
       announcements.push({
-        playerLabel: event.playerId === playerA ? "Player A" : "Player B",
+        playerLabel: event.playerId === myPlayerId ? "You" : "Opponent",
         cardName: event.cardName,
         setId: event.setId,
         cardNumber: event.cardNumber,
@@ -143,36 +146,36 @@ export function Game() {
     if (announcements.length > 0) {
       setAnnouncementQueue(prev => [...prev, ...announcements])
     }
-  }, [playerA])
+  }, [myPlayerId])
 
   const handleWsMessage = useCallback((msg: WsClientMessage) => {
     if (msg.type === "STATE_UPDATE") {
       const state = msg.state as GameState
-      qc.setQueryData(["game", gameId], state)
+      qc.setQueryData(["game", gameId, myPlayerId], state)
       if (state.events?.length) processIncomingEvents(state.events)
     } else if (msg.type === "ERROR") {
       setWsError(`${msg.code}: ${msg.message}`)
       if (msg.message) setWarningMessage(msg.message)
       setTimeout(() => setWsError(null), 5000)
     }
-  }, [gameId, processIncomingEvents, qc])
+  }, [gameId, myPlayerId, processIncomingEvents, qc])
 
   useEffect(() => {
-    if (!gameId || !playerA) return
-    const client = createWsClient(gameId, playerA, handleWsMessage)
+    if (!gameId || !identity) return
+    const client = createWsClient(gameId, identity, handleWsMessage)
     wsRef.current = client
     return () => {
       client.close()
       wsRef.current = null
     }
-  }, [gameId, playerA, handleWsMessage])
+  }, [gameId, identity, handleWsMessage])
 
   const sendMove = useCallback((m: Move) => {
+    if (!identity) return
     setSelectedId(null)
     setLastMoveType(m.type)
     if (wsRef.current?.sendMove(m)) return
-    const asUser = data?.activePlayer === playerA ? playerA : playerB
-    submitMove(gameId!, asUser, m)
+    submitMove(gameId!, identity, m)
       .then(() => refetch())
       .catch((err: unknown) => {
         const raw = err instanceof Error ? err.message : String(err)
@@ -185,7 +188,7 @@ export function Game() {
         }
         console.error(err)
       })
-  }, [data, gameId, playerA, playerB, refetch])
+  }, [gameId, identity, refetch])
 
   useEffect(() => {
     if (data?.events?.length) processIncomingEvents(data.events)
@@ -307,30 +310,38 @@ export function Game() {
     })
   }, [data, dispatchSpellMove, showWarning])
 
-  // Auto-phase advancement
   usePhaseTracker(
     data?.phase ?? "",
     data?.legalMoves ?? [],
     sendMove,
     data?.activePlayer ?? "",
-    playerA,
+    myPlayerId,
     lastMoveType,
   )
 
+  const playerIds = useMemo(
+    () => Object.keys(data?.board.players ?? {}),
+    [data?.board.players],
+  )
+  const opponentPlayerId = playerIds.find(id => id !== myPlayerId) ?? ""
+
   const lingeringSpellsByPlayer = useMemo(
-    () => buildLingeringSpellsByPlayer([playerA, playerB], data?.events),
-    [data?.events, playerA, playerB],
+    () => buildLingeringSpellsByPlayer(playerIds, data?.events),
+    [data?.events, playerIds],
   )
 
   if (isLoading) return <div className="page"><p>Loading...</p></div>
   if (error)     return <div className="page"><p className="error">{String(error)}</p></div>
   if (!data)     return null
+  if (!myPlayerId || !opponentPlayerId) {
+    return <div className="page"><p className="error">Could not resolve players for this game.</p></div>
+  }
 
   return (
     <GameContext.Provider value={{
-      playerA,
-      playerB,
-      myPlayerId:     playerA,
+      playerA:         myPlayerId,
+      playerB:         opponentPlayerId,
+      myPlayerId,
       activePlayer:   data.activePlayer,
       phase:          data.phase,
       turnNumber:     data.turnNumber,

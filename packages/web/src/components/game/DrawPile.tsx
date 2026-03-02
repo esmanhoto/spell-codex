@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
 import styles from "./DrawPile.module.css"
 
-export function DrawPile({ count }: { count: number }) {
+export function DrawPile({ count, disabled = false }: { count: number; disabled?: boolean }) {
   const { legalMoves, onMove } = useGame()
   const [showInput, setShowInput] = useState(false)
   const [drawCount, setDrawCount] = useState("3")
@@ -10,12 +10,14 @@ export function DrawPile({ count }: { count: number }) {
   const drawMove = legalMoves.find(m => m.type === "MANUAL_DRAW_CARDS")
 
   function handleClick() {
+    if (disabled) return
     // Default left-click: draw via the standard draw mechanism (PASS in draw phase)
     const passMove = legalMoves.find(m => m.type === "PASS")
     if (passMove) onMove(passMove)
   }
 
   function handleContextMenu(e: React.MouseEvent) {
+    if (disabled) return
     e.preventDefault()
     if (drawMove) setShowInput(v => !v)
   }
