@@ -6,12 +6,13 @@ import {
 } from "@spell/db"
 import { applyMove } from "@spell/engine"
 import { serializeGameState } from "./serialize.ts"
+import { authBypassEnabled, verifySupabaseAccessToken } from "./auth-verify.ts"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ClientMessage =
-  | { type: "JOIN_GAME";   gameId: string; playerId: string }
-  | { type: "SUBMIT_MOVE"; gameId: string; playerId: string; move: { type: string; [key: string]: unknown } }
+  | { type: "JOIN_GAME";   gameId: string; token?: string; playerId?: string }
+  | { type: "SUBMIT_MOVE"; gameId: string; move: { type: string; [key: string]: unknown } }
   | { type: "PING" }
 
 export type ServerMessage =
@@ -27,7 +28,7 @@ const registry = new Map<string, Map<string, ServerWebSocket<WsData>>>()
 
 interface WsData {
   gameId:   string | null
-  playerId: string | null
+  userId: string | null
 }
 
 // ─── Broadcast helpers ────────────────────────────────────────────────────────
@@ -59,8 +60,8 @@ export async function processWsMove(
 ): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
   const game = await getGame(gameId)
   if (!game) return { ok: false, code: "NOT_FOUND", message: "Game not found" }
-  if (game.status !== "active" && game.status !== "waiting") {
-    return { ok: false, code: "GAME_ENDED", message: "Game is not in progress" }
+  if (game.status !== "active") {
+    return { ok: false, code: "GAME_ENDED", message: "Game is not active" }
   }
 
   const players = await getGamePlayers(gameId)
@@ -127,7 +128,7 @@ export async function processWsMove(
 
 export const wsHandlers = {
   open(ws: ServerWebSocket<WsData>) {
-    ws.data = { gameId: null, playerId: null }
+    ws.data = { gameId: null, userId: null }
   },
 
   async message(ws: ServerWebSocket<WsData>, raw: string | Buffer) {
@@ -146,17 +147,22 @@ export const wsHandlers = {
           return
 
         case "JOIN_GAME": {
-          const { gameId, playerId } = msg
+          const { gameId } = msg
+          let userId: string | null = null
 
-          // Leave previous game if any
-          if (ws.data.gameId) {
-            registry.get(ws.data.gameId)?.delete(ws.data.playerId ?? "")
+          if (typeof msg.token === "string" && msg.token.length > 0) {
+            try {
+              userId = await verifySupabaseAccessToken(msg.token)
+            } catch {
+              send(ws, { type: "ERROR", code: "UNAUTHORIZED", message: "Invalid bearer token" })
+              return
+            }
+          } else if (authBypassEnabled() && typeof msg.playerId === "string" && msg.playerId.length > 0) {
+            userId = msg.playerId
+          } else {
+            send(ws, { type: "ERROR", code: "UNAUTHORIZED", message: "Missing authentication" })
+            return
           }
-
-          ws.data = { gameId, playerId }
-
-          if (!registry.has(gameId)) registry.set(gameId, new Map())
-          registry.get(gameId)!.set(playerId, ws)
 
           // Verify participant
           const game = await getGame(gameId)
@@ -165,20 +171,48 @@ export const wsHandlers = {
             return
           }
           const players = await getGamePlayers(gameId)
-          if (!players.some(p => p.userId === playerId)) {
+          if (!players.some(p => p.userId === userId)) {
             send(ws, { type: "ERROR", code: "FORBIDDEN", message: "Not a participant" })
             return
           }
+          if (game.status === "waiting" && players.length < 2) {
+            send(ws, {
+              type: "ERROR",
+              code: "WAITING_FOR_OPPONENT",
+              message: "Game is waiting for an opponent to join",
+            })
+            return
+          }
+
+          // Leave previous game if any (only remove if this exact socket is registered)
+          if (ws.data.gameId && ws.data.userId) {
+            const prevMap = registry.get(ws.data.gameId)
+            if (prevMap?.get(ws.data.userId) === ws) {
+              prevMap.delete(ws.data.userId)
+            }
+          }
+
+          ws.data = { gameId, userId }
+          if (!registry.has(gameId)) registry.set(gameId, new Map())
+          registry.get(gameId)!.set(userId, ws)
 
           // Send current state (serialized to the API shape the client expects)
           const { state } = await reconstructState(gameId, game.seed)
-          send(ws, { type: "STATE_UPDATE", gameId, state: serializeGameState(state, undefined, playerId) })
+          send(ws, { type: "STATE_UPDATE", gameId, state: serializeGameState(state, undefined, userId) })
           return
         }
 
         case "SUBMIT_MOVE": {
-          const { gameId, playerId, move } = msg
-          const result = await processWsMove(gameId, playerId, move)
+          const { gameId, move } = msg
+          if (!ws.data.userId || !ws.data.gameId) {
+            send(ws, { type: "ERROR", code: "NOT_JOINED", message: "Join a game first" })
+            return
+          }
+          if (ws.data.gameId !== gameId) {
+            send(ws, { type: "ERROR", code: "GAME_MISMATCH", message: "Socket joined to a different game" })
+            return
+          }
+          const result = await processWsMove(gameId, ws.data.userId, move)
           if (!result.ok) {
             send(ws, { type: "ERROR", code: result.code, message: result.message })
           }
@@ -203,8 +237,11 @@ export const wsHandlers = {
   },
 
   close(ws: ServerWebSocket<WsData>) {
-    if (ws.data.gameId && ws.data.playerId) {
-      registry.get(ws.data.gameId)?.delete(ws.data.playerId)
+    if (ws.data.gameId && ws.data.userId) {
+      const players = registry.get(ws.data.gameId)
+      if (players?.get(ws.data.userId) === ws) {
+        players.delete(ws.data.userId)
+      }
     }
   },
 }

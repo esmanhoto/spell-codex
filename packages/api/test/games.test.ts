@@ -8,6 +8,8 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { app } from "../src/index.ts"
 
+process.env["AUTH_BYPASS"] = "true"
+
 // ─── Minimal deck (55 realm cards) ───────────────────────────────────────────
 
 const REALM = {
@@ -36,6 +38,21 @@ async function createGame() {
         { userId: PLAYER_A, deckSnapshot: DECK },
         { userId: PLAYER_B, deckSnapshot: DECK },
       ],
+    }),
+  })
+  expect(res.status).toBe(201)
+  const body = await res.json() as { gameId: string }
+  return body.gameId
+}
+
+async function createLobbyGame() {
+  const res = await app.request("/games/lobby", {
+    method: "POST",
+    headers: headers(PLAYER_A),
+    body: JSON.stringify({
+      formatId: "standard-55",
+      seed: 42,
+      deckSnapshot: DECK,
     }),
   })
   expect(res.status).toBe(201)
@@ -111,6 +128,62 @@ describe("GET /games/:id", () => {
       headers: headers(PLAYER_A),
     })
     expect(res.status).toBe(404)
+  })
+
+  it("returns 409 while waiting for opponent", async () => {
+    const gameId = await createLobbyGame()
+    const res = await app.request(`/games/${gameId}`, {
+      headers: headers(PLAYER_A),
+    })
+    expect(res.status).toBe(409)
+  })
+})
+
+describe("lobby flow", () => {
+  it("creates waiting lobby, joins by game id, then becomes active", async () => {
+    const gameId = await createLobbyGame()
+
+    const lobbyRes = await app.request(`/games/${gameId}/lobby`, {
+      headers: headers(PLAYER_A),
+    })
+    expect(lobbyRes.status).toBe(200)
+    const lobby = await lobbyRes.json() as { status: string; playerCount: number; isFull: boolean }
+    expect(lobby.status).toBe("waiting")
+    expect(lobby.playerCount).toBe(1)
+    expect(lobby.isFull).toBe(false)
+
+    const joinRes = await app.request(`/games/${gameId}/join`, {
+      method: "POST",
+      headers: headers(PLAYER_B),
+      body: JSON.stringify({ deckSnapshot: DECK }),
+    })
+    expect(joinRes.status).toBe(200)
+    const join = await joinRes.json() as { status: string; playerCount: number; joined: boolean }
+    expect(join.joined).toBe(true)
+    expect(join.status).toBe("active")
+    expect(join.playerCount).toBe(2)
+
+    const stateRes = await app.request(`/games/${gameId}`, {
+      headers: headers(PLAYER_A),
+    })
+    expect(stateRes.status).toBe(200)
+  })
+
+  it("rejects third player when game is full", async () => {
+    const gameId = await createLobbyGame()
+    const joinB = await app.request(`/games/${gameId}/join`, {
+      method: "POST",
+      headers: headers(PLAYER_B),
+      body: JSON.stringify({ deckSnapshot: DECK }),
+    })
+    expect(joinB.status).toBe(200)
+
+    const joinC = await app.request(`/games/${gameId}/join`, {
+      method: "POST",
+      headers: headers("00000000-0000-0000-0000-000000000003"),
+      body: JSON.stringify({ deckSnapshot: DECK }),
+    })
+    expect(joinC.status).toBe(409)
   })
 })
 

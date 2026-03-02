@@ -34,6 +34,9 @@ export async function reconstructState(
 
   // Sort players by seat position so init gets them in the right order.
   const sorted = [...players].sort((a, b) => a.seatPosition - b.seatPosition)
+  if (sorted.length < 2) {
+    throw new Error("Cannot reconstruct waiting game before second player joins")
+  }
   const [p1, p2] = sorted as [typeof sorted[0], typeof sorted[0]]
 
   const state = initGame({
