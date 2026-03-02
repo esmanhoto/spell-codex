@@ -7,13 +7,9 @@ export const PLAYER_B = "00000000-0000-0000-0000-000000000002"
 const API_BASE = "http://127.0.0.1:3001"
 const SPELL_TYPE_IDS = new Set([4, 19]) // Cleric/Wizard spells
 
-export async function startGame(page: Page) {
-  await page.goto("/")
-  await expect(page.getByTestId("new-game-page")).toBeVisible()
-  await expect(page.getByTestId("deck-a-select")).toBeEnabled()
-  await expect(page.getByTestId("deck-b-select")).toBeEnabled()
-  await page.getByTestId("start-game-btn").click()
-  await page.waitForURL(/\/game\//)
+export async function startGame(page: Page, request: APIRequestContext) {
+  const gameId = await apiCreateGameForUi(request)
+  await page.goto(`/game/${gameId}`)
   await expect(page.getByTestId("game-board")).toBeVisible()
 }
 
@@ -153,11 +149,11 @@ export async function apiDriveToPlayerAPhase3SpellMove(
   gameId: string,
 ): Promise<{ cardInstanceId: string }> {
   for (let i = 0; i < 400; i++) {
-    const stateRes = await request.get(`${API_BASE}/games/${gameId}`, {
+    const viewerRes = await request.get(`${API_BASE}/games/${gameId}`, {
       headers: { "X-User-Id": PLAYER_A },
     })
-    expect(stateRes.ok()).toBe(true)
-    const state = await stateRes.json() as {
+    expect(viewerRes.ok()).toBe(true)
+    const viewerState = await viewerRes.json() as {
       activePlayer: string
       board: {
         players: Record<string, {
@@ -166,6 +162,15 @@ export async function apiDriveToPlayerAPhase3SpellMove(
       }
       legalMoves: Array<{ type: string; [key: string]: unknown }>
     }
+    const actingUser = viewerState.activePlayer === PLAYER_B ? PLAYER_B : PLAYER_A
+    const state = actingUser === PLAYER_A
+      ? viewerState
+      : await request.get(`${API_BASE}/games/${gameId}`, {
+        headers: { "X-User-Id": actingUser },
+      }).then(async res => {
+        expect(res.ok()).toBe(true)
+        return res.json() as Promise<typeof viewerState>
+      })
 
     if (state.activePlayer === PLAYER_A) {
       const legalPhase3 = state.legalMoves
@@ -210,14 +215,23 @@ export async function apiDriveToPlayerAPhase3SpellMove(
 
 export async function driveGameToCombat(request: APIRequestContext, gameId: string): Promise<void> {
   for (let i = 0; i < 400; i++) {
-    const stateRes = await request.get(`${API_BASE}/games/${gameId}`, {
+    const viewerRes = await request.get(`${API_BASE}/games/${gameId}`, {
       headers: { "X-User-Id": PLAYER_A },
     })
-    expect(stateRes.ok()).toBe(true)
-    const state = await stateRes.json() as {
+    expect(viewerRes.ok()).toBe(true)
+    const viewerState = await viewerRes.json() as {
       activePlayer: string
       legalMoves: Array<{ type: string; [key: string]: unknown }>
     }
+    const actingUser = viewerState.activePlayer === PLAYER_B ? PLAYER_B : PLAYER_A
+    const state = actingUser === PLAYER_A
+      ? viewerState
+      : await request.get(`${API_BASE}/games/${gameId}`, {
+        headers: { "X-User-Id": actingUser },
+      }).then(async res => {
+        expect(res.ok()).toBe(true)
+        return res.json() as Promise<typeof viewerState>
+      })
 
     const moves = state.legalMoves
     const attack = moves.find(m => m.type === "DECLARE_ATTACK")

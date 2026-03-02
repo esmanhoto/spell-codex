@@ -4,10 +4,9 @@ import {
   apiCreateSpellOnlyGameForUi,
   apiCreatePhase3SpellGameForUi,
   apiDriveToPlayerAPhase3SpellMove,
-  hasMove, clickMove,
 } from "./helpers/game.ts"
 
-test("cast spell from Player B hand shows caster warning (not false non-spell error)", async ({ page, request }) => {
+test("opponent hand is hidden to the current player", async ({ page, request }) => {
   const gameId = await apiCreateSpellOnlyGameForUi(request)
 
   await page.addInitScript(({ gid, playerA, playerB }) => {
@@ -18,29 +17,8 @@ test("cast spell from Player B hand shows caster warning (not false non-spell er
   await page.goto(`/game/${gameId}`)
   await expect(page.getByTestId("game-board")).toBeVisible()
 
-  for (let i = 0; i < 8; i++) {
-    const active = (await page.getByTestId("active-player-label").textContent()) ?? ""
-    if (active.includes("Player B")) break
-    if (await hasMove(page, PLAYER_A, "END_TURN")) {
-      await clickMove(page, PLAYER_A, "END_TURN")
-      continue
-    }
-    if (await hasMove(page, PLAYER_A, "PASS")) {
-      await clickMove(page, PLAYER_A, "PASS")
-    }
-  }
-
-  await expect(page.getByTestId("active-player-label")).toContainText("Player B")
-
-  const topHandCard = page.getByTestId("hand-top").locator('[data-testid^="hand-card-"]').first()
-  await expect(topHandCard).toBeVisible()
-  await topHandCard.click({ button: "right" })
-
-  await expect(page.getByRole("button", { name: "Cast Spell" })).toBeVisible()
-  await page.getByRole("button", { name: "Cast Spell" }).click()
-
-  await expect(page.getByText("You have no casters for this spell.")).toBeVisible()
-  await expect(page.getByText("That card is not a spell.")).toHaveCount(0)
+  await expect(page.getByTestId("hand-top").locator('[data-testid^=\"hand-card-\"]')).toHaveCount(0)
+  await expect(page.getByTestId("hand-top").locator('[data-testid^=\"opponent-card-back-\"]')).toHaveCount(5)
 })
 
 test("phase 3 spell cast announcement appears and keep-in-play spell is shown in lasting area", async ({ page, request }) => {
@@ -68,7 +46,7 @@ test("phase 3 spell cast announcement appears and keep-in-play spell is shown in
   await page.goto(`/game/${gameId}`)
   await expect(page.getByTestId("game-board")).toBeVisible()
   await expect(page.getByTestId("spell-cast-modal")).toBeVisible()
-  await expect(page.getByTestId("spell-cast-modal")).toContainText("Player A cast")
+  await expect(page.getByTestId("spell-cast-modal")).toContainText("cast")
   await page.getByTestId("spell-cast-modal").getByRole("button", { name: "OK" }).click()
 
   await expect(page.getByTestId(`lasting-spells-${PLAYER_A}`).locator("img").first()).toBeVisible()

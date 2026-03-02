@@ -24,6 +24,7 @@ export default defineConfig({
       reuseExistingServer: true,
       timeout: 120_000,
       env: {
+        AUTH_BYPASS: "true",
         DATABASE_URL: env("DATABASE_URL") ?? "postgres://spell:spell@localhost:5433/spell",
       },
     },
@@ -32,6 +33,9 @@ export default defineConfig({
       url: "http://127.0.0.1:4173",
       reuseExistingServer: true,
       timeout: 120_000,
+      env: {
+        VITE_AUTH_BYPASS: "true",
+      },
     },
   ],
   projects: [
