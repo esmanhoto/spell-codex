@@ -119,11 +119,6 @@
   display: block;
 }
 
-/* Upside-down cards (player B / top) */
-.flipped {
-  transform: rotate(180deg);
-}
-
 /* ─── Info panel (level + label) ─── */
 .infoPanel {
   display: flex;

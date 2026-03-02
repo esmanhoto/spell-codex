@@ -104,17 +104,17 @@ export function CombatZone() {
   // Card dimensions (must match CSS vars)
   const CARD_H = 168
 
-  function renderCardStack(champion: CardInfo | null, supportCards: CardInfo[], flipped: boolean) {
+  function renderCardStack(champion: CardInfo | null, supportCards: CardInfo[]) {
     const totalSupportHeight = supportCards.length * PEEK
 
     return (
       <div
         className={styles.cardStack}
-        style={{ paddingBottom: flipped ? 0 : totalSupportHeight, paddingTop: flipped ? totalSupportHeight : 0 }}
+        style={{ paddingBottom: totalSupportHeight, paddingTop: 0 }}
       >
         {/* Champion — always on top (highest z-index) */}
         {champion && (
-          <div className={`${styles.championCard} ${flipped ? styles.flipped : ""}`}>
+          <div className={styles.championCard}>
             <CombatTooltip card={champion}>
               <div
                 data-combat-champion={champion.instanceId}
@@ -169,11 +169,8 @@ export function CombatZone() {
           return (
             <div
               key={c.instanceId}
-              className={`${styles.supportCard} ${flipped ? styles.flipped : ""}`}
-              style={flipped
-                ? { bottom: topPos, zIndex }
-                : { top: topPos, zIndex }
-              }
+              className={styles.supportCard}
+              style={{ top: topPos, zIndex }}
               onContextMenu={e => handleCardContextMenu(e, c)}
               onDragOver={e => {
                 const source = e.dataTransfer.getData("drag-source")
@@ -211,9 +208,9 @@ export function CombatZone() {
         <span className={styles.phase}>{combat.roundPhase.replace(/_/g, " ")}</span>
       </div>
 
-      {/* Player B section (top — cards flipped/upside-down) */}
+      {/* Player B section (top) */}
       <div className={styles.sideSection}>
-        {renderCardStack(champB, cardsB, true)}
+        {renderCardStack(champB, cardsB)}
         <div className={styles.infoPanel}>
           {hasLevels && (
             <>
@@ -257,7 +254,7 @@ export function CombatZone() {
 
       {/* Player A section (bottom — cards normal orientation) */}
       <div className={styles.sideSection}>
-        {renderCardStack(champA, cardsA, false)}
+        {renderCardStack(champA, cardsA)}
         <div className={styles.infoPanel}>
           <span className={styles.roleLabel}>{roleA}</span>
           {hasLevels && (
