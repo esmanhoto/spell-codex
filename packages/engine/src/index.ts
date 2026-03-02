@@ -2,6 +2,7 @@
 
 export { applyMove, EngineError } from "./engine.ts"
 export { getLegalMoves, isUniqueInPlay, isAttackable, getLegalRealmSlots } from "./legal-moves.ts"
+export { getSpellDirection, getCastPhases, canChampionUseSpell } from "./spell-gating.ts"
 export { initGame } from "./init.ts"
 export { calculateCombatLevel, hasWorldMatch, resolveCombatRound, getLosingPlayer } from "./combat.ts"
 

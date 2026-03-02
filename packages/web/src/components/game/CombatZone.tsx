@@ -4,11 +4,15 @@ import { cardImageUrl } from "../../utils/card-helpers.ts"
 import { getTypeInfo } from "../../utils/type-labels.ts"
 import type { CardInfo } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import { isSpellCard } from "../../utils/spell-casting.ts"
 import { CombatTooltip } from "./CombatTooltip.tsx"
 import styles from "./CombatZone.module.css"
 
 export function CombatZone() {
-  const { combat, playerA, playerB, legalMoves, onMove, openContextMenu } = useGame()
+  const {
+    combat, playerA, playerB, legalMoves, onMove, openContextMenu,
+    allBoards, requestSpellCast,
+  } = useGame()
   const [inputA, setInputA] = useState("")
   const [inputB, setInputB] = useState("")
   const [editingA, setEditingA] = useState(false)
@@ -68,6 +72,33 @@ export function CombatZone() {
     }
   }
 
+  function findDraggedHandCard(instanceId: string): CardInfo | undefined {
+    for (const board of Object.values(allBoards)) {
+      const c = board.hand.find(card => card.instanceId === instanceId)
+      if (c) return c
+    }
+    return undefined
+  }
+
+  function handleCardDrop(e: React.DragEvent, targetCard: CardInfo) {
+    const source = e.dataTransfer.getData("drag-source")
+    if (source !== "hand") return
+
+    const id = e.dataTransfer.getData("drag-id")
+    const card = findDraggedHandCard(id)
+    if (!card || !isSpellCard(card)) return
+
+    e.preventDefault()
+    e.stopPropagation()
+    const targetIsSelf =
+      targetCard.instanceId === champA?.instanceId ||
+      cardsA.some(c => c.instanceId === targetCard.instanceId)
+    requestSpellCast(card.instanceId, {
+      cardInstanceId: targetCard.instanceId,
+      owner: targetIsSelf ? "self" : "opponent",
+    })
+  }
+
   // PEEK = how many px of each support card peek out below the champion
   const PEEK = 34
   // Card dimensions (must match CSS vars)
@@ -89,6 +120,11 @@ export function CombatZone() {
                 data-combat-champion={champion.instanceId}
                 onContextMenu={e => handleCardContextMenu(e, champion)}
                 className={styles.championInner}
+                onDragOver={e => {
+                  const source = e.dataTransfer.getData("drag-source")
+                  if (source === "hand") e.preventDefault()
+                }}
+                onDrop={e => handleCardDrop(e, champion)}
               >
                 <img
                   src={cardImageUrl(champion.setId, champion.cardNumber)}
@@ -139,6 +175,11 @@ export function CombatZone() {
                 : { top: topPos, zIndex }
               }
               onContextMenu={e => handleCardContextMenu(e, c)}
+              onDragOver={e => {
+                const source = e.dataTransfer.getData("drag-source")
+                if (source === "hand") e.preventDefault()
+              }}
+              onDrop={e => handleCardDrop(e, c)}
             >
               <CombatTooltip card={c}>
                 <div className={styles.supportInner}>

@@ -13,6 +13,9 @@ export function card(inst: CardInstance) {
     setId:       inst.card.setId,
     cardNumber:  inst.card.cardNumber,
     description: inst.card.description,
+    supportIds:  inst.card.supportIds,
+    spellNature: inst.card.spellNature ?? null,
+    castPhases:  inst.card.castPhases ?? [],
   }
 }
 

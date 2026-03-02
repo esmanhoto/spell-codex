@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
 import type { CardInfo, SlotState } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
+import { isSpellCard } from "../../utils/spell-casting.ts"
 import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./Formation.module.css"
 
@@ -15,7 +16,7 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
 }) {
   const {
     legalMoves, onMove, selectedId, onSelect, openContextMenu,
-    allBoards, phase, showWarning, myPlayerId, activePlayer, turnNumber,
+    allBoards, phase, showWarning, myPlayerId, activePlayer, turnNumber, requestSpellCast,
   } = useGame()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
 
@@ -132,6 +133,19 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
         (m as { cardInstanceId: string; realmSlot: string }).realmSlot === slot
       )
       if (holdingMove) { onMove(holdingMove); return }
+
+      if (card && isSpellCard(card)) {
+        const slotState = slots[slot]
+        if (!slotState) {
+          showWarning("Drop the spell on a card target, not an empty slot.")
+          return
+        }
+        requestSpellCast(card.instanceId, {
+          cardInstanceId: slotState.realm.instanceId,
+          owner: formationOwnerId === myPlayerId ? "self" : "opponent",
+        })
+        return
+      }
 
       if (card) {
         warnInvalidHandDrop(card, slot)

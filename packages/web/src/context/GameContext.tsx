@@ -1,9 +1,10 @@
 import React from "react"
-import type { Move, PlayerBoard, CombatInfo } from "../api.ts"
+import type { Move, PlayerBoard, CombatInfo, CardInfo } from "../api.ts"
 
 export interface ContextMenuAction {
   label: string
-  move:  Move
+  move?: Move
+  action?: () => void
 }
 
 export interface ContextMenuState {
@@ -22,6 +23,7 @@ export interface GameContextType {
   turnNumber:      number
   winner:          string | null
   allBoards:       Record<string, PlayerBoard>
+  lingeringSpellsByPlayer: Record<string, CardInfo[]>
   combat:          CombatInfo | null
 
   // Moves
@@ -42,6 +44,12 @@ export interface GameContextType {
   warningMessage: string | null
   showWarning: (message: string) => void
   clearWarning: () => void
+
+  // Spell casting UX
+  requestSpellCast: (spellInstanceId: string, target?: {
+    cardInstanceId: string
+    owner: "self" | "opponent"
+  }) => void
 }
 
 export const GameContext = React.createContext<GameContextType>({
@@ -53,6 +61,7 @@ export const GameContext = React.createContext<GameContextType>({
   turnNumber:      0,
   winner:          null,
   allBoards:       {},
+  lingeringSpellsByPlayer: {},
   combat:          null,
   legalMoves:      [],
   onMove:          () => {},
@@ -64,6 +73,7 @@ export const GameContext = React.createContext<GameContextType>({
   warningMessage:  null,
   showWarning:     () => {},
   clearWarning:    () => {},
+  requestSpellCast: () => {},
 })
 
 export function useGame() {

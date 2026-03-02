@@ -44,6 +44,7 @@ export function EventLog({ events }: { events: GameEvent[] }) {
       case "MANUAL_REALM_RAZED": return `  ${p} manually razed realm slot ${e.slot as string}`
       case "MANUAL_CARDS_DRAWN": return `  ${p} manually drew ${e.count as number} card(s)`
       case "COMBAT_LEVEL_SET":   return `  ${playerLabel(e.playerId as string)} set level to ${e.level as number}`
+      case "PHASE3_SPELL_CAST":  return `  ${p} cast ${(e.cardName as string)}${(e.keepInPlay as boolean) ? " (kept in play)" : ""}`
       case "GAME_OVER":          return `${playerLabel(e.winner as string)} WINS!`
       default:                   return `  ${e.type}`
     }

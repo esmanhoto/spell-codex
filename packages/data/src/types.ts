@@ -19,6 +19,8 @@ export type CardLevel = number | string | null
  *             e.g. "d19" = defensive Wizard Spell, "o4" = offensive Cleric Spell
  */
 export type SupportRef = number | string
+export type SpellNature = "offensive" | "defensive"
+export type CastPhase = 3 | 4 | 5
 
 /**
  * World IDs — from CrossFire Scripts/CommonV.tcl worldInfo.
@@ -60,6 +62,10 @@ export interface Card {
    * On a realm: which spell types can be used when attacking/defending here.
    */
   supportIds: SupportRef[]
+  /** Normalized spell direction parsed from card text (spell cards only). */
+  spellNature: SpellNature | null
+  /** Normalized cast phases parsed from card text (spell cards only). */
+  castPhases: CastPhase[]
   weight: number | null
   /** Reserved field from extraction; runtime currently ignores effects. */
   effects: unknown[]

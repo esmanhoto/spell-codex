@@ -79,3 +79,6 @@ packages/data/formats/*.out
 
 # Ignore extracted decks
 packages/data/decks/*.out
+
+# Local planning notes
+plans/

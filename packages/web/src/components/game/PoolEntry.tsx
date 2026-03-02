@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
 import type { PoolEntry as PoolEntryType } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import { isSpellCard } from "../../utils/spell-casting.ts"
 import { CardComponent } from "./CardComponent.tsx"
 import styles from "./PoolEntry.module.css"
 
@@ -13,7 +14,7 @@ export function PoolEntry({ entry, isOpponent }: {
 }) {
   const {
     legalMoves, onMove, selectedId, onSelect,
-    allBoards, phase, showWarning,
+    allBoards, phase, showWarning, requestSpellCast,
   } = useGame()
   const [attachDragOver, setAttachDragOver] = useState(false)
 
@@ -48,11 +49,35 @@ export function PoolEntry({ entry, isOpponent }: {
       showWarning("That card cannot be attached right now.")
       return
     }
+    if (isSpellCard(card)) {
+      requestSpellCast(card.instanceId, {
+        cardInstanceId: entry.champion.instanceId,
+        owner: isOpponent ? "opponent" : "self",
+      })
+      return
+    }
     if (phase !== "POOL" && phase !== "PLAY_REALM") {
       showWarning(`Cannot attach item now. Current phase: ${phase.replaceAll("_", " ")}.`)
       return
     }
     showWarning(`Cannot attach ${card.name} to ${entry.champion.name}.`)
+  }
+
+  function handleSpellDropOnCard(e: React.DragEvent, targetCardInstanceId: string) {
+    const source = e.dataTransfer.getData("drag-source")
+    if (source !== "hand") return
+
+    const cardId = e.dataTransfer.getData("drag-id")
+    const card = findDraggedHandCard(cardId)
+    if (!card || !isSpellCard(card)) return
+
+    e.preventDefault()
+    e.stopPropagation()
+    setAttachDragOver(false)
+    requestSpellCast(card.instanceId, {
+      cardInstanceId: targetCardInstanceId,
+      owner: isOpponent ? "opponent" : "self",
+    })
   }
 
   return (
@@ -92,6 +117,11 @@ export function PoolEntry({ entry, isOpponent }: {
               key={c.instanceId}
               className={styles.stackCard}
               style={{ top: `${i * STACK_OFFSET}px`, left: `${i * STACK_OFFSET}px`, zIndex: i }}
+              onDragOver={e => {
+                const source = e.dataTransfer.getData("drag-source")
+                if (source === "hand") e.preventDefault()
+              }}
+              onDrop={e => handleSpellDropOnCard(e, c.instanceId)}
             >
               <CardComponent
                 card={c}

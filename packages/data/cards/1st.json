@@ -16,14 +16,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -39,13 +35,10 @@
       "Underdark"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "attribute": "Flyer"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -65,14 +58,10 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 5,
-        "typeId": 5
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -91,19 +80,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "defense"
-      },
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -119,6 +99,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -136,6 +118,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -157,19 +141,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 2,
-        "typeId": 7
-      },
-      {
-        "type": "COMBAT_BONUS",
-        "value": 3,
-        "typeIds": [1]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -186,14 +161,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -209,6 +180,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -226,13 +199,10 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "attribute": "Flyer"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -251,14 +221,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -272,13 +238,10 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "attribute": "Flyer"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -295,18 +258,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      },
-      {
-        "type": "HAND_SIZE_BONUS",
-        "count": 1
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -322,6 +277,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -341,14 +298,10 @@
     "supportIds": [
       1
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 5,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -362,6 +315,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -379,6 +334,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -394,14 +351,10 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": -1,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -417,14 +370,10 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 1,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -440,6 +389,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -457,14 +408,10 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 4,
-        "typeIds": [10]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -480,6 +427,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -495,6 +444,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -512,6 +463,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -527,6 +480,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -542,13 +497,10 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "typeIds": 1
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -562,6 +514,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -579,13 +533,10 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "DRAW_ON_REALM_PLAY",
-        "count": 1
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -595,25 +546,17 @@
     "worldId": 1,
     "isAvatar": false,
     "name": "Evermeet",
-    "description": "Any champion can use wizard spells when defending Evermeet. Flyers cannot attack.",
+    "description": "Any champion can use wiizard spells when defending Evermeet. Flyers cannot attack.",
     "rarity": "M",
     "attributes": [],
     "supportIds": [
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      },
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "attribute": "Flyer"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -627,6 +570,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -642,14 +587,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 3,
-        "typeIds": [5, 20]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -663,6 +604,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -678,6 +621,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -693,14 +638,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 3,
-        "typeIds": [22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -717,14 +658,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -743,14 +680,10 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 4,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -764,14 +697,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 2,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -785,14 +714,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 3,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -806,13 +731,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "attribute": "Undead"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -826,6 +748,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -848,14 +772,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeIds": [4, 19],
-        "scope": "offensive"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -876,14 +796,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 1,
-        "typeIds": [1]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -904,6 +820,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -926,14 +844,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeIds": [4, 19],
-        "scope": "offensive"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -956,6 +870,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -978,6 +894,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1002,6 +920,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1024,14 +944,10 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 2,
-        "typeIds": [1]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1054,14 +970,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 2,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1082,6 +994,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1108,19 +1022,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      },
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1143,6 +1048,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1169,19 +1076,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      },
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1197,6 +1095,8 @@
       "Orc"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1221,6 +1121,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1243,14 +1145,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 1,
-        "typeIds": [1]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1273,14 +1171,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 4,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1294,6 +1188,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1309,6 +1205,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1331,6 +1229,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1346,6 +1246,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1368,6 +1270,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1390,6 +1294,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1412,6 +1318,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1429,6 +1337,8 @@
       "Flyer"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1444,6 +1354,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1464,6 +1376,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1486,6 +1400,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1508,6 +1424,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1530,6 +1448,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1554,6 +1474,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1582,14 +1504,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1612,14 +1530,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 3,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1640,14 +1554,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 3,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1668,6 +1578,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1692,14 +1604,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 3,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1720,6 +1628,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1742,6 +1652,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1766,14 +1678,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 4,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1792,19 +1700,10 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS",
-        "value": 4,
-        "targetAttribute": "Dragon"
-      },
-      {
-        "type": "LEVEL_BONUS_VS",
-        "value": 4,
-        "targetAttribute": "Undead"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1818,6 +1717,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1842,6 +1743,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1859,6 +1762,8 @@
       "Underdark"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1874,6 +1779,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1896,6 +1803,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1911,6 +1820,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1933,14 +1844,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeIds": [4, 19],
-        "scope": "offensive"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -1954,6 +1861,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1976,6 +1885,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -1993,6 +1904,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2010,6 +1923,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2027,6 +1942,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2042,6 +1959,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2059,6 +1978,8 @@
       "Weapon"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2076,15 +1997,10 @@
       "Weapon"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS",
-        "value": 2,
-        "condition": "champion_type",
-        "typeId": 5
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2098,6 +2014,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -2115,6 +2035,8 @@
       "Sword"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2130,6 +2052,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2147,6 +2071,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2164,14 +2090,10 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "DRAW_CARD",
-        "count": 5,
-        "target": "self"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2187,6 +2109,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2202,14 +2126,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 1,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2226,14 +2146,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2247,6 +2163,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2262,6 +2180,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2277,6 +2197,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -2294,6 +2218,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2311,6 +2237,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2326,6 +2254,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2341,6 +2271,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2363,19 +2295,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "defense"
-      },
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2394,14 +2317,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2417,15 +2336,10 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS",
-        "value": 3,
-        "condition": "champion_type",
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2445,14 +2359,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 1,
-        "typeId": 22
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2466,6 +2376,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2483,14 +2395,10 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 2,
-        "typeIds": [2, 9]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2506,6 +2414,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2523,6 +2433,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2538,15 +2450,10 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS",
-        "value": 5,
-        "condition": "champion_type",
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2560,6 +2467,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2578,14 +2487,10 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2601,6 +2506,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2616,17 +2523,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "attribute": "Undead"
-      },
-      {
-        "type": "HAND_SIZE_BONUS",
-        "count": 2
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2640,13 +2540,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "DRAW_ON_REALM_PLAY",
-        "count": 3
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2660,6 +2557,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2677,6 +2576,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2692,6 +2593,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2707,6 +2610,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2724,13 +2629,10 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "typeId": 7
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2744,6 +2646,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2761,6 +2665,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2776,6 +2682,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2793,6 +2701,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2811,14 +2721,10 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2834,6 +2740,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2851,15 +2759,10 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS",
-        "value": 4,
-        "condition": "champion_type",
-        "typeId": 7
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2875,6 +2778,8 @@
       "Coast"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2890,6 +2795,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2905,6 +2812,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -2920,14 +2829,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": -2,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2941,14 +2846,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 2,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2969,14 +2870,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 5,
-        "typeId": 7
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -2993,14 +2890,10 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3014,6 +2907,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3029,6 +2924,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3044,13 +2941,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeIds": [6]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3064,13 +2958,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3084,14 +2975,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 4,
-        "typeIds": [22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3105,14 +2992,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeIds": [4, 19],
-        "scope": "offensive"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3128,6 +3011,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3143,14 +3028,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 1,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3164,6 +3045,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3179,6 +3062,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3194,6 +3079,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3216,6 +3103,8 @@
       "o102",
       "d102"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3231,23 +3120,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS",
-        "value": 5,
-        "condition": {
-          "when": "attacking"
-        }
-      },
-      {
-        "type": "LEVEL_BONUS",
-        "value": 2,
-        "condition": {
-          "when": "defending"
-        }
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3261,6 +3137,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3276,6 +3154,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3291,13 +3171,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS",
-        "value": 3
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3311,6 +3188,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3333,14 +3212,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 3,
-        "typeId": 20
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3361,6 +3236,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3385,6 +3262,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3409,19 +3288,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      },
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3442,6 +3312,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3468,19 +3340,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      },
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3501,14 +3364,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3524,6 +3383,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3539,6 +3400,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3561,6 +3424,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3585,6 +3450,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3607,6 +3474,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3622,6 +3491,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3637,6 +3508,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3654,6 +3527,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3676,6 +3551,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3700,6 +3577,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3724,6 +3603,8 @@
       "o102",
       "d102"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3739,6 +3620,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3756,6 +3639,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3778,6 +3663,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3793,6 +3680,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3808,6 +3697,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3823,6 +3714,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3845,24 +3738,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 3,
-        "typeId": 10
-      },
-      {
-        "type": "LEVEL_BONUS_VS",
-        "value": 3,
-        "targetAttribute": "Undead"
-      },
-      {
-        "type": "LEVEL_BONUS_VS",
-        "value": 3,
-        "targetAttribute": "Flyer"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3878,6 +3757,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3900,6 +3781,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3926,14 +3809,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -3954,6 +3833,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3969,6 +3850,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -3989,6 +3872,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4004,6 +3889,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4019,6 +3906,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4046,6 +3935,8 @@
       "d102",
       "o102"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4061,6 +3952,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4083,6 +3976,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4098,6 +3993,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4113,13 +4010,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_ATTRIBUTE",
-        "attribute": ["Swimmer", "Earthwalker"]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4133,6 +4027,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4148,6 +4044,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4165,6 +4063,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4182,6 +4082,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4199,6 +4101,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4216,6 +4120,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4233,6 +4139,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4250,14 +4158,10 @@
       "Sword"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS",
-        "value": 5,
-        "targetAttribute": "Undead"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4271,14 +4175,12 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS",
-        "value": 3,
-        "targetAttribute": "Flyer"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4292,6 +4194,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4307,6 +4211,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4324,6 +4230,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4339,6 +4247,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -4354,6 +4266,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -4371,6 +4287,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4388,14 +4306,10 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "DRAW_CARD",
-        "value": 3,
-        "target": "all"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4409,6 +4323,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4424,6 +4340,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4439,6 +4357,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4454,6 +4374,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4469,6 +4391,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4484,6 +4408,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4499,6 +4425,8 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4514,14 +4442,10 @@
     "rarity": "M",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 1,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4539,18 +4463,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 4,
-        "typeId": 22
-      },
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeId": 1
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4568,18 +4484,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "DRAW_PER_TURN",
-        "count": 1
-      },
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 5,
-        "typeId": 7
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4597,6 +4505,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4612,6 +4522,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4631,6 +4543,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4646,13 +4560,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "HAND_SIZE_BONUS",
-        "count": 2
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4666,6 +4577,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4688,6 +4601,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4706,14 +4621,10 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "REALM_GRANTS_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "defense"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4727,13 +4638,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4747,6 +4655,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4762,14 +4672,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 1,
-        "typeIds": [1, 22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4783,15 +4689,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS",
-        "value": 4,
-        "condition": "champion_type",
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4805,13 +4706,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "DRAW_PER_TURN",
-        "count": 1
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4825,14 +4723,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 2,
-        "typeIds": [22]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4846,18 +4740,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "attribute": "Flyer"
-      },
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeIds": [4, 19],
-        "scope": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4871,6 +4757,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4886,6 +4774,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4901,6 +4791,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4916,6 +4808,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4931,13 +4825,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "COMBAT_BONUS",
-        "value": 5
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -4951,6 +4842,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4966,6 +4859,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4981,6 +4876,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -4996,6 +4893,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5011,6 +4910,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5026,6 +4927,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5044,6 +4947,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5059,6 +4964,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5076,6 +4983,8 @@
       "Halfling"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5091,6 +5000,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5108,6 +5019,8 @@
       "Orc"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5123,6 +5036,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5140,6 +5055,8 @@
       "Dwarf"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5155,6 +5072,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5179,6 +5098,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5203,6 +5124,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5225,6 +5148,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5249,6 +5174,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5273,6 +5200,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5297,6 +5226,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5319,6 +5250,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5341,6 +5274,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5363,6 +5298,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5387,6 +5324,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5409,6 +5348,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5426,6 +5367,8 @@
       "Elf"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5448,6 +5391,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5463,6 +5408,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5478,6 +5425,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5493,6 +5442,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5510,6 +5461,8 @@
       "Half-Elf"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5527,6 +5480,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5544,6 +5499,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5561,6 +5518,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5578,6 +5537,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5595,6 +5556,8 @@
       "Elf"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5612,6 +5575,8 @@
       "Elf"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5627,6 +5592,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5647,6 +5614,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5662,6 +5631,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5684,6 +5655,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5699,6 +5672,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5714,6 +5689,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5729,6 +5706,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5746,6 +5725,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5761,6 +5742,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5776,6 +5759,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5791,6 +5776,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5806,6 +5793,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5821,6 +5810,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5836,6 +5827,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5851,6 +5844,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5866,6 +5861,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5883,6 +5880,8 @@
       "Elf"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5903,6 +5902,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5925,6 +5926,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5949,6 +5952,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5971,6 +5976,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -5986,6 +5993,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6008,6 +6017,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6032,14 +6043,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -6066,19 +6073,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      },
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -6099,6 +6097,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6114,6 +6114,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6129,6 +6131,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6144,6 +6148,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6159,6 +6165,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6174,6 +6182,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6191,6 +6201,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6206,6 +6218,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6221,6 +6235,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6236,6 +6252,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6251,6 +6269,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6266,6 +6286,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6281,6 +6303,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6298,6 +6322,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6318,14 +6344,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -6346,14 +6368,10 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "scope": "offensive",
-        "typeIds": [19]
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -6367,6 +6385,8 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6393,19 +6413,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      },
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -6419,6 +6430,8 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6441,6 +6454,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6463,6 +6478,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6485,6 +6502,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6500,6 +6519,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6515,6 +6536,8 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6535,6 +6558,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -6550,6 +6575,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6565,6 +6594,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6580,6 +6613,11 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3,
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6595,6 +6633,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6610,6 +6652,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6625,6 +6671,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6640,6 +6690,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6655,6 +6709,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6670,6 +6728,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6685,6 +6747,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6700,6 +6766,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6715,6 +6785,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6730,6 +6804,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6745,6 +6823,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6760,6 +6842,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6775,6 +6861,11 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      3,
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6790,6 +6881,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6805,6 +6900,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6820,6 +6919,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6835,6 +6938,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6850,6 +6957,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6865,6 +6976,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6880,6 +6995,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6895,6 +7014,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6910,6 +7033,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6925,16 +7052,12 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS",
-        "value": 2,
-        "condition": {
-          "when": "defending"
-        }
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -6948,6 +7071,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6963,6 +7090,11 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      3,
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6978,6 +7110,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -6993,6 +7129,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7008,6 +7148,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7023,6 +7167,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7038,6 +7186,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7053,6 +7205,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7068,6 +7224,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7083,6 +7243,11 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      3,
+      5
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7098,6 +7263,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7113,6 +7282,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7128,6 +7301,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7145,13 +7322,12 @@
       "(Def)"
     ],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_ATTRIBUTE",
-        "attribute": "Undead"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -7165,6 +7341,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7180,6 +7360,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7195,6 +7379,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7210,6 +7398,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7225,6 +7417,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7240,6 +7436,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7257,6 +7457,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7272,6 +7474,11 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3,
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7287,6 +7494,10 @@
     "rarity": "UC",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7304,6 +7515,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7319,6 +7532,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7336,6 +7553,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7351,6 +7570,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7366,6 +7589,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7381,6 +7608,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7396,6 +7627,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7413,6 +7648,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7428,6 +7665,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7443,6 +7684,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7458,6 +7703,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7473,6 +7722,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7488,6 +7741,11 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3,
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7503,6 +7761,10 @@
     "rarity": "R",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7518,6 +7780,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7533,6 +7799,11 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3,
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7548,6 +7819,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7563,6 +7838,10 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7578,6 +7857,11 @@
     "rarity": "C",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "defensive",
+    "castPhases": [
+      3,
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7595,6 +7879,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7612,6 +7898,8 @@
       "(Helpful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7629,6 +7917,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7651,6 +7941,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7668,6 +7960,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7683,6 +7977,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7698,17 +7994,10 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "typeId": 5
-      },
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "typeId": 20
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -7722,6 +8011,10 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      4
+    ],
     "weight": 1,
     "effects": []
   },
@@ -7737,6 +8030,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7757,6 +8052,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7772,6 +8069,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7787,6 +8086,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7802,6 +8103,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7817,6 +8120,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7834,6 +8139,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7851,6 +8158,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7866,6 +8175,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7883,6 +8194,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7905,6 +8218,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7925,6 +8240,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7940,6 +8257,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7962,6 +8281,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -7982,6 +8303,8 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8006,14 +8329,10 @@
       "o102",
       "d102"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeIds": [4, 6, 19],
-        "scope": "offensive"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -8027,6 +8346,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8042,6 +8363,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8064,6 +8387,8 @@
       "o102",
       "d102"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8079,6 +8404,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8094,6 +8421,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8109,6 +8438,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8124,6 +8455,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8139,6 +8472,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8163,19 +8498,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      },
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -8191,18 +8517,10 @@
     "supportIds": [
       1
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "RESTRICTED_ATTACKERS",
-        "attribute": "Swimmer"
-      },
-      {
-        "type": "REALM_SELF_DEFENDS",
-        "level": 6,        
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -8223,6 +8541,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8247,19 +8567,10 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 4,
-        "window": "both"
-      },
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -8280,6 +8591,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8295,6 +8608,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8310,6 +8625,10 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": "offensive",
+    "castPhases": [
+      3
+    ],
     "weight": 1,
     "effects": []
   },
@@ -8332,6 +8651,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8347,6 +8668,8 @@
     "rarity": "VR",
     "attributes": [],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8369,6 +8692,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8391,6 +8716,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8415,6 +8742,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8437,6 +8766,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8461,6 +8792,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8485,6 +8818,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8509,6 +8844,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8531,6 +8868,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8548,6 +8887,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8572,6 +8913,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8594,6 +8937,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8619,6 +8964,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8641,19 +8988,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 2,
-        "typeId": 5
-      },
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 2,
-        "typeId": 20
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -8672,14 +9010,10 @@
       "d9",
       "o9"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "IMMUNE_TO_TYPE",
-        "typeIds": [2, 4, 6, 9, 19],
-        "scope": "both"
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -8700,14 +9034,10 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "LEVEL_BONUS_VS_TYPE",
-        "value": 4,
-        "typeId": 10
-      }
-    ]
+    "effects": []
   },
   {
     "setId": "1st",
@@ -8730,6 +9060,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8752,6 +9084,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8777,6 +9111,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8799,6 +9135,8 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8824,6 +9162,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8841,6 +9181,8 @@
       "(Harmful)"
     ],
     "supportIds": [],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8865,6 +9207,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8887,6 +9231,8 @@
       "d18",
       "o18"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8911,6 +9257,8 @@
       "o101",
       "d101"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8933,6 +9281,8 @@
       "d4",
       "o4"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
     "effects": []
   },
@@ -8958,13 +9308,9 @@
       "d19",
       "o19"
     ],
+    "spellNature": null,
+    "castPhases": [],
     "weight": 1,
-    "effects": [
-      {
-        "type": "GRANT_SPELL_ACCESS",
-        "spellTypeId": 19,
-        "window": "both"
-      }
-    ]
+    "effects": []
   }
 ]

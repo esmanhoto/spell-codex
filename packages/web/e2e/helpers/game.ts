@@ -1,8 +1,11 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test"
+import { readFileSync } from "node:fs"
+import path from "node:path"
 
 export const PLAYER_A = "00000000-0000-0000-0000-000000000001"
 export const PLAYER_B = "00000000-0000-0000-0000-000000000002"
 const API_BASE = "http://127.0.0.1:3001"
+const SPELL_TYPE_IDS = new Set([4, 19]) // Cleric/Wizard spells
 
 export async function startGame(page: Page) {
   await page.goto("/")
@@ -58,6 +61,151 @@ export async function apiCreateGameForUi(request: APIRequestContext) {
   expect(createRes.ok()).toBe(true)
   const created = await createRes.json() as { gameId: string }
   return created.gameId
+}
+
+export async function apiCreateSpellOnlyGameForUi(request: APIRequestContext) {
+  const decksRes = await request.get(`${API_BASE}/decks`)
+  expect(decksRes.ok()).toBe(true)
+  const decks = await decksRes.json() as { decks: string[] }
+
+  let spellCard: Record<string, unknown> | null = null
+  for (const name of decks.decks) {
+    const deckRes = await request.get(`${API_BASE}/decks/${name}`)
+    if (!deckRes.ok()) continue
+    const deck = await deckRes.json() as { cards: Array<Record<string, unknown> & { typeId?: number }> }
+    spellCard = deck.cards.find(c => c.typeId === 4 || c.typeId === 19) ?? null
+    if (spellCard) break
+  }
+
+  expect(spellCard).not.toBeNull()
+  const spellDeck = Array.from({ length: 55 }, () => ({ ...spellCard! }))
+
+  const createRes = await request.post(`${API_BASE}/games`, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": PLAYER_A,
+    },
+    data: {
+      formatId: "standard-55",
+      seed: 123456,
+      players: [
+        { userId: PLAYER_A, deckSnapshot: spellDeck },
+        { userId: PLAYER_B, deckSnapshot: spellDeck },
+      ],
+    },
+  })
+  expect(createRes.ok()).toBe(true)
+  const created = await createRes.json() as { gameId: string }
+  return created.gameId
+}
+
+export async function apiCreatePhase3SpellGameForUi(request: APIRequestContext) {
+  const cardsPath = path.join(process.cwd(), "..", "data", "cards", "1st.json")
+  const cards = JSON.parse(readFileSync(cardsPath, "utf8")) as Array<Record<string, unknown> & {
+    typeId: number
+    castPhases?: number[]
+    supportIds?: Array<number | string>
+  }>
+
+  const realm = cards.find(c => c.typeId === 13)
+  const spell = cards.find(c =>
+    (c.typeId === 4 || c.typeId === 19) &&
+    (c.castPhases ?? []).includes(3),
+  )
+  const champion = cards.find(c => {
+    if (![5, 7, 10, 12, 14, 16, 20].includes(c.typeId)) return false
+    if (!spell) return false
+    const supports = c.supportIds ?? []
+    return supports.includes(spell.typeId) || supports.includes(`o${spell.typeId}`) || supports.includes(`d${spell.typeId}`)
+  })
+
+  expect(realm).toBeDefined()
+  expect(spell).toBeDefined()
+  expect(champion).toBeDefined()
+
+  const spellDeck = [
+    ...Array.from({ length: 20 }, () => ({ ...realm! })),
+    ...Array.from({ length: 20 }, () => ({ ...champion! })),
+    ...Array.from({ length: 15 }, () => ({ ...spell! })),
+  ]
+
+  const createRes = await request.post(`${API_BASE}/games`, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": PLAYER_A,
+    },
+    data: {
+      formatId: "standard-55",
+      seed: 20260302,
+      players: [
+        { userId: PLAYER_A, deckSnapshot: spellDeck },
+        { userId: PLAYER_B, deckSnapshot: spellDeck },
+      ],
+    },
+  })
+  expect(createRes.ok()).toBe(true)
+  const created = await createRes.json() as { gameId: string }
+  return created.gameId
+}
+
+export async function apiDriveToPlayerAPhase3SpellMove(
+  request: APIRequestContext,
+  gameId: string,
+): Promise<{ cardInstanceId: string }> {
+  for (let i = 0; i < 400; i++) {
+    const stateRes = await request.get(`${API_BASE}/games/${gameId}`, {
+      headers: { "X-User-Id": PLAYER_A },
+    })
+    expect(stateRes.ok()).toBe(true)
+    const state = await stateRes.json() as {
+      activePlayer: string
+      board: {
+        players: Record<string, {
+          hand: Array<{ instanceId: string; typeId: number; castPhases?: number[] }>
+        }>
+      }
+      legalMoves: Array<{ type: string; [key: string]: unknown }>
+    }
+
+    if (state.activePlayer === PLAYER_A) {
+      const legalPhase3 = state.legalMoves
+        .filter((m): m is { type: "PLAY_PHASE3_CARD"; cardInstanceId: string } =>
+          m.type === "PLAY_PHASE3_CARD" && typeof m.cardInstanceId === "string",
+        )
+
+      const myHand = state.board.players[PLAYER_A]?.hand ?? []
+      const spellCast = legalPhase3.find(move => {
+        const card = myHand.find(c => c.instanceId === move.cardInstanceId)
+        if (!card) return false
+        if (!SPELL_TYPE_IDS.has(card.typeId)) return false
+        return (card.castPhases ?? []).includes(3)
+      })
+
+      if (spellCast) {
+        return { cardInstanceId: spellCast.cardInstanceId }
+      }
+    }
+
+    const picked = state.legalMoves.find(m => m.type === "PLAY_REALM")
+      ?? state.legalMoves.find(m => m.type === "PLACE_CHAMPION")
+      ?? state.legalMoves.find(m => m.type === "PASS")
+      ?? state.legalMoves.find(m => m.type === "END_TURN")
+      ?? state.legalMoves.find(m => m.type === "DISCARD_CARD")
+      ?? state.legalMoves.find(m => m.type !== "PLAY_PHASE3_CARD")
+
+    if (!picked) break
+
+    const moveRes = await request.post(`${API_BASE}/games/${gameId}/moves`, {
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-Id": state.activePlayer,
+      },
+      data: picked,
+    })
+    expect(moveRes.ok()).toBe(true)
+  }
+
+  throw new Error("Could not reach a state where Player A can cast a phase-3 spell")
 }
 
 export async function driveGameToCombat(request: APIRequestContext, gameId: string): Promise<void> {

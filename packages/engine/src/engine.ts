@@ -8,10 +8,11 @@ import { Phase } from "./types.ts"
 import { CardTypeId, HAND_SIZES } from "./constants.ts"
 import {
   updatePlayer, removeFromHand, takeCards, nextPlayer,
-  isChampionType,
+  isChampionType, isSpellType,
 } from "./utils.ts"
 import { calculateCombatLevel, hasWorldMatch, resolveCombatRound, getLosingPlayer } from "./combat.ts"
-import { getLegalMoves, getLegalRealmSlots, isAttackable, isUniqueInPlay } from "./legal-moves.ts"
+import { getLegalMoves, getLegalRealmSlots, isAttackable, isUniqueInPlay, canPlayInCombat } from "./legal-moves.ts"
+import { canChampionUseSpell, getCastPhases } from "./spell-gating.ts"
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -139,10 +140,15 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
       throw new EngineError("UNKNOWN_MOVE", `Unrecognised move type`)
   }
 
+  const newStateWithEvents: GameState = {
+    ...newState,
+    events: [...state.events, ...events],
+  }
+
   return {
-    newState,
+    newState: newStateWithEvents,
     events,
-    legalMoves: getLegalMoves(newState, newState.activePlayer),
+    legalMoves: getLegalMoves(newStateWithEvents, newStateWithEvents.activePlayer),
   }
 }
 
@@ -159,10 +165,8 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
   }
 
   if (combat.roundPhase === "CARD_PLAY") {
-    // Either player may play during CARD_PLAY (losing player freely, winning player with events only)
+    // Winning player may act out of turn only for events/manual combat control.
     return (
-      move.type === "PLAY_COMBAT_CARD" ||
-      move.type === "STOP_PLAYING" ||
       move.type === "PLAY_EVENT" ||
       move.type === "MANUAL_SET_COMBAT_LEVEL" ||
       move.type === "MANUAL_SWITCH_COMBAT_SIDE"
@@ -170,6 +174,10 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
   }
 
   return false
+}
+
+function isPhase3Card(typeId: number): boolean {
+  return isSpellType(typeId) || typeId === CardTypeId.BloodAbility
 }
 
 // ─── Phase Handlers ───────────────────────────────────────────────────────────
@@ -519,8 +527,70 @@ function handlePlaySpellCard(
   if (move.type === "PLAY_PHASE3_CARD" && state.phase === Phase.PlayRealm) {
     state = advanceToPhase(state, playerId, Phase.Pool, events)
   }
+  if (move.type === "PLAY_PHASE3_CARD") {
+    assertPhase(state, Phase.Pool)
+  } else if (move.type === "PLAY_PHASE5_CARD") {
+    assertPhase(state, Phase.PhaseFive)
+  } else if (move.type === "PLAY_EVENT" && state.phase === Phase.EndTurn) {
+    throw new EngineError("WRONG_PHASE", "Cannot play events in END_TURN")
+  }
+
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
+
+  if (move.type === "PLAY_EVENT" && card.card.typeId !== CardTypeId.Event) {
+    throw new EngineError("NOT_AN_EVENT")
+  }
+
+  if (move.type === "PLAY_PHASE3_CARD" && !isPhase3Card(card.card.typeId)) {
+    throw new EngineError("NOT_A_PHASE3_CARD")
+  }
+
+  if (move.type === "PLAY_PHASE5_CARD" &&
+      card.card.typeId !== CardTypeId.Event &&
+      !isSpellType(card.card.typeId)) {
+    throw new EngineError("NOT_A_PHASE5_CARD")
+  }
+
+  if (isSpellType(card.card.typeId)) {
+    if (move.type === "PLAY_PHASE3_CARD") {
+      if (!getCastPhases(card).includes(3)) {
+        throw new EngineError("SPELL_NOT_PLAYABLE_IN_PHASE", "Spell cannot be cast in phase 3")
+      }
+    } else if (move.type === "PLAY_PHASE5_CARD") {
+      if (!getCastPhases(card).includes(5)) {
+        throw new EngineError("SPELL_NOT_PLAYABLE_IN_PHASE", "Spell cannot be cast in phase 5")
+      }
+    } else {
+      throw new EngineError("WRONG_MOVE_TYPE", "Use PLAY_COMBAT_CARD for combat spells")
+    }
+
+    if (!player.pool.some(entry => canChampionUseSpell(card, entry.champion))) {
+      throw new EngineError("CHAMPION_CANNOT_CAST_SPELL")
+    }
+
+    if (move.type === "PLAY_PHASE3_CARD") {
+      events.push({
+        type: "PHASE3_SPELL_CAST",
+        playerId,
+        instanceId: card.instanceId,
+        setId: card.card.setId,
+        cardNumber: card.card.cardNumber,
+        cardName: card.card.name,
+        cardTypeId: card.card.typeId,
+        keepInPlay: move.keepInPlay ?? false,
+        ...(move.casterInstanceId != null ? { casterInstanceId: move.casterInstanceId } : {}),
+        ...(move.targetCardInstanceId != null ? { targetCardInstanceId: move.targetCardInstanceId } : {}),
+        ...(move.targetOwner != null ? { targetOwner: move.targetOwner } : {}),
+      })
+    }
+  }
+
+  if (state.combatState?.roundPhase === "CARD_PLAY" && move.type === "PLAY_EVENT") {
+    if (playerId === state.activePlayer) {
+      throw new EngineError("LOSING_PLAYER_CANNOT_PLAY_EVENT")
+    }
+  }
 
   // Events sent to Abyss, all other cards to discard pile
   const isEvent = card.card.typeId === CardTypeId.Event
@@ -748,11 +818,18 @@ function handlePlayCombatCard(
   events: GameEvent[],
 ): GameState {
   assertCombatPhase(state, "CARD_PLAY")
+  if (playerId !== state.activePlayer) {
+    throw new EngineError("NOT_ACTIVE_PLAYER", "Only the losing player can play combat cards")
+  }
   const combat = state.combatState!
   const isAttacker = playerId === combat.attackingPlayer
 
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
+  const activeChampion = isAttacker ? combat.attacker : combat.defender
+  if (!canPlayInCombat(card, activeChampion)) {
+    throw new EngineError("INVALID_COMBAT_CARD", "Card cannot be played in combat")
+  }
 
   events.push({ type: "COMBAT_CARD_PLAYED", playerId, instanceId: card.instanceId })
 
@@ -789,6 +866,9 @@ function handleStopPlaying(
   events: GameEvent[],
 ): GameState {
   assertCombatPhase(state, "CARD_PLAY")
+  if (playerId !== state.activePlayer) {
+    throw new EngineError("NOT_ACTIVE_PLAYER", "Only the losing player can stop card play")
+  }
   const combat = state.combatState!
 
   const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]

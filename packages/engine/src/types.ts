@@ -46,6 +46,16 @@ export interface CardData {
   description: string
   attributes: string[]
   supportIds: SupportRef[]
+  /**
+   * Normalized spell direction parsed in data extraction.
+   * null for non-spells or unknown.
+   */
+  spellNature?: "offensive" | "defensive" | null
+  /**
+   * Normalized cast windows parsed in data extraction.
+   * Empty/missing means "unknown" (engine falls back to text parse/default).
+   */
+  castPhases?: Array<3 | 4 | 5>
   /** Reserved for future card automation; ignored by current engine runtime. */
   effects: unknown[]
 }
@@ -210,7 +220,14 @@ export type Move =
   // Phase 3 — pool
   | { type: "PLACE_CHAMPION";    cardInstanceId: CardInstanceId }
   | { type: "ATTACH_ITEM";       cardInstanceId: CardInstanceId; championId: CardInstanceId }
-  | { type: "PLAY_PHASE3_CARD";  cardInstanceId: CardInstanceId }                  // spells, psionics, etc.
+  | {
+      type: "PLAY_PHASE3_CARD"
+      cardInstanceId: CardInstanceId
+      keepInPlay?: boolean
+      casterInstanceId?: CardInstanceId
+      targetCardInstanceId?: CardInstanceId
+      targetOwner?: "self" | "opponent"
+    }                                                                                // spells, psionics, etc.
 
   // Phase 4 — combat
   | { type: "DECLARE_ATTACK";    championId: CardInstanceId; targetRealmSlot: FormationSlot; targetPlayerId: PlayerId }
@@ -297,6 +314,19 @@ export type GameEvent =
   | { type: "MANUAL_REALM_RAZED";        playerId: PlayerId; slot: FormationSlot }
   | { type: "MANUAL_CARDS_DRAWN";        playerId: PlayerId; count: number }
   | { type: "COMBAT_LEVEL_SET";          playerId: PlayerId; level: number }
+  | {
+      type: "PHASE3_SPELL_CAST"
+      playerId: PlayerId
+      instanceId: CardInstanceId
+      setId: string
+      cardNumber: number
+      cardName: string
+      cardTypeId: number
+      keepInPlay: boolean
+      casterInstanceId?: CardInstanceId
+      targetCardInstanceId?: CardInstanceId
+      targetOwner?: "self" | "opponent"
+    }
   | { type: "TURN_ENDED";               playerId: PlayerId }
   | { type: "GAME_OVER";                winner: PlayerId }
 

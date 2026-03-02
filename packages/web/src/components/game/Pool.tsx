@@ -1,12 +1,15 @@
 import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
-import type { PoolEntry as PoolEntryType } from "../../api.ts"
+import type { PoolEntry as PoolEntryType, CardInfo } from "../../api.ts"
 import { PoolEntry } from "./PoolEntry.tsx"
+import { CardComponent } from "./CardComponent.tsx"
 import styles from "./Pool.module.css"
 
-export function Pool({ entries, isOpponent }: {
+export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
   entries:     PoolEntryType[]
   isOpponent?: boolean
+  lingeringSpells?: CardInfo[]
+  ownerId?: string
 }) {
   const { legalMoves, onMove, allBoards, phase, showWarning } = useGame()
   const [dragOver, setDragOver] = useState(false)
@@ -62,10 +65,29 @@ export function Pool({ entries, isOpponent }: {
       <span className={styles.label}>
         Pool {dragOver && <span className={styles.dropHint}>- drop to place champion</span>}
       </span>
-      <div className={styles.row}>
-        {entries.map(e => (
-          <PoolEntry key={e.champion.instanceId} entry={e} isOpponent={isOpponent} />
-        ))}
+      <div className={styles.zoneWrap}>
+        <div className={styles.zoneBlock}>
+          <span className={styles.zoneLabel}>Champions</span>
+          <div className={styles.row}>
+            {entries.map(e => (
+              <PoolEntry key={e.champion.instanceId} entry={e} isOpponent={isOpponent} />
+            ))}
+          </div>
+        </div>
+        <div className={styles.zoneBlock} data-testid={ownerId ? `lasting-spells-${ownerId}` : undefined}>
+          <span className={styles.zoneLabel}>Lasting Spells</span>
+          <div className={styles.row}>
+            {(lingeringSpells ?? []).map(card => (
+              <CardComponent
+                key={card.instanceId}
+                card={card}
+                selected={false}
+                showLabel={false}
+                className={styles.lingeringCard}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
