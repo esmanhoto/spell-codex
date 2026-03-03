@@ -4,7 +4,7 @@ import path from "node:path"
 
 export const PLAYER_A = "00000000-0000-0000-0000-000000000001"
 export const PLAYER_B = "00000000-0000-0000-0000-000000000002"
-const API_BASE = "http://127.0.0.1:3001"
+const API_BASE = "/api"
 const SPELL_TYPE_IDS = new Set([4, 19]) // Cleric/Wizard spells
 
 export async function startGame(page: Page, request: APIRequestContext) {

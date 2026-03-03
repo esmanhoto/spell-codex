@@ -5,39 +5,56 @@ function env(name: string): string | undefined {
   return g.process?.env?.[name]
 }
 
+function envMap(values: Record<string, string>): Record<string, string> {
+  return values
+}
+
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: [/auth-.*\.spec\.ts/],
   timeout: 30_000,
   expect: { timeout: 5_000 },
   fullyParallel: true,
   retries: env("CI") ? 2 : 0,
-  workers: env("CI") ? 1 : undefined,
+  ...(env("CI") ? { workers: 1 } : {}),
   reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
-  use: {
-    baseURL: "http://127.0.0.1:4173",
-    trace: "on-first-retry",
-  },
-  webServer: [
-    {
-      command: "bun --cwd ../api src/index.ts",
-      url: "http://127.0.0.1:3001/health",
-      reuseExistingServer: true,
-      timeout: 120_000,
-      env: {
-        AUTH_BYPASS: "true",
-        DATABASE_URL: env("DATABASE_URL") ?? "postgres://spell:spell@localhost:5433/spell",
+  // Dedicated ports + no reuse so this suite never attaches to auth-mode dev servers.
+  use: (() => {
+    const webPort = env("E2E_WEB_PORT") ?? "4175"
+    return {
+      baseURL: `http://127.0.0.1:${webPort}`,
+      trace: "on-first-retry" as const,
+    }
+  })(),
+  webServer: (() => {
+    const apiPort = env("E2E_API_PORT") ?? "3100"
+    const webPort = env("E2E_WEB_PORT") ?? "4175"
+    const apiUrl = `http://127.0.0.1:${apiPort}`
+    const webUrl = `http://127.0.0.1:${webPort}`
+    return [
+      {
+        command: "bun --env-file=../../.env --cwd ../api src/index.ts",
+        url: `${apiUrl}/health`,
+        reuseExistingServer: false,
+        timeout: 120_000,
+        env: envMap({
+          PORT: apiPort,
+          AUTH_BYPASS: "true",
+        }),
       },
-    },
-    {
-      command: "bun run dev -- --host 127.0.0.1 --port 4173",
-      url: "http://127.0.0.1:4173",
-      reuseExistingServer: true,
-      timeout: 120_000,
-      env: {
-        VITE_AUTH_BYPASS: "true",
+      {
+        command: `bun run dev -- --host 127.0.0.1 --port ${webPort}`,
+        url: webUrl,
+        reuseExistingServer: false,
+        timeout: 120_000,
+        env: envMap({
+          API_PROXY_TARGET: apiUrl,
+          WS_PROXY_TARGET: `ws://127.0.0.1:${apiPort}`,
+          VITE_AUTH_BYPASS: "true",
+        }),
       },
-    },
-  ],
+    ]
+  })(),
   projects: [
     {
       name: "chromium",

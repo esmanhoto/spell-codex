@@ -25,7 +25,7 @@ test("phase 3 spell cast announcement appears and keep-in-play spell is shown in
   const gameId = await apiCreatePhase3SpellGameForUi(request)
   const castMove = await apiDriveToPlayerAPhase3SpellMove(request, gameId)
 
-  const castRes = await request.post(`http://127.0.0.1:3001/games/${gameId}/moves`, {
+  const castRes = await request.post(`/api/games/${gameId}/moves`, {
     headers: {
       "Content-Type": "application/json",
       "X-User-Id": PLAYER_A,

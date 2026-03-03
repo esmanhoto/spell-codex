@@ -27,7 +27,7 @@ app.onError((err, c) => {
 
   if (code === "ECONNREFUSED" || message.includes("ECONNREFUSED")) {
     return c.json({
-      error: "Database unavailable. Start Postgres and verify DATABASE_URL (expected localhost:5433 in dev).",
+      error: "Database unavailable. Verify DATABASE_URL and DB availability.",
     }, 503)
   }
 
