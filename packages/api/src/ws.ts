@@ -228,7 +228,7 @@ export const wsHandlers = {
         send(ws, {
           type: "ERROR",
           code: "DB_UNAVAILABLE",
-          message: "Database unavailable. Start Postgres and verify DATABASE_URL.",
+          message: "Database unavailable. Verify DATABASE_URL and DB availability.",
         })
         return
       }
