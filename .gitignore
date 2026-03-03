@@ -30,6 +30,8 @@ yarn-error.log*
 # Environment
 .env
 .env.*
+!.env.example
+!.env.supabase.example
 
 # Docker
 *.dockerignore
@@ -58,6 +60,7 @@ packages/*/out/
 coverage/
 packages/*/coverage/
 packages/web/playwright-report/
+packages/web/playwright-report-auth/
 packages/web/test-results/
 
 # Ignore temporary files

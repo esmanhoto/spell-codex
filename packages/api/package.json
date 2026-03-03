@@ -7,7 +7,7 @@
     "dev":       "bun --env-file=../../.env --watch src/index.ts",
     "start":     "bun --env-file=../../.env src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test":      "DATABASE_URL=${DATABASE_URL:-postgres://spell:spell@localhost:5433/spell} bun test"
+    "test":      "bun test"
   },
   "dependencies": {
     "hono": "^4.7.4",
