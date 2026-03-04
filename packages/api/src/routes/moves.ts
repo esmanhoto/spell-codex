@@ -5,10 +5,10 @@ import {
   getGame, getGamePlayers,
   reconstructState,
   lastSequence, saveAction,
-  setGameStatus, touchGame,
+  setGameStatus, setGamePlayMode, touchGame,
   hashState,
 } from "@spell/db"
-import { applyMove } from "@spell/engine"
+import { applyMove, EngineError } from "@spell/engine"
 
 // ─── Move schema ──────────────────────────────────────────────────────────────
 // We accept any JSON object with a `type` string — the engine validates the rest.
@@ -37,21 +37,19 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   if (!isPlayer) return c.json({ error: "Forbidden" }, 403)
 
   // 3. Reconstruct current state
-  const { state } = await reconstructState(gameId, game.seed)
+  const { state } = await reconstructState(gameId, game.seed, game.playMode)
 
-  // 4. Verify it is this player's turn
-  if (state.activePlayer !== userId) {
-    return c.json({ error: "Not your turn" }, 409)
-  }
-
-  // 5. Apply the move through the engine (throws EngineError on invalid moves)
+  // 4. Apply the move through the engine (throws EngineError on invalid moves)
   let result
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result = applyMove(state, userId, move as any)
   } catch (err) {
+    if (err instanceof EngineError) {
+      return c.json({ error: err.message, code: err.code }, 422)
+    }
     const message = err instanceof Error ? err.message : "Invalid move"
-    return c.json({ error: message }, 422)
+    return c.json({ error: message, code: "INVALID_MOVE" }, 422)
   }
 
   // 6. Persist the human move
@@ -71,8 +69,10 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
   const newStatus    = currentState.winner ? "finished" : "active"
   const turnDeadline = currentState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
+  const modeChanged = state.playMode !== currentState.playMode
   await Promise.all([
     setGameStatus(gameId, newStatus, currentState.winner ?? undefined),
+    ...(modeChanged ? [setGamePlayMode(gameId, currentState.playMode)] : []),
     touchGame(gameId, turnDeadline),
   ])
 

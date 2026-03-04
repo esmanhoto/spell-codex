@@ -12,6 +12,9 @@ export const games = pgTable("games", {
   formatId:     text("format_id").notNull(),
   /** uint32 seed used for the deterministic shuffle — stored at game creation. */
   seed:         integer("seed").notNull(),
+  playMode:     text("play_mode", {
+                  enum: ["full_manual", "semi_auto"],
+                }).notNull().default("full_manual"),
   createdAt:    timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   lastActionAt: timestamp("last_action_at", { withTimezone: true }).notNull().defaultNow(),
   /** Null until the first move is submitted. */

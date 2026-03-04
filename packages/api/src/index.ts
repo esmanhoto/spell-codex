@@ -6,7 +6,6 @@ import { gamesRouter } from "./routes/games.ts"
 import { movesRouter } from "./routes/moves.ts"
 import { cardsRouter } from "./routes/cards.ts"
 import { decksRouter } from "./routes/decks.ts"
-import { startDeadlineChecker } from "./deadline.ts"
 import { wsHandlers } from "./ws.ts"
 
 const app = new Hono()
@@ -58,7 +57,6 @@ export { app }
 
 const port = Number(process.env["PORT"] ?? 3001)
 console.log(`API listening on http://localhost:${port}`)
-startDeadlineChecker()
 
 export default {
   port,

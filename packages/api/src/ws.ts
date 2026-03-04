@@ -2,9 +2,9 @@ import type { ServerWebSocket } from "bun"
 import {
   getGame, getGamePlayers,
   reconstructState, lastSequence, saveAction,
-  setGameStatus, touchGame, hashState,
+  setGameStatus, setGamePlayMode, touchGame, hashState,
 } from "@spell/db"
-import { applyMove } from "@spell/engine"
+import { applyMove, EngineError } from "@spell/engine"
 import { serializeGameState } from "./serialize.ts"
 import { authBypassEnabled, verifySupabaseAccessToken } from "./auth-verify.ts"
 
@@ -69,17 +69,16 @@ export async function processWsMove(
     return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
   }
 
-  const { state } = await reconstructState(gameId, game.seed)
-
-  if (state.activePlayer !== userId) {
-    return { ok: false, code: "NOT_YOUR_TURN", message: "Not your turn" }
-  }
+  const { state } = await reconstructState(gameId, game.seed, game.playMode)
 
   let result
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result = applyMove(state, userId, move as any)
   } catch (err) {
+    if (err instanceof EngineError) {
+      return { ok: false, code: err.code, message: err.message }
+    }
     const message = err instanceof Error ? err.message : "Invalid move"
     return { ok: false, code: "INVALID_MOVE", message }
   }
@@ -96,8 +95,10 @@ export async function processWsMove(
 
   const newStatus    = result.newState.winner ? "finished" : "active"
   const turnDeadline = result.newState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
+  const modeChanged = state.playMode !== result.newState.playMode
   await Promise.all([
     setGameStatus(gameId, newStatus, result.newState.winner ?? undefined),
+    ...(modeChanged ? [setGamePlayMode(gameId, result.newState.playMode)] : []),
     touchGame(gameId, turnDeadline),
   ])
 
@@ -197,7 +198,7 @@ export const wsHandlers = {
           registry.get(gameId)!.set(userId, ws)
 
           // Send current state (serialized to the API shape the client expects)
-          const { state } = await reconstructState(gameId, game.seed)
+          const { state } = await reconstructState(gameId, game.seed, game.playMode)
           send(ws, { type: "STATE_UPDATE", gameId, state: serializeGameState(state, undefined, userId) })
           return
         }

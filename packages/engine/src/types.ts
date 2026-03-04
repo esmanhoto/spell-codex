@@ -177,6 +177,18 @@ export enum Phase {
   EndTurn     = "END_TURN",
 }
 
+// ─── Play Mode ────────────────────────────────────────────────────────────────
+
+export type PlayMode = "full_manual" | "semi_auto"
+
+export interface ManualSettings {
+  drawCount: number
+  maxHandSize: number
+}
+
+export type ManualPlayTargetKind = "none" | "player" | "card"
+export type ManualPlayResolution = "discard" | "lasting" | "lasting_target"
+
 // ─── Game State ───────────────────────────────────────────────────────────────
 
 export interface GameState {
@@ -194,6 +206,10 @@ export interface GameState {
   events: GameEvent[]
   /** Deck size (55/75/110) — determines hand sizes for all players */
   deckSize: 55 | 75 | 110
+  /** Active play mode. */
+  playMode: PlayMode
+  /** Runtime knobs used by full manual controls. */
+  manualSettings: ManualSettings
   /** True after DECLARE_ATTACK — only one attack allowed per turn */
   hasAttackedThisTurn: boolean
   /** True after PLAY_REALM or REBUILD_REALM — only one realm action allowed per Phase 2 */
@@ -247,6 +263,21 @@ export type Move =
   | { type: "PASS" }
   /** Skip remaining phases and end the turn (only when hand ≤ maxEnd) */
   | { type: "END_TURN" }
+  /** Switches mode; switching to semi_auto validates board consistency. */
+  | { type: "SET_PLAY_MODE"; mode: PlayMode }
+  /** Manual controls for turn flow and runtime settings. */
+  | { type: "MANUAL_END_TURN" }
+  | { type: "MANUAL_SET_ACTIVE_PLAYER"; playerId: PlayerId }
+  | { type: "MANUAL_SET_DRAW_COUNT"; count: number }
+  | { type: "MANUAL_SET_MAX_HAND_SIZE"; size: number }
+  | {
+      type: "MANUAL_PLAY_CARD"
+      cardInstanceId: CardInstanceId
+      targetKind: ManualPlayTargetKind
+      resolution: ManualPlayResolution
+      targetOwner?: "self" | "opponent"
+      targetCardInstanceId?: CardInstanceId
+    }
 
   // Manual board control — own cards (always legal on your turn)
   /** Move any own card (hand/pool/formation/discard) to own discard pile */
@@ -288,6 +319,10 @@ export interface EngineResult {
 
 export type GameEvent =
   | { type: "GAME_STARTED";              players: PlayerId[] }
+  | { type: "PLAY_MODE_CHANGED";         playerId: PlayerId; mode: PlayMode }
+  | { type: "MANUAL_ACTIVE_PLAYER_SET";  playerId: PlayerId; activePlayer: PlayerId }
+  | { type: "MANUAL_DRAW_COUNT_SET";     playerId: PlayerId; count: number }
+  | { type: "MANUAL_MAX_HAND_SIZE_SET";  playerId: PlayerId; size: number }
   | { type: "TURN_STARTED";              playerId: PlayerId; turn: number }
   | { type: "PHASE_CHANGED";             phase: Phase }
   | { type: "CARDS_DRAWN";               playerId: PlayerId; count: number }
@@ -343,5 +378,7 @@ export interface GameConfig {
   players: [PlayerConfig, PlayerConfig]
   /** Seed for deterministic shuffle */
   seed: number
+  playMode?: PlayMode
+  manualSettings?: Partial<ManualSettings>
   formationSize?: 6 | 8 | 10
 }

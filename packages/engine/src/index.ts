@@ -5,6 +5,8 @@ export { getLegalMoves, isUniqueInPlay, isAttackable, getLegalRealmSlots } from 
 export { getSpellDirection, getCastPhases, canChampionUseSpell } from "./spell-gating.ts"
 export { initGame } from "./init.ts"
 export { calculateCombatLevel, hasWorldMatch, resolveCombatRound, getLosingPlayer } from "./combat.ts"
+export { validateManualStateForSemiAuto } from "./manual-consistency.ts"
+export type { ManualConsistencyIssue } from "./manual-consistency.ts"
 
 export {
   seededShuffle, createInstance, createInstanceId, _resetInstanceCounter,
@@ -26,6 +28,8 @@ export type {
   LimboEntry, PoolEntry, PlayerState,
   // Combat
   CombatRoundPhase, CombatRoundOutcome, CombatState,
+  // Modes
+  PlayMode, ManualSettings,
   // Game state
   GameState,
   // Moves & results

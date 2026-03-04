@@ -66,6 +66,7 @@ gamesRouter.post("/", zValidator("json", CreateGameSchema), async (c) => {
   const game = await createGame({
     formatId: body.formatId,
     seed:     body.seed,
+    playMode: "full_manual",
     players: body.players.map((p, i) => ({
       userId:       p.userId,
       seatPosition: i,
@@ -86,6 +87,7 @@ gamesRouter.post("/lobby", zValidator("json", CreateLobbySchema), async (c) => {
   const game = await createGame({
     formatId: body.formatId,
     seed: body.seed,
+    playMode: "full_manual",
     players: [{
       userId,
       seatPosition: 0,
@@ -179,7 +181,7 @@ gamesRouter.get("/:id", async (c) => {
     return c.json({ error: "Game is waiting for an opponent to join" }, 409)
   }
 
-  const { state, errors } = await reconstructState(gameId, game.seed)
+  const { state, errors } = await reconstructState(gameId, game.seed, game.playMode)
 
   return c.json({
     ...serializeGameState(state, { status: game.status, turnDeadline: game.turnDeadline }, userId),
