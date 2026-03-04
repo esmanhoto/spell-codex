@@ -231,7 +231,13 @@ export function Game() {
         try {
           const parsed = JSON.parse(detail) as { error?: string; code?: string }
           const message = parsed.error ?? raw
-          showWarning(message, classifyWarningCode({ code: parsed.code, message }))
+          showWarning(
+            message,
+            classifyWarningCode({
+              message,
+              ...(parsed.code !== undefined ? { code: parsed.code } : {}),
+            }),
+          )
         } catch {
           showWarning(raw, classifyWarningCode(raw))
         }
@@ -260,7 +266,7 @@ export function Game() {
     if (target) {
       spellTargetsRef.current[spell.instanceId] = {
         ...target,
-        casterInstanceId,
+        ...(casterInstanceId !== undefined ? { casterInstanceId } : {}),
       }
     }
 
@@ -268,9 +274,13 @@ export function Game() {
       sendMove({
         ...move,
         keepInPlay,
-        casterInstanceId,
-        targetCardInstanceId: target?.cardInstanceId,
-        targetOwner: target?.owner,
+        ...(casterInstanceId !== undefined ? { casterInstanceId } : {}),
+        ...(target
+          ? {
+            targetCardInstanceId: target.cardInstanceId,
+            targetOwner: target.owner,
+          }
+          : {}),
       })
       return
     }
@@ -334,7 +344,7 @@ export function Game() {
         spell,
         move: phase3Move,
         casters: availableCasters,
-        target,
+        ...(target ? { target } : {}),
       })
       return
     }
@@ -345,7 +355,7 @@ export function Game() {
         move,
         casters: availableCasters,
         keepInPlay: false,
-        target,
+        ...(target ? { target } : {}),
       })
       return
     }
@@ -353,9 +363,9 @@ export function Game() {
     dispatchSpellMove({
       spell,
       move,
-      casterInstanceId: availableCasters[0]?.instanceId,
+      ...(availableCasters[0] ? { casterInstanceId: availableCasters[0].instanceId } : {}),
       keepInPlay: false,
-      target,
+      ...(target ? { target } : {}),
     })
   }, [data, dispatchSpellMove, showWarning])
 
@@ -457,7 +467,7 @@ export function Game() {
       lingeringSpellsByPlayer,
       combat:         data.board.combat,
       legalMoves:     data.legalMoves,
-      legalMovesPerPlayer: data.legalMovesPerPlayer,
+      ...(data.legalMovesPerPlayer ? { legalMovesPerPlayer: data.legalMovesPerPlayer } : {}),
       onMove:         sendMove,
       selectedId,
       onSelect:       setSelectedId,
@@ -484,15 +494,17 @@ export function Game() {
                 move: phase3OutcomePrompt.move,
                 casters: phase3OutcomePrompt.casters,
                 keepInPlay,
-                target: phase3OutcomePrompt.target,
+                ...(phase3OutcomePrompt.target ? { target: phase3OutcomePrompt.target } : {}),
               })
             } else {
               dispatchSpellMove({
                 spell: phase3OutcomePrompt.spell,
                 move: phase3OutcomePrompt.move,
-                casterInstanceId: phase3OutcomePrompt.casters[0]?.instanceId,
+                ...(phase3OutcomePrompt.casters[0]
+                  ? { casterInstanceId: phase3OutcomePrompt.casters[0].instanceId }
+                  : {}),
                 keepInPlay,
-                target: phase3OutcomePrompt.target,
+                ...(phase3OutcomePrompt.target ? { target: phase3OutcomePrompt.target } : {}),
               })
             }
             setPhase3OutcomePrompt(null)
@@ -510,7 +522,7 @@ export function Game() {
               move: casterPrompt.move,
               casterInstanceId,
               keepInPlay: casterPrompt.keepInPlay,
-              target: casterPrompt.target,
+              ...(casterPrompt.target ? { target: casterPrompt.target } : {}),
             })
             setCasterPrompt(null)
           }}

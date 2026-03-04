@@ -17,8 +17,8 @@ test("opponent hand is hidden to the current player", async ({ page, request }) 
   await page.goto(`/game/${gameId}`)
   await expect(page.getByTestId("game-board")).toBeVisible()
 
-  await expect(page.getByTestId("hand-top").locator('[data-testid^=\"hand-card-\"]')).toHaveCount(0)
-  await expect(page.getByTestId("hand-top").locator('[data-testid^=\"opponent-card-back-\"]')).toHaveCount(5)
+  await expect(page.getByTestId("hand-top").locator('[data-testid^="hand-card-"]')).toHaveCount(0)
+  await expect(page.getByTestId("hand-top").locator('[data-testid^="opponent-card-back-"]')).toHaveCount(5)
 })
 
 test("phase 3 spell cast announcement appears and keep-in-play spell is shown in lasting area", async ({ page, request }) => {

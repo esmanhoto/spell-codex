@@ -1,7 +1,9 @@
 {
   "name": "spell",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "extract": "bun run --cwd packages/data extract",
     "test": "bun test --cwd packages/engine",
@@ -11,19 +13,23 @@
     "db:migrate": "bun run --cwd packages/db db:migrate",
     "db:migrate:local": "DATABASE_URL=postgres://spell:spell@localhost:5433/spell bun run --cwd packages/db db:migrate",
     "db:migrate:supabase": "bun --env-file=.env.supabase --cwd packages/db drizzle-kit migrate",
-    "lint": "eslint \"packages/*/{src,test,scripts}/**/*.{ts,tsx}\" \"packages/*/*.ts\"",
+    "lint": "eslint \"packages/**/*.{ts,tsx}\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check package.json tsconfig.base.json eslint.config.mjs .github/workflows/*.yml packages/*/package.json packages/*/tsconfig*.json packages/db/drizzle.config.ts packages/web/vite.config.ts packages/web/playwright.config.ts packages/web/playwright.auth.config.ts",
     "ci:lint": "bun run lint",
-    "ci:typecheck": "bun run --cwd packages/engine typecheck && bun run --cwd packages/db typecheck && bun run --cwd packages/api typecheck && bun run --cwd packages/data typecheck && bun run --cwd packages/web typecheck",
+    "ci:typecheck": "bun run --cwd packages/engine typecheck && bun run --cwd packages/db typecheck && bun run --cwd packages/api typecheck && bun run --cwd packages/data typecheck && bun run --cwd packages/web typecheck && bun run --cwd packages/web typecheck:tools",
+    "ci:format": "bun run format:check",
     "ci:test": "bun run --cwd packages/engine test && bun run --cwd packages/db test && bun run --cwd packages/api test",
     "ci:test:web": "bun run --cwd packages/web test:e2e",
     "ci:test:web:auth-mock": "bun run --cwd packages/web test:e2e:auth",
     "ci:build": "bun run --cwd packages/web build",
-    "ci": "bun run ci:lint && bun run ci:typecheck && bun run ci:test && bun run ci:build"
+    "ci": "bun run ci:format && bun run ci:lint && bun run ci:typecheck && bun run ci:test && bun run ci:build"
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
     "eslint": "^9.23.0",
     "globals": "^16.0.0",
+    "prettier": "^3.5.3",
     "typescript-eslint": "^8.28.0"
   }
 }

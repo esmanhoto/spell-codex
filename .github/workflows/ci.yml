@@ -53,6 +53,9 @@ jobs:
       - name: Lint
         run: bun run ci:lint
 
+      - name: Format check
+        run: bun run ci:format
+
       - name: Typecheck all packages
         run: bun run ci:typecheck
 

@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+playwright-report
+CrossFire READONLY
+data_bp_READONLY
+packages/db/drizzle
+bun.lock

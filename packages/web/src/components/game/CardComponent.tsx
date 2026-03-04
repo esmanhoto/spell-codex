@@ -1,7 +1,6 @@
 import { useGame } from "../../context/GameContext.tsx"
 import type { CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
-import { getTypeInfo, isChampion } from "../../utils/type-labels.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
 import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./CardComponent.module.css"
@@ -18,7 +17,6 @@ export function CardComponent({ card, selected, onClick, showLabel = true, dragg
   style?:          React.CSSProperties
 }) {
   const { openContextMenu } = useGame()
-  const typeInfo = getTypeInfo(card.typeId)
 
   return (
     <CardTooltip card={card}>

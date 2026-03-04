@@ -1,7 +1,6 @@
 import { useGame } from "../../context/GameContext.tsx"
 import { nameOfCard } from "../../utils/card-helpers.ts"
 import { labelMove, moveInvolves, ANCHOR_FREE_TYPES } from "../../utils/move-helpers.ts"
-import type { Move } from "../../api.ts"
 import styles from "./MovePanel.module.css"
 
 export function MovePanel({ playerId }: { playerId: string }) {

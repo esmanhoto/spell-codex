@@ -4,7 +4,7 @@ import type { GameEvent } from "../../api.ts"
 import styles from "./EventLog.module.css"
 
 export function EventLog({ events }: { events: GameEvent[] }) {
-  const { allBoards, playerA, playerB } = useGame()
+  const { playerA } = useGame()
   const logRef = useRef<HTMLDivElement>(null)
   const [collapsed, setCollapsed] = useState(true)
 
