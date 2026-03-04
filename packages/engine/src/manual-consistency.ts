@@ -92,8 +92,10 @@ export function validateManualStateForSemiAuto(state: GameState): ManualConsiste
             message: `Attachment ${attachment.card.name} is not an artifact/magical item.`,
           })
         }
-        if (attachment.card.typeId === CardTypeId.MagicalItem &&
-            !worldsCompatible(attachment.card.worldId, entry.champion.card.worldId)) {
+        if (
+          attachment.card.typeId === CardTypeId.MagicalItem &&
+          !worldsCompatible(attachment.card.worldId, entry.champion.card.worldId)
+        ) {
           issues.push({
             code: "WORLD_MISMATCH_MAGICAL_ITEM",
             message: `Magical item ${attachment.card.name} world mismatches champion ${entry.champion.card.name}.`,
@@ -142,9 +144,7 @@ export function validateManualStateForSemiAuto(state: GameState): ManualConsiste
   for (const [key, entries] of cosmosKeys.entries()) {
     if (entries.length <= 1) continue
     const [typeId, cardName] = key.split(":")
-    const labels = entries
-      .map(entry => `${entry.ownerId}:${entry.zone}`)
-      .join(", ")
+    const labels = entries.map((entry) => `${entry.ownerId}:${entry.zone}`).join(", ")
     issues.push({
       code: "COSMOS_DUPLICATE_IN_PLAY",
       message: `Duplicate in-play cosmos card ${cardName} (type ${typeId}) at ${labels}.`,

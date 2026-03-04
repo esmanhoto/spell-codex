@@ -24,7 +24,7 @@ test("all listed decks are selectable in create and join selectors", async ({ pa
 
   const optionValues = await page
     .locator('[data-testid="create-deck-select"] option')
-    .evaluateAll(opts => opts.map(o => (o as HTMLOptionElement).value))
+    .evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).value))
   for (const value of optionValues) {
     await page.getByTestId("create-deck-select").selectOption(value)
     await expect(page.getByTestId("create-deck-select")).toHaveValue(value)

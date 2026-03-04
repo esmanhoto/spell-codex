@@ -14,7 +14,14 @@
   right: 20px;
   top: 50%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dim), var(--gold), var(--gold-dim), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--gold-dim),
+    var(--gold),
+    var(--gold-dim),
+    transparent
+  );
 }
 
 .playerLabel {
@@ -29,11 +36,11 @@
 }
 
 .playerB {
-align-self: flex-start;
+  align-self: flex-start;
 }
 
 .playerA {
-align-self: flex-end
+  align-self: flex-end;
 }
 
 .center {

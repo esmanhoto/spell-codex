@@ -12,8 +12,7 @@ import { parseTclList, extractTclBlock } from "./lib/tcl-parser"
 import type { DeckFormat, TypeLimit } from "./types"
 
 const CROSSFIRE_DIR =
-  process.env.CROSSFIRE_PATH ??
-  path.join(import.meta.dir, "..", "..", "..", "CrossFire READONLY")
+  process.env.CROSSFIRE_PATH ?? path.join(import.meta.dir, "..", "..", "..", "CrossFire READONLY")
 
 const FORMATS_DIR = path.join(CROSSFIRE_DIR, "Formats")
 const OUT_DIR = path.join(import.meta.dir, "..", "formats")

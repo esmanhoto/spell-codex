@@ -34,8 +34,12 @@
   padding-top: 6px;
 }
 
-.above { bottom: calc(100% + 6px); }
-.below { top: calc(100% + 6px); }
+.above {
+  bottom: calc(100% + 6px);
+}
+.below {
+  top: calc(100% + 6px);
+}
 
 .icon {
   flex: 0 0 auto;

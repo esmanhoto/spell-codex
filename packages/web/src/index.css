@@ -1,4 +1,10 @@
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   font-family: monospace;
@@ -8,28 +14,85 @@ body {
   line-height: 1.5;
 }
 
-.page      { max-width: 960px; margin: 0 auto; padding: 24px; }
-.page.wide { max-width: 1500px; }
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.page.wide {
+  max-width: 1500px;
+}
 
-h1 { font-size: 2rem; color: #c9a84c; margin-bottom: 8px; }
-h2 { font-size: 1.3rem; color: #aaa; margin-bottom: 20px; }
-h3 { font-size: .9rem; color: #c9a84c; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .05em; }
+h1 {
+  font-size: 2rem;
+  color: #c9a84c;
+  margin-bottom: 8px;
+}
+h2 {
+  font-size: 1.3rem;
+  color: #aaa;
+  margin-bottom: 20px;
+}
+h3 {
+  font-size: 0.9rem;
+  color: #c9a84c;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
 /* ─── Form ─────────────────────────────────────────────── */
-.form { display: flex; flex-direction: column; gap: 16px; max-width: 480px; }
-label { display: flex; flex-direction: column; gap: 4px; color: #aaa; font-size: 12px; }
-input, select {
-  background: #0f3460; border: 1px solid #444; color: #e0e0e0;
-  padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 13px;
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 480px;
 }
-select { cursor: pointer; }
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #aaa;
+  font-size: 12px;
+}
+input,
+select {
+  background: #0f3460;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+}
+select {
+  cursor: pointer;
+}
 button {
-  background: #c9a84c; color: #1a1a2e; font-weight: bold;
-  padding: 10px 18px; border: none; border-radius: 4px;
-  cursor: pointer; font-family: monospace; font-size: 13px;
-  transition: opacity .15s;
+  background: #c9a84c;
+  color: #1a1a2e;
+  font-weight: bold;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 13px;
+  transition: opacity 0.15s;
 }
-button:hover:not(:disabled) { opacity: .85; }
-button:disabled { opacity: .4; cursor: default; }
-.hint  { color: #888; font-size: 12px; }
-.error { color: #e05; font-size: 13px; margin: 4px 0; }
+button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.hint {
+  color: #888;
+  font-size: 12px;
+}
+.error {
+  color: #e05;
+  font-size: 13px;
+  margin: 4px 0;
+}

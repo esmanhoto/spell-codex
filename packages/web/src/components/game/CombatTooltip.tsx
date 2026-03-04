@@ -25,36 +25,33 @@ export function CombatTooltip({ card, children }: { card: CardInfo; children: Re
   const hide = useCallback(() => setPos(null), [])
 
   return (
-    <div
-      ref={wrapRef}
-      className={styles.wrap}
-      onMouseEnter={show}
-      onMouseLeave={hide}
-    >
+    <div ref={wrapRef} className={styles.wrap} onMouseEnter={show} onMouseLeave={hide}>
       {children}
-      {pos && createPortal(
-        <div
-          className={styles.tooltip}
-          style={{ top: pos.y, right: window.innerWidth - pos.x }}
-        >
-          <div className={styles.icon}>
-            <img
-              src={cardImageUrl(card.setId, card.cardNumber)}
-              alt={card.name}
-              onError={e => { e.currentTarget.style.display = "none" }}
-            />
-          </div>
-          <div className={styles.content}>
-            <div className={styles.header}>
-              <div className={styles.name}>{card.name}</div>
-              {card.level != null && <div className={styles.level}>{card.level}</div>}
+      {pos &&
+        createPortal(
+          <div className={styles.tooltip} style={{ top: pos.y, right: window.innerWidth - pos.x }}>
+            <div className={styles.icon}>
+              <img
+                src={cardImageUrl(card.setId, card.cardNumber)}
+                alt={card.name}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none"
+                }}
+              />
             </div>
-            <div className={styles.type} style={{ color: typeInfo.color }}>{typeInfo.label}</div>
-            {card.description && <div className={styles.desc}>{card.description}</div>}
-          </div>
-        </div>,
-        document.body
-      )}
+            <div className={styles.content}>
+              <div className={styles.header}>
+                <div className={styles.name}>{card.name}</div>
+                {card.level != null && <div className={styles.level}>{card.level}</div>}
+              </div>
+              <div className={styles.type} style={{ color: typeInfo.color }}>
+                {typeInfo.label}
+              </div>
+              {card.description && <div className={styles.desc}>{card.description}</div>}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }

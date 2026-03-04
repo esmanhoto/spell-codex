@@ -3,8 +3,14 @@ export { hashState } from "./hash.ts"
 
 export type { CreateGameInput } from "./games.ts"
 export {
-  createGame, addGamePlayer, getGame, getGamePlayers,
-  setGameStatus, setGamePlayMode, touchGame, findExpiredGames,
+  createGame,
+  addGamePlayer,
+  getGame,
+  getGamePlayers,
+  setGameStatus,
+  setGamePlayMode,
+  touchGame,
+  findExpiredGames,
 } from "./games.ts"
 
 export type { SaveActionInput } from "./actions.ts"

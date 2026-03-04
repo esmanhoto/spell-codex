@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
-import {
-  listDecks,
-  getDeck,
-  createLobbyGame,
-  joinLobbyGame,
-  getLobbyStatus,
-} from "../api.ts"
+import { listDecks, getDeck, createLobbyGame, joinLobbyGame, getLobbyStatus } from "../api.ts"
 import { useAuth } from "../auth.tsx"
 
 function isUuid(value: string): boolean {
@@ -38,7 +32,7 @@ export function NewGame() {
     queryKey: ["lobby-status", waitingGameId, identity?.userId],
     queryFn: () => getLobbyStatus(waitingGameId!, identity!),
     enabled: !!waitingGameId && !!identity,
-    refetchInterval: (q) => q.state.data?.status === "waiting" ? 1500 : false,
+    refetchInterval: (q) => (q.state.data?.status === "waiting" ? 1500 : false),
   })
 
   useEffect(() => {
@@ -125,18 +119,10 @@ export function NewGame() {
       <div className="form">
         {!waitingGameId && mode == null && (
           <>
-            <button
-              type="button"
-              data-testid="create-mode-btn"
-              onClick={() => setMode("create")}
-            >
+            <button type="button" data-testid="create-mode-btn" onClick={() => setMode("create")}>
               Create a New Game
             </button>
-            <button
-              type="button"
-              data-testid="join-mode-btn"
-              onClick={() => setMode("join")}
-            >
+            <button type="button" data-testid="join-mode-btn" onClick={() => setMode("join")}>
               Join a Game
             </button>
           </>
@@ -149,9 +135,13 @@ export function NewGame() {
               <select
                 data-testid="create-deck-select"
                 value={createDeck}
-                onChange={e => setCreateDeck(e.target.value)}
+                onChange={(e) => setCreateDeck(e.target.value)}
               >
-                {decks.map(d => <option key={d} value={d}>{d}</option>)}
+                {decks.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
               </select>
             </label>
             <button
@@ -174,7 +164,7 @@ export function NewGame() {
               <input
                 data-testid="join-game-id-input"
                 value={joinGameId}
-                onChange={e => setJoinGameId(e.target.value)}
+                onChange={(e) => setJoinGameId(e.target.value)}
                 placeholder="Paste game UUID"
               />
             </label>
@@ -183,9 +173,13 @@ export function NewGame() {
               <select
                 data-testid="join-deck-select"
                 value={joinDeck}
-                onChange={e => setJoinDeck(e.target.value)}
+                onChange={(e) => setJoinDeck(e.target.value)}
               >
-                {decks.map(d => <option key={d} value={d}>{d}</option>)}
+                {decks.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
               </select>
             </label>
             <button
@@ -210,9 +204,7 @@ export function NewGame() {
             <button type="button" data-testid="copy-game-id-btn" onClick={copyGameId}>
               Copy Game ID
             </button>
-            <p className="hint">
-              Waiting for opponent to join...
-            </p>
+            <p className="hint">Waiting for opponent to join...</p>
             <p className="hint" data-testid="waiting-player-count">
               Players in room: {lobbyStatus?.playerCount ?? 1}/2
             </p>
@@ -230,7 +222,11 @@ export function NewGame() {
           </div>
         )}
 
-        {error && <p className="error" data-testid="new-game-error">{error}</p>}
+        {error && (
+          <p className="error" data-testid="new-game-error">
+            {error}
+          </p>
+        )}
         {info && <p data-testid="new-game-info">{info}</p>}
 
         <button type="button" onClick={() => signOut()}>

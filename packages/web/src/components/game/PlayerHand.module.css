@@ -19,7 +19,9 @@
 
 .cardSlot {
   position: relative;
-  transition: transform 0.2s ease, z-index 0s;
+  transition:
+    transform 0.2s ease,
+    z-index 0s;
   margin-left: -20px;
 }
 
@@ -34,7 +36,9 @@
 }
 
 .own .cardSlot:hover .cardWrap {
-  box-shadow: 0 0 12px var(--gold-dim), 0 0 0 2px var(--gold);
+  box-shadow:
+    0 0 12px var(--gold-dim),
+    0 0 0 2px var(--gold);
   border-radius: 5px;
 }
 

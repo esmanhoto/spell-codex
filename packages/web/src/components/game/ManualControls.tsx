@@ -3,9 +3,7 @@ import { useGame } from "../../context/GameContext.tsx"
 import styles from "./ManualControls.module.css"
 
 export function ManualControls() {
-  const {
-    playerA, playerB, activePlayer, playMode, manualSettings, winner, onMove,
-  } = useGame()
+  const { playerA, playerB, activePlayer, playMode, manualSettings, winner, onMove } = useGame()
   const [drawCount, setDrawCount] = useState(String(manualSettings.drawCount))
   const [maxHand, setMaxHand] = useState(String(manualSettings.maxHandSize))
 
@@ -36,7 +34,9 @@ export function ManualControls() {
       {playMode === "full_manual" && (
         <>
           <div className={styles.row}>
-            <button className={styles.btn} onClick={() => onMove({ type: "END_TURN" })}>End Turn</button>
+            <button className={styles.btn} onClick={() => onMove({ type: "END_TURN" })}>
+              End Turn
+            </button>
             <button
               className={`${styles.btn} ${activePlayer === playerA ? styles.active : ""}`}
               onClick={() => onMove({ type: "MANUAL_SET_ACTIVE_PLAYER", playerId: playerA })}
@@ -59,12 +59,17 @@ export function ManualControls() {
                 min={1}
                 max={20}
                 value={drawCount}
-                onChange={e => setDrawCount(e.target.value)}
+                onChange={(e) => setDrawCount(e.target.value)}
               />
             </label>
             <button
               className={styles.btn}
-              onClick={() => onMove({ type: "MANUAL_SET_DRAW_COUNT", count: Number(drawCount) || manualSettings.drawCount })}
+              onClick={() =>
+                onMove({
+                  type: "MANUAL_SET_DRAW_COUNT",
+                  count: Number(drawCount) || manualSettings.drawCount,
+                })
+              }
             >
               Set
             </button>
@@ -75,12 +80,17 @@ export function ManualControls() {
                 min={0}
                 max={30}
                 value={maxHand}
-                onChange={e => setMaxHand(e.target.value)}
+                onChange={(e) => setMaxHand(e.target.value)}
               />
             </label>
             <button
               className={styles.btn}
-              onClick={() => onMove({ type: "MANUAL_SET_MAX_HAND_SIZE", size: Number(maxHand) || manualSettings.maxHandSize })}
+              onClick={() =>
+                onMove({
+                  type: "MANUAL_SET_MAX_HAND_SIZE",
+                  size: Number(maxHand) || manualSettings.maxHandSize,
+                })
+              }
             >
               Set
             </button>

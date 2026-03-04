@@ -5,13 +5,13 @@ import { listActions } from "./actions.ts"
 import { getGamePlayers } from "./games.ts"
 
 export interface ReconstructError {
-  kind:     "hash_mismatch" | "engine_error"
+  kind: "hash_mismatch" | "engine_error"
   sequence: number
-  message:  string
+  message: string
 }
 
 export interface ReconstructResult {
-  state:  GameState
+  state: GameState
   errors: ReconstructError[]
 }
 
@@ -25,20 +25,17 @@ export interface ReconstructResult {
  */
 export async function reconstructState(
   gameId: string,
-  seed:   number,
+  seed: number,
   playMode: PlayMode = "full_manual",
 ): Promise<ReconstructResult> {
-  const [players, actions] = await Promise.all([
-    getGamePlayers(gameId),
-    listActions(gameId),
-  ])
+  const [players, actions] = await Promise.all([getGamePlayers(gameId), listActions(gameId)])
 
   // Sort players by seat position so init gets them in the right order.
   const sorted = [...players].sort((a, b) => a.seatPosition - b.seatPosition)
   if (sorted.length < 2) {
     throw new Error("Cannot reconstruct waiting game before second player joins")
   }
-  const [p1, p2] = sorted as [typeof sorted[0], typeof sorted[0]]
+  const [p1, p2] = sorted as [(typeof sorted)[0], (typeof sorted)[0]]
 
   const state = initGame({
     gameId,
@@ -61,9 +58,9 @@ export async function reconstructState(
       next = applyMove(current, action.playerId, move)
     } catch (err) {
       errors.push({
-        kind:     "engine_error",
+        kind: "engine_error",
         sequence: action.sequence,
-        message:  err instanceof Error ? err.message : String(err),
+        message: err instanceof Error ? err.message : String(err),
       })
       // Keep current state — cannot apply this move.
       continue
@@ -74,9 +71,9 @@ export async function reconstructState(
     const actualHash = hashState(current)
     if (actualHash !== action.stateHash) {
       errors.push({
-        kind:     "hash_mismatch",
+        kind: "hash_mismatch",
         sequence: action.sequence,
-        message:  `expected ${action.stateHash}, got ${actualHash}`,
+        message: `expected ${action.stateHash}, got ${actualHash}`,
       })
     }
   }

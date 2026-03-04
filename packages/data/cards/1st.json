@@ -9,13 +9,8 @@
     "name": "Waterdeep",
     "description": "Any champion can use wizard spells when defending Waterdeep.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Coast"],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -31,9 +26,7 @@
     "name": "Menzoberranzan",
     "description": "Can be played at any time. Immune to flyers.",
     "rarity": "M",
-    "attributes": [
-      "Underdark"
-    ],
+    "attributes": ["Underdark"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -50,14 +43,8 @@
     "name": "Zhentil Keep",
     "description": "Zhentil Keep can defend itself as a level 5 cleric.",
     "rarity": "R",
-    "attributes": [
-      "Coast"
-    ],
-    "supportIds": [
-      1,
-      "d4",
-      "o4"
-    ],
+    "attributes": ["Coast"],
+    "supportIds": [1, "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -74,12 +61,7 @@
     "description": "Any champion can cast cleric and wizard spells when defending Shadowdale.",
     "rarity": "M",
     "attributes": [],
-    "supportIds": [
-      "d4",
-      "o4",
-      "d19",
-      "o19"
-    ],
+    "supportIds": ["d4", "o4", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -95,9 +77,7 @@
     "name": "Cormyr",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -114,9 +94,7 @@
     "name": "Sembia",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -133,14 +111,8 @@
     "name": "Moonshae Isles",
     "description": "The Moonshaes can defend themselves as a level 2 hero. All defending allies gain 3 levels.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
-    "supportIds": [
-      1,
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Coast"],
+    "supportIds": [1, "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -157,10 +129,7 @@
     "description": "Any champion can use wizard spells when defending Thay.",
     "rarity": "M",
     "attributes": [],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -176,9 +145,7 @@
     "name": "Calimshan",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -195,9 +162,7 @@
     "name": "Pirate Isles",
     "description": "Flyers cannot attack this realm.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -214,13 +179,8 @@
     "name": "Ravens Bluff",
     "description": "Any champion can use wizard spells when defending Ravens Bluff.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Coast"],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -254,10 +214,7 @@
     "description": "Any champion can use wizard spells when defending Myth Drannor. Increases player's maximum hand by one.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -273,9 +230,7 @@
     "name": "Vaasa",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -292,12 +247,8 @@
     "name": "Jungles of Chult",
     "description": "Chult can defend itself as a level 5 monster.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
-    "supportIds": [
-      1
-    ],
+    "attributes": ["Coast"],
+    "supportIds": [1],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -330,9 +281,7 @@
     "name": "Sword Coast",
     "description": "The defending player can return one ally to his hand after each round of battle.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -366,9 +315,7 @@
     "name": "Impiltur",
     "description": "All champions and allies who defend Impiltur gain 1 level.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -385,9 +332,7 @@
     "name": "Icewind Dale",
     "description": "The attacking champion must discard one magical item chosen by the defender.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -404,9 +349,7 @@
     "name": "The High Moor",
     "description": "Any defending monster gains 4 levels.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -423,9 +366,7 @@
     "name": "Rashemen",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -459,9 +400,7 @@
     "name": "Narfell",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -529,9 +468,7 @@
     "name": "Haunted Hall of Eveningstar",
     "description": "Draw one card and place it in your hand when this realm is played or rebuilt.",
     "rarity": "R",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -549,10 +486,7 @@
     "description": "Any champion can use wiizard spells when defending Evermeet. Flyers cannot attack.",
     "rarity": "M",
     "attributes": [],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -654,10 +588,7 @@
     "description": "Any champion can cast wizard spells when defending the attached realm. If attached to Cormyr, all defenders also gain 4 levels.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -674,12 +605,7 @@
     "description": "The attached realm can defend itself as a level 4 monster.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -764,14 +690,7 @@
     "description": "Immune to offensive spells.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -788,14 +707,7 @@
     "description": "All allies of King Azoun IV gain 1 level.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -812,14 +724,7 @@
     "description": "Once per battle Maligor can shift one opposing ally to his own side.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -836,14 +741,7 @@
     "description": "Immune to offensive spells.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -859,17 +757,8 @@
     "name": "Drizzt Do' Urden",
     "description": "When defending, Drizzt must be defeated twice in one battle before he is discarded.",
     "rarity": "C",
-    "attributes": [
-      "Elf (drow)"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Elf (drow)"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -886,14 +775,7 @@
     "description": "If only one Midnight is in play, wizards cannot cast spells without her permission. She also destroys all magical items held by the opposing champion.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -909,17 +791,8 @@
     "name": "Torg Mac Cei, the Ironlord",
     "description": "Torg's level is doubled when defending or attacking the Great Rift.",
     "rarity": "UC",
-    "attributes": [
-      "Dwarf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Dwarf"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -935,15 +808,8 @@
     "name": "The Pereghost",
     "description": "All the pereghost's allies gain 2 levels.",
     "rarity": "R",
-    "attributes": [
-      "Flyer"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "attributes": ["Flyer"],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -959,17 +825,8 @@
     "name": "Bruenor Battlehammer",
     "description": "Bruenor gains 2 levels when fighting a monster.",
     "rarity": "R",
-    "attributes": [
-      "Dwarf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Dwarf"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -986,14 +843,7 @@
     "description": "At the start of the player's turn, he can look at the top card of any draw pile and discard it if he wants.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1010,18 +860,7 @@
     "description": "The Harpers can cast wizard and cleric spells, but the player must choose one type (wizard or cleric) in each battle when this card is used.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d4",
-      "o4",
-      "d9",
-      "o9",
-      "d18",
-      "o18",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d4", "o4", "d9", "o9", "d18", "o18", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1037,17 +876,8 @@
     "name": "Gnomes of Samek",
     "description": "",
     "rarity": "UC",
-    "attributes": [
-      "Gnome"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Gnome"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1064,18 +894,7 @@
     "description": "Can use cleric and wizard spells.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d4",
-      "o4",
-      "d9",
-      "o9",
-      "d18",
-      "o18",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d4", "o4", "d9", "o9", "d18", "o18", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1091,9 +910,7 @@
     "name": "War Party",
     "description": "",
     "rarity": "C",
-    "attributes": [
-      "Orc"
-    ],
+    "attributes": ["Orc"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -1110,17 +927,8 @@
     "name": "Crime Lord",
     "description": "The Crime Lord can also be played as an event to destroy one holding. The destroyed holding and the Crime Lord are discarded.",
     "rarity": "UC",
-    "attributes": [
-      "(Harmful)"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["(Harmful)"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1137,14 +945,7 @@
     "description": "All allies of these adventurers gain 1 level.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1160,17 +961,8 @@
     "name": "The Jotunslayers",
     "description": "The Jotunslayers are level 8 if the opposing champion is a monster.",
     "rarity": "C",
-    "attributes": [
-      "Dwarf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Dwarf"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1221,14 +1013,7 @@
     "description": "",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1262,14 +1047,7 @@
     "description": "",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1286,14 +1064,7 @@
     "description": "",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1310,14 +1081,7 @@
     "description": "",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1333,9 +1097,7 @@
     "name": "Pteranadon",
     "description": "The Pteranadon gains 3 levels when defending Chult.",
     "rarity": "C",
-    "attributes": [
-      "Flyer"
-    ],
+    "attributes": ["Flyer"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -1370,12 +1132,7 @@
     "description": "The first enemy ally played against the feyr in each battle is discarded immediately.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1392,14 +1149,7 @@
     "description": "",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1416,14 +1166,7 @@
     "description": "",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1440,14 +1183,7 @@
     "description": "This card and attached magical items and artifact are kept face down, and revealed only in battle.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1463,17 +1199,8 @@
     "name": "Drow Matron",
     "description": "The drow matron gains 3 levels when defending Menzoberranzan.",
     "rarity": "UC",
-    "attributes": [
-      "Elf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Elf"],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1489,21 +1216,8 @@
     "name": "Dracolich",
     "description": "Can use wizard spells. Undead. Flyer.",
     "rarity": "R",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d101",
-      "o101",
-      "d9",
-      "o9",
-      "d102",
-      "o102",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d101", "o101", "d9", "o9", "d102", "o102", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1519,17 +1233,8 @@
     "name": "Vasos Flameslayer",
     "description": "Vasos gains 3 levels when fighting monsters.",
     "rarity": "R",
-    "attributes": [
-      "Dwarf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Dwarf"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1546,14 +1251,7 @@
     "description": "Allisa gains 3 levels when fighting monsters.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1570,14 +1268,7 @@
     "description": "",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1593,17 +1284,8 @@
     "name": "Worden Ironfist",
     "description": "Worden gains 3 levels when fighting monsters.",
     "rarity": "R",
-    "attributes": [
-      "Dwarf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Dwarf"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1620,14 +1302,7 @@
     "description": "If Amarill is defeated, the player can pull one other champion from his discards and return it to his hand.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1644,14 +1319,7 @@
     "description": "Once in play, must attack on the player's turn, every turn, or be discarded.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1667,17 +1335,8 @@
     "name": "Dwarf of Earthfast",
     "description": "Gains 4 levels if the opposing champion is a monster.",
     "rarity": "C",
-    "attributes": [
-      "Dwarf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Dwarf"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1694,12 +1353,7 @@
     "description": "The Black Courser's level is 8 when fighting dragons or undead.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1732,17 +1386,8 @@
     "name": "Dagrande",
     "description": "",
     "rarity": "UC",
-    "attributes": [
-      "Dwarf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Dwarf"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1758,9 +1403,7 @@
     "name": "Mind Flayer",
     "description": "When played, the mind flayer can immediately shift one opposing ally to its own side for that round of battle. The ally loses 1 level.",
     "rarity": "R",
-    "attributes": [
-      "Underdark"
-    ],
+    "attributes": ["Underdark"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -1795,14 +1438,7 @@
     "description": "Flyer.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1836,14 +1472,7 @@
     "description": "Immune to offensive spells.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1877,14 +1506,7 @@
     "description": "This cleric gains 2 levels when attacking realms from outside the Forgotten Realms.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -1900,9 +1522,7 @@
     "name": "Airship",
     "description": "Destroys any two allies, chosen by this card's player.",
     "rarity": "UC",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -1919,9 +1539,7 @@
     "name": "Bad Omens",
     "description": "All allies and champions lose one level until the player's next turn.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -1938,9 +1556,7 @@
     "name": "Fortunate Omens",
     "description": "All allies gain 3 levels until the player's next turn.",
     "rarity": "C",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -1974,9 +1590,7 @@
     "name": "Dwarven Hammer",
     "description": "(Off)",
     "rarity": "R",
-    "attributes": [
-      "Weapon"
-    ],
+    "attributes": ["Weapon"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -1993,9 +1607,7 @@
     "name": "Staff of Striking",
     "description": "The bonus becomes +5 levels if attached to a cleric. (Off)",
     "rarity": "R",
-    "attributes": [
-      "Weapon"
-    ],
+    "attributes": ["Weapon"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2015,9 +1627,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -2031,9 +1641,7 @@
     "name": "Flameblade",
     "description": "(Off)",
     "rarity": "R",
-    "attributes": [
-      "Sword"
-    ],
+    "attributes": ["Sword"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2067,9 +1675,7 @@
     "name": "Cataclysm!",
     "description": "Destroys one realm of the player's choice; that realm is discarded.",
     "rarity": "UC",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2086,9 +1692,7 @@
     "name": "Good Fortune",
     "description": "The player of this card draws five cards immediately.",
     "rarity": "UC",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2105,9 +1709,7 @@
     "name": "Surprise Raid",
     "description": "This player's champion and allies are doubled in levels for one round of battle.",
     "rarity": "C",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2142,10 +1744,7 @@
     "description": "Any champion with the Viperhand can cast wizard spells. (Def)",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -2198,9 +1797,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -2214,9 +1811,7 @@
     "name": "Safe Harbor!",
     "description": "Every player can immediately rebuild one razed realm.",
     "rarity": "R",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2233,9 +1828,7 @@
     "name": "Labor of Legend",
     "description": "One razed realm is rebuilt by a champion from the player's pool; the champion is discarded.",
     "rarity": "C",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2286,15 +1879,8 @@
     "name": "The Free City of Greyhawk",
     "description": "Any champion defending Greyhawk can cast cleric and wizard spells.",
     "rarity": "R",
-    "attributes": [
-      "Coast"
-    ],
-    "supportIds": [
-      "d4",
-      "o4",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Coast"],
+    "supportIds": ["d4", "o4", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -2310,13 +1896,8 @@
     "name": "The Lands of Iuz",
     "description": "Any champion defending the Lands of Iuz can cast wizard spells. All defenders gain 3 levels if anyone has Iuz in play.",
     "rarity": "UC",
-    "attributes": [
-      "Coast"
-    ],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Coast"],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -2332,9 +1913,7 @@
     "name": "The Pomarj",
     "description": "A monster defending the Pomarj gains 3 levels.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2351,14 +1930,8 @@
     "name": "Hold of the Sea Princes",
     "description": "This realm can defend itself as a level 1 champion.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
-    "supportIds": [
-      1,
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Coast"],
+    "supportIds": [1, "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -2391,9 +1964,7 @@
     "name": "Blackmoor",
     "description": "All magical items and artifacts defending Blackmoor gain 2 levels.",
     "rarity": "UC",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2410,9 +1981,7 @@
     "name": "The Horned Society",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2429,9 +1998,7 @@
     "name": "The Wolf Nomads",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2483,10 +2050,7 @@
     "description": "Any champion defending Veluna can use cleric spells.",
     "rarity": "M",
     "attributes": [],
-    "supportIds": [
-      "d4",
-      "o4"
-    ],
+    "supportIds": ["d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -2502,9 +2066,7 @@
     "name": "Furyondy",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2572,9 +2134,7 @@
     "name": "Perrenland",
     "description": "",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2625,9 +2185,7 @@
     "name": "The Bright Desert",
     "description": "Cannot be attacked by heroes.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2661,9 +2219,7 @@
     "name": "The Bone March",
     "description": "Heroes cannot be played in defense of this realm.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2697,9 +2253,7 @@
     "name": "The Sea Barons",
     "description": "Any holding attached to the Great Kingdom also applies to this realm.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2717,10 +2271,7 @@
     "description": "Any champion can use cleric spells while defending Bissel.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      "d4",
-      "o4"
-    ],
+    "supportIds": ["d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -2736,9 +2287,7 @@
     "name": "The Scarlet Brotherhood",
     "description": "Player can eliminate one champion from any pool at the start of his turn. This realm is then razed.",
     "rarity": "UC",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2755,9 +2304,7 @@
     "name": "Irongate",
     "description": "Any defending hero gains 4 levels.",
     "rarity": "M",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2774,9 +2321,7 @@
     "name": "Principality of Ulek",
     "description": "",
     "rarity": "C",
-    "attributes": [
-      "Coast"
-    ],
+    "attributes": ["Coast"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -2862,14 +2407,7 @@
     "description": "The attached realm can defend itself as a level 5 hero.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -2886,10 +2424,7 @@
     "description": "Any champion defending the attached realm can cast cleric spells.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      "d4",
-      "o4"
-    ],
+    "supportIds": ["d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3007,9 +2542,7 @@
     "name": "Siege!",
     "description": "Razes the first realm of every player, regardless of special powers; if a player's first realm is already razed, he ignores this event.",
     "rarity": "UC",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -3095,14 +2628,7 @@
     "description": "Undead.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o102",
-      "d102"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "o102", "d102"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3204,14 +2730,7 @@
     "description": "Rary gains 3 levels when fighting a wizard and/or 3 levels when defending a realm with an attached holding.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3228,14 +2747,7 @@
     "description": "",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3251,17 +2763,8 @@
     "name": "Tysiln San",
     "description": "",
     "rarity": "UC",
-    "attributes": [
-      "Elf (drow)"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Elf (drow)"],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3278,16 +2781,7 @@
     "description": "Otto can cast both wizard and cleric spells.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d4",
-      "o4",
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d4", "o4", "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3304,14 +2798,7 @@
     "description": "Mika gains 3 levels when the opponent uses allies against him.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3327,19 +2814,8 @@
     "name": "Lolth, the Spider Queen",
     "description": "Lolth can cast both wizard and cleric spells. If Lolth is defeated, shuffle her back into the draw deck.",
     "rarity": "R",
-    "attributes": [
-      "Elf(drow)"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d4",
-      "o4",
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Elf(drow)"],
+    "supportIds": [1, 2, "d4", "o4", "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3356,14 +2832,7 @@
     "description": "Iuz can cast wizard spells. If defeated, Iuz forces one razed enemy realm to be discarded, or razes one realm.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3379,9 +2848,7 @@
     "name": "Mutiny!",
     "description": "No battles can be fought until the player's next turn. A battle in progress stops immediately with no victor; allies are discarded.",
     "rarity": "R",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -3416,14 +2883,7 @@
     "description": "Flyer.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3439,17 +2899,8 @@
     "name": "Kiara",
     "description": "Kiara can destroy one magical item being used against her. The affected item is discarded.",
     "rarity": "UC",
-    "attributes": [
-      "Halfling"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Halfling"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3466,14 +2917,7 @@
     "description": "If Hettman does not attack, at the end of his turn the player can randomly draw one card from another player's hand and discard it.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3523,9 +2967,7 @@
     "name": "Mist Wolf",
     "description": "No allies can be played until this player's next turn. Allies in play are discarded immediately.",
     "rarity": "R",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -3543,14 +2985,7 @@
     "description": "Flyer.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3566,17 +3001,8 @@
     "name": "Quagmiela the Dragon",
     "description": "Flyer.",
     "rarity": "UC",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3593,16 +3019,7 @@
     "description": "Undead. Seragrimm can only defend, but never attack.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18",
-      "o102",
-      "d102"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18", "o102", "d102"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3635,9 +3052,7 @@
     "name": "Berserk Fury!",
     "description": "All heroes gain 5 levels until the current player's next turn.",
     "rarity": "R",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -3655,14 +3070,7 @@
     "description": "The nomads gain 2 levels if Mika is in the player's pool.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3730,14 +3138,7 @@
     "description": "Thorvid gains 3 levels when fighting monsters, undead, or flyers.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3753,9 +3154,7 @@
     "name": "Fairy Madness",
     "description": "Fairy madness affects one champion (not currently in battle). That champion is turned face down and cannot be used until after its next turn.",
     "rarity": "R",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -3773,14 +3172,7 @@
     "description": "",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3796,19 +3188,8 @@
     "name": "Young Gold Dragon",
     "description": "Flyer. The Dragon can use wizard spells.",
     "rarity": "C",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d101",
-      "o101",
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d101", "o101", "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3825,14 +3206,7 @@
     "description": "If only one arch-druid is in play, clerics cannot cast spells without his permission.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3866,12 +3240,7 @@
     "description": "Flyer.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3921,20 +3290,8 @@
     "name": "Winged Horror",
     "description": "Flyer.",
     "rarity": "UC",
-    "attributes": [
-      "Dragon",
-      "Undead"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d101",
-      "o101",
-      "d9",
-      "o9",
-      "d102",
-      "o102"
-    ],
+    "attributes": ["Dragon", "Undead"],
+    "supportIds": [1, 2, "d101", "o101", "d9", "o9", "d102", "o102"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -3968,14 +3325,7 @@
     "description": "",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -4059,9 +3409,7 @@
     "name": "Transformation!",
     "description": "All players must discard their hands immediately and draw five cards.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4078,9 +3426,7 @@
     "name": "Enslaved!",
     "description": "All players must discard one champion from their pool.",
     "rarity": "UC",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4097,9 +3443,7 @@
     "name": "Siege",
     "description": "All players must discard one realm from their front rank. The next realm played must go into the front position.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4116,9 +3460,7 @@
     "name": "Bribery!",
     "description": "Play immediately after champions are selected. The bribed champion returns to the owner's pool and that player must select another champion or lose the battle.",
     "rarity": "R",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4135,9 +3477,7 @@
     "name": "Charge!",
     "description": "All of this player's champions gain 3 levels until the end of the player's next turn.",
     "rarity": "UC",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4154,9 +3494,7 @@
     "name": "Magic Sword",
     "description": "+5 vs. undead. (Off)",
     "rarity": "C",
-    "attributes": [
-      "Sword"
-    ],
+    "attributes": ["Sword"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4176,9 +3514,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -4226,9 +3562,7 @@
     "name": "Fast Talking!",
     "description": "Everyone is convinced all artifacts and magical items in play no longer work. All players discard all magical items and artifacts.",
     "rarity": "UC",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4248,9 +3582,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -4267,9 +3599,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -4283,9 +3613,7 @@
     "name": "Barbarian Raiders!",
     "description": "All players must discard one realm, either from their hand or from the table.",
     "rarity": "R",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4302,9 +3630,7 @@
     "name": "Treasure Fleet",
     "description": "All players draw three cards.",
     "rarity": "R",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -4458,11 +3784,7 @@
     "description": "Allies cannot be played to attack Urik. Urik can defend itself as a level 4 champion.",
     "rarity": "M",
     "attributes": [],
-    "supportIds": [
-      1,
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -4479,11 +3801,7 @@
     "description": "Owner draws one extra card per turn. Tyr can defend itself as a level 5 hero.",
     "rarity": "M",
     "attributes": [],
-    "supportIds": [
-      1,
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -4500,11 +3818,7 @@
     "description": "The first ally to attack Gulg itself each battle is destroyed. Gulg can defend itself as a level 7 hero.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -4538,11 +3852,7 @@
     "description": "All attacking allies are halved (round up). Balic can defend itself as a level 4 hero.",
     "rarity": "M",
     "attributes": [],
-    "supportIds": [
-      1,
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -4593,14 +3903,7 @@
     "description": "The attached realm can use any ally as a champion. The ally is still discarded after the battle.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -4617,10 +3920,7 @@
     "description": "Any champion defending the attached realm can cast cleric spells.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      "d4",
-      "o4"
-    ],
+    "supportIds": ["d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -4943,10 +4243,7 @@
     "description": "The attached realm can cast cleric spells.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      "d4",
-      "o4"
-    ],
+    "supportIds": ["d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -4979,9 +4276,7 @@
     "name": "Assassins",
     "description": "If this card is on the losing side of the battle, it destroys one champion anywhere in play chosen by the losing player.",
     "rarity": "UC",
-    "attributes": [
-      "Halfling"
-    ],
+    "attributes": ["Halfling"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5015,9 +4310,7 @@
     "name": "War Band",
     "description": "",
     "rarity": "C",
-    "attributes": [
-      "Orc"
-    ],
+    "attributes": ["Orc"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5051,9 +4344,7 @@
     "name": "Nomad Mercenaries",
     "description": "",
     "rarity": "C",
-    "attributes": [
-      "Dwarf"
-    ],
+    "attributes": ["Dwarf"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5087,17 +4378,8 @@
     "name": "Rikus",
     "description": "Rikus can attack twice; if he wins his first round, he can attack again with new allies.",
     "rarity": "UC",
-    "attributes": [
-      "Dwarf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Dwarf"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5113,17 +4395,8 @@
     "name": "Neeva",
     "description": "",
     "rarity": "R",
-    "attributes": [
-      "Flyer"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["Flyer"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5140,14 +4413,7 @@
     "description": "",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5163,17 +4429,8 @@
     "name": "Agis",
     "description": "When attacking, can psionically destroy one monster in the defender's pool before battle begins.",
     "rarity": "UC",
-    "attributes": [
-      "(Off)"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["(Off)"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5189,17 +4446,8 @@
     "name": "Anavias",
     "description": "When attacking, psionically negates the power of all enemy holdings for the duration of battle.",
     "rarity": "R",
-    "attributes": [
-      "(Off)"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["(Off)"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5215,17 +4463,8 @@
     "name": "Vaerhirmana",
     "description": "",
     "rarity": "R",
-    "attributes": [
-      "Half-Elf"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Half-Elf"],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5242,14 +4481,7 @@
     "description": "",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5266,14 +4498,7 @@
     "description": "",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5290,14 +4515,7 @@
     "description": "",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5313,17 +4531,8 @@
     "name": "Chividal",
     "description": "Chividal can psionically destroy one opposing ally at any point during the round.",
     "rarity": "R",
-    "attributes": [
-      "(Off) Halfling"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["(Off) Halfling"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5340,14 +4549,7 @@
     "description": "",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5363,9 +4565,7 @@
     "name": "Rowan",
     "description": "",
     "rarity": "UC",
-    "attributes": [
-      "Elf"
-    ],
+    "attributes": ["Elf"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5383,14 +4583,7 @@
     "description": "",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5457,9 +4650,7 @@
     "name": "Galek",
     "description": "",
     "rarity": "C",
-    "attributes": [
-      "Half-Elf"
-    ],
+    "attributes": ["Half-Elf"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5476,9 +4667,7 @@
     "name": "Wind Dancers",
     "description": "All flyers in play are destroyed immediately.",
     "rarity": "UC",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5495,9 +4684,7 @@
     "name": "Water Hunters",
     "description": "All undead in play are destroyed immediately.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5514,9 +4701,7 @@
     "name": "Silver Hands",
     "description": "All champions killed in the last battle are restored to the players' pools. Play only after a battle is completely resolved.",
     "rarity": "UC",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5533,9 +4718,7 @@
     "name": "Sky Singers",
     "description": "Destroys all magical items in play.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5552,9 +4735,7 @@
     "name": "Silt Stalkers",
     "description": "",
     "rarity": "C",
-    "attributes": [
-      "Elf"
-    ],
+    "attributes": ["Elf"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5571,9 +4752,7 @@
     "name": "Night Runners",
     "description": "",
     "rarity": "UC",
-    "attributes": [
-      "Elf"
-    ],
+    "attributes": ["Elf"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5608,12 +4787,7 @@
     "description": "Enemy allies cannot be used against this fiend.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5646,15 +4820,8 @@
     "name": "Mul Savage",
     "description": "",
     "rarity": "R",
-    "attributes": [
-      "Dwarf(mul)"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "attributes": ["Dwarf(mul)"],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5721,9 +4888,7 @@
     "name": "Spirit of the land",
     "description": "Prevents one Dark Sun realm or holding from being razed or discarded, or restores one razed realm from any world. An attacker gets no spoils of victory and the battle is over.",
     "rarity": "R",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5876,9 +5041,7 @@
     "name": "Foucault",
     "description": "",
     "rarity": "UC",
-    "attributes": [
-      "Elf"
-    ],
+    "attributes": ["Elf"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -5896,12 +5059,7 @@
     "description": "",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5918,14 +5076,7 @@
     "description": "Destroys one magical item held by the opposing champion at any time during the battle round.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5941,17 +5092,8 @@
     "name": "Dlasva",
     "description": "Dlasva can psionically destroy one opposing ally during a round of battle.",
     "rarity": "UC",
-    "attributes": [
-      "(Off)"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "attributes": ["(Off)"],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -5968,14 +5110,7 @@
     "description": "If Tithian attacks and wins a round of battle, the defending realm is razed immediately.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6009,14 +5144,7 @@
     "description": "If the defiler casts one or more spells, one friendly realm is razed or one friendly holding is shuffled back into the draw pile.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6033,16 +5161,7 @@
     "description": "Can cast wizard spells.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d101",
-      "o101",
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d101", "o101", "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6058,21 +5177,8 @@
     "name": "Borys",
     "description": "Can cast wizard and cleric spells.",
     "rarity": "R",
-    "attributes": [
-      "Dragon, Flyer"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d4",
-      "o4",
-      "d101",
-      "o101",
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Dragon, Flyer"],
+    "supportIds": [1, 2, "d4", "o4", "d101", "o101", "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6089,14 +5195,7 @@
     "description": "",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6197,9 +5296,7 @@
     "name": "Treasure",
     "description": "All monsters are bribed to desert; discard all monsters in battle or in pools.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -6318,9 +5415,7 @@
     "name": "The Caravan",
     "description": "Play only between two player's turns. The player of this event can take a turn immediately. Afterward, play resumes where it left off.",
     "rarity": "C",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -6337,13 +5432,8 @@
     "name": "The Necklace",
     "description": "Allows the attached champion to cast wizard spells.",
     "rarity": "UC",
-    "attributes": [
-      "(Def)"
-    ],
-    "supportIds": [
-      "d19",
-      "o19"
-    ],
+    "attributes": ["(Def)"],
+    "supportIds": ["d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6360,14 +5450,7 @@
     "description": "The elemental cleric is immune to offensive wizard spells.",
     "rarity": "C",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6401,18 +5484,7 @@
     "description": "Can use cleric or wizard spells.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d4",
-      "o4",
-      "d9",
-      "o9",
-      "d18",
-      "o18",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d4", "o4", "d9", "o9", "d18", "o18", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6446,14 +5518,7 @@
     "description": "The desert warrior's first ally each round is considered a +4, regardless of the ally's actual level.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6470,14 +5535,7 @@
     "description": "The desert warrior's first ally each round is considered a +3, regardless of the ally's actual level.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6494,14 +5552,7 @@
     "description": "All allies played on the desert warrior gain an additional +1.",
     "rarity": "R",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6552,12 +5603,7 @@
     "description": "The opponent cannot use allies for defense or offense.",
     "rarity": "UC",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -6576,9 +5622,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6595,9 +5639,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6614,10 +5656,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3,
-      4
-    ],
+    "castPhases": [3, 4],
     "weight": 1,
     "effects": []
   },
@@ -6634,9 +5673,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6653,9 +5690,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6672,9 +5707,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6691,9 +5724,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6710,9 +5741,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6729,9 +5758,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6748,9 +5775,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6767,9 +5792,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6786,9 +5809,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6805,9 +5826,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6824,9 +5843,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6843,9 +5860,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6862,10 +5877,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      3,
-      4
-    ],
+    "castPhases": [3, 4],
     "weight": 1,
     "effects": []
   },
@@ -6882,9 +5894,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6901,9 +5911,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3
-    ],
+    "castPhases": [3],
     "weight": 1,
     "effects": []
   },
@@ -6920,9 +5928,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6939,9 +5945,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6958,9 +5962,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6977,9 +5979,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -6996,9 +5996,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7015,9 +6013,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7034,9 +6030,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7053,9 +6047,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7072,9 +6064,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7091,10 +6081,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      3,
-      4
-    ],
+    "castPhases": [3, 4],
     "weight": 1,
     "effects": []
   },
@@ -7111,9 +6098,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7130,9 +6115,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7149,9 +6132,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7168,9 +6149,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3
-    ],
+    "castPhases": [3],
     "weight": 1,
     "effects": []
   },
@@ -7187,9 +6166,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7206,9 +6183,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7225,9 +6200,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7244,10 +6217,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      3,
-      5
-    ],
+    "castPhases": [3, 5],
     "weight": 1,
     "effects": []
   },
@@ -7264,9 +6234,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7283,9 +6251,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7302,9 +6268,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7318,14 +6282,10 @@
     "name": "Invisibility to Undead",
     "description": "This champion ignores undead opponents.",
     "rarity": "C",
-    "attributes": [
-      "(Def)"
-    ],
+    "attributes": ["(Def)"],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7342,9 +6302,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3
-    ],
+    "castPhases": [3],
     "weight": 1,
     "effects": []
   },
@@ -7361,9 +6319,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7380,9 +6336,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7399,9 +6353,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7418,9 +6370,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7437,9 +6387,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7453,9 +6401,7 @@
     "name": "Wind of Disenchantment",
     "description": "An anti-magic storm sweeps across the cosmos, destroying all magical items in play.",
     "rarity": "R",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -7475,10 +6421,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3,
-      4
-    ],
+    "castPhases": [3, 4],
     "weight": 1,
     "effects": []
   },
@@ -7495,9 +6438,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7511,9 +6452,7 @@
     "name": "Ice Storm",
     "description": "Destroys all champions and allies of level 4 or less in play anywhere.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -7533,9 +6472,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7549,9 +6486,7 @@
     "name": "Solid Fog",
     "description": "Unearthly fog prevents all attacks against all players until this player's next turn.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -7571,9 +6506,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7590,9 +6523,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7609,9 +6540,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7628,9 +6557,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7644,9 +6571,7 @@
     "name": "Faithful Hound",
     "description": "Only flyers can attack any realm until the player's next turn.",
     "rarity": "C",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -7666,9 +6591,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7685,9 +6608,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7704,9 +6625,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7723,9 +6642,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3
-    ],
+    "castPhases": [3],
     "weight": 1,
     "effects": []
   },
@@ -7742,10 +6659,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3,
-      4
-    ],
+    "castPhases": [3, 4],
     "weight": 1,
     "effects": []
   },
@@ -7762,9 +6676,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3
-    ],
+    "castPhases": [3],
     "weight": 1,
     "effects": []
   },
@@ -7781,9 +6693,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3
-    ],
+    "castPhases": [3],
     "weight": 1,
     "effects": []
   },
@@ -7800,10 +6710,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3,
-      4
-    ],
+    "castPhases": [3, 4],
     "weight": 1,
     "effects": []
   },
@@ -7820,9 +6727,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7839,9 +6744,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -7858,10 +6761,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "defensive",
-    "castPhases": [
-      3,
-      4
-    ],
+    "castPhases": [3, 4],
     "weight": 1,
     "effects": []
   },
@@ -7875,9 +6775,7 @@
     "name": "Ancient Curse",
     "description": "Choose one champion with an attached artifact or magical item to be killed immediately. Discard the champion and his possessions.",
     "rarity": "R",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -7894,9 +6792,7 @@
     "name": "Calm",
     "description": "This magical calm undoes the harmful effect of an event, but only for the player of this card.",
     "rarity": "C",
-    "attributes": [
-      "(Helpful)"
-    ],
+    "attributes": ["(Helpful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -7913,9 +6809,7 @@
     "name": "Discovery of Spellfire",
     "description": "The user can examine all other player's hands and discard one card from each.",
     "rarity": "VR",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -7933,14 +6827,7 @@
     "description": "Attach this item to an ally from your hand. The ally becomes a champion (hero) until discarded for any reason. Its level is unchanged. (Def)",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -7956,9 +6843,7 @@
     "name": "Traitor",
     "description": "One ally of this player's choice switches sides for the duration of this round.",
     "rarity": "VR",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -8012,9 +6897,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      4
-    ],
+    "castPhases": [4],
     "weight": 1,
     "effects": []
   },
@@ -8046,12 +6929,7 @@
     "description": "The Living Scroll defeats a hero or cleric automatically. But it is automatically defeated by a wizard or monster.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8135,9 +7013,7 @@
     "name": "Map of Life",
     "description": "No player can play a realm or rebuild a realm until this player's next turn.",
     "rarity": "VR",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -8154,9 +7030,7 @@
     "name": "Supernatural Chill",
     "description": "Unnatural winter strips 2 levels from every champion and ally until this player's next turn. Any card reduced to level 0 is discarded immediately.",
     "rarity": "VR",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -8190,9 +7064,7 @@
     "name": "Pit Trap!",
     "description": "Traps a winning champion so a realm is not razed. The champion is discarded as if he had lost the battle.",
     "rarity": "VR",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -8209,15 +7081,8 @@
     "name": "Mind Flayer Lord",
     "description": "The illithid immediately destroys all opposing allies of level 3 or less. The illithid can only be joined by allies of at least level 4.",
     "rarity": "VR",
-    "attributes": [
-      "Underdark"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "attributes": ["Underdark"],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8234,12 +7099,7 @@
     "description": "If the aurak is defeated, it also forces the champion who killed it to be discarded.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8273,14 +7133,7 @@
     "description": "The champion with this chest can fly, and can function as a hero, wizard, cleric, or monster; the player chooses which type of champion before each round. (Def)",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      "d4",
-      "o4",
-      "d18",
-      "o18",
-      "d19",
-      "o19"
-    ],
+    "supportIds": ["d4", "o4", "d18", "o18", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8297,12 +7150,7 @@
     "description": "If the opposing champion loses in combat, his attachments are transferred to the cube. It receives all bonuses from the items while under its control. When the cube is defeated, the cards go to their owner's discard pile.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8318,17 +7166,8 @@
     "name": "Gatekeeper",
     "description": "Immune to events and offensive spells. Can be sent to the Abyss to send home all champions (champions return to the player's hand).",
     "rarity": "VR",
-    "attributes": [
-      "Undead"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o102",
-      "d102"
-    ],
+    "attributes": ["Undead"],
+    "supportIds": [1, 2, "d9", "o9", "o102", "d102"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8379,14 +7218,7 @@
     "description": "Undead. Flyer. If played between 6 PM and 6 AM his level rises to 10. Spiritual kin to the Gib Htimsen, this vampire automatically defeats psionicists.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o102",
-      "d102"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "o102", "d102"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8488,16 +7320,7 @@
     "description": "Can cast wizard and cleric spells and is immune to offensive magical items. Prismal and his allies can attack any Forgotten Realms realm, regardless of position or powers, and he gains two spoils of victory if he razes it.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d4",
-      "o4",
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d4", "o4", "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8514,9 +7337,7 @@
     "description": "Malatra can defend itself as a level 6 monster. It cannot be attacked by any champion or ally that is a swimmer. The level of attacking champions and allies that are not flyers is halved.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1
-    ],
+    "supportIds": [1],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8533,14 +7354,7 @@
     "description": "His allure and charm are beyond compare, and all female heroes, wizards, and clerics who face him in battle return to their pools, defeated. He gains 3 levels when defending a Forgotten Realms realm.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8557,16 +7371,7 @@
     "description": "Can cast wizard and cleric spells and is immune to all spells cast in phase 3. Phase 4 spells cast by the witch doctor are at twice the level bonus.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d4",
-      "o4",
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d4", "o4", "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8583,14 +7388,7 @@
     "description": "Bagoomba is a figurehead of great charisma. When defending, the levels of his allies are doubled, and opposing allies of level 3 or less cannot be played.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8626,9 +7424,7 @@
     "attributes": [],
     "supportIds": [],
     "spellNature": "offensive",
-    "castPhases": [
-      3
-    ],
+    "castPhases": [3],
     "weight": 1,
     "effects": []
   },
@@ -8643,14 +7439,7 @@
     "description": "Starshine and her allies can attack any realm regardless of its position or powers. If defeated, she can be placed beneath a realm to duplicate the effects of any opposing holding in play.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8684,14 +7473,7 @@
     "description": "Automatically defeats any wizard played against him but is instantly defeated by an undead champion. If defeated in battle, all wizards of base level 7 or higher are discarded from every player's pool.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8708,14 +7490,7 @@
     "description": "Sakornia gains 3 additional levels when using an artifact.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8731,17 +7506,8 @@
     "name": "Edormira, Red Dragon",
     "description": "Flyer. No monster can defend against Edormira.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8758,14 +7524,7 @@
     "description": "Gloriana can cause a gust of wind to blow all flyers out of battle; no flyers can be played against her.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8782,16 +7541,7 @@
     "description": "Gib can fight as either a wizard (5) or a hero (7); the player must choose at the start of the round.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8807,17 +7557,8 @@
     "name": "Neirgral, Green Dragon",
     "description": "Flyer. Neirgral is so frightening that no allies of level 4 or less can be played on either side.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8833,17 +7574,8 @@
     "name": "Dagaronzie, Green Dragon",
     "description": "Flyer. Dagaronzie can instantly destroy any two allies played against it in a round of battle.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8860,14 +7592,7 @@
     "description": "If any allies are played with Fejuelsae, she drops to level 7.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8883,9 +7608,7 @@
     "name": "Dragon Rage!",
     "description": "All creatures fear the dragon rage! Every player must discard one champion from his hand or pool.",
     "rarity": "VR",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -8902,17 +7625,8 @@
     "name": "Shalbaal, Red Dragon",
     "description": "Flyer. Every time Shalbaal wins a round of battle, the player randomly draws one card from the defeated player's hand and discards it. The player must laugh while doing this.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8929,14 +7643,7 @@
     "description": "Delsenora is also an oracle. She can cancel the effect of one event card for this player, but must be discarded afterward.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8952,18 +7659,8 @@
     "name": "Gib Evets",
     "description": "This creature is so magic-resistant that magical items and spells have no effect against it; only artifacts can hurt it.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon",
-      "Flyer"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon", "Flyer"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -8980,14 +7677,7 @@
     "description": "Dori gains 2 levels when fighting a cleric or a wizard.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9004,12 +7694,7 @@
     "description": "The nether monstrosity is immune to all spells, events, magical items, and artifacts.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9"
-    ],
+    "supportIds": [1, 2, "d9", "o9"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9026,14 +7711,7 @@
     "description": "Darbee gains 4 levels when fighting a monster.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9049,17 +7727,8 @@
     "name": "Aurum, Gold Dragon",
     "description": "Flyer. Aurum gains 1 extra level per friendly ally (in addition to the ally's bonus).",
     "rarity": "VR",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9076,14 +7745,7 @@
     "description": "Every time Halcyon wins a round of battle, the player can return one card from the discard pile to his hand.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9099,18 +7761,8 @@
     "name": "Stryck",
     "description": "When Stryck attacks, she gets to pick her opponent from those champions in the defender's pool.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon",
-      "Flyer"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon", "Flyer"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9127,14 +7779,7 @@
     "description": "Alicia's protective spells give her complete immunity against magical items; opponents' magical items have no effect.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9150,18 +7795,8 @@
     "name": "Red Zeb",
     "description": "No allies of level 3 or less can be played against the horrid Zeb.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon",
-      "Flyer"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon", "Flyer"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9177,9 +7812,7 @@
     "name": "The Avatar",
     "description": "The Avatar instantly destroys all undead champions and/or allies.",
     "rarity": "VR",
-    "attributes": [
-      "(Harmful)"
-    ],
+    "attributes": ["(Harmful)"],
     "supportIds": [],
     "spellNature": null,
     "castPhases": [],
@@ -9196,17 +7829,8 @@
     "name": "Smolder, Red Dragon",
     "description": "Flyer. If Smolder loses a round of battle, he destroys one of his owner's holdings for revenge.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9223,14 +7847,7 @@
     "description": "All monsters are awed by her beauty. Colleen wins the round automatically if the opposing champion is a monster.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d18",
-      "o18"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d18", "o18"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9246,17 +7863,8 @@
     "name": "Ember, the Red Dragon",
     "description": "Flyer. If Ember is defeated, the victor can draw two spoils of victory cards (the dragon's hoard).",
     "rarity": "VR",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "o101",
-      "d101"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [1, 2, "d9", "o9", "o101", "d101"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9273,14 +7881,7 @@
     "description": "Andra carries an enchanted staff that prevents any undead allies from being played against her.",
     "rarity": "VR",
     "attributes": [],
-    "supportIds": [
-      1,
-      2,
-      "d9",
-      "o9",
-      "d4",
-      "o4"
-    ],
+    "supportIds": [1, 2, "d9", "o9", "d4", "o4"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
@@ -9296,18 +7897,8 @@
     "name": "Karm, Black Dragon",
     "description": "Flyer. Karm can cast wizard spells but is excessively proud; no allies can be played to aid him.",
     "rarity": "VR",
-    "attributes": [
-      "Dragon"
-    ],
-    "supportIds": [
-      2,
-      "d101",
-      "o101",
-      "d9",
-      "o9",
-      "d19",
-      "o19"
-    ],
+    "attributes": ["Dragon"],
+    "supportIds": [2, "d101", "o101", "d9", "o9", "d19", "o19"],
     "spellNature": null,
     "castPhases": [],
     "weight": 1,

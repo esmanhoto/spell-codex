@@ -34,13 +34,13 @@ export function CardTooltip({
       {children}
       {show && (
         <div className={`${styles.tooltip} ${placement()}`}>
-          {list.map(c => (
+          {list.map((c) => (
             <div key={c.instanceId} className={styles.item}>
               <div className={styles.icon}>
                 <img
                   src={cardImageUrl(c.setId, c.cardNumber)}
                   alt={c.name}
-                  onError={e => {
+                  onError={(e) => {
                     e.currentTarget.style.display = "none"
                     const wrap = e.currentTarget.parentElement
                     if (wrap) wrap.style.display = "none"

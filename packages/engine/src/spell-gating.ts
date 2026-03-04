@@ -48,7 +48,9 @@ export function getCastPhases(cardLike: CardLike): CastPhase[] {
   const card = toCardData(cardLike)
   if (!isSpellType(card.typeId)) return []
   if ((card.castPhases?.length ?? 0) > 0) {
-    return [...new Set(card.castPhases!.filter((n): n is CastPhase => n === 3 || n === 4 || n === 5))]
+    return [
+      ...new Set(card.castPhases!.filter((n): n is CastPhase => n === 3 || n === 4 || n === 5)),
+    ]
   }
 
   const match = getSpellTag(card)
@@ -56,7 +58,7 @@ export function getCastPhases(cardLike: CardLike): CastPhase[] {
 
   const phases = [match[2], match[3]]
     .filter((v): v is string => v != null && v !== "")
-    .map(v => Number(v))
+    .map((v) => Number(v))
     .filter((n): n is CastPhase => n === 3 || n === 4 || n === 5)
 
   if (phases.length === 0) return [4]

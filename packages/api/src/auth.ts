@@ -41,5 +41,5 @@ export const auth = createMiddleware<{ Variables: { userId: string } }>(
     }
 
     return c.json({ error: "Missing Authorization bearer token" }, 401)
-  }
+  },
 )

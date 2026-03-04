@@ -38,7 +38,9 @@ const AuthContext = createContext<AuthContextType>({
 })
 
 function consumeTokenFromUrlHash(): string | null {
-  const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash
+  const hash = window.location.hash.startsWith("#")
+    ? window.location.hash.slice(1)
+    : window.location.hash
   if (!hash) return null
   const params = new URLSearchParams(hash)
   const token = params.get("access_token")
@@ -57,7 +59,7 @@ async function fetchSupabaseUser(token: string): Promise<{ id: string } | null> 
     },
   })
   if (!response.ok) return null
-  const body = await response.json() as { id?: unknown }
+  const body = (await response.json()) as { id?: unknown }
   if (typeof body.id !== "string" || body.id.length === 0) return null
   return { id: body.id }
 }
@@ -128,22 +130,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [bypassUserId])
 
-  async function signInWithPassword(email: string, password: string): Promise<{ error: string | null }> {
+  async function signInWithPassword(
+    email: string,
+    password: string,
+  ): Promise<{ error: string | null }> {
     if (BYPASS) return { error: null }
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       return { error: "Supabase client not configured" }
     }
 
-    const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/auth/v1/token?grant_type=password`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
+    const response = await fetch(
+      `${SUPABASE_URL.replace(/\/$/, "")}/auth/v1/token?grant_type=password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ email, password }),
       },
-      body: JSON.stringify({ email, password }),
-    })
+    )
 
-    const body = await response.json() as {
+    const body = (await response.json()) as {
       access_token?: unknown
       user?: { id?: unknown }
       msg?: unknown
@@ -207,23 +215,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIdentity({ userId, accessToken: null })
   }
 
-  const value = useMemo<AuthContextType>(() => ({
-    isLoading,
-    isAuthenticated: identity != null,
-    identity,
-    bypass: BYPASS,
-    configError,
-    signInWithPassword,
-    signInWithGoogle,
-    signOut,
-    setBypassUserId,
-  }), [configError, identity, isLoading])
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextType>(
+    () => ({
+      isLoading,
+      isAuthenticated: identity != null,
+      identity,
+      bypass: BYPASS,
+      configError,
+      signInWithPassword,
+      signInWithGoogle,
+      signOut,
+      setBypassUserId,
+    }),
+    [configError, identity, isLoading],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

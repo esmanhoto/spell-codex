@@ -5,20 +5,22 @@ import type { CardData, GameConfig } from "../src/types.ts"
 // Real card data is in packages/data/cards/*.json
 
 export const REALM_FR: CardData = {
-  setId: "1st", cardNumber: 1,
+  setId: "1st",
+  cardNumber: 1,
   name: "Waterdeep",
-  typeId: 13,      // Realm
-  worldId: 1,      // Forgotten Realms
+  typeId: 13, // Realm
+  worldId: 1, // Forgotten Realms
   isAvatar: false,
   level: null,
   description: "Any champion can use wizard spells when defending Waterdeep.",
   attributes: ["Coast"],
-  supportIds: ["d19", "o19"],  // Wizard spells when defending
+  supportIds: ["d19", "o19"], // Wizard spells when defending
   effects: [],
 }
 
 export const REALM_GENERIC: CardData = {
-  setId: "1st", cardNumber: 50,
+  setId: "1st",
+  cardNumber: 50,
   name: "Village",
   typeId: 13,
   worldId: 0,
@@ -31,10 +33,11 @@ export const REALM_GENERIC: CardData = {
 }
 
 export const CHAMPION_CLERIC_FR: CardData = {
-  setId: "1st", cardNumber: 10,
+  setId: "1st",
+  cardNumber: 10,
   name: "Alustriel",
-  typeId: 5,       // Cleric
-  worldId: 1,      // Forgotten Realms
+  typeId: 5, // Cleric
+  worldId: 1, // Forgotten Realms
   isAvatar: false,
   level: 6,
   description: "Alustriel can use cleric spells and magical items.",
@@ -44,9 +47,10 @@ export const CHAMPION_CLERIC_FR: CardData = {
 }
 
 export const CHAMPION_WIZARD_FR: CardData = {
-  setId: "1st", cardNumber: 20,
+  setId: "1st",
+  cardNumber: 20,
   name: "Elminster",
-  typeId: 20,      // Wizard
+  typeId: 20, // Wizard
   worldId: 1,
   isAvatar: false,
   level: 8,
@@ -57,9 +61,10 @@ export const CHAMPION_WIZARD_FR: CardData = {
 }
 
 export const CHAMPION_HERO_GENERIC: CardData = {
-  setId: "1st", cardNumber: 30,
+  setId: "1st",
+  cardNumber: 30,
   name: "Sir Roland",
-  typeId: 7,       // Hero
+  typeId: 7, // Hero
   worldId: 0,
   isAvatar: false,
   level: 5,
@@ -70,7 +75,8 @@ export const CHAMPION_HERO_GENERIC: CardData = {
 }
 
 export const ALLY_PLUS4: CardData = {
-  setId: "1st", cardNumber: 100,
+  setId: "1st",
+  cardNumber: 100,
   name: "Dwarven Axemen",
   typeId: 1,
   worldId: 0,
@@ -83,7 +89,8 @@ export const ALLY_PLUS4: CardData = {
 }
 
 export const ALLY_SLASH: CardData = {
-  setId: "1st", cardNumber: 101,
+  setId: "1st",
+  cardNumber: 101,
   name: "Griffin Riders",
   typeId: 1,
   worldId: 0,
@@ -96,7 +103,8 @@ export const ALLY_SLASH: CardData = {
 }
 
 export const MAGICAL_ITEM_PLUS2_PLUS1: CardData = {
-  setId: "1st", cardNumber: 200,
+  setId: "1st",
+  cardNumber: 200,
   name: "Sword of Valor",
   typeId: 9,
   worldId: 0,
@@ -109,9 +117,10 @@ export const MAGICAL_ITEM_PLUS2_PLUS1: CardData = {
 }
 
 export const ARTIFACT_FR: CardData = {
-  setId: "1st", cardNumber: 300,
+  setId: "1st",
+  cardNumber: 300,
   name: "Hand of Vecna",
-  typeId: 2,       // Artifact — subject to Rule of Cosmos
+  typeId: 2, // Artifact — subject to Rule of Cosmos
   worldId: 1,
   isAvatar: false,
   level: null,
@@ -122,9 +131,10 @@ export const ARTIFACT_FR: CardData = {
 }
 
 export const HOLDING_FR: CardData = {
-  setId: "1st", cardNumber: 400,
+  setId: "1st",
+  cardNumber: 400,
   name: "Tower of High Sorcery",
-  typeId: 8,       // Holding — subject to Rule of Cosmos
+  typeId: 8, // Holding — subject to Rule of Cosmos
   worldId: 1,
   isAvatar: false,
   level: null,
@@ -135,7 +145,8 @@ export const HOLDING_FR: CardData = {
 }
 
 export const WIZARD_SPELL: CardData = {
-  setId: "1st", cardNumber: 500,
+  setId: "1st",
+  cardNumber: 500,
   name: "Fireball",
   typeId: 19,
   worldId: 0,
@@ -148,9 +159,10 @@ export const WIZARD_SPELL: CardData = {
 }
 
 export const EVENT_CARD: CardData = {
-  setId: "1st", cardNumber: 510,
+  setId: "1st",
+  cardNumber: 510,
   name: "Magical Storm",
-  typeId: 6,       // Event — goes to Abyss when discarded
+  typeId: 6, // Event — goes to Abyss when discarded
   worldId: 0,
   isAvatar: false,
   level: null,
@@ -177,16 +189,26 @@ export function makeDeck(cards: CardData[], total = 55): CardData[] {
 }
 
 export const DECK_P1: CardData[] = makeDeck([
-  REALM_FR, REALM_GENERIC,
-  CHAMPION_CLERIC_FR, CHAMPION_WIZARD_FR, CHAMPION_HERO_GENERIC,
-  ALLY_PLUS4, ALLY_SLASH,
-  MAGICAL_ITEM_PLUS2_PLUS1, WIZARD_SPELL, EVENT_CARD,
+  REALM_FR,
+  REALM_GENERIC,
+  CHAMPION_CLERIC_FR,
+  CHAMPION_WIZARD_FR,
+  CHAMPION_HERO_GENERIC,
+  ALLY_PLUS4,
+  ALLY_SLASH,
+  MAGICAL_ITEM_PLUS2_PLUS1,
+  WIZARD_SPELL,
+  EVENT_CARD,
 ])
 
 export const DECK_P2: CardData[] = makeDeck([
-  REALM_GENERIC, REALM_FR,
-  CHAMPION_HERO_GENERIC, CHAMPION_CLERIC_FR,
-  ALLY_PLUS4, MAGICAL_ITEM_PLUS2_PLUS1, WIZARD_SPELL,
+  REALM_GENERIC,
+  REALM_FR,
+  CHAMPION_HERO_GENERIC,
+  CHAMPION_CLERIC_FR,
+  ALLY_PLUS4,
+  MAGICAL_ITEM_PLUS2_PLUS1,
+  WIZARD_SPELL,
 ])
 
 export const DEFAULT_CONFIG: GameConfig = {

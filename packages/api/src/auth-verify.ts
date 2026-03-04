@@ -29,7 +29,7 @@ export async function verifySupabaseAccessToken(token: string): Promise<string> 
   if (!response.ok) {
     throw new Error("Invalid access token")
   }
-  const user = await response.json() as { id?: unknown }
+  const user = (await response.json()) as { id?: unknown }
   if (typeof user.id !== "string" || user.id.length === 0) {
     throw new Error("Missing user id in token payload")
   }

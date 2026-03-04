@@ -25,7 +25,9 @@ describe("initGame", () => {
       gameId: DEFAULT_CONFIG.gameId,
       players: DEFAULT_CONFIG.players,
       seed: DEFAULT_CONFIG.seed,
-      ...(DEFAULT_CONFIG.formationSize != null ? { formationSize: DEFAULT_CONFIG.formationSize } : {}),
+      ...(DEFAULT_CONFIG.formationSize != null
+        ? { formationSize: DEFAULT_CONFIG.formationSize }
+        : {}),
     })
     expect(state.playMode).toBe("full_manual")
   })
@@ -101,8 +103,8 @@ describe("initGame", () => {
     const s1 = initGame(DEFAULT_CONFIG)
     _resetInstanceCounter()
     const s2 = initGame(DEFAULT_CONFIG)
-    const ids1 = s1.players["p1"]!.hand.map(c => `${c.card.setId}-${c.card.cardNumber}`)
-    const ids2 = s2.players["p1"]!.hand.map(c => `${c.card.setId}-${c.card.cardNumber}`)
+    const ids1 = s1.players["p1"]!.hand.map((c) => `${c.card.setId}-${c.card.cardNumber}`)
+    const ids2 = s2.players["p1"]!.hand.map((c) => `${c.card.setId}-${c.card.cardNumber}`)
     expect(ids1).toEqual(ids2)
   })
 
@@ -110,26 +112,26 @@ describe("initGame", () => {
     const s1 = initGame(DEFAULT_CONFIG)
     _resetInstanceCounter()
     const s2 = initGame({ ...DEFAULT_CONFIG, seed: 9999 })
-    const names1 = s1.players["p1"]!.hand.map(c => c.card.name).join(",")
-    const names2 = s2.players["p1"]!.hand.map(c => c.card.name).join(",")
+    const names1 = s1.players["p1"]!.hand.map((c) => c.card.name).join(",")
+    const names2 = s2.players["p1"]!.hand.map((c) => c.card.name).join(",")
     // With different seeds, the hands should differ (very high probability)
     expect(names1).not.toBe(names2)
   })
 
   test("p1 and p2 get different shuffles from the same seed", () => {
     const state = initGame(DEFAULT_CONFIG)
-    const p1Names = state.players["p1"]!.hand.map(c => c.card.name).join(",")
-    const p2Names = state.players["p2"]!.hand.map(c => c.card.name).join(",")
+    const p1Names = state.players["p1"]!.hand.map((c) => c.card.name).join(",")
+    const p2Names = state.players["p2"]!.hand.map((c) => c.card.name).join(",")
     expect(p1Names).not.toBe(p2Names)
   })
 
   test("each card instance has a unique instanceId", () => {
     const state = initGame(DEFAULT_CONFIG)
     const allIds = [
-      ...state.players["p1"]!.hand.map(c => c.instanceId),
-      ...state.players["p1"]!.drawPile.map(c => c.instanceId),
-      ...state.players["p2"]!.hand.map(c => c.instanceId),
-      ...state.players["p2"]!.drawPile.map(c => c.instanceId),
+      ...state.players["p1"]!.hand.map((c) => c.instanceId),
+      ...state.players["p1"]!.drawPile.map((c) => c.instanceId),
+      ...state.players["p2"]!.hand.map((c) => c.instanceId),
+      ...state.players["p2"]!.drawPile.map((c) => c.instanceId),
     ]
     const unique = new Set(allIds)
     expect(unique.size).toBe(allIds.length)

@@ -17,7 +17,7 @@ export function findAndRemoveFromOwnZones(
 ): ManualRemovedCard | null {
   const player = state.players[ownerId]!
 
-  const handIdx = player.hand.findIndex(c => c.instanceId === cardId)
+  const handIdx = player.hand.findIndex((c) => c.instanceId === cardId)
   if (handIdx !== -1) {
     const card = player.hand[handIdx]!
     return {
@@ -28,7 +28,7 @@ export function findAndRemoveFromOwnZones(
     }
   }
 
-  const poolEntryIdx = player.pool.findIndex(e => e.champion.instanceId === cardId)
+  const poolEntryIdx = player.pool.findIndex((e) => e.champion.instanceId === cardId)
   if (poolEntryIdx !== -1) {
     const entry = player.pool[poolEntryIdx]!
     return {
@@ -42,7 +42,7 @@ export function findAndRemoveFromOwnZones(
 
   for (let ei = 0; ei < player.pool.length; ei++) {
     const entry = player.pool[ei]!
-    const attIdx = entry.attachments.findIndex(a => a.instanceId === cardId)
+    const attIdx = entry.attachments.findIndex((a) => a.instanceId === cardId)
     if (attIdx === -1) continue
     const card = entry.attachments[attIdx]!
     const newPool = [...player.pool]
@@ -50,7 +50,7 @@ export function findAndRemoveFromOwnZones(
     return { card, newState: updatePlayer(state, ownerId, { pool: newPool }) }
   }
 
-  const discardIdx = player.discardPile.findIndex(c => c.instanceId === cardId)
+  const discardIdx = player.discardPile.findIndex((c) => c.instanceId === cardId)
   if (discardIdx !== -1) {
     const card = player.discardPile[discardIdx]!
     return {
@@ -61,7 +61,7 @@ export function findAndRemoveFromOwnZones(
     }
   }
 
-  const abyssIdx = player.abyss.findIndex(c => c.instanceId === cardId)
+  const abyssIdx = player.abyss.findIndex((c) => c.instanceId === cardId)
   if (abyssIdx !== -1) {
     const card = player.abyss[abyssIdx]!
     return {
@@ -74,7 +74,7 @@ export function findAndRemoveFromOwnZones(
 
   for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
     if (!realmSlot) continue
-    const holdingIdx = realmSlot.holdings.findIndex(h => h.instanceId === cardId)
+    const holdingIdx = realmSlot.holdings.findIndex((h) => h.instanceId === cardId)
     if (holdingIdx === -1) continue
     const card = realmSlot.holdings[holdingIdx]!
     return {
@@ -84,7 +84,10 @@ export function findAndRemoveFromOwnZones(
           ...player.formation,
           slots: {
             ...player.formation.slots,
-            [slot]: { ...realmSlot, holdings: realmSlot.holdings.filter((_, i) => i !== holdingIdx) },
+            [slot]: {
+              ...realmSlot,
+              holdings: realmSlot.holdings.filter((_, i) => i !== holdingIdx),
+            },
           },
         },
       }),

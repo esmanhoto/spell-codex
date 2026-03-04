@@ -7,16 +7,27 @@ import { DrawPile } from "./DrawPile.tsx"
 import { DiscardPile } from "./DiscardPile.tsx"
 import styles from "./PlayerHand.module.css"
 
-export function PlayerHand({ cards, hiddenCount, drawPileCount, discardCount, isOpponent }: {
-  cards:          CardInfo[]
-  hiddenCount?:   number
-  drawPileCount:  number
-  discardCount:   number
-  isOpponent:     boolean
+export function PlayerHand({
+  cards,
+  hiddenCount,
+  drawPileCount,
+  discardCount,
+  isOpponent,
+}: {
+  cards: CardInfo[]
+  hiddenCount?: number
+  drawPileCount: number
+  discardCount: number
+  isOpponent: boolean
 }) {
   const {
-    selectedId, onSelect, openContextMenu,
-    legalMoves, requestSpellCast, requestManualPlay, playMode,
+    selectedId,
+    onSelect,
+    openContextMenu,
+    legalMoves,
+    requestSpellCast,
+    requestManualPlay,
+    playMode,
   } = useGame()
   const total = isOpponent ? (hiddenCount ?? cards.length) : cards.length
 
@@ -49,53 +60,61 @@ export function PlayerHand({ cards, hiddenCount, drawPileCount, discardCount, is
       </div>
 
       <div className={`${styles.fan} ${isOpponent ? "" : styles.own}`}>
-        {(isOpponent ? Array.from({ length: hiddenCount ?? cards.length }) : cards).map((item, i) => {
-          if (isOpponent) {
+        {(isOpponent ? Array.from({ length: hiddenCount ?? cards.length }) : cards).map(
+          (item, i) => {
+            if (isOpponent) {
+              return (
+                <div
+                  key={`hidden-${i}`}
+                  data-testid={`opponent-card-back-${i}`}
+                  className={styles.cardSlot}
+                  style={fanTransform(i)}
+                >
+                  <div className={styles.cardBack} />
+                </div>
+              )
+            }
+            const card = item as CardInfo
+
+            const isSelected = selectedId === card.instanceId
+            const contextActions = buildContextActions(card)
+
             return (
               <div
-                key={`hidden-${i}`}
-                data-testid={`opponent-card-back-${i}`}
-                className={styles.cardSlot}
+                key={card.instanceId}
+                data-testid={`hand-card-${card.instanceId}`}
+                className={`${styles.cardSlot} ${isSelected ? styles.selected : ""}`}
                 style={fanTransform(i)}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("drag-id", card.instanceId)
+                  e.dataTransfer.setData("drag-source", "hand")
+                  e.dataTransfer.effectAllowed = "move"
+                }}
+                onClick={() => onSelect(isSelected ? null : card.instanceId)}
+                onContextMenu={
+                  contextActions.length
+                    ? (e) => {
+                        e.preventDefault()
+                        openContextMenu(e.clientX, e.clientY, contextActions)
+                      }
+                    : undefined
+                }
               >
-                <div className={styles.cardBack} />
+                <div className={styles.cardWrap}>
+                  <img
+                    src={cardImageUrl(card.setId, card.cardNumber)}
+                    alt={card.name}
+                    className={styles.cardImg}
+                    onError={(e) => {
+                      ;(e.target as HTMLImageElement).style.display = "none"
+                    }}
+                  />
+                </div>
               </div>
             )
-          }
-          const card = item as CardInfo
-
-          const isSelected = selectedId === card.instanceId
-          const contextActions = buildContextActions(card)
-
-          return (
-            <div
-              key={card.instanceId}
-              data-testid={`hand-card-${card.instanceId}`}
-              className={`${styles.cardSlot} ${isSelected ? styles.selected : ""}`}
-              style={fanTransform(i)}
-              draggable
-              onDragStart={e => {
-                e.dataTransfer.setData("drag-id", card.instanceId)
-                e.dataTransfer.setData("drag-source", "hand")
-                e.dataTransfer.effectAllowed = "move"
-              }}
-              onClick={() => onSelect(isSelected ? null : card.instanceId)}
-              onContextMenu={contextActions.length ? e => {
-                e.preventDefault()
-                openContextMenu(e.clientX, e.clientY, contextActions)
-              } : undefined}
-            >
-              <div className={styles.cardWrap}>
-                <img
-                  src={cardImageUrl(card.setId, card.cardNumber)}
-                  alt={card.name}
-                  className={styles.cardImg}
-                  onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
-                />
-              </div>
-            </div>
-          )
-        })}
+          },
+        )}
       </div>
 
       <div className={styles.piles}>
