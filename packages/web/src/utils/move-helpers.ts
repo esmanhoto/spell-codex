@@ -11,6 +11,7 @@ export function moveInvolves(m: Move, id: string): boolean {
     case "PLAY_EVENT":
     case "PLAY_COMBAT_CARD":
     case "DISCARD_CARD":
+    case "MANUAL_PLAY_CARD":
       return (m as { cardInstanceId: string }).cardInstanceId === id
     case "ATTACH_ITEM":
       return (m as { cardInstanceId: string; championId: string }).cardInstanceId === id ||
@@ -30,6 +31,12 @@ export function labelMove(m: Move, nameOf: (id: string) => string, phase?: strin
   switch (m.type) {
     case "PASS":             return phase === "START_OF_TURN" ? "Draw cards" : "Next phase"
     case "END_TURN":         return "End Turn"
+    case "SET_PLAY_MODE":    return `Set mode: ${a.mode}`
+    case "MANUAL_END_TURN":  return "Manual end turn"
+    case "MANUAL_SET_ACTIVE_PLAYER": return `Set active: ${a.playerId}`
+    case "MANUAL_SET_DRAW_COUNT":    return `Draw count: ${a.count}`
+    case "MANUAL_SET_MAX_HAND_SIZE": return `Hand limit: ${a.size}`
+    case "MANUAL_PLAY_CARD": return `Manual play ${nameOf(a.cardInstanceId)} (${a.resolution})`
     case "PLAY_REALM":       return `Play ${nameOf(a.cardInstanceId)} \u2192 slot ${a.slot}`
     case "REBUILD_REALM":    return `Rebuild slot ${a.slot}`
     case "PLAY_HOLDING":     return `Play ${nameOf(a.cardInstanceId)} \u2192 slot ${a.realmSlot}`
@@ -65,4 +72,6 @@ export function labelMove(m: Move, nameOf: (id: string) => string, phase?: strin
 export const ANCHOR_FREE_TYPES = new Set([
   "PASS", "END_TURN", "STOP_PLAYING", "CONTINUE_ATTACK",
   "END_ATTACK", "DECLINE_DEFENSE", "REBUILD_REALM",
+  "SET_PLAY_MODE", "MANUAL_END_TURN", "MANUAL_SET_ACTIVE_PLAYER",
+  "MANUAL_SET_DRAW_COUNT", "MANUAL_SET_MAX_HAND_SIZE",
 ])

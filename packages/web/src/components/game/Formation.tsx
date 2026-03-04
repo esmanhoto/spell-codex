@@ -3,10 +3,12 @@ import { useGame } from "../../context/GameContext.tsx"
 import type { CardInfo, SlotState } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
+import { resolveHandDropMove, showModeAwareWarning } from "../../utils/manual-actions.ts"
 import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./Formation.module.css"
 
 const ROWS = [["A"], ["B", "C"], ["D", "E", "F"]]
+const WORLD_WILDCARD = new Set([0, 9])
 
 export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }: {
   slots:             Record<string, SlotState | null>
@@ -16,7 +18,7 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
 }) {
   const {
     legalMoves, onMove, selectedId, onSelect, openContextMenu,
-    allBoards, phase, showWarning, myPlayerId, activePlayer, turnNumber, requestSpellCast,
+    allBoards, phase, showWarning, myPlayerId, activePlayer, turnNumber, requestSpellCast, playMode,
   } = useGame()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
 
@@ -55,6 +57,14 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
 
   function warnInvalidHandDrop(card: CardInfo, slot: string) {
     const phaseLabel = phase.replaceAll("_", " ")
+    const target = slots[slot]
+    const worldsCompatible = target
+      ? (
+        WORLD_WILDCARD.has(card.worldId) ||
+        WORLD_WILDCARD.has(target.realm.worldId) ||
+        card.worldId === target.realm.worldId
+      )
+      : true
 
     if (card.typeId === 13 && phase !== "PLAY_REALM") {
       showWarning(`Cannot play realm now. Current phase: ${phaseLabel}.`)
@@ -65,7 +75,15 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
       return
     }
     if (isCardAlreadyInPlay(card)) {
-      showWarning(`${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`)
+      showWarning(`${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`, "duplicate_in_game")
+      return
+    }
+
+    if (card.typeId === 8 && target && !worldsCompatible) {
+      showWarning(
+        `Holding ${card.name} world mismatches realm ${target.realm.name}.`,
+        "world_mismatch_attachment",
+      )
       return
     }
 
@@ -119,22 +137,23 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
 
     if (source === "hand") {
       const card = findDraggedHandCard(id)
+      const resolved = resolveHandDropMove({
+        playMode,
+        legalMoves,
+        cardInstanceId: id,
+        target: {
+          zone: "formation_slot",
+          owner: formationOwnerId === myPlayerId ? "self" : "opponent",
+          slot,
+          slotState: slots[slot] ?? null,
+        },
+      })
+      if (resolved) {
+        onMove(resolved)
+        return
+      }
 
-      const realmMove = legalMoves.find(m =>
-        m.type === "PLAY_REALM" &&
-        (m as { cardInstanceId: string; slot: string }).cardInstanceId === id &&
-        (m as { cardInstanceId: string; slot: string }).slot === slot
-      )
-      if (realmMove) { onMove(realmMove); return }
-
-      const holdingMove = legalMoves.find(m =>
-        m.type === "PLAY_HOLDING" &&
-        (m as { cardInstanceId: string; realmSlot: string }).cardInstanceId === id &&
-        (m as { cardInstanceId: string; realmSlot: string }).realmSlot === slot
-      )
-      if (holdingMove) { onMove(holdingMove); return }
-
-      if (card && isSpellCard(card)) {
+      if (playMode !== "full_manual" && card && isSpellCard(card)) {
         const slotState = slots[slot]
         if (!slotState) {
           showWarning("Drop the spell on a card target, not an empty slot.")
@@ -148,6 +167,14 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
       }
 
       if (card) {
+        if (playMode === "full_manual") {
+          showModeAwareWarning({
+            playMode,
+            showWarning,
+            semiAutoMessage: "That card cannot be played there right now.",
+          })
+          return
+        }
         warnInvalidHandDrop(card, slot)
       } else {
         showWarning("That card cannot be played there right now.")
