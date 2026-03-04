@@ -24,6 +24,38 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 - Supabase auth integration (email/password) with bearer-token API verification.
 - Clean lobby flow (`Create a New Game` / `Join a Game`) using sharable `gameId` and waiting room.
 - Per-view hidden-information rendering (opponent hand hidden, own hand visible) with two-tab play support.
+- Supabase runtime DB env contract and connection tuning:
+  - `DATABASE_URL`, `DATABASE_URL_MIGRATIONS`
+  - `DB_SSL`, `DB_PREPARE`, `DB_MAX_CONNECTIONS`
+- DB migration path split (`DATABASE_URL_MIGRATIONS` fallback to `DATABASE_URL`).
+- Local/runtime env examples for Docker profile and Supabase profile (`.env.example`, `.env.supabase.example`).
+- Mocked non-bypass auth coverage:
+  - API: bearer auth tests with mocked Supabase `/auth/v1/user`.
+  - Web: dedicated auth e2e profile with local mock Supabase server and dual-user realtime flow tests.
+- Playwright profile separation:
+  - default e2e (bypass/local profile)
+  - auth e2e (non-bypass/mock Supabase profile)
+- Runtime DB error text cleanup to neutral guidance (`Verify DATABASE_URL and DB availability.`).
+- Full manual mode milestone delivered:
+  - `full_manual` is the default for new games.
+  - Runtime `playMode` persisted (`games.play_mode`) and serialized to clients.
+  - Manual governance controls shipped (mode switch, end turn, active player, draw count, hand limit).
+  - Manual->semi switch guard added with consistency validation + actionable reasons.
+  - Web interactions migrated to manual action builders (right-click/drag/click) with a temporary debug move-panel gate.
+  - Manual warnings support per-warning browser suppression (`Don't show again`, localStorage scope).
+  - Deadline auto-pass startup disabled for now.
+  - Added coverage in engine/api/ws/web e2e for mode switching, warnings, and manual play/cast flows.
+
+## Supabase Runtime/Auth Milestone Status
+- Scope completed:
+  - Runtime DB configuration cleanup for Supabase-ready usage.
+  - Mocked non-bypass auth tests (API + web e2e).
+  - Docs/env profile updates for local Docker vs Supabase runtime.
+  - CI now runs both web e2e profiles:
+    - bypass profile (`test:e2e`)
+    - auth-mock profile (`test:e2e:auth`)
+- Scope intentionally unchanged:
+  - CI main gate remains local Postgres service (no Supabase dependency).
 
 ## Future Implementation
 - Increase test coverage with priority on web and end-to-end gameplay flows (create game, turn progression, combat resolution).
@@ -49,7 +81,7 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 * full manual mode
 * full effects mode
 * vaquinha solidária
-* 
+* cronometro de combate
 
 ## Delivery Guardrails
 - Keep milestone scope explicit: define what is in/out before each implementation cycle.
