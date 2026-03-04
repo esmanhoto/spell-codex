@@ -1,11 +1,20 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test"
 import { readFileSync } from "node:fs"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 export const PLAYER_A = "00000000-0000-0000-0000-000000000001"
 export const PLAYER_B = "00000000-0000-0000-0000-000000000002"
 const API_BASE = "/api"
 const SPELL_TYPE_IDS = new Set([4, 19]) // Cleric/Wizard spells
+const FIRST_EDITION_CARDS_PATH = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../data/cards/1st.json",
+)
+
+function readFirstEditionCards<T extends Record<string, unknown>>(): T[] {
+  return JSON.parse(readFileSync(FIRST_EDITION_CARDS_PATH, "utf8")) as T[]
+}
 
 export async function startGame(page: Page, request: APIRequestContext) {
   const gameId = await apiCreateGameForUi(request)
@@ -96,12 +105,11 @@ export async function apiCreateSpellOnlyGameForUi(request: APIRequestContext) {
 }
 
 export async function apiCreatePhase3SpellGameForUi(request: APIRequestContext) {
-  const cardsPath = path.join(process.cwd(), "..", "data", "cards", "1st.json")
-  const cards = JSON.parse(readFileSync(cardsPath, "utf8")) as Array<Record<string, unknown> & {
+  const cards = readFirstEditionCards<Record<string, unknown> & {
     typeId: number
     castPhases?: number[]
     supportIds?: Array<number | string>
-  }>
+  }>()
 
   const realm = cards.find(c => c.typeId === 13)
   const spell = cards.find(c =>
@@ -136,6 +144,51 @@ export async function apiCreatePhase3SpellGameForUi(request: APIRequestContext) 
       players: [
         { userId: PLAYER_A, deckSnapshot: spellDeck },
         { userId: PLAYER_B, deckSnapshot: spellDeck },
+      ],
+    },
+  })
+  expect(createRes.ok()).toBe(true)
+  const created = await createRes.json() as { gameId: string }
+  return created.gameId
+}
+
+export async function apiCreateCombatReadyGameForUi(request: APIRequestContext) {
+  const cards = readFirstEditionCards<Record<string, unknown> & {
+    typeId: number
+    name: string
+  }>()
+
+  const realmByName = new Map<string, Record<string, unknown> & { typeId: number; name: string }>()
+  for (const card of cards) {
+    if (card.typeId !== 13) continue
+    if (!realmByName.has(card.name)) realmByName.set(card.name, card)
+  }
+
+  const championByName = new Map<string, Record<string, unknown> & { typeId: number; name: string }>()
+  for (const card of cards) {
+    if (![5, 7, 10, 12, 14, 16, 20].includes(card.typeId)) continue
+    if (!championByName.has(card.name)) championByName.set(card.name, card)
+  }
+
+  const realmPool = Array.from(realmByName.values()).slice(0, 16)
+  const championPool = Array.from(championByName.values()).slice(0, 16)
+  expect(realmPool.length).toBeGreaterThan(5)
+  expect(championPool.length).toBeGreaterThan(5)
+
+  const seedCards = [...realmPool, ...championPool]
+  const combatDeck = Array.from({ length: 55 }, (_, i) => ({ ...seedCards[i % seedCards.length]! }))
+
+  const createRes = await request.post(`${API_BASE}/games`, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": PLAYER_A,
+    },
+    data: {
+      formatId: "standard-55",
+      seed: 20260304,
+      players: [
+        { userId: PLAYER_A, deckSnapshot: combatDeck },
+        { userId: PLAYER_B, deckSnapshot: combatDeck },
       ],
     },
   })
@@ -219,14 +272,20 @@ export async function apiDriveToPlayerAPhase3SpellMove(
 }
 
 export async function driveGameToCombat(request: APIRequestContext, gameId: string): Promise<void> {
-  for (let i = 0; i < 400; i++) {
+  for (let i = 0; i < 120; i++) {
     const viewerRes = await request.get(`${API_BASE}/games/${gameId}`, {
       headers: { "X-User-Id": PLAYER_A },
     })
     expect(viewerRes.ok()).toBe(true)
     const viewerState = await viewerRes.json() as {
       activePlayer: string
+      phase: string
       playMode?: string
+      board: {
+        players: Record<string, {
+          pool: unknown[]
+        }>
+      }
       legalMoves: Array<{ type: string; [key: string]: unknown }>
     }
     const actingUser = viewerState.activePlayer === PLAYER_B ? PLAYER_B : PLAYER_A
@@ -240,20 +299,23 @@ export async function driveGameToCombat(request: APIRequestContext, gameId: stri
       })
 
     const moves = state.legalMoves
-    const attack = moves.find(m => m.type === "DECLARE_ATTACK")
-    const picked = moves.find(
+    const activePoolCount = state.board.players[state.activePlayer]?.pool.length ?? 0
+    const switchToSemiAuto = moves.find(
       (m): m is { type: "SET_PLAY_MODE"; mode: string } =>
         m.type === "SET_PLAY_MODE" && m.mode === "semi_auto",
     )
+    const attack = moves.find(m => m.type === "DECLARE_ATTACK")
+    const picked = switchToSemiAuto
       ?? attack
       ?? moves.find(m => m.type === "PLAY_REALM")
-      ?? moves.find(m => m.type === "PLACE_CHAMPION")
-      ?? moves.find(m => m.type === "END_TURN")
+      ?? (activePoolCount === 0 ? moves.find(m => m.type === "PLACE_CHAMPION") : undefined)
       ?? moves.find(m => m.type === "PASS")
+      ?? moves.find(m => m.type === "DISCARD_CARD")
+      ?? moves.find(m => m.type === "END_TURN")
+      ?? moves.find(m => !m.type.startsWith("MANUAL_"))
       ?? moves[0]
 
     if (!picked) break
-
     const moveRes = await request.post(`${API_BASE}/games/${gameId}/moves`, {
       headers: {
         "Content-Type": "application/json",
@@ -263,7 +325,7 @@ export async function driveGameToCombat(request: APIRequestContext, gameId: stri
     })
     expect(moveRes.ok()).toBe(true)
 
-    if (attack) return
+    if (picked.type === "DECLARE_ATTACK") return
   }
 
   throw new Error("Could not reach combat setup within move budget")
