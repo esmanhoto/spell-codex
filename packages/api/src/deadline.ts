@@ -38,7 +38,7 @@ async function processExpiredGame(gameId: string): Promise<void> {
   const game = await getGame(gameId)
   if (!game || game.status !== "active") return
 
-  const { state } = await reconstructState(gameId, game.seed)
+  const { state } = await reconstructState(gameId, game.seed, game.playMode)
   const playerId  = state.activePlayer
 
   // Count how many consecutive moves have been auto-passes for this player.

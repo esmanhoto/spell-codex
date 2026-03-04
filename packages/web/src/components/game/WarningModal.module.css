@@ -28,8 +28,17 @@
   color: #eadfcb;
   font-size: 13px;
   line-height: 1.35;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   white-space: pre-wrap;
+}
+
+.checkboxRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #cebca1;
+  font-size: 12px;
+  margin-bottom: 12px;
 }
 
 .button {

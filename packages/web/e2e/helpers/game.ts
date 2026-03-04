@@ -155,6 +155,7 @@ export async function apiDriveToPlayerAPhase3SpellMove(
     expect(viewerRes.ok()).toBe(true)
     const viewerState = await viewerRes.json() as {
       activePlayer: string
+      playMode?: string
       board: {
         players: Record<string, {
           hand: Array<{ instanceId: string; typeId: number; castPhases?: number[] }>
@@ -191,7 +192,11 @@ export async function apiDriveToPlayerAPhase3SpellMove(
       }
     }
 
-    const picked = state.legalMoves.find(m => m.type === "PLAY_REALM")
+    const picked = state.legalMoves.find(
+      (m): m is { type: "SET_PLAY_MODE"; mode: string } =>
+        m.type === "SET_PLAY_MODE" && m.mode === "semi_auto",
+    )
+      ?? state.legalMoves.find(m => m.type === "PLAY_REALM")
       ?? state.legalMoves.find(m => m.type === "PLACE_CHAMPION")
       ?? state.legalMoves.find(m => m.type === "PASS")
       ?? state.legalMoves.find(m => m.type === "END_TURN")
@@ -221,6 +226,7 @@ export async function driveGameToCombat(request: APIRequestContext, gameId: stri
     expect(viewerRes.ok()).toBe(true)
     const viewerState = await viewerRes.json() as {
       activePlayer: string
+      playMode?: string
       legalMoves: Array<{ type: string; [key: string]: unknown }>
     }
     const actingUser = viewerState.activePlayer === PLAYER_B ? PLAYER_B : PLAYER_A
@@ -235,7 +241,11 @@ export async function driveGameToCombat(request: APIRequestContext, gameId: stri
 
     const moves = state.legalMoves
     const attack = moves.find(m => m.type === "DECLARE_ATTACK")
-    const picked = attack
+    const picked = moves.find(
+      (m): m is { type: "SET_PLAY_MODE"; mode: string } =>
+        m.type === "SET_PLAY_MODE" && m.mode === "semi_auto",
+    )
+      ?? attack
       ?? moves.find(m => m.type === "PLAY_REALM")
       ?? moves.find(m => m.type === "PLACE_CHAMPION")
       ?? moves.find(m => m.type === "END_TURN")

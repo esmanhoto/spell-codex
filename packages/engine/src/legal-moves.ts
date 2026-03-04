@@ -27,25 +27,106 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
 
   const player = state.players[playerId]
   if (!player) return []
+  const modeMoves = getModeMoves(state)
+
+  if (state.playMode === "full_manual") {
+    if (state.activePlayer !== playerId) return modeMoves
+    return dedupeMoves([
+      ...modeMoves,
+      ...getFullManualGovernanceMoves(state),
+      ...getHoldingRevealMoves(player),
+      ...getManualOwnMoves(state, playerId),
+      ...getManualOpponentMoves(state, playerId),
+      ...getFullManualCombatMoves(state, playerId),
+    ])
+  }
 
   // 1. During active combat, use combat-specific move set
   if (state.combatState) {
-    return getCombatMoves(state, playerId)
+    return dedupeMoves([...getCombatMoves(state, playerId), ...modeMoves])
   }
 
   // 2. Out-of-combat: only the active player may act
-  if (state.activePlayer !== playerId) return []
+  if (state.activePlayer !== playerId) return modeMoves
 
   switch (state.phase) {
-    case Phase.StartOfTurn: return getStartOfTurnMoves(state, playerId)
-    case Phase.Draw:        return []
-    case Phase.PlayRealm:   return getForwardPhaseMoves(state, playerId, Phase.PlayRealm)
-    case Phase.Pool:        return getForwardPhaseMoves(state, playerId, Phase.Pool)
-    case Phase.Combat:      return getForwardPhaseMoves(state, playerId, Phase.Combat)
-    case Phase.PhaseFive:   return getPhaseFiveMoves(state, playerId)
+    case Phase.StartOfTurn: return dedupeMoves([...getStartOfTurnMoves(state, playerId), ...modeMoves])
+    case Phase.Draw:        return modeMoves
+    case Phase.PlayRealm:   return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.PlayRealm), ...modeMoves])
+    case Phase.Pool:        return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.Pool), ...modeMoves])
+    case Phase.Combat:      return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.Combat), ...modeMoves])
+    case Phase.PhaseFive:   return dedupeMoves([...getPhaseFiveMoves(state, playerId), ...modeMoves])
     case Phase.EndTurn:     return []
     default:                return []
   }
+}
+
+function getModeMoves(state: GameState): Move[] {
+  return state.playMode === "full_manual"
+    ? [{ type: "SET_PLAY_MODE", mode: "semi_auto" }]
+    : [{ type: "SET_PLAY_MODE", mode: "full_manual" }]
+}
+
+function getFullManualGovernanceMoves(state: GameState): Move[] {
+  const moves: Move[] = [
+    { type: "END_TURN" },
+    { type: "MANUAL_END_TURN" },
+    { type: "MANUAL_SET_DRAW_COUNT", count: state.manualSettings.drawCount },
+    { type: "MANUAL_SET_MAX_HAND_SIZE", size: state.manualSettings.maxHandSize },
+  ]
+  for (const id of state.playerOrder) {
+    moves.push({ type: "MANUAL_SET_ACTIVE_PLAYER", playerId: id })
+  }
+  return moves
+}
+
+function getFullManualCombatMoves(state: GameState, playerId: PlayerId): Move[] {
+  const combat = state.combatState
+  if (!combat) return []
+  if (playerId !== combat.attackingPlayer && playerId !== combat.defendingPlayer) return []
+
+  const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
+  const realmWorldId = realmSlot?.realm.card.worldId ?? 0
+  const attackerLevel = combat.attacker
+    ? calculateCombatLevel(
+        combat.attacker,
+        combat.attackerCards,
+        hasWorldMatch(combat.attacker, realmWorldId),
+        "offensive",
+      )
+    : 0
+  const defenderLevel = combat.defender
+    ? calculateCombatLevel(
+        combat.defender,
+        combat.defenderCards,
+        hasWorldMatch(combat.defender, realmWorldId),
+        "defensive",
+      )
+    : 0
+
+  const moves: Move[] = [
+    { type: "MANUAL_SET_COMBAT_LEVEL", playerId: combat.attackingPlayer, level: attackerLevel },
+    { type: "MANUAL_SET_COMBAT_LEVEL", playerId: combat.defendingPlayer, level: defenderLevel },
+  ]
+  for (const card of combat.attackerCards) {
+    moves.push({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+  }
+  for (const card of combat.defenderCards) {
+    moves.push({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+  }
+  return moves
+}
+
+function dedupeMoves(moves: Move[]): Move[] {
+  const seen = new Set<string>()
+  const out: Move[] = []
+  for (const move of moves) {
+    const key = JSON.stringify(move)
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(move)
+  }
+  return out
 }
 
 // ─── Forward Phase Composition ───────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import type {
   GameState, GameEvent, Move, EngineResult,
   PlayerId, CardInstanceId, FormationSlot,
-  CombatState, CardInstance, PoolEntry, LimboEntry,
+  CombatState, PoolEntry, LimboEntry, CardInstance,
   ManualAction,
 } from "./types.ts"
 import { Phase } from "./types.ts"
@@ -13,6 +13,8 @@ import {
 import { calculateCombatLevel, hasWorldMatch, resolveCombatRound, getLosingPlayer } from "./combat.ts"
 import { getLegalMoves, getLegalRealmSlots, isAttackable, isUniqueInPlay, canPlayInCombat } from "./legal-moves.ts"
 import { canChampionUseSpell, getCastPhases } from "./spell-gating.ts"
+import { findAndRemoveFromOwnZones } from "./manual-zone.ts"
+import { validateManualStateForSemiAuto } from "./manual-consistency.ts"
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -101,7 +103,27 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
       newState = handleDiscardCard(state, playerId, move, events)
       break
     case "END_TURN":
-      newState = handleEndTurn(state, playerId, events)
+      newState = state.playMode === "full_manual"
+        ? handleManualEndTurn(state, playerId, events)
+        : handleEndTurn(state, playerId, events)
+      break
+    case "SET_PLAY_MODE":
+      newState = handleSetPlayMode(state, playerId, move, events)
+      break
+    case "MANUAL_END_TURN":
+      newState = handleManualEndTurn(state, playerId, events)
+      break
+    case "MANUAL_SET_ACTIVE_PLAYER":
+      newState = handleManualSetActivePlayer(state, playerId, move, events)
+      break
+    case "MANUAL_SET_DRAW_COUNT":
+      newState = handleManualSetDrawCount(state, playerId, move, events)
+      break
+    case "MANUAL_SET_MAX_HAND_SIZE":
+      newState = handleManualSetMaxHandSize(state, playerId, move, events)
+      break
+    case "MANUAL_PLAY_CARD":
+      newState = handleManualPlayCard(state, playerId, move, events)
       break
     case "PLAY_EVENT":
       newState = handlePlaySpellCard(state, playerId, move, events)
@@ -155,6 +177,10 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
 // ─── Out-of-turn validation ───────────────────────────────────────────────────
 
 function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move): boolean {
+  if (move.type === "SET_PLAY_MODE" && state.players[playerId]) {
+    return true
+  }
+
   const combat = state.combatState
   if (!combat) return false
 
@@ -182,14 +208,329 @@ function isPhase3Card(typeId: number): boolean {
 
 // ─── Phase Handlers ───────────────────────────────────────────────────────────
 
+function handleSetPlayMode(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "SET_PLAY_MODE" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.players[playerId]) {
+    throw new EngineError("INVALID_PLAYER", "Unknown player")
+  }
+
+  if (state.playMode === move.mode) return state
+
+  if (move.mode === "semi_auto") {
+    const issues = validateManualStateForSemiAuto(state)
+    if (issues.length > 0) {
+      throw new EngineError(
+        "MANUAL_STATE_INVALID",
+        issues.map(issue => issue.message).join(" | "),
+      )
+    }
+  }
+
+  events.push({ type: "PLAY_MODE_CHANGED", playerId, mode: move.mode })
+  return { ...state, playMode: move.mode }
+}
+
+function handleManualSetActivePlayer(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_SET_ACTIVE_PLAYER" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.players[move.playerId]) {
+    throw new EngineError("INVALID_PLAYER", "Unknown target player")
+  }
+  events.push({ type: "MANUAL_ACTIVE_PLAYER_SET", playerId, activePlayer: move.playerId })
+  return { ...state, activePlayer: move.playerId }
+}
+
+function handleManualSetDrawCount(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_SET_DRAW_COUNT" }>,
+  events: GameEvent[],
+): GameState {
+  const count = Math.max(1, Math.min(20, Math.floor(move.count)))
+  events.push({ type: "MANUAL_DRAW_COUNT_SET", playerId, count })
+  return {
+    ...state,
+    manualSettings: {
+      ...state.manualSettings,
+      drawCount: count,
+    },
+  }
+}
+
+function handleManualSetMaxHandSize(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_SET_MAX_HAND_SIZE" }>,
+  events: GameEvent[],
+): GameState {
+  const size = Math.max(0, Math.min(30, Math.floor(move.size)))
+  events.push({ type: "MANUAL_MAX_HAND_SIZE_SET", playerId, size })
+  return {
+    ...state,
+    manualSettings: {
+      ...state.manualSettings,
+      maxHandSize: size,
+    },
+  }
+}
+
+function attachManualCardToTarget(
+  state: GameState,
+  ownerId: PlayerId,
+  targetCardInstanceId: CardInstanceId,
+  card: CardInstance,
+): GameState | null {
+  const owner = state.players[ownerId]!
+
+  for (let i = 0; i < owner.pool.length; i++) {
+    const entry = owner.pool[i]!
+    if (
+      entry.champion.instanceId === targetCardInstanceId ||
+      entry.attachments.some(a => a.instanceId === targetCardInstanceId)
+    ) {
+      const newPool = [...owner.pool]
+      newPool[i] = {
+        ...entry,
+        attachments: [...entry.attachments, card],
+      }
+      return updatePlayer(state, ownerId, { pool: newPool })
+    }
+  }
+
+  for (const [slot, realmSlot] of Object.entries(owner.formation.slots)) {
+    if (!realmSlot) continue
+    if (
+      realmSlot.realm.instanceId === targetCardInstanceId ||
+      realmSlot.holdings.some(h => h.instanceId === targetCardInstanceId)
+    ) {
+      return updatePlayer(state, ownerId, {
+        formation: {
+          ...owner.formation,
+          slots: {
+            ...owner.formation.slots,
+            [slot]: {
+              ...realmSlot,
+              holdings: [...realmSlot.holdings, card],
+            },
+          },
+        },
+      })
+    }
+  }
+
+  return null
+}
+
+function emitManualKeepInPlayEvent(
+  cardTypeId: number,
+  playerId: PlayerId,
+  card: CardInstance,
+  move: Extract<Move, { type: "MANUAL_PLAY_CARD" }>,
+  events: GameEvent[],
+): void {
+  if (!isSpellType(cardTypeId)) return
+  events.push({
+    type: "PHASE3_SPELL_CAST",
+    playerId,
+    instanceId: card.instanceId,
+    setId: card.card.setId,
+    cardNumber: card.card.cardNumber,
+    cardName: card.card.name,
+    cardTypeId: card.card.typeId,
+    keepInPlay: true,
+    ...(move.targetCardInstanceId != null ? { targetCardInstanceId: move.targetCardInstanceId } : {}),
+    ...(move.targetOwner != null ? { targetOwner: move.targetOwner } : {}),
+  })
+}
+
+function removeCardFromHandForManualPlay(
+  state: GameState,
+  playerId: PlayerId,
+  cardInstanceId: CardInstanceId,
+): { newState: GameState; card: CardInstance } {
+  const player = state.players[playerId]!
+  const handIdx = player.hand.findIndex(c => c.instanceId === cardInstanceId)
+  if (handIdx === -1) throw new EngineError("CARD_NOT_IN_HAND", "Card not found in hand")
+  const card = player.hand[handIdx]!
+  return {
+    newState: updatePlayer(state, playerId, {
+      hand: player.hand.filter((_, i) => i !== handIdx),
+    }),
+    card,
+  }
+}
+
+function moveManualCardToDiscard(
+  state: GameState,
+  playerId: PlayerId,
+  card: CardInstance,
+  events: GameEvent[],
+): GameState {
+  events.push({
+    type: "MANUAL_ZONE_MOVE",
+    playerId,
+    instanceId: card.instanceId,
+    from: "hand",
+    to: "discard",
+  })
+  const player = state.players[playerId]!
+  return updatePlayer(state, playerId, {
+    discardPile: [...player.discardPile, card],
+  })
+}
+
+function resolveManualTargetOwner(
+  state: GameState,
+  playerId: PlayerId,
+  targetOwner: "self" | "opponent" | undefined,
+): PlayerId | null {
+  if (targetOwner !== "opponent") return playerId
+  return state.playerOrder.find(id => id !== playerId) ?? null
+}
+
+function handleManualPlayCardAsLastingTarget(
+  state: GameState,
+  playerId: PlayerId,
+  card: CardInstance,
+  move: Extract<Move, { type: "MANUAL_PLAY_CARD" }>,
+  events: GameEvent[],
+): GameState {
+  const targetOwnerId = resolveManualTargetOwner(state, playerId, move.targetOwner)
+  if (!targetOwnerId || move.targetKind !== "card" || !move.targetCardInstanceId) {
+    throw new EngineError("INVALID_TARGET", "lasting_target requires a target card")
+  }
+
+  const attached = attachManualCardToTarget(state, targetOwnerId, move.targetCardInstanceId, card)
+  if (!attached) throw new EngineError("TARGET_NOT_FOUND", "Target card not found")
+
+  events.push({
+    type: "MANUAL_ZONE_MOVE",
+    playerId,
+    instanceId: card.instanceId,
+    from: "hand",
+    to: "lasting_target",
+  })
+  emitManualKeepInPlayEvent(card.card.typeId, playerId, card, move, events)
+  return attached
+}
+
+function handleManualPlayCardAsLasting(
+  state: GameState,
+  playerId: PlayerId,
+  card: CardInstance,
+  move: Extract<Move, { type: "MANUAL_PLAY_CARD" }>,
+  events: GameEvent[],
+): GameState {
+  const targetOwnerId = resolveManualTargetOwner(state, playerId, move.targetOwner)
+
+  if (targetOwnerId && move.targetKind === "card" && move.targetCardInstanceId) {
+    const attached = attachManualCardToTarget(state, targetOwnerId, move.targetCardInstanceId, card)
+    if (attached) {
+      events.push({
+        type: "MANUAL_ZONE_MOVE",
+        playerId,
+        instanceId: card.instanceId,
+        from: "hand",
+        to: "lasting",
+      })
+      emitManualKeepInPlayEvent(card.card.typeId, playerId, card, move, events)
+      return attached
+    }
+  }
+
+  const player = state.players[playerId]!
+  if (isChampionType(card.card.typeId)) {
+    events.push({ type: "CHAMPION_PLACED", playerId, instanceId: card.instanceId })
+    emitManualKeepInPlayEvent(card.card.typeId, playerId, card, move, events)
+    return updatePlayer(state, playerId, {
+      pool: [...player.pool, { champion: card, attachments: [] }],
+    })
+  }
+
+  if (player.pool.length > 0) {
+    const [firstEntry, ...rest] = player.pool
+    events.push({
+      type: "MANUAL_ZONE_MOVE",
+      playerId,
+      instanceId: card.instanceId,
+      from: "hand",
+      to: "lasting",
+    })
+    emitManualKeepInPlayEvent(card.card.typeId, playerId, card, move, events)
+    return updatePlayer(state, playerId, {
+      pool: [{ ...firstEntry!, attachments: [...firstEntry!.attachments, card] }, ...rest],
+    })
+  }
+
+  const firstRealm = Object.entries(player.formation.slots)
+    .find(([, realmSlot]) => !!realmSlot && !realmSlot.isRazed)
+  if (firstRealm) {
+    const [slot, realmSlot] = firstRealm
+    events.push({
+      type: "MANUAL_ZONE_MOVE",
+      playerId,
+      instanceId: card.instanceId,
+      from: "hand",
+      to: "lasting",
+    })
+    emitManualKeepInPlayEvent(card.card.typeId, playerId, card, move, events)
+    return updatePlayer(state, playerId, {
+      formation: {
+        ...player.formation,
+        slots: {
+          ...player.formation.slots,
+          [slot]: {
+            ...realmSlot!,
+            holdings: [...realmSlot!.holdings, card],
+          },
+        },
+      },
+    })
+  }
+
+  return moveManualCardToDiscard(state, playerId, card, events)
+}
+
+function handleManualPlayCard(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "MANUAL_PLAY_CARD" }>,
+  events: GameEvent[],
+): GameState {
+  if (state.playMode !== "full_manual") {
+    throw new EngineError("WRONG_MODE", "MANUAL_PLAY_CARD requires full_manual mode")
+  }
+
+  const { newState: stateWithoutCard, card } = removeCardFromHandForManualPlay(state, playerId, move.cardInstanceId)
+
+  if (move.resolution === "discard") {
+    return moveManualCardToDiscard(stateWithoutCard, playerId, card, events)
+  }
+
+  if (move.resolution === "lasting_target") {
+    return handleManualPlayCardAsLastingTarget(stateWithoutCard, playerId, card, move, events)
+  }
+
+  return handleManualPlayCardAsLasting(stateWithoutCard, playerId, card, move, events)
+}
+
 function handlePass(state: GameState, playerId: PlayerId, events: GameEvent[]): GameState {
   assertNotInCombat(state)
 
   switch (state.phase) {
     case Phase.StartOfTurn: {
       const player = state.players[playerId]!
-      const { drawPerTurn } = HAND_SIZES[state.deckSize]!
-      const [drawn, remainingDraw] = takeCards(player.drawPile, drawPerTurn)
+      const drawCount = state.playMode === "full_manual"
+        ? state.manualSettings.drawCount
+        : HAND_SIZES[state.deckSize]!.drawPerTurn
+      const [drawn, remainingDraw] = takeCards(player.drawPile, drawCount)
 
       events.push({ type: "CARDS_DRAWN", playerId, count: drawn.length })
       let s = updatePlayer(state, playerId, {
@@ -222,9 +563,11 @@ function handlePass(state: GameState, playerId: PlayerId, events: GameEvent[]): 
 
     case Phase.PhaseFive: {
       const player = state.players[playerId]!
-      const { maxEnd } = HAND_SIZES[state.deckSize]!
-      if (player.hand.length > maxEnd) {
-        throw new EngineError("HAND_TOO_LARGE", `Discard down to ${maxEnd} cards before passing`)
+      if (state.playMode !== "full_manual") {
+        const { maxEnd } = HAND_SIZES[state.deckSize]!
+        if (player.hand.length > maxEnd) {
+          throw new EngineError("HAND_TOO_LARGE", `Discard down to ${maxEnd} cards before passing`)
+        }
       }
 
       events.push({ type: "TURN_ENDED", playerId })
@@ -953,103 +1296,6 @@ function handleEndAttack(
 
 // ─── Manual Board Control Handlers ───────────────────────────────────────────
 
-/**
- * Searches all zones of a player's board for a card by instanceId.
- * Returns the card and a mutation function that removes it from its zone.
- */
-function findAndRemoveFromOwnZones(
-  state: GameState,
-  ownerId: PlayerId,
-  cardId: CardInstanceId,
-): { card: CardInstance; newState: GameState } | null {
-  const player = state.players[ownerId]!
-
-  // Hand
-  const handIdx = player.hand.findIndex(c => c.instanceId === cardId)
-  if (handIdx !== -1) {
-    const card = player.hand[handIdx]!
-    return {
-      card,
-      newState: updatePlayer(state, ownerId, {
-        hand: player.hand.filter((_, i) => i !== handIdx),
-      }),
-    }
-  }
-
-  // Pool (champion)
-  const poolEntryIdx = player.pool.findIndex(e => e.champion.instanceId === cardId)
-  if (poolEntryIdx !== -1) {
-    const entry = player.pool[poolEntryIdx]!
-    const card = entry.champion
-    const newPool = player.pool.filter((_, i) => i !== poolEntryIdx)
-    return {
-      card,
-      newState: updatePlayer(state, ownerId, {
-        pool: newPool,
-        // Attachments are discarded when champion is removed
-        discardPile: [...player.discardPile, ...entry.attachments],
-      }),
-    }
-  }
-
-  // Pool (attachment)
-  for (let ei = 0; ei < player.pool.length; ei++) {
-    const entry = player.pool[ei]!
-    const attIdx = entry.attachments.findIndex(a => a.instanceId === cardId)
-    if (attIdx !== -1) {
-      const card = entry.attachments[attIdx]!
-      const newPool = [...player.pool]
-      newPool[ei] = { ...entry, attachments: entry.attachments.filter((_, i) => i !== attIdx) }
-      return { card, newState: updatePlayer(state, ownerId, { pool: newPool }) }
-    }
-  }
-
-  // Discard pile
-  const discardIdx = player.discardPile.findIndex(c => c.instanceId === cardId)
-  if (discardIdx !== -1) {
-    const card = player.discardPile[discardIdx]!
-    return {
-      card,
-      newState: updatePlayer(state, ownerId, {
-        discardPile: player.discardPile.filter((_, i) => i !== discardIdx),
-      }),
-    }
-  }
-
-  // Abyss
-  const abyssIdx = player.abyss.findIndex(c => c.instanceId === cardId)
-  if (abyssIdx !== -1) {
-    const card = player.abyss[abyssIdx]!
-    return {
-      card,
-      newState: updatePlayer(state, ownerId, {
-        abyss: player.abyss.filter((_, i) => i !== abyssIdx),
-      }),
-    }
-  }
-
-  // Formation holdings
-  for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
-    if (!realmSlot) continue
-    const holdingIdx = realmSlot.holdings.findIndex(h => h.instanceId === cardId)
-    if (holdingIdx !== -1) {
-      const card = realmSlot.holdings[holdingIdx]!
-      const newSlots = {
-        ...player.formation.slots,
-        [slot]: { ...realmSlot, holdings: realmSlot.holdings.filter((_, i) => i !== holdingIdx) },
-      }
-      return {
-        card,
-        newState: updatePlayer(state, ownerId, {
-          formation: { ...player.formation, slots: newSlots },
-        }),
-      }
-    }
-  }
-
-  return null
-}
-
 function handleManualDiscard(
   state: GameState,
   playerId: PlayerId,
@@ -1660,6 +1906,30 @@ function advanceToPhase(
  * Handles END_TURN move — skips remaining phases and ends the turn.
  * Only valid when hand ≤ maxEnd (no forced discards needed).
  */
+function handleManualEndTurn(
+  state: GameState,
+  playerId: PlayerId,
+  events: GameEvent[],
+): GameState {
+  const nextId = nextPlayer(state)
+
+  events.push({ type: "TURN_ENDED", playerId })
+  let s: GameState = {
+    ...state,
+    activePlayer: nextId,
+    currentTurn: state.currentTurn + 1,
+    phase: Phase.StartOfTurn,
+    combatState: null,
+    hasAttackedThisTurn: false,
+    hasPlayedRealmThisTurn: false,
+  }
+
+  events.push({ type: "TURN_STARTED", playerId: nextId, turn: s.currentTurn })
+  events.push({ type: "PHASE_CHANGED", phase: Phase.StartOfTurn })
+  s = checkWinCondition(s, events)
+  return s
+}
+
 function handleEndTurn(
   state: GameState,
   playerId: PlayerId,

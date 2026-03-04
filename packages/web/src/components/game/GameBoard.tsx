@@ -79,8 +79,11 @@ export function GameBoard({ events, wsError }: {
 }) {
   const {
     playerA, playerB, allBoards, combat,
-    contextMenu, closeContextMenu, onMove, warningMessage, clearWarning,
+    contextMenu, closeContextMenu, onMove,
+    warningMessage, warningCode, warningSuppressible,
+    suppressWarningCode, clearWarning,
   } = useGame()
+  const showMovePanel = import.meta.env["VITE_SHOW_MOVE_PANEL"] === "true"
 
   const boardA = allBoards[playerA]
   const boardB = allBoards[playerB]
@@ -130,8 +133,8 @@ export function GameBoard({ events, wsError }: {
           </div>
         )}
 
-        {/* Move panel for player A */}
-        <MovePanel playerId={playerA} />
+        {/* Move panel kept as explicit debug/dev tool during migration */}
+        {showMovePanel && <MovePanel playerId={playerA} />}
 
         {/* Event log sidebar */}
         <EventLog events={events} />
@@ -154,7 +157,14 @@ export function GameBoard({ events, wsError }: {
         )}
 
         {warningMessage && (
-          <WarningModal message={warningMessage} onClose={clearWarning} />
+          <WarningModal
+            message={warningMessage}
+            suppressible={warningSuppressible}
+            onClose={(suppress) => {
+              if (suppress && warningCode) suppressWarningCode(warningCode)
+              clearWarning()
+            }}
+          />
         )}
       </div>
     </div>

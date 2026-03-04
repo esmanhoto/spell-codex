@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
 import type { PoolEntry as PoolEntryType, CardInfo } from "../../api.ts"
+import { resolveHandDropMove } from "../../utils/manual-actions.ts"
 import { PoolEntry } from "./PoolEntry.tsx"
 import { CardComponent } from "./CardComponent.tsx"
 import styles from "./Pool.module.css"
@@ -11,7 +12,7 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
   lingeringSpells?: CardInfo[]
   ownerId?: string
 }) {
-  const { legalMoves, onMove, allBoards, phase, showWarning } = useGame()
+  const { legalMoves, onMove, allBoards, phase, showWarning, playMode } = useGame()
   const [dragOver, setDragOver] = useState(false)
 
   function findDraggedHandCard(instanceId: string) {
@@ -26,7 +27,12 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
     e.preventDefault()
     setDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
-    const move = legalMoves.find(m => m.type === "PLACE_CHAMPION" && (m as { cardInstanceId: string }).cardInstanceId === id)
+    const move = resolveHandDropMove({
+      playMode,
+      legalMoves,
+      cardInstanceId: id,
+      target: { zone: "pool" },
+    })
     if (move) {
       onMove(move)
       return
@@ -48,7 +54,7 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
       Object.values(board.formation).some(slotState => !!slotState && slotState.realm.name === card.name && slotState.realm.typeId === card.typeId),
     )
     if (alreadyInPlay) {
-      showWarning(`${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`)
+      showWarning(`${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`, "duplicate_in_game")
       return
     }
 
@@ -57,6 +63,7 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
 
   return (
     <div
+      data-testid={ownerId ? `pool-${ownerId}` : undefined}
       className={`${styles.pool} ${dragOver ? styles.dragOver : ""}`}
       onDragOver={e => { e.preventDefault(); setDragOver(true) }}
       onDragLeave={() => setDragOver(false)}

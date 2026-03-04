@@ -1,9 +1,10 @@
 import { useGame } from "../../context/GameContext.tsx"
 import { PhaseTracker } from "./PhaseTracker.tsx"
+import { ManualControls } from "./ManualControls.tsx"
 import styles from "./Divider.module.css"
 
 export function Divider() {
-  const { playerA, playerB, phase, turnNumber, winner, activePlayer } = useGame()
+  const { playerA, playerB, phase, turnNumber, winner, activePlayer, playMode } = useGame()
   const activeLabel = activePlayer === playerA ? "Player A" : "Player B"
 
   // console.log("Phase is", phase)
@@ -20,6 +21,10 @@ export function Divider() {
           <>
             <PhaseTracker phase={phase} />
             <div className={styles.activeLabel} data-testid="active-player-label">Active: {activeLabel}</div>
+            <div className={styles.modeLabel} data-testid="play-mode-label">
+              Mode: {playMode === "full_manual" ? "Full Manual" : "Semi Auto"}
+            </div>
+            <ManualControls />
           </>
         )}
       </div><span className={`${styles.playerLabel} ${styles.playerA}`}>Player A</span>

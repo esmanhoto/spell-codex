@@ -2,7 +2,7 @@ import { useGame } from "../../context/GameContext.tsx"
 import type { CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
-import { isSpellCard } from "../../utils/spell-casting.ts"
+import { buildHandContextActions } from "../../utils/manual-actions.ts"
 import { DrawPile } from "./DrawPile.tsx"
 import { DiscardPile } from "./DiscardPile.tsx"
 import styles from "./PlayerHand.module.css"
@@ -14,7 +14,10 @@ export function PlayerHand({ cards, hiddenCount, drawPileCount, discardCount, is
   discardCount:   number
   isOpponent:     boolean
 }) {
-  const { selectedId, onSelect, openContextMenu, legalMoves, requestSpellCast } = useGame()
+  const {
+    selectedId, onSelect, openContextMenu,
+    legalMoves, requestSpellCast, requestManualPlay, playMode,
+  } = useGame()
   const total = isOpponent ? (hiddenCount ?? cards.length) : cards.length
 
   function fanTransform(index: number): React.CSSProperties {
@@ -29,27 +32,14 @@ export function PlayerHand({ cards, hiddenCount, drawPileCount, discardCount, is
   }
 
   function buildContextActions(card: CardInfo): ContextMenuAction[] {
-    if (isOpponent) return []
-    const canUsePhaseDiscard = legalMoves.some(m =>
-      m.type === "DISCARD_CARD" &&
-      (m as { cardInstanceId: string }).cardInstanceId === card.instanceId,
-    )
-    const actions: ContextMenuAction[] = [
-      {
-        label: "Discard",
-        move: canUsePhaseDiscard
-          ? { type: "DISCARD_CARD", cardInstanceId: card.instanceId }
-          : { type: "MANUAL_DISCARD", cardInstanceId: card.instanceId },
-      },
-      { label: "To Abyss", move: { type: "MANUAL_TO_ABYSS", cardInstanceId: card.instanceId } },
-    ]
-    if (isSpellCard(card)) {
-      actions.unshift({
-        label: "Cast Spell",
-        action: () => requestSpellCast(card.instanceId),
-      })
-    }
-    return actions
+    return buildHandContextActions({
+      card,
+      isOpponent,
+      playMode,
+      legalMoves,
+      requestSpellCast,
+      requestManualPlay,
+    })
   }
 
   return (

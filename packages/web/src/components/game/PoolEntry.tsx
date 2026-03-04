@@ -3,10 +3,12 @@ import { useGame } from "../../context/GameContext.tsx"
 import type { PoolEntry as PoolEntryType } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
 import { isSpellCard } from "../../utils/spell-casting.ts"
+import { resolveHandDropMove, showModeAwareWarning } from "../../utils/manual-actions.ts"
 import { CardComponent } from "./CardComponent.tsx"
 import styles from "./PoolEntry.module.css"
 
 const STACK_OFFSET = 14
+const WORLD_WILDCARD = new Set([0, 9])
 
 export function PoolEntry({ entry, isOpponent }: {
   entry:       PoolEntryType
@@ -14,7 +16,7 @@ export function PoolEntry({ entry, isOpponent }: {
 }) {
   const {
     legalMoves, onMove, selectedId, onSelect,
-    allBoards, phase, showWarning, requestSpellCast,
+    allBoards, phase, showWarning, requestSpellCast, playMode,
   } = useGame()
   const [attachDragOver, setAttachDragOver] = useState(false)
 
@@ -34,11 +36,16 @@ export function PoolEntry({ entry, isOpponent }: {
     e.stopPropagation()
     setAttachDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
-    const move = legalMoves.find(m =>
-      m.type === "ATTACH_ITEM" &&
-      (m as { cardInstanceId: string; championId: string }).cardInstanceId === id &&
-      (m as { cardInstanceId: string; championId: string }).championId === entry.champion.instanceId
-    )
+    const move = resolveHandDropMove({
+      playMode,
+      legalMoves,
+      cardInstanceId: id,
+      target: {
+        zone: "champion",
+        owner: isOpponent ? "opponent" : "self",
+        championId: entry.champion.instanceId,
+      },
+    })
     if (move) {
       onMove(move)
       return
@@ -49,15 +56,32 @@ export function PoolEntry({ entry, isOpponent }: {
       showWarning("That card cannot be attached right now.")
       return
     }
-    if (isSpellCard(card)) {
+    if (playMode !== "full_manual" && isSpellCard(card)) {
       requestSpellCast(card.instanceId, {
         cardInstanceId: entry.champion.instanceId,
         owner: isOpponent ? "opponent" : "self",
       })
       return
     }
+
+    const worldsCompatible =
+      WORLD_WILDCARD.has(card.worldId) ||
+      WORLD_WILDCARD.has(entry.champion.worldId) ||
+      card.worldId === entry.champion.worldId
+    if ((card.typeId === 9 || card.typeId === 2) && !worldsCompatible) {
+      showWarning(
+        `${card.name} world mismatches champion ${entry.champion.name}.`,
+        "world_mismatch_attachment",
+      )
+      return
+    }
+
     if (phase !== "POOL" && phase !== "PLAY_REALM") {
-      showWarning(`Cannot attach item now. Current phase: ${phase.replaceAll("_", " ")}.`)
+      showModeAwareWarning({
+        playMode,
+        showWarning,
+        semiAutoMessage: `Cannot attach item now. Current phase: ${phase.replaceAll("_", " ")}.`,
+      })
       return
     }
     showWarning(`Cannot attach ${card.name} to ${entry.champion.name}.`)

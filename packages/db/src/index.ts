@@ -2,7 +2,10 @@ export { sql } from "./connection.ts"
 export { hashState } from "./hash.ts"
 
 export type { CreateGameInput } from "./games.ts"
-export { createGame, addGamePlayer, getGame, getGamePlayers, setGameStatus, touchGame, findExpiredGames } from "./games.ts"
+export {
+  createGame, addGamePlayer, getGame, getGamePlayers,
+  setGameStatus, setGamePlayMode, touchGame, findExpiredGames,
+} from "./games.ts"
 
 export type { SaveActionInput } from "./actions.ts"
 export { saveAction, listActions, lastSequence } from "./actions.ts"

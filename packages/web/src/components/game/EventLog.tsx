@@ -21,6 +21,10 @@ export function EventLog({ events }: { events: GameEvent[] }) {
   function formatEvent(e: GameEvent): string {
     const p = e.playerId ? playerLabel(e.playerId as string) : ""
     switch (e.type) {
+      case "PLAY_MODE_CHANGED": return `  ${p} switched mode to ${(e.mode as string).replace("_", " ")}`
+      case "MANUAL_ACTIVE_PLAYER_SET": return `  ${p} set active player to ${playerLabel(e.activePlayer as string)}`
+      case "MANUAL_DRAW_COUNT_SET": return `  ${p} set manual draw count to ${e.count as number}`
+      case "MANUAL_MAX_HAND_SIZE_SET": return `  ${p} set manual hand limit to ${e.size as number}`
       case "TURN_STARTED":       return `— Turn ${e.turn as number}: ${playerLabel(e.playerId as string)}`
       case "PHASE_CHANGED":      return `  Phase: ${(e.phase as string).replace(/_/g, " ")}`
       case "CARDS_DRAWN":        return `  ${p} drew ${e.count as number} card(s)`

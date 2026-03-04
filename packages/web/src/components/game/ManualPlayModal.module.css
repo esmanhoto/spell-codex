@@ -1,0 +1,71 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 10, 8, 0.62);
+  display: grid;
+  place-items: center;
+  z-index: 3000;
+}
+
+.modal {
+  width: min(92vw, 440px);
+  border-radius: 12px;
+  border: 1px solid rgba(205, 162, 106, 0.5);
+  background: linear-gradient(180deg, #15100f 0%, #100d0d 100%);
+  color: #f0e6d2;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.message {
+  color: #d7ceb7;
+  font-size: 13px;
+}
+
+.row {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: #cbbca0;
+}
+
+.row select {
+  background: #1f1816;
+  color: #efe7d5;
+  border: 1px solid rgba(205, 162, 106, 0.45);
+  border-radius: 8px;
+  padding: 7px 9px;
+}
+
+.actions {
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancel,
+.confirm {
+  border-radius: 8px;
+  border: 1px solid rgba(205, 162, 106, 0.45);
+  background: #1f1816;
+  color: #efe7d5;
+  padding: 7px 11px;
+  cursor: pointer;
+}
+
+.confirm {
+  background: #2f2117;
+}
+
+.confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -62,8 +62,11 @@ jobs:
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
 
-      - name: Run web smoke E2E tests
-        run: bun run --cwd packages/web test:e2e
+      - name: Run web E2E tests (auth bypass)
+        run: bun run ci:test:web
+
+      - name: Run web E2E tests (auth mode)
+        run: bun run ci:test:web:auth-mock
 
       - name: Build web
         run: bun run ci:build

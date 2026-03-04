@@ -1,0 +1,1 @@
+ALTER TABLE "games" ADD COLUMN "play_mode" text DEFAULT 'full_manual' NOT NULL;

@@ -63,3 +63,10 @@ align-self: flex-end
   text-align: center;
   margin-top: 2px;
 }
+
+.modeLabel {
+  font-size: 10px;
+  color: #9fd58d;
+  text-align: center;
+  margin-top: 2px;
+}

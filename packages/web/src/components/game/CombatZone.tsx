@@ -11,7 +11,7 @@ import styles from "./CombatZone.module.css"
 export function CombatZone() {
   const {
     combat, playerA, playerB, legalMoves, onMove, openContextMenu,
-    allBoards, requestSpellCast,
+    allBoards, requestSpellCast, playMode,
   } = useGame()
   const [inputA, setInputA] = useState("")
   const [inputB, setInputB] = useState("")
@@ -93,6 +93,17 @@ export function CombatZone() {
     const targetIsSelf =
       targetCard.instanceId === champA?.instanceId ||
       cardsA.some(c => c.instanceId === targetCard.instanceId)
+    if (playMode === "full_manual") {
+      onMove({
+        type: "MANUAL_PLAY_CARD",
+        cardInstanceId: card.instanceId,
+        targetKind: "card",
+        resolution: "lasting_target",
+        targetOwner: targetIsSelf ? "self" : "opponent",
+        targetCardInstanceId: targetCard.instanceId,
+      })
+      return
+    }
     requestSpellCast(card.instanceId, {
       cardInstanceId: targetCard.instanceId,
       owner: targetIsSelf ? "self" : "opponent",
