@@ -8,52 +8,52 @@ const WS_BASE = (() => {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CardInfo {
-  instanceId:  string
-  name:        string
-  typeId:      number
-  worldId:     number
-  level:       number | string | null
-  setId:       string
-  cardNumber:  number
+  instanceId: string
+  name: string
+  typeId: number
+  worldId: number
+  level: number | string | null
+  setId: string
+  cardNumber: number
   description: string
-  supportIds:  Array<number | string>
+  supportIds: Array<number | string>
   spellNature: "offensive" | "defensive" | null
-  castPhases:  Array<3 | 4 | 5>
+  castPhases: Array<3 | 4 | 5>
 }
 
 export interface SlotState {
-  realm:    CardInfo
+  realm: CardInfo
   holdings: CardInfo[]
-  isRazed:  boolean
+  isRazed: boolean
   holdingRevealedToAll: boolean
 }
 
 export interface PoolEntry {
-  champion:    CardInfo
+  champion: CardInfo
   attachments: CardInfo[]
 }
 
 export interface PlayerBoard {
-  hand:          CardInfo[]
-  handCount:     number
-  handHidden:    boolean
-  formation:     Record<string, SlotState | null>
-  pool:          PoolEntry[]
+  hand: CardInfo[]
+  handCount: number
+  handHidden: boolean
+  formation: Record<string, SlotState | null>
+  pool: PoolEntry[]
   drawPileCount: number
-  discardCount:  number
+  discardCount: number
 }
 
 export interface CombatInfo {
-  attackingPlayer:    string
-  defendingPlayer:    string
-  targetSlot:         string
-  roundPhase:         string
-  attacker:           CardInfo | null
-  defender:           CardInfo | null
-  attackerCards:      CardInfo[]
-  defenderCards:      CardInfo[]
-  attackerLevel:      number
-  defenderLevel:      number
+  attackingPlayer: string
+  defendingPlayer: string
+  targetSlot: string
+  roundPhase: string
+  attacker: CardInfo | null
+  defender: CardInfo | null
+  attackerCards: CardInfo[]
+  defenderCards: CardInfo[]
+  attackerLevel: number
+  defenderLevel: number
   attackerManualLevel: number | null
   defenderManualLevel: number | null
 }
@@ -66,22 +66,22 @@ export interface ManualSettings {
 }
 
 export interface GameState {
-  gameId:               string
-  viewerPlayerId:       string | null
-  playerOrder:          string[]
-  status:               string
-  playMode:             PlayMode
-  manualSettings:       ManualSettings
-  phase:                string
-  activePlayer:         string
-  turnNumber:           number
-  turnDeadline:         string | null
-  winner:               string | null
-  legalMoves:           Move[]
+  gameId: string
+  viewerPlayerId: string | null
+  playerOrder: string[]
+  status: string
+  playMode: PlayMode
+  manualSettings: ManualSettings
+  phase: string
+  activePlayer: string
+  turnNumber: number
+  turnDeadline: string | null
+  winner: string | null
+  legalMoves: Move[]
   legalMovesPerPlayer?: Record<string, Move[]>
   board: {
     players: Record<string, PlayerBoard>
-    combat:  CombatInfo | null
+    combat: CombatInfo | null
   }
   events?: GameEvent[]
   integrityErrors?: unknown[]
@@ -99,16 +99,16 @@ export interface AuthIdentity {
 
 // Moves — mirror the engine's Move union (field names must match exactly)
 export type ManualAction = "discard" | "to_limbo" | "to_abyss" | "raze_realm"
-export type ManualPlayTargetKind = "none" | "player" | "card"
+export type ManualPlayTargetKind = "none" | "player" | "card" | "realm" | "pool"
 export type ManualPlayResolution = "discard" | "lasting" | "lasting_target"
 
 export type Move =
   | { type: "PASS" }
   | { type: "END_TURN" }
-  | { type: "SET_PLAY_MODE";           mode: PlayMode }
+  | { type: "SET_PLAY_MODE"; mode: PlayMode }
   | { type: "MANUAL_END_TURN" }
   | { type: "MANUAL_SET_ACTIVE_PLAYER"; playerId: string }
-  | { type: "MANUAL_SET_DRAW_COUNT";    count: number }
+  | { type: "MANUAL_SET_DRAW_COUNT"; count: number }
   | { type: "MANUAL_SET_MAX_HAND_SIZE"; size: number }
   | {
       type: "MANUAL_PLAY_CARD"
@@ -117,13 +117,14 @@ export type Move =
       resolution: ManualPlayResolution
       targetOwner?: "self" | "opponent"
       targetCardInstanceId?: string
+      targetRealmSlot?: string
     }
-  | { type: "PLAY_REALM";              cardInstanceId: string; slot: string }
-  | { type: "REBUILD_REALM";           slot: string }
-  | { type: "PLAY_HOLDING";            cardInstanceId: string; realmSlot: string }
-  | { type: "TOGGLE_HOLDING_REVEAL";   realmSlot: string }
-  | { type: "PLACE_CHAMPION";          cardInstanceId: string }
-  | { type: "ATTACH_ITEM";             cardInstanceId: string; championId: string }
+  | { type: "PLAY_REALM"; cardInstanceId: string; slot: string }
+  | { type: "REBUILD_REALM"; slot: string }
+  | { type: "PLAY_HOLDING"; cardInstanceId: string; realmSlot: string }
+  | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: string }
+  | { type: "PLACE_CHAMPION"; cardInstanceId: string }
+  | { type: "ATTACH_ITEM"; cardInstanceId: string; championId: string }
   | {
       type: "PLAY_PHASE3_CARD"
       cardInstanceId: string
@@ -132,28 +133,28 @@ export type Move =
       targetCardInstanceId?: string
       targetOwner?: "self" | "opponent"
     }
-  | { type: "PLAY_PHASE5_CARD";        cardInstanceId: string }
-  | { type: "PLAY_RULE_CARD";          cardInstanceId: string }
-  | { type: "PLAY_EVENT";              cardInstanceId: string }
-  | { type: "DECLARE_ATTACK";          championId: string; targetPlayerId: string; targetRealmSlot: string }
-  | { type: "DECLARE_DEFENSE";         championId: string }
+  | { type: "PLAY_PHASE5_CARD"; cardInstanceId: string }
+  | { type: "PLAY_RULE_CARD"; cardInstanceId: string }
+  | { type: "PLAY_EVENT"; cardInstanceId: string }
+  | { type: "DECLARE_ATTACK"; championId: string; targetPlayerId: string; targetRealmSlot: string }
+  | { type: "DECLARE_DEFENSE"; championId: string }
   | { type: "DECLINE_DEFENSE" }
-  | { type: "PLAY_COMBAT_CARD";        cardInstanceId: string }
+  | { type: "PLAY_COMBAT_CARD"; cardInstanceId: string }
   | { type: "STOP_PLAYING" }
-  | { type: "CONTINUE_ATTACK";         championId: string }
+  | { type: "CONTINUE_ATTACK"; championId: string }
   | { type: "END_ATTACK" }
-  | { type: "DISCARD_CARD";            cardInstanceId: string }
-  | { type: "MANUAL_DISCARD";          cardInstanceId: string }
-  | { type: "MANUAL_TO_LIMBO";         cardInstanceId: string; returnsInTurns?: number }
-  | { type: "MANUAL_TO_ABYSS";         cardInstanceId: string }
-  | { type: "MANUAL_TO_HAND";          cardInstanceId: string }
-  | { type: "MANUAL_RAZE_REALM";       slot: string }
-  | { type: "MANUAL_DRAW_CARDS";       count: number }
-  | { type: "MANUAL_RETURN_TO_POOL";   cardInstanceId: string }
-  | { type: "MANUAL_AFFECT_OPPONENT";  cardInstanceId: string; action: ManualAction }
-  | { type: "MANUAL_SET_COMBAT_LEVEL";    playerId: string; level: number }
+  | { type: "DISCARD_CARD"; cardInstanceId: string }
+  | { type: "MANUAL_DISCARD"; cardInstanceId: string }
+  | { type: "MANUAL_TO_LIMBO"; cardInstanceId: string; returnsInTurns?: number }
+  | { type: "MANUAL_TO_ABYSS"; cardInstanceId: string }
+  | { type: "MANUAL_TO_HAND"; cardInstanceId: string }
+  | { type: "MANUAL_RAZE_REALM"; slot: string }
+  | { type: "MANUAL_DRAW_CARDS"; count: number }
+  | { type: "MANUAL_RETURN_TO_POOL"; cardInstanceId: string }
+  | { type: "MANUAL_AFFECT_OPPONENT"; cardInstanceId: string; action: ManualAction }
+  | { type: "MANUAL_SET_COMBAT_LEVEL"; playerId: string; level: number }
   | { type: "MANUAL_SWITCH_COMBAT_SIDE"; cardInstanceId: string }
-  | { type: string;                       [key: string]: unknown }
+  | { type: string; [key: string]: unknown }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
 
@@ -180,18 +181,18 @@ export async function getDeck(name: string): Promise<{ name: string; cards: obje
 }
 
 export async function createGame(opts: {
-  identity:  AuthIdentity
+  identity: AuthIdentity
   playerBId: string
-  seed:      number
-  deckA:     object[]
-  deckB:     object[]
+  seed: number
+  deckA: object[]
+  deckB: object[]
 }): Promise<{ gameId: string }> {
   return request("/games", {
-    method:  "POST",
+    method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders(opts.identity) },
     body: JSON.stringify({
       formatId: "standard-55",
-      seed:     opts.seed,
+      seed: opts.seed,
       players: [
         { userId: opts.identity.userId, deckSnapshot: opts.deckA },
         { userId: opts.playerBId, deckSnapshot: opts.deckB },
@@ -216,7 +217,10 @@ export async function createLobbyGame(opts: {
   })
 }
 
-export async function getLobbyStatus(gameId: string, identity: AuthIdentity): Promise<{
+export async function getLobbyStatus(
+  gameId: string,
+  identity: AuthIdentity,
+): Promise<{
   gameId: string
   status: "waiting" | "active" | "finished" | "abandoned"
   playerCount: number
@@ -251,26 +255,30 @@ export async function getGameState(gameId: string, identity: AuthIdentity): Prom
   })
 }
 
-export async function submitMove(gameId: string, identity: AuthIdentity, move: Move): Promise<unknown> {
+export async function submitMove(
+  gameId: string,
+  identity: AuthIdentity,
+  move: Move,
+): Promise<unknown> {
   return request(`/games/${gameId}/moves`, {
-    method:  "POST",
+    method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders(identity) },
-    body:    JSON.stringify(move),
+    body: JSON.stringify(move),
   })
 }
 
 // ─── WebSocket client ─────────────────────────────────────────────────────────
 
 export type WsClientMessage =
-  | { type: "STATE_UPDATE";           gameId: string; state: GameState }
-  | { type: "GAME_OVER";              gameId: string; winner: string }
+  | { type: "STATE_UPDATE"; gameId: string; state: GameState }
+  | { type: "GAME_OVER"; gameId: string; winner: string }
   | { type: "PONG" }
-  | { type: "ERROR";                  code: string; message: string }
+  | { type: "ERROR"; code: string; message: string }
 
 export interface WsClient {
   /** Returns true if the move was sent, false if the socket was not open. */
   sendMove: (move: Move) => boolean
-  close:    () => void
+  close: () => void
 }
 
 /**
@@ -278,7 +286,7 @@ export interface WsClient {
  * Auto-reconnects on disconnect. Calls `onMessage` for each server message.
  */
 export function createWsClient(
-  gameId:    string,
+  gameId: string,
   identity: AuthIdentity,
   onMessage: (msg: WsClientMessage) => void,
 ): WsClient {
@@ -291,11 +299,13 @@ export function createWsClient(
     ws = new WebSocket(`${WS_BASE}/ws`)
 
     ws.onopen = () => {
-      ws!.send(JSON.stringify(
-        identity.accessToken
-          ? { type: "JOIN_GAME", gameId, token: identity.accessToken }
-          : { type: "JOIN_GAME", gameId, playerId: identity.userId },
-      ))
+      ws!.send(
+        JSON.stringify(
+          identity.accessToken
+            ? { type: "JOIN_GAME", gameId, token: identity.accessToken }
+            : { type: "JOIN_GAME", gameId, playerId: identity.userId },
+        ),
+      )
     }
 
     ws.onmessage = (event) => {

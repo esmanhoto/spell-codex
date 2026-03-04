@@ -1,24 +1,30 @@
 import { useEffect, useState } from "react"
 import styles from "./WarningModal.module.css"
 
-export function WarningModal({ message, suppressible = true, onClose }: {
+export function WarningModal({
+  message,
+  suppressible = true,
+  onCancel,
+  onProceed,
+}: {
   message: string
   suppressible?: boolean
-  onClose: (suppress: boolean) => void
+  onCancel: (suppress: boolean) => void
+  onProceed?: (suppress: boolean) => void
 }) {
   const [suppress, setSuppress] = useState(false)
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose(suppress)
+      if (e.key === "Escape") onCancel(suppress)
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [onClose, suppress])
+  }, [onCancel, suppress])
 
   return (
-    <div className={styles.backdrop} data-testid="warning-modal" onClick={() => onClose(suppress)}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+    <div className={styles.backdrop} data-testid="warning-modal" onClick={() => onCancel(suppress)}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.title}>Warning</div>
         <div className={styles.message}>{message}</div>
         {suppressible && (
@@ -27,12 +33,29 @@ export function WarningModal({ message, suppressible = true, onClose }: {
               data-testid="warning-suppress"
               type="checkbox"
               checked={suppress}
-              onChange={e => setSuppress(e.target.checked)}
+              onChange={(e) => setSuppress(e.target.checked)}
             />
             <span>Don&apos;t show this warning again</span>
           </label>
         )}
-        <button className={styles.button} data-testid="warning-ok" onClick={() => onClose(suppress)}>OK</button>
+        <div className={styles.actions}>
+          {onProceed && (
+            <button
+              className={styles.button}
+              data-testid="warning-cancel"
+              onClick={() => onCancel(suppress)}
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            className={styles.button}
+            data-testid={onProceed ? "warning-proceed" : "warning-ok"}
+            onClick={() => (onProceed ? onProceed(suppress) : onCancel(suppress))}
+          >
+            {onProceed ? "Proceed Anyway" : "OK"}
+          </button>
+        </div>
       </div>
     </div>
   )

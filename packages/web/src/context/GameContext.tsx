@@ -9,37 +9,37 @@ export interface ContextMenuAction {
 }
 
 export interface ContextMenuState {
-  x:       number
-  y:       number
+  x: number
+  y: number
   actions: ContextMenuAction[]
 }
 
 export interface GameContextType {
   // Core game state
-  playerA:         string
-  playerB:         string
-  myPlayerId:      string
-  activePlayer:    string
-  phase:           string
-  turnNumber:      number
-  playMode:        PlayMode
-  manualSettings:  ManualSettings
-  winner:          string | null
-  allBoards:       Record<string, PlayerBoard>
+  playerA: string
+  playerB: string
+  myPlayerId: string
+  activePlayer: string
+  phase: string
+  turnNumber: number
+  playMode: PlayMode
+  manualSettings: ManualSettings
+  winner: string | null
+  allBoards: Record<string, PlayerBoard>
   lingeringSpellsByPlayer: Record<string, CardInfo[]>
-  combat:          CombatInfo | null
+  combat: CombatInfo | null
 
   // Moves
-  legalMoves:      Move[]
+  legalMoves: Move[]
   legalMovesPerPlayer?: Record<string, Move[]>
-  onMove:          (m: Move) => void
+  onMove: (m: Move) => void
 
   // Selection
-  selectedId:      string | null
-  onSelect:        (id: string | null) => void
+  selectedId: string | null
+  onSelect: (id: string | null) => void
 
   // Context menu
-  contextMenu:     ContextMenuState | null
+  contextMenu: ContextMenuState | null
   openContextMenu: (x: number, y: number, actions: ContextMenuAction[]) => void
   closeContextMenu: () => void
 
@@ -47,44 +47,54 @@ export interface GameContextType {
   warningMessage: string | null
   warningCode: WarningCode | null
   warningSuppressible: boolean
-  showWarning: (message: string, code?: WarningCode, suppressible?: boolean) => void
+  warningConfirmAction: (() => void) | null
+  showWarning: (
+    message: string,
+    code?: WarningCode,
+    suppressible?: boolean,
+    confirmAction?: () => void,
+  ) => void
   suppressWarningCode: (code: WarningCode) => void
   clearWarning: () => void
 
   // Spell casting UX
-  requestSpellCast: (spellInstanceId: string, target?: {
-    cardInstanceId: string
-    owner: "self" | "opponent"
-  }) => void
+  requestSpellCast: (
+    spellInstanceId: string,
+    target?: {
+      cardInstanceId: string
+      owner: "self" | "opponent"
+    },
+  ) => void
   requestManualPlay: (cardInstanceId: string) => void
 }
 
 export const GameContext = React.createContext<GameContextType>({
-  playerA:         "",
-  playerB:         "",
-  myPlayerId:      "",
-  activePlayer:    "",
-  phase:           "",
-  turnNumber:      0,
-  playMode:        "full_manual",
-  manualSettings:  { drawCount: 3, maxHandSize: 8 },
-  winner:          null,
-  allBoards:       {},
+  playerA: "",
+  playerB: "",
+  myPlayerId: "",
+  activePlayer: "",
+  phase: "",
+  turnNumber: 0,
+  playMode: "full_manual",
+  manualSettings: { drawCount: 3, maxHandSize: 8 },
+  winner: null,
+  allBoards: {},
   lingeringSpellsByPlayer: {},
-  combat:          null,
-  legalMoves:      [],
-  onMove:          () => {},
-  selectedId:      null,
-  onSelect:        () => {},
-  contextMenu:     null,
+  combat: null,
+  legalMoves: [],
+  onMove: () => {},
+  selectedId: null,
+  onSelect: () => {},
+  contextMenu: null,
   openContextMenu: () => {},
   closeContextMenu: () => {},
-  warningMessage:  null,
-  warningCode:     null,
+  warningMessage: null,
+  warningCode: null,
   warningSuppressible: true,
-  showWarning:     () => {},
+  warningConfirmAction: null,
+  showWarning: () => {},
   suppressWarningCode: () => {},
-  clearWarning:    () => {},
+  clearWarning: () => {},
   requestSpellCast: () => {},
   requestManualPlay: () => {},
 })

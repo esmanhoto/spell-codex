@@ -10,46 +10,63 @@ import styles from "./Formation.module.css"
 const ROWS = [["A"], ["B", "C"], ["D", "E", "F"]]
 const WORLD_WILDCARD = new Set([0, 9])
 
-export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }: {
-  slots:             Record<string, SlotState | null>
-  formationOwnerId:  string
-  isOpponent:        boolean
-  attackedSlot?:     string
+export function Formation({
+  slots,
+  formationOwnerId,
+  isOpponent,
+  attackedSlot,
+}: {
+  slots: Record<string, SlotState | null>
+  formationOwnerId: string
+  isOpponent: boolean
+  attackedSlot?: string
 }) {
   const {
-    legalMoves, onMove, selectedId, onSelect, openContextMenu,
-    allBoards, phase, showWarning, myPlayerId, activePlayer, turnNumber, requestSpellCast, playMode,
+    legalMoves,
+    onMove,
+    selectedId,
+    onSelect,
+    openContextMenu,
+    allBoards,
+    phase,
+    showWarning,
+    myPlayerId,
+    activePlayer,
+    turnNumber,
+    requestSpellCast,
+    playMode,
   } = useGame()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
 
   function findDraggedHandCard(instanceId: string): CardInfo | undefined {
     for (const board of Object.values(allBoards)) {
-      const c = board.hand.find(card => card.instanceId === instanceId)
+      const c = board.hand.find((card) => card.instanceId === instanceId)
       if (c) return c
     }
     return undefined
   }
 
   function isCardAlreadyInPlay(card: CardInfo): boolean {
-    return Object.values(allBoards).some(board => {
-      const inFormation = Object.values(board.formation).some(slotState => (
-        !!slotState && (
-          (slotState.realm.name === card.name && slotState.realm.typeId === card.typeId) ||
-          slotState.holdings.some(h => h.name === card.name && h.typeId === card.typeId)
-        )
-      ))
+    return Object.values(allBoards).some((board) => {
+      const inFormation = Object.values(board.formation).some(
+        (slotState) =>
+          !!slotState &&
+          ((slotState.realm.name === card.name && slotState.realm.typeId === card.typeId) ||
+            slotState.holdings.some((h) => h.name === card.name && h.typeId === card.typeId)),
+      )
       if (inFormation) return true
 
-      return board.pool.some(entry =>
-        (entry.champion.name === card.name && entry.champion.typeId === card.typeId) ||
-        entry.attachments.some(a => a.name === card.name && a.typeId === card.typeId),
+      return board.pool.some(
+        (entry) =>
+          (entry.champion.name === card.name && entry.champion.typeId === card.typeId) ||
+          entry.attachments.some((a) => a.name === card.name && a.typeId === card.typeId),
       )
     })
   }
 
   function findDraggedPoolChampion(instanceId: string): CardInfo | undefined {
     for (const board of Object.values(allBoards)) {
-      const c = board.pool.find(entry => entry.champion.instanceId === instanceId)?.champion
+      const c = board.pool.find((entry) => entry.champion.instanceId === instanceId)?.champion
       if (c) return c
     }
     return undefined
@@ -59,11 +76,9 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
     const phaseLabel = phase.replaceAll("_", " ")
     const target = slots[slot]
     const worldsCompatible = target
-      ? (
-        WORLD_WILDCARD.has(card.worldId) ||
+      ? WORLD_WILDCARD.has(card.worldId) ||
         WORLD_WILDCARD.has(target.realm.worldId) ||
         card.worldId === target.realm.worldId
-      )
       : true
 
     if (card.typeId === 13 && phase !== "PLAY_REALM") {
@@ -75,7 +90,10 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
       return
     }
     if (isCardAlreadyInPlay(card)) {
-      showWarning(`${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`, "duplicate_in_game")
+      showWarning(
+        `${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`,
+        "duplicate_in_game",
+      )
       return
     }
 
@@ -107,14 +125,20 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
       showWarning("Not your turn.")
       return
     }
-    if (phase !== "PLAY_REALM" && phase !== "POOL" && phase !== "COMBAT") {
+    if (
+      playMode !== "full_manual" &&
+      phase !== "PLAY_REALM" &&
+      phase !== "POOL" &&
+      phase !== "COMBAT"
+    ) {
       showWarning(`Cannot declare attack now. Current phase: ${phase.replaceAll("_", " ")}.`)
       return
     }
 
-    const championHasAnyAttack = legalMoves.some(m =>
-      m.type === "DECLARE_ATTACK" &&
-      (m as { championId: string }).championId === champion.instanceId,
+    const championHasAnyAttack = legalMoves.some(
+      (m) =>
+        m.type === "DECLARE_ATTACK" &&
+        (m as { championId: string }).championId === champion.instanceId,
     )
     if (!championHasAnyAttack && turnNumber <= 2) {
       showWarning("Cannot attack during round 1.")
@@ -131,12 +155,17 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
   function handleSlotDrop(e: React.DragEvent, slot: string) {
     e.preventDefault()
     setDragOverSlot(null)
-    const id     = e.dataTransfer.getData("drag-id")
+    const id = e.dataTransfer.getData("drag-id")
     const source = e.dataTransfer.getData("drag-source")
     if (!id) return
 
     if (source === "hand") {
       const card = findDraggedHandCard(id)
+      const slotState = slots[slot] ?? null
+      if (playMode === "full_manual" && card && card.typeId !== 13 && card.typeId !== 8) {
+        showWarning("Only realms and holdings can be played in formation.")
+        return
+      }
       const resolved = resolveHandDropMove({
         playMode,
         legalMoves,
@@ -145,16 +174,33 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
           zone: "formation_slot",
           owner: formationOwnerId === myPlayerId ? "self" : "opponent",
           slot,
-          slotState: slots[slot] ?? null,
+          slotState,
         },
       })
       if (resolved) {
+        if (
+          playMode === "full_manual" &&
+          card?.typeId === 8 &&
+          slotState &&
+          !(
+            WORLD_WILDCARD.has(card.worldId) ||
+            WORLD_WILDCARD.has(slotState.realm.worldId) ||
+            card.worldId === slotState.realm.worldId
+          )
+        ) {
+          showWarning(
+            `Holding ${card.name} world mismatches realm ${slotState.realm.name}.`,
+            "world_mismatch_attachment",
+            true,
+            () => onMove(resolved),
+          )
+          return
+        }
         onMove(resolved)
         return
       }
 
       if (playMode !== "full_manual" && card && isSpellCard(card)) {
-        const slotState = slots[slot]
         if (!slotState) {
           showWarning("Drop the spell on a card target, not an empty slot.")
           return
@@ -184,13 +230,42 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
 
     if (source === "pool") {
       const champion = findDraggedPoolChampion(id)
-      const attackMove = legalMoves.find(m =>
-        m.type === "DECLARE_ATTACK" &&
-        (m as { championId: string; targetRealmSlot: string; targetPlayerId: string }).championId === id &&
-        (m as { championId: string; targetRealmSlot: string; targetPlayerId: string }).targetRealmSlot === slot &&
-        (m as { championId: string; targetRealmSlot: string; targetPlayerId: string }).targetPlayerId === formationOwnerId
+      if (playMode === "full_manual") {
+        if (!champion) {
+          showWarning("Cannot declare attack with that card.")
+          return
+        }
+        if (activePlayer !== myPlayerId) {
+          showWarning("Not your turn.")
+          return
+        }
+        if (formationOwnerId === myPlayerId) {
+          showWarning("Cannot attack your own realm.")
+          return
+        }
+        onMove({
+          type: "DECLARE_ATTACK",
+          championId: id,
+          targetRealmSlot: slot,
+          targetPlayerId: formationOwnerId,
+        })
+        return
+      }
+
+      const attackMove = legalMoves.find(
+        (m) =>
+          m.type === "DECLARE_ATTACK" &&
+          (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+            .championId === id &&
+          (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+            .targetRealmSlot === slot &&
+          (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+            .targetPlayerId === formationOwnerId,
       )
-      if (attackMove) { onMove(attackMove); return }
+      if (attackMove) {
+        onMove(attackMove)
+        return
+      }
       if (champion) {
         warnInvalidAttackDrop(champion, formationOwnerId, slot)
       } else {
@@ -200,7 +275,7 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
     }
   }
 
-  const displayRows = isOpponent ? [...ROWS].reverse() : ROWS;
+  const displayRows = isOpponent ? [...ROWS].reverse() : ROWS
 
   return (
     <div className={styles.formation}>
@@ -208,15 +283,16 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
       <div className={styles.pyramid}>
         {displayRows.map((row, ri) => (
           <div key={ri} className={styles.row}>
-            {row.map(slot => {
+            {row.map((slot) => {
               const s = slots[slot]
-              const isSelected  = !!s && selectedId === s.realm.instanceId
+              const isSelected = !!s && selectedId === s.realm.instanceId
               const isDragTarget = dragOverSlot === slot
               const toggleHoldingMove = s?.holdings.length
-                ? legalMoves.find(m =>
-                  m.type === "TOGGLE_HOLDING_REVEAL" &&
-                  (m as { realmSlot: string }).realmSlot === slot
-                )
+                ? legalMoves.find(
+                    (m) =>
+                      m.type === "TOGGLE_HOLDING_REVEAL" &&
+                      (m as { realmSlot: string }).realmSlot === slot,
+                  )
                 : undefined
               const tooltipCards = s ? [s.realm, ...s.holdings] : []
               const showHoldingStack = !!(s && s.holdings.length > 0 && s.holdingRevealedToAll)
@@ -232,18 +308,29 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
                     isSelected ? styles.selected : "",
                     isDragTarget ? styles.dragOver : "",
                     attackedSlot === slot ? styles.targeted : "",
-                  ].filter(Boolean).join(" ")}
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   onClick={() => s && onSelect(isSelected ? null : s.realm.instanceId)}
-                  onDragOver={e => { e.preventDefault(); setDragOverSlot(slot) }}
-                  onDragLeave={() => setDragOverSlot(null)}
-                  onDrop={e => handleSlotDrop(e, slot)}
-                  onContextMenu={toggleHoldingMove ? e => {
+                  onDragOver={(e) => {
                     e.preventDefault()
-                    openContextMenu(e.clientX, e.clientY, [{
-                      label: s?.holdingRevealedToAll ? "Hide holding" : "Reveal holding",
-                      move: toggleHoldingMove,
-                    }])
-                  } : undefined}
+                    setDragOverSlot(slot)
+                  }}
+                  onDragLeave={() => setDragOverSlot(null)}
+                  onDrop={(e) => handleSlotDrop(e, slot)}
+                  onContextMenu={
+                    toggleHoldingMove
+                      ? (e) => {
+                          e.preventDefault()
+                          openContextMenu(e.clientX, e.clientY, [
+                            {
+                              label: s?.holdingRevealedToAll ? "Hide holding" : "Reveal holding",
+                              move: toggleHoldingMove,
+                            },
+                          ])
+                        }
+                      : undefined
+                  }
                 >
                   <span className={styles.slotLabel}>{slot}</span>
                   {s ? (
@@ -262,10 +349,15 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
                             {holdingForStack && (
                               <div className={styles.holdingPeekWrap}>
                                 <img
-                                  src={cardImageUrl(holdingForStack.setId, holdingForStack.cardNumber)}
+                                  src={cardImageUrl(
+                                    holdingForStack.setId,
+                                    holdingForStack.cardNumber,
+                                  )}
                                   alt={holdingForStack.name}
                                   className={styles.holdingPeekImg}
-                                  onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                                  onError={(e) => {
+                                    ;(e.target as HTMLImageElement).style.display = "none"
+                                  }}
                                 />
                               </div>
                             )}
@@ -274,15 +366,22 @@ export function Formation({ slots, formationOwnerId, isOpponent, attackedSlot }:
                                 src={cardImageUrl(s.realm.setId, s.realm.cardNumber)}
                                 alt={s.realm.name}
                                 className={styles.realmImg}
-                                onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                                onError={(e) => {
+                                  ;(e.target as HTMLImageElement).style.display = "none"
+                                }}
                               />
                             </div>
                           </div>
                         </CardTooltip>
                       )}
-                      <span className={styles.realmName}>{s.realm.name}{s.isRazed ? " (razed)" : ""}</span>
-                      {s.holdings.map(h => (
-                        <span key={h.instanceId} className={styles.holding} title={h.description}>{h.name}</span>
+                      <span className={styles.realmName}>
+                        {s.realm.name}
+                        {s.isRazed ? " (razed)" : ""}
+                      </span>
+                      {s.holdings.map((h) => (
+                        <span key={h.instanceId} className={styles.holding} title={h.description}>
+                          {h.name}
+                        </span>
                       ))}
                     </>
                   ) : (

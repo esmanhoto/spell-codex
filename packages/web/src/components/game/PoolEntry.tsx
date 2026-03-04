@@ -10,13 +10,17 @@ import styles from "./PoolEntry.module.css"
 const STACK_OFFSET = 14
 const WORLD_WILDCARD = new Set([0, 9])
 
-export function PoolEntry({ entry, isOpponent }: {
-  entry:       PoolEntryType
-  isOpponent?: boolean
-}) {
+export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOpponent?: boolean }) {
   const {
-    legalMoves, onMove, selectedId, onSelect,
-    allBoards, phase, showWarning, requestSpellCast, playMode,
+    legalMoves,
+    onMove,
+    selectedId,
+    onSelect,
+    allBoards,
+    phase,
+    showWarning,
+    requestSpellCast,
+    playMode,
   } = useGame()
   const [attachDragOver, setAttachDragOver] = useState(false)
 
@@ -25,7 +29,7 @@ export function PoolEntry({ entry, isOpponent }: {
 
   function findDraggedHandCard(instanceId: string) {
     for (const board of Object.values(allBoards)) {
-      const c = board.hand.find(card => card.instanceId === instanceId)
+      const c = board.hand.find((card) => card.instanceId === instanceId)
       if (c) return c
     }
     return undefined
@@ -36,6 +40,12 @@ export function PoolEntry({ entry, isOpponent }: {
     e.stopPropagation()
     setAttachDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
+    const card = findDraggedHandCard(id)
+    if (playMode === "full_manual" && card && (card.typeId === 13 || card.typeId === 8)) {
+      showWarning("Realms and holdings cannot be played to pool.")
+      return
+    }
+
     const move = resolveHandDropMove({
       playMode,
       legalMoves,
@@ -46,12 +56,27 @@ export function PoolEntry({ entry, isOpponent }: {
         championId: entry.champion.instanceId,
       },
     })
+    const worldsCompatible = card
+      ? WORLD_WILDCARD.has(card.worldId) ||
+        WORLD_WILDCARD.has(entry.champion.worldId) ||
+        card.worldId === entry.champion.worldId
+      : true
+    const hasWorldMismatch = !!card && (card.typeId === 9 || card.typeId === 2) && !worldsCompatible
+
     if (move) {
+      if (playMode === "full_manual" && hasWorldMismatch) {
+        showWarning(
+          `${card!.name} world mismatches champion ${entry.champion.name}.`,
+          "world_mismatch_attachment",
+          true,
+          () => onMove(move),
+        )
+        return
+      }
       onMove(move)
       return
     }
 
-    const card = findDraggedHandCard(id)
     if (!card) {
       showWarning("That card cannot be attached right now.")
       return
@@ -64,11 +89,7 @@ export function PoolEntry({ entry, isOpponent }: {
       return
     }
 
-    const worldsCompatible =
-      WORLD_WILDCARD.has(card.worldId) ||
-      WORLD_WILDCARD.has(entry.champion.worldId) ||
-      card.worldId === entry.champion.worldId
-    if ((card.typeId === 9 || card.typeId === 2) && !worldsCompatible) {
+    if (hasWorldMismatch) {
       showWarning(
         `${card.name} world mismatches champion ${entry.champion.name}.`,
         "world_mismatch_attachment",
@@ -107,33 +128,48 @@ export function PoolEntry({ entry, isOpponent }: {
   return (
     <div
       className={`${styles.entry} ${attachDragOver ? styles.dragOver : ""}`}
-      onDragOver={e => { e.preventDefault(); setAttachDragOver(true) }}
-      onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setAttachDragOver(false) }}
+      onDragOver={(e) => {
+        e.preventDefault()
+        setAttachDragOver(true)
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setAttachDragOver(false)
+      }}
       onDrop={handleAttachDrop}
     >
       <div
         className={styles.stack}
         style={{
-          width:  `${100 + (n - 1) * STACK_OFFSET}px`,
+          width: `${100 + (n - 1) * STACK_OFFSET}px`,
           height: `${140 + (n - 1) * STACK_OFFSET}px`,
         }}
       >
         {stackCards.map((c, i) => {
           const isChampion = c.instanceId === entry.champion.instanceId
+          const defendMove = legalMoves.find(
+            (m) =>
+              m.type === "DECLARE_DEFENSE" &&
+              (m as { championId: string }).championId === c.instanceId,
+          )
           const contextActions: ContextMenuAction[] = []
 
           if (!isOpponent) {
-            contextActions.push({ label: "Discard",       move: { type: "MANUAL_DISCARD",  cardInstanceId: c.instanceId } })
-            contextActions.push({ label: "To Abyss",      move: { type: "MANUAL_TO_ABYSS", cardInstanceId: c.instanceId } })
-            if (isChampion) {
-              contextActions.push({ label: "Send to Limbo", move: { type: "MANUAL_TO_LIMBO", cardInstanceId: c.instanceId } })
+            contextActions.push({
+              label: "Discard",
+              move: { type: "MANUAL_DISCARD", cardInstanceId: c.instanceId },
+            })
+            if (isChampion && defendMove) {
+              contextActions.push({ label: "Join combat as defender", move: defendMove })
             }
           } else {
-            contextActions.push({ label: "Discard (opponent)",  move: { type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: c.instanceId, action: "discard" } })
-            contextActions.push({ label: "To Abyss (opponent)", move: { type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: c.instanceId, action: "to_abyss" } })
-            if (isChampion) {
-              contextActions.push({ label: "Limbo (opponent)", move: { type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: c.instanceId, action: "to_limbo" } })
-            }
+            contextActions.push({
+              label: "Discard (opponent)",
+              move: {
+                type: "MANUAL_AFFECT_OPPONENT",
+                cardInstanceId: c.instanceId,
+                action: "discard",
+              },
+            })
           }
 
           return (
@@ -141,11 +177,11 @@ export function PoolEntry({ entry, isOpponent }: {
               key={c.instanceId}
               className={styles.stackCard}
               style={{ top: `${i * STACK_OFFSET}px`, left: `${i * STACK_OFFSET}px`, zIndex: i }}
-              onDragOver={e => {
+              onDragOver={(e) => {
                 const source = e.dataTransfer.getData("drag-source")
                 if (source === "hand") e.preventDefault()
               }}
-              onDrop={e => handleSpellDropOnCard(e, c.instanceId)}
+              onDrop={(e) => handleSpellDropOnCard(e, c.instanceId)}
             >
               <CardComponent
                 card={c}

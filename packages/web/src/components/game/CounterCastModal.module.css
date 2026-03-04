@@ -1,7 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,33 +29,31 @@
   font-size: 13px;
   line-height: 1.35;
   margin-bottom: 10px;
-  white-space: pre-wrap;
 }
 
-.checkboxRow {
-  display: flex;
+.list {
+  display: grid;
   gap: 8px;
-  align-items: center;
-  color: #cebca1;
-  font-size: 12px;
   margin-bottom: 12px;
 }
 
-.button {
+.item,
+.cancel {
   border: 1px solid #845a4f;
   background: #2a211f;
   color: #f2e8d5;
   border-radius: 6px;
-  padding: 6px 12px;
+  padding: 8px 10px;
   cursor: pointer;
+  text-align: left;
 }
 
-.button:hover {
+.item:hover,
+.cancel:hover {
   background: #352a27;
 }
 
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+.empty {
+  color: #c8b69a;
+  font-size: 12px;
 }

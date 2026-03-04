@@ -39,8 +39,8 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 920px) {
+/* @media (max-width: 920px) {
   .zoneWrap {
     grid-template-columns: 1fr;
   }
-}
+} */
