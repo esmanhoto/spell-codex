@@ -1,10 +1,23 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { calculateCombatLevel, hasWorldMatch, resolveCombatRound, getLosingPlayer } from "../src/combat.ts"
-import { parseLevel, parseMagicalItemBonus, createInstance, _resetInstanceCounter } from "../src/utils.ts"
+import {
+  calculateCombatLevel,
+  hasWorldMatch,
+  resolveCombatRound,
+  getLosingPlayer,
+} from "../src/combat.ts"
+import {
+  parseLevel,
+  parseMagicalItemBonus,
+  createInstance,
+  _resetInstanceCounter,
+} from "../src/utils.ts"
 import type { CombatState } from "../src/types.ts"
 import {
-  CHAMPION_CLERIC_FR, CHAMPION_WIZARD_FR, CHAMPION_HERO_GENERIC,
-  ALLY_PLUS4, ALLY_SLASH,
+  CHAMPION_CLERIC_FR,
+  CHAMPION_WIZARD_FR,
+  CHAMPION_HERO_GENERIC,
+  ALLY_PLUS4,
+  ALLY_SLASH,
   MAGICAL_ITEM_PLUS2_PLUS1,
 } from "./fixtures.ts"
 
@@ -75,23 +88,23 @@ describe("parseMagicalItemBonus", () => {
 
 describe("hasWorldMatch", () => {
   test("same world matches", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // worldId=1 (FR)
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // worldId=1 (FR)
     expect(hasWorldMatch(champ, 1)).toBe(true)
   })
 
   test("different worlds don't match", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // worldId=1
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // worldId=1
     expect(hasWorldMatch(champ, 2)).toBe(false)
   })
 
   test("world-agnostic champion (worldId=0) never matches", () => {
-    const champ = createInstance(CHAMPION_HERO_GENERIC, "test-champ")  // worldId=0
+    const champ = createInstance(CHAMPION_HERO_GENERIC, "test-champ") // worldId=0
     expect(hasWorldMatch(champ, 1)).toBe(false)
     expect(hasWorldMatch(champ, 0)).toBe(false)
   })
 
   test("realm with worldId=0 never matches", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // worldId=1
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // worldId=1
     expect(hasWorldMatch(champ, 0)).toBe(false)
   })
 })
@@ -100,43 +113,43 @@ describe("hasWorldMatch", () => {
 
 describe("calculateCombatLevel", () => {
   test("base level with no cards or world match", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6
     expect(calculateCombatLevel(champ, [], false, "offensive")).toBe(6)
   })
 
   test("world bonus adds 3 when matched", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // worldId=1, level=6
-    expect(calculateCombatLevel(champ, [], true, "offensive")).toBe(9)  // 6+3
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // worldId=1, level=6
+    expect(calculateCombatLevel(champ, [], true, "offensive")).toBe(9) // 6+3
   })
 
   test("ally +4 adds to offensive level", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6
     const ally = createInstance(ALLY_PLUS4, "test-ally-plus4")
-    expect(calculateCombatLevel(champ, [ally], false, "offensive")).toBe(10)  // 6+4
+    expect(calculateCombatLevel(champ, [ally], false, "offensive")).toBe(10) // 6+4
   })
 
   test("slash ally: offensive bonus for attacker", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6
-    const ally = createInstance(ALLY_SLASH, "test-ally-slash")  // +3/+2
-    expect(calculateCombatLevel(champ, [ally], false, "offensive")).toBe(9)   // 6+3
-    expect(calculateCombatLevel(champ, [ally], false, "defensive")).toBe(8)   // 6+2
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6
+    const ally = createInstance(ALLY_SLASH, "test-ally-slash") // +3/+2
+    expect(calculateCombatLevel(champ, [ally], false, "offensive")).toBe(9) // 6+3
+    expect(calculateCombatLevel(champ, [ally], false, "defensive")).toBe(8) // 6+2
   })
 
   test("magical item +2/+1 applies correct bonus by side", () => {
-    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ")  // level 8
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
     const item = createInstance(MAGICAL_ITEM_PLUS2_PLUS1, "test-item")
-    expect(calculateCombatLevel(champ, [item], false, "offensive")).toBe(10)  // 8+2
-    expect(calculateCombatLevel(champ, [item], false, "defensive")).toBe(9)   // 8+1
+    expect(calculateCombatLevel(champ, [item], false, "offensive")).toBe(10) // 8+2
+    expect(calculateCombatLevel(champ, [item], false, "defensive")).toBe(9) // 8+1
   })
 
   test("level never goes below 0", () => {
-    const champ = createInstance(CHAMPION_HERO_GENERIC, "test-champ")  // level 5
+    const champ = createInstance(CHAMPION_HERO_GENERIC, "test-champ") // level 5
     // No negative case in standard rules but ensure the floor holds
     expect(calculateCombatLevel(champ, [], false, "offensive")).toBeGreaterThanOrEqual(0)
   })
 
   test("world bonus + ally stack correctly", () => {
-    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ")  // level 6, worldId=1
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6, worldId=1
     const ally = createInstance(ALLY_PLUS4, "test-ally-plus4")
     // FR champion attacking FR realm: 6 + 3 (world) + 4 (ally) = 13
     expect(calculateCombatLevel(champ, [ally], true, "offensive")).toBe(13)

@@ -2,7 +2,11 @@ import { useEffect } from "react"
 import type { CardInfo } from "../../api.ts"
 import styles from "./Phase3SpellOutcomeModal.module.css"
 
-export function Phase3SpellOutcomeModal({ spell, onPick, onClose }: {
+export function Phase3SpellOutcomeModal({
+  spell,
+  onPick,
+  onClose,
+}: {
   spell: CardInfo
   onPick: (keepInPlay: boolean) => void
   onClose: () => void
@@ -17,7 +21,7 @@ export function Phase3SpellOutcomeModal({ spell, onPick, onClose }: {
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.title}>Phase 3 Spell</div>
         <div className={styles.message}>
           Choose what happens after casting <strong>{spell.name}</strong>.
@@ -34,4 +38,3 @@ export function Phase3SpellOutcomeModal({ spell, onPick, onClose }: {
     </div>
   )
 }
-

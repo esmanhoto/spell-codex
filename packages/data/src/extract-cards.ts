@@ -7,13 +7,17 @@ import path from "path"
 import { readdirSync, readFileSync, mkdirSync, writeFileSync } from "fs"
 import { parseTclList, extractTclBlock } from "./lib/tcl-parser"
 import type {
-  Card, CardLevel, CardRarity, SupportRef, WorldId,
-  SpellNature, CastPhase,
+  Card,
+  CardLevel,
+  CardRarity,
+  SupportRef,
+  WorldId,
+  SpellNature,
+  CastPhase,
 } from "./types"
 
 const CROSSFIRE_DIR =
-  process.env.CROSSFIRE_PATH ??
-  path.join(import.meta.dir, "..", "..", "..", "CrossFire READONLY")
+  process.env.CROSSFIRE_PATH ?? path.join(import.meta.dir, "..", "..", "..", "CrossFire READONLY")
 
 const DB_DIR = path.join(CROSSFIRE_DIR, "DataBase")
 const OUT_DIR = path.join(import.meta.dir, "..", "cards")
@@ -79,7 +83,7 @@ function parseSpellMeta(
     const spellNature: SpellNature = match[1]?.toLowerCase() === "off" ? "offensive" : "defensive"
     const castPhases = [match[2], match[3]]
       .filter((v): v is string => v != null && v !== "")
-      .map(v => Number(v))
+      .map((v) => Number(v))
       .filter((n): n is CastPhase => n === 3 || n === 4 || n === 5)
 
     return {
@@ -186,15 +190,15 @@ function main() {
   mkdirSync(OUT_DIR, { recursive: true })
 
   const filterArgs = process.argv
-    .filter(arg => arg.startsWith("--set="))
-    .flatMap(arg => arg.replace("--set=", "").split(","))
-    .map(v => v.trim())
+    .filter((arg) => arg.startsWith("--set="))
+    .flatMap((arg) => arg.replace("--set=", "").split(","))
+    .map((v) => v.trim())
     .filter(Boolean)
   const requestedSetIds = new Set(filterArgs)
 
   let files = readdirSync(DB_DIR).filter((f) => f.endsWith(".tcl"))
   if (requestedSetIds.size > 0) {
-    files = files.filter(f => requestedSetIds.has(path.basename(f, ".tcl")))
+    files = files.filter((f) => requestedSetIds.has(path.basename(f, ".tcl")))
   }
   console.log(`Found ${files.length} database files in ${DB_DIR}\n`)
 
@@ -208,7 +212,9 @@ function main() {
       const { setName, cards } = extractSet(tclPath)
       const outPath = path.join(OUT_DIR, `${setId}.json`)
       writeFileSync(outPath, JSON.stringify(cards, null, 2))
-      console.log(`  ✓ ${setId.padEnd(5)} "${setName}" — ${cards.length} cards → ${path.relative(process.cwd(), outPath)}`)
+      console.log(
+        `  ✓ ${setId.padEnd(5)} "${setName}" — ${cards.length} cards → ${path.relative(process.cwd(), outPath)}`,
+      )
       totalCards += cards.length
     } catch (err) {
       console.error(`  ✗ ${setId}: ${(err as Error).message}`)

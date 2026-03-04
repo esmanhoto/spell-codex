@@ -4,10 +4,15 @@ import { Formation } from "./Formation.tsx"
 import { Pool } from "./Pool.tsx"
 import styles from "./PlayerArea.module.css"
 
-export function PlayerArea({ board, playerId, isOpponent, attackedSlot }: {
-  board:        PlayerBoard
-  playerId:     string
-  isOpponent:   boolean
+export function PlayerArea({
+  board,
+  playerId,
+  isOpponent,
+  attackedSlot,
+}: {
+  board: PlayerBoard
+  playerId: string
+  isOpponent: boolean
   attackedSlot?: string
 }) {
   const { lingeringSpellsByPlayer } = useGame()
@@ -28,7 +33,12 @@ export function PlayerArea({ board, playerId, isOpponent, attackedSlot }: {
 
   const pool = (
     <div className={styles.zonePanel}>
-      <Pool entries={board.pool} isOpponent={isOpponent} lingeringSpells={lingering} ownerId={playerId} />
+      <Pool
+        entries={board.pool}
+        isOpponent={isOpponent}
+        lingeringSpells={lingering}
+        ownerId={playerId}
+      />
     </div>
   )
 

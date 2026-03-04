@@ -42,9 +42,7 @@ export function getLosingPlayer(
   combat: CombatState,
 ): PlayerId {
   // Attacker wins only if strictly greater — on a tie the defender wins
-  return attackerLevel > defenderLevel
-    ? combat.defendingPlayer
-    : combat.attackingPlayer
+  return attackerLevel > defenderLevel ? combat.defendingPlayer : combat.attackingPlayer
 }
 
 /**
@@ -63,11 +61,6 @@ export function resolveCombatRound(
  * Returns true if the champion's world matches the target realm's world.
  * World-agnostic champions (worldId=0) never get the world bonus.
  */
-export function hasWorldMatch(
-  champion: CardInstance,
-  realmWorldId: number,
-): boolean {
-  return champion.card.worldId !== 0 &&
-    realmWorldId !== 0 &&
-    champion.card.worldId === realmWorldId
+export function hasWorldMatch(champion: CardInstance, realmWorldId: number): boolean {
+  return champion.card.worldId !== 0 && realmWorldId !== 0 && champion.card.worldId === realmWorldId
 }

@@ -10,8 +10,7 @@ import path from "path"
 import { readdirSync, mkdirSync, copyFileSync, existsSync } from "fs"
 
 const CROSSFIRE_DIR =
-  process.env.CROSSFIRE_PATH ??
-  path.join(import.meta.dir, "..", "..", "..", "CrossFire READONLY")
+  process.env.CROSSFIRE_PATH ?? path.join(import.meta.dir, "..", "..", "..", "CrossFire READONLY")
 
 const SRC_DIR = path.join(CROSSFIRE_DIR, "Graphics", "Cards")
 const OUT_DIR = path.join(import.meta.dir, "..", "assets", "cards")

@@ -34,7 +34,9 @@
   align-items: center;
   gap: 3px;
   font-size: 11px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .slot.empty {

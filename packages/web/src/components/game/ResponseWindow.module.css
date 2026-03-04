@@ -57,7 +57,9 @@
   border: 1px solid #2a5a9a;
 }
 
-.actionBtn:hover { background: #2a4a8a; }
+.actionBtn:hover {
+  background: #2a4a8a;
+}
 
 .passBtn {
   font-size: 12px;
@@ -70,4 +72,7 @@
   border: 1px solid #333;
 }
 
-.passBtn:hover { color: #aaa; background: #2a2a3e; }
+.passBtn:hover {
+  color: #aaa;
+  background: #2a2a3e;
+}

@@ -5,10 +5,13 @@ test("combat panel renders after backend reaches combat state", async ({ page, r
   const gameId = await apiCreateGameForUi(request)
   await driveGameToCombat(request, gameId)
 
-  await page.addInitScript(({ gid, playerA, playerB }) => {
-    sessionStorage.setItem(`game:${gid}:playerA`, playerA)
-    sessionStorage.setItem(`game:${gid}:playerB`, playerB)
-  }, { gid: gameId, playerA: PLAYER_A, playerB: PLAYER_B })
+  await page.addInitScript(
+    ({ gid, playerA, playerB }) => {
+      sessionStorage.setItem(`game:${gid}:playerA`, playerA)
+      sessionStorage.setItem(`game:${gid}:playerB`, playerB)
+    },
+    { gid: gameId, playerA: PLAYER_A, playerB: PLAYER_B },
+  )
 
   await page.goto(`/game/${gameId}`)
   await expect(page.getByTestId("game-board")).toBeVisible()

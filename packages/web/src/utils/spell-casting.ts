@@ -23,7 +23,9 @@ export function canCasterUseSpell(spell: CardInfo, caster: CardInfo): boolean {
   if (nature === "offensive") return caster.supportIds.includes(`o${spell.typeId}`)
   if (nature === "defensive") return caster.supportIds.includes(`d${spell.typeId}`)
 
-  return caster.supportIds.includes(`o${spell.typeId}`) || caster.supportIds.includes(`d${spell.typeId}`)
+  return (
+    caster.supportIds.includes(`o${spell.typeId}`) || caster.supportIds.includes(`d${spell.typeId}`)
+  )
 }
 
 export function phaseToCastPhase(phase: string): 3 | 4 | 5 | null {
@@ -34,22 +36,30 @@ export function phaseToCastPhase(phase: string): 3 | 4 | 5 | null {
 }
 
 export function resolveSpellMove(legalMoves: Move[], spellInstanceId: string): Move | null {
-  return legalMoves.find(m =>
-    m.type === "PLAY_COMBAT_CARD" &&
-    (m as { cardInstanceId: string }).cardInstanceId === spellInstanceId,
-  ) ?? legalMoves.find(m =>
-    m.type === "PLAY_PHASE3_CARD" &&
-    (m as { cardInstanceId: string }).cardInstanceId === spellInstanceId,
-  ) ?? legalMoves.find(m =>
-    m.type === "PLAY_PHASE5_CARD" &&
-    (m as { cardInstanceId: string }).cardInstanceId === spellInstanceId,
-  ) ?? null
+  return (
+    legalMoves.find(
+      (m) =>
+        m.type === "PLAY_COMBAT_CARD" &&
+        (m as { cardInstanceId: string }).cardInstanceId === spellInstanceId,
+    ) ??
+    legalMoves.find(
+      (m) =>
+        m.type === "PLAY_PHASE3_CARD" &&
+        (m as { cardInstanceId: string }).cardInstanceId === spellInstanceId,
+    ) ??
+    legalMoves.find(
+      (m) =>
+        m.type === "PLAY_PHASE5_CARD" &&
+        (m as { cardInstanceId: string }).cardInstanceId === spellInstanceId,
+    ) ??
+    null
+  )
 }
 
 export function spellCastersInPool(spell: CardInfo, board: PlayerBoard): CardInfo[] {
   return board.pool
-    .map(entry => entry.champion)
-    .filter(champ => canCasterUseSpell(spell, champ))
+    .map((entry) => entry.champion)
+    .filter((champ) => canCasterUseSpell(spell, champ))
 }
 
 export function spellCasterInCombat(
@@ -66,4 +76,3 @@ export function spellCasterInCombat(
 
   return [activeChampion]
 }
-

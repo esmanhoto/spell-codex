@@ -28,32 +28,38 @@ export interface AddGamePlayerInput {
 }
 
 export async function createGame(input: CreateGameInput): Promise<Game> {
-  const [game] = await db.insert(games).values({
-    formatId: input.formatId,
-    seed: input.seed,
-    ...(input.playMode ? { playMode: input.playMode } : {}),
-  }).returning()
+  const [game] = await db
+    .insert(games)
+    .values({
+      formatId: input.formatId,
+      seed: input.seed,
+      ...(input.playMode ? { playMode: input.playMode } : {}),
+    })
+    .returning()
   if (!game) throw new Error("Failed to insert game row")
 
   await db.insert(gamePlayers).values(
-    input.players.map(p => ({
-      gameId:       game.id,
-      userId:       p.userId,
+    input.players.map((p) => ({
+      gameId: game.id,
+      userId: p.userId,
       seatPosition: p.seatPosition,
       deckSnapshot: p.deckSnapshot,
-    }))
+    })),
   )
 
   return game
 }
 
 export async function addGamePlayer(input: AddGamePlayerInput): Promise<GamePlayer> {
-  const [row] = await db.insert(gamePlayers).values({
-    gameId: input.gameId,
-    userId: input.userId,
-    seatPosition: input.seatPosition,
-    deckSnapshot: input.deckSnapshot,
-  }).returning()
+  const [row] = await db
+    .insert(gamePlayers)
+    .values({
+      gameId: input.gameId,
+      userId: input.userId,
+      seatPosition: input.seatPosition,
+      deckSnapshot: input.deckSnapshot,
+    })
+    .returning()
 
   if (!row) throw new Error("Failed to insert game player row")
   return row
@@ -77,22 +83,19 @@ export async function setGameStatus(
   status: Game["status"],
   winnerId?: string,
 ): Promise<void> {
-  await db.update(games)
+  await db
+    .update(games)
     .set({ status, ...(winnerId ? { winnerId } : {}) })
     .where(eq(games.id, gameId))
 }
 
-export async function setGamePlayMode(
-  gameId: string,
-  playMode: Game["playMode"],
-): Promise<void> {
-  await db.update(games)
-    .set({ playMode })
-    .where(eq(games.id, gameId))
+export async function setGamePlayMode(gameId: string, playMode: Game["playMode"]): Promise<void> {
+  await db.update(games).set({ playMode }).where(eq(games.id, gameId))
 }
 
 export async function touchGame(gameId: string, turnDeadline?: Date): Promise<void> {
-  await db.update(games)
+  await db
+    .update(games)
     .set({ lastActionAt: new Date(), ...(turnDeadline ? { turnDeadline } : {}) })
     .where(eq(games.id, gameId))
 }
@@ -100,7 +103,9 @@ export async function touchGame(gameId: string, turnDeadline?: Date): Promise<vo
 /** Returns all active games whose turnDeadline has passed. */
 export async function findExpiredGames(): Promise<Game[]> {
   const { lt } = await import("drizzle-orm")
-  return db.select().from(games).where(
-    lt(games.turnDeadline, new Date())
-  ).then(rows => rows.filter(r => r.status === "active"))
+  return db
+    .select()
+    .from(games)
+    .where(lt(games.turnDeadline, new Date()))
+    .then((rows) => rows.filter((r) => r.status === "active"))
 }

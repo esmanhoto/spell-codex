@@ -9,8 +9,7 @@ import { parseTclList, extractTclBlock } from "./lib/tcl-parser"
 import type { Deck } from "./types"
 
 const CROSSFIRE_DIR =
-  process.env.CROSSFIRE_PATH ??
-  path.join(import.meta.dir, "..", "..", "..", "CrossFire READONLY")
+  process.env.CROSSFIRE_PATH ?? path.join(import.meta.dir, "..", "..", "..", "CrossFire READONLY")
 
 const DECKS_DIR = path.join(CROSSFIRE_DIR, "Decks")
 const OUT_DIR = path.join(import.meta.dir, "..", "decks")
@@ -53,12 +52,12 @@ function parseDeckCardList(raw: string | null): Array<{ setId: string; cardNumbe
 function extractDeck(cfdPath: string, deckId: string): Deck {
   const source = readFileSync(cfdPath, "utf-8")
 
-  const titleRaw   = extractTclBlock(source, "tempDeckTitle")
-  const authorRaw  = extractTclBlock(source, "tempAuthorName")
-  const notesRaw   = extractTclBlock(source, "tempNotes")
-  const deckRaw    = extractTclBlock(source, "tempDeck")
-  const emailRaw   = extractBareValue(source, "tempAuthorEmail")
-  const sizeRaw    = extractBareValue(source, "tempDeckSize")
+  const titleRaw = extractTclBlock(source, "tempDeckTitle")
+  const authorRaw = extractTclBlock(source, "tempAuthorName")
+  const notesRaw = extractTclBlock(source, "tempNotes")
+  const deckRaw = extractTclBlock(source, "tempDeck")
+  const emailRaw = extractBareValue(source, "tempAuthorEmail")
+  const sizeRaw = extractBareValue(source, "tempDeckSize")
 
   const cards = parseDeckCardList(deckRaw)
   const deckSize = parseInt(sizeRaw, 10)

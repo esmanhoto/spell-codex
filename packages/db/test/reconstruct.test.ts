@@ -31,8 +31,8 @@ function makeDeck(total = 55): CardData[] {
   return Array.from({ length: total }, () => REALM)
 }
 
-const SEED     = 42
-const GAME_ID  = "game-1"
+const SEED = 42
+const GAME_ID = "game-1"
 const PLAYER_A = "player-a"
 const PLAYER_B = "player-b"
 
@@ -41,8 +41,8 @@ const PLAYER_B = "player-b"
 function makeState0() {
   _resetInstanceCounter()
   return initGame({
-    gameId:  GAME_ID,
-    seed:    SEED,
+    gameId: GAME_ID,
+    seed: SEED,
     players: [
       { id: PLAYER_A, deckCards: makeDeck() },
       { id: PLAYER_B, deckCards: makeDeck() },
@@ -68,8 +68,11 @@ function buildActions(moves: Array<{ playerId: string; move: Move }>) {
     const result = applyMove(current, playerId, move)
     current = result.newState
     actions.push({
-      id: `a${i}`, gameId: GAME_ID,
-      sequence: i, playerId, move,
+      id: `a${i}`,
+      gameId: GAME_ID,
+      sequence: i,
+      playerId,
+      move,
       stateHash: hashState(current),
       createdAt: new Date(),
     })
@@ -84,12 +87,12 @@ function reconstructInMemory(
   actions: ReturnType<typeof buildActions>["actions"],
 ) {
   const sorted = [...players].sort((a, b) => a.seatPosition - b.seatPosition)
-  const [p1, p2] = sorted as [typeof sorted[0], typeof sorted[0]]
+  const [p1, p2] = sorted as [(typeof sorted)[0], (typeof sorted)[0]]
 
   _resetInstanceCounter()
   let current = initGame({
     gameId: GAME_ID,
-    seed:   SEED,
+    seed: SEED,
     players: [
       { id: p1.userId, deckCards: p1.deckSnapshot as CardData[] },
       { id: p2.userId, deckCards: p2.deckSnapshot as CardData[] },
@@ -103,13 +106,21 @@ function reconstructInMemory(
     try {
       result = applyMove(current, action.playerId, action.move as Move)
     } catch (err) {
-      errors.push({ kind: "engine_error", sequence: action.sequence, message: err instanceof Error ? err.message : String(err) })
+      errors.push({
+        kind: "engine_error",
+        sequence: action.sequence,
+        message: err instanceof Error ? err.message : String(err),
+      })
       continue
     }
     current = result.newState
     const actualHash = hashState(current)
     if (actualHash !== action.stateHash) {
-      errors.push({ kind: "hash_mismatch", sequence: action.sequence, message: `expected ${action.stateHash}, got ${actualHash}` })
+      errors.push({
+        kind: "hash_mismatch",
+        sequence: action.sequence,
+        message: `expected ${action.stateHash}, got ${actualHash}`,
+      })
     }
   }
 
@@ -171,7 +182,7 @@ describe("reconstruct (mocked IO)", () => {
     const { actions } = buildActions(passes)
 
     // Corrupt the stored hash.
-    const corrupted = actions.map(a => ({ ...a, stateHash: "deadbeef" + a.stateHash.slice(8) }))
+    const corrupted = actions.map((a) => ({ ...a, stateHash: "deadbeef" + a.stateHash.slice(8) }))
 
     const players = makeGamePlayers()
     const { errors } = reconstructInMemory(players, corrupted)

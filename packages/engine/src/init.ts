@@ -22,8 +22,12 @@ export function initGame(config: GameConfig): GameState {
   // Create runtime instances with deterministic IDs: gameId + player index + deck position.
   // This ensures reconstructState always produces identical IDs for the same game,
   // regardless of how many other games have been reconstructed in this process.
-  const p1Instances = p1Config.deckCards.map((card, i) => createInstance(card, `${config.gameId}-p0-${i}`))
-  const p2Instances = p2Config.deckCards.map((card, i) => createInstance(card, `${config.gameId}-p1-${i}`))
+  const p1Instances = p1Config.deckCards.map((card, i) =>
+    createInstance(card, `${config.gameId}-p0-${i}`),
+  )
+  const p2Instances = p2Config.deckCards.map((card, i) =>
+    createInstance(card, `${config.gameId}-p1-${i}`),
+  )
 
   // Shuffle deterministically — XOR the seed with a constant per player
   // so both players get different shuffles from the same seed

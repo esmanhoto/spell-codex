@@ -1,8 +1,14 @@
 import type { ServerWebSocket } from "bun"
 import {
-  getGame, getGamePlayers,
-  reconstructState, lastSequence, saveAction,
-  setGameStatus, setGamePlayMode, touchGame, hashState,
+  getGame,
+  getGamePlayers,
+  reconstructState,
+  lastSequence,
+  saveAction,
+  setGameStatus,
+  setGamePlayMode,
+  touchGame,
+  hashState,
 } from "@spell/db"
 import { applyMove, EngineError } from "@spell/engine"
 import { serializeGameState } from "./serialize.ts"
@@ -11,15 +17,15 @@ import { authBypassEnabled, verifySupabaseAccessToken } from "./auth-verify.ts"
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ClientMessage =
-  | { type: "JOIN_GAME";   gameId: string; token?: string; playerId?: string }
+  | { type: "JOIN_GAME"; gameId: string; token?: string; playerId?: string }
   | { type: "SUBMIT_MOVE"; gameId: string; move: { type: string; [key: string]: unknown } }
   | { type: "PING" }
 
 export type ServerMessage =
-  | { type: "STATE_UPDATE";            gameId: string; state: unknown }
-  | { type: "GAME_OVER";               gameId: string; winner: string }
+  | { type: "STATE_UPDATE"; gameId: string; state: unknown }
+  | { type: "GAME_OVER"; gameId: string; winner: string }
   | { type: "PONG" }
-  | { type: "ERROR";                   code: string; message: string }
+  | { type: "ERROR"; code: string; message: string }
 
 // ─── Connection registry ──────────────────────────────────────────────────────
 
@@ -27,7 +33,7 @@ export type ServerMessage =
 const registry = new Map<string, Map<string, ServerWebSocket<WsData>>>()
 
 interface WsData {
-  gameId:   string | null
+  gameId: string | null
   userId: string | null
 }
 
@@ -65,7 +71,7 @@ export async function processWsMove(
   }
 
   const players = await getGamePlayers(gameId)
-  if (!players.some(p => p.userId === userId)) {
+  if (!players.some((p) => p.userId === userId)) {
     return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
   }
 
@@ -86,14 +92,14 @@ export async function processWsMove(
   let seq = await lastSequence(gameId)
   const action = await saveAction({
     gameId,
-    sequence:  seq + 1,
-    playerId:  userId,
-    move:      move as Parameters<typeof saveAction>[0]["move"],
+    sequence: seq + 1,
+    playerId: userId,
+    move: move as Parameters<typeof saveAction>[0]["move"],
     stateHash: hashState(result.newState),
   })
   seq = action.sequence
 
-  const newStatus    = result.newState.winner ? "finished" : "active"
+  const newStatus = result.newState.winner ? "finished" : "active"
   const turnDeadline = result.newState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
   const modeChanged = state.playMode !== result.newState.playMode
   await Promise.all([
@@ -103,17 +109,23 @@ export async function processWsMove(
   ])
 
   // Broadcast updated state to all players in the game (player-specific visibility)
-  const newTurnDeadline = result.newState.winner ? null : new Date(Date.now() + TURN_DEADLINE_MS).toISOString()
+  const newTurnDeadline = result.newState.winner
+    ? null
+    : new Date(Date.now() + TURN_DEADLINE_MS).toISOString()
   const sockets = registry.get(gameId)
   if (sockets) {
     for (const [viewerPlayerId, socket] of sockets.entries()) {
       send(socket, {
-        type:  "STATE_UPDATE",
+        type: "STATE_UPDATE",
         gameId,
-        state: serializeGameState(result.newState, {
-          status:      result.newState.winner ? "finished" : "active",
-          turnDeadline: newTurnDeadline,
-        }, viewerPlayerId),
+        state: serializeGameState(
+          result.newState,
+          {
+            status: result.newState.winner ? "finished" : "active",
+            turnDeadline: newTurnDeadline,
+          },
+          viewerPlayerId,
+        ),
       })
     }
   }
@@ -158,7 +170,11 @@ export const wsHandlers = {
               send(ws, { type: "ERROR", code: "UNAUTHORIZED", message: "Invalid bearer token" })
               return
             }
-          } else if (authBypassEnabled() && typeof msg.playerId === "string" && msg.playerId.length > 0) {
+          } else if (
+            authBypassEnabled() &&
+            typeof msg.playerId === "string" &&
+            msg.playerId.length > 0
+          ) {
             userId = msg.playerId
           } else {
             send(ws, { type: "ERROR", code: "UNAUTHORIZED", message: "Missing authentication" })
@@ -172,7 +188,7 @@ export const wsHandlers = {
             return
           }
           const players = await getGamePlayers(gameId)
-          if (!players.some(p => p.userId === userId)) {
+          if (!players.some((p) => p.userId === userId)) {
             send(ws, { type: "ERROR", code: "FORBIDDEN", message: "Not a participant" })
             return
           }
@@ -199,7 +215,11 @@ export const wsHandlers = {
 
           // Send current state (serialized to the API shape the client expects)
           const { state } = await reconstructState(gameId, game.seed, game.playMode)
-          send(ws, { type: "STATE_UPDATE", gameId, state: serializeGameState(state, undefined, userId) })
+          send(ws, {
+            type: "STATE_UPDATE",
+            gameId,
+            state: serializeGameState(state, undefined, userId),
+          })
           return
         }
 
@@ -210,7 +230,11 @@ export const wsHandlers = {
             return
           }
           if (ws.data.gameId !== gameId) {
-            send(ws, { type: "ERROR", code: "GAME_MISMATCH", message: "Socket joined to a different game" })
+            send(ws, {
+              type: "ERROR",
+              code: "GAME_MISMATCH",
+              message: "Socket joined to a different game",
+            })
             return
           }
           const result = await processWsMove(gameId, ws.data.userId, move)

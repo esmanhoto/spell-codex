@@ -39,7 +39,10 @@
   font-family: monospace;
 }
 
-.closeBtn:hover { color: var(--text-primary); opacity: 1; }
+.closeBtn:hover {
+  color: var(--text-primary);
+  opacity: 1;
+}
 
 .body {
   overflow-y: auto;
@@ -82,7 +85,10 @@
   letter-spacing: 0.1em;
 }
 
-.toggle:hover { color: var(--text-primary); opacity: 1; }
+.toggle:hover {
+  color: var(--text-primary);
+  opacity: 1;
+}
 
 .toggle.open {
   right: 280px;

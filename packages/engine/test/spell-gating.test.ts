@@ -90,13 +90,21 @@ function withCombatCardPlayState(params: {
       p1: {
         ...s.players["p1"]!,
         hand: params.actingPlayer === "p1" ? params.hand : [],
-        pool: [params.attackingPlayer === "p1" ? { champion: params.attacker, attachments: [] } : { champion: params.defender, attachments: [] }],
+        pool: [
+          params.attackingPlayer === "p1"
+            ? { champion: params.attacker, attachments: [] }
+            : { champion: params.defender, attachments: [] },
+        ],
         formation: { size: 6, slots: {} },
       },
       p2: {
         ...s.players["p2"]!,
         hand: params.actingPlayer === "p2" ? params.hand : [],
-        pool: [params.attackingPlayer === "p2" ? { champion: params.attacker, attachments: [] } : { champion: params.defender, attachments: [] }],
+        pool: [
+          params.attackingPlayer === "p2"
+            ? { champion: params.attacker, attachments: [] }
+            : { champion: params.defender, attachments: [] },
+        ],
         formation: {
           size: 6,
           slots: {
@@ -160,8 +168,8 @@ describe("spell-gating legal moves", () => {
     const s = withPoolState([off4, off34], champ)
 
     const moves = getLegalMoves(s, "p1")
-      .filter(m => m.type === "PLAY_PHASE3_CARD")
-      .map(m => (m as { cardInstanceId: string }).cardInstanceId)
+      .filter((m) => m.type === "PLAY_PHASE3_CARD")
+      .map((m) => (m as { cardInstanceId: string }).cardInstanceId)
 
     expect(moves.includes("off34")).toBe(true)
     expect(moves.includes("off4")).toBe(false)
@@ -181,8 +189,11 @@ describe("spell-gating legal moves", () => {
 
     const moves = getLegalMoves(s, "p1")
     expect(
-      moves.some(m => m.type === "PLAY_COMBAT_CARD" &&
-        (m as { cardInstanceId: string }).cardInstanceId === "spell-off"),
+      moves.some(
+        (m) =>
+          m.type === "PLAY_COMBAT_CARD" &&
+          (m as { cardInstanceId: string }).cardInstanceId === "spell-off",
+      ),
     ).toBe(true)
   })
 
@@ -200,8 +211,11 @@ describe("spell-gating legal moves", () => {
 
     const moves = getLegalMoves(s, "p1")
     expect(
-      moves.some(m => m.type === "PLAY_COMBAT_CARD" &&
-        (m as { cardInstanceId: string }).cardInstanceId === "spell-def"),
+      moves.some(
+        (m) =>
+          m.type === "PLAY_COMBAT_CARD" &&
+          (m as { cardInstanceId: string }).cardInstanceId === "spell-def",
+      ),
     ).toBe(true)
   })
 
@@ -225,8 +239,11 @@ describe("spell-gating legal moves", () => {
 
     const moves = getLegalMoves(s, "p1")
     expect(
-      moves.some(m => m.type === "PLAY_PHASE5_CARD" &&
-        (m as { cardInstanceId: string }).cardInstanceId === "def35"),
+      moves.some(
+        (m) =>
+          m.type === "PLAY_PHASE5_CARD" &&
+          (m as { cardInstanceId: string }).cardInstanceId === "def35",
+      ),
     ).toBe(true)
   })
 })
@@ -237,9 +254,9 @@ describe("spell-gating applyMove validation", () => {
     const off4 = ci("off4", makeSpell(9601, "Off4", "Spell. (Off/4)"))
     const s = withPoolState([off4], champ)
 
-    expect(() =>
-      applyMove(s, "p1", { type: "PLAY_PHASE3_CARD", cardInstanceId: "off4" }),
-    ).toThrow(EngineError)
+    expect(() => applyMove(s, "p1", { type: "PLAY_PHASE3_CARD", cardInstanceId: "off4" })).toThrow(
+      EngineError,
+    )
   })
 
   test("rejects crafted combat move for phase-3-only spell", () => {
@@ -254,8 +271,8 @@ describe("spell-gating applyMove validation", () => {
       hand: [off3],
     })
 
-    expect(() =>
-      applyMove(s, "p1", { type: "PLAY_COMBAT_CARD", cardInstanceId: "off3" }),
-    ).toThrow(EngineError)
+    expect(() => applyMove(s, "p1", { type: "PLAY_COMBAT_CARD", cardInstanceId: "off3" })).toThrow(
+      EngineError,
+    )
   })
 })

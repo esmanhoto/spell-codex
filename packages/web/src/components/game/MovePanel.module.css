@@ -25,7 +25,11 @@
   font-family: monospace;
 }
 
-.clearBtn:hover { background: rgba(60, 60, 80, 0.6); color: #ccc; opacity: 1; }
+.clearBtn:hover {
+  background: rgba(60, 60, 80, 0.6);
+  color: #ccc;
+  opacity: 1;
+}
 
 .buttons {
   display: flex;
@@ -41,7 +45,9 @@
   border: none;
   cursor: pointer;
   font-family: monospace;
-  transition: opacity 0.15s, background 0.15s;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
 }
 
 .btn.action {
@@ -50,7 +56,10 @@
   border: 1px solid #2a5a9a;
 }
 
-.btn.action:hover:not(:disabled) { background: #2a4a8a; opacity: 1; }
+.btn.action:hover:not(:disabled) {
+  background: #2a4a8a;
+  opacity: 1;
+}
 
 .btn.pass {
   background: #1e1e2e;
@@ -58,9 +67,16 @@
   border: 1px solid #333;
 }
 
-.btn.pass:hover:not(:disabled) { color: #aaa; background: #2a2a3e; opacity: 1; }
+.btn.pass:hover:not(:disabled) {
+  color: #aaa;
+  background: #2a2a3e;
+  opacity: 1;
+}
 
-.btn:disabled { opacity: 0.35; cursor: default; }
+.btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
 
 .hint {
   font-size: 12px;

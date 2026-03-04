@@ -9,22 +9,28 @@ const PORT = Number(process.env["MOCK_SUPABASE_PORT"] ?? "55431")
 const API_KEY = process.env["SUPABASE_ANON_KEY"] ?? "test-key"
 
 const usersByEmail = new Map<string, MockUser>([
-  ["player.a@example.com", {
-    email: "player.a@example.com",
-    password: "password123",
-    userId: "00000000-0000-0000-0000-000000000001",
-    accessToken: "token-player-a",
-  }],
-  ["player.b@example.com", {
-    email: "player.b@example.com",
-    password: "password123",
-    userId: "00000000-0000-0000-0000-000000000002",
-    accessToken: "token-player-b",
-  }],
+  [
+    "player.a@example.com",
+    {
+      email: "player.a@example.com",
+      password: "password123",
+      userId: "00000000-0000-0000-0000-000000000001",
+      accessToken: "token-player-a",
+    },
+  ],
+  [
+    "player.b@example.com",
+    {
+      email: "player.b@example.com",
+      password: "password123",
+      userId: "00000000-0000-0000-0000-000000000002",
+      accessToken: "token-player-b",
+    },
+  ],
 ])
 
 const usersByToken = new Map<string, MockUser>(
-  Array.from(usersByEmail.values()).map(user => [user.accessToken, user]),
+  Array.from(usersByEmail.values()).map((user) => [user.accessToken, user]),
 )
 
 function corsHeaders(origin: string | null): Record<string, string> {
@@ -36,11 +42,7 @@ function corsHeaders(origin: string | null): Record<string, string> {
   }
 }
 
-function json(
-  body: Record<string, unknown>,
-  status: number,
-  origin: string | null,
-): Response {
+function json(body: Record<string, unknown>, status: number, origin: string | null): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
@@ -52,7 +54,7 @@ function json(
 
 async function parseBody(req: Request): Promise<Record<string, unknown> | null> {
   try {
-    return await req.json() as Record<string, unknown>
+    return (await req.json()) as Record<string, unknown>
   } catch {
     return null
   }
@@ -108,21 +110,29 @@ bunRuntime.Bun.serve({
       const password = typeof body["password"] === "string" ? body["password"] : ""
       const user = usersByEmail.get(email)
       if (!user || user.password !== password) {
-        return json({
-          error: "invalid_grant",
-          error_description: "Invalid login credentials",
-        }, 400, origin)
+        return json(
+          {
+            error: "invalid_grant",
+            error_description: "Invalid login credentials",
+          },
+          400,
+          origin,
+        )
       }
 
-      return json({
-        access_token: user.accessToken,
-        token_type: "bearer",
-        expires_in: 3600,
-        user: {
-          id: user.userId,
-          email: user.email,
+      return json(
+        {
+          access_token: user.accessToken,
+          token_type: "bearer",
+          expires_in: 3600,
+          user: {
+            id: user.userId,
+            email: user.email,
+          },
         },
-      }, 200, origin)
+        200,
+        origin,
+      )
     }
 
     if (url.pathname === "/auth/v1/user" && req.method === "GET") {
@@ -133,10 +143,14 @@ bunRuntime.Bun.serve({
       const user = token ? usersByToken.get(token) : undefined
       if (!user) return json({ message: "Invalid JWT" }, 401, origin)
 
-      return json({
-        id: user.userId,
-        email: user.email,
-      }, 200, origin)
+      return json(
+        {
+          id: user.userId,
+          email: user.email,
+        },
+        200,
+        origin,
+      )
     }
 
     if (url.pathname === "/auth/v1/logout" && req.method === "POST") {

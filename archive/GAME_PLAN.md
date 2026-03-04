@@ -102,6 +102,7 @@ A web-based Spellfire engine that:
 ```
 
 **Why the engine has no DB access:**
+
 - Testable without mocks — just pass in state objects
 - Deterministic — no hidden reads, same input always gives same output
 - Portable — runs on server, in browser, or in AI simulation loop
@@ -145,6 +146,7 @@ Card effects cluster into tiers by coverage:
 **Tier 1 — Engine Resolves Automatically**
 
 The engine knows about these effect types and applies them with no player input:
+
 - Level math (allies, magic items, spells — all stat-based effects)
 - UsableBy constraints (who can carry/use a card)
 - Spell timing windows (offensive vs defensive, the d/o system)
@@ -166,6 +168,7 @@ does not guess, and does not skip the effect. Instead:
 5. Both moves are logged and replayed deterministically; game then resumes normally
 
 **What the player can do:**
+
 - `RESOLVE_EFFECT { targetId }` — removes the target card from active combat and discards it.
   Valid targets depend on `targetScope`:
   - `any_combat_card` — any card currently in combat (either side)
@@ -175,6 +178,7 @@ does not guess, and does not skip the effect. Instead:
 - `SKIP_EFFECT` — waive the effect; no mechanical change; always available
 
 **This is not honor system.** The engine still controls:
+
 - Whose turn it is and phase sequencing
 - Combat math and level comparison
 - Legal move generation for all structural moves
@@ -187,6 +191,7 @@ As more cards get Tier 1 specs, the fallback triggers less and less.
 ## Progressive Coverage
 
 Effects are implemented over time, prioritized by:
+
 1. **Frequency** — how often does this card appear in competitive decks?
 2. **Impact** — does this effect determine game outcomes?
 3. **Complexity** — can it be expressed as an existing effect type?
@@ -205,7 +210,7 @@ gets better automatically as more effects are implemented.
 
 # Card Data Model (Precise)
 
-> Derived directly from CrossFire DataBase/*.tcl analysis.
+> Derived directly from CrossFire DataBase/\*.tcl analysis.
 
 ## Card Schema
 
@@ -225,19 +230,19 @@ type CardLevel = number | string | null
 type WorldId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9
 
 type Card = {
-  setId: string              // "1st", "2nd", "FR", "DL", etc.
-  cardNumber: number         // 1-520 depending on set
-  level: CardLevel           // Champion/Ally level
-  typeId: CardTypeId         // 0-21 (see enum below)
-  worldId: WorldId           // World this card belongs to (see WorldId above)
-  isAvatar: boolean          // true = Avatar variant of a champion
+  setId: string // "1st", "2nd", "FR", "DL", etc.
+  cardNumber: number // 1-520 depending on set
+  level: CardLevel // Champion/Ally level
+  typeId: CardTypeId // 0-21 (see enum below)
+  worldId: WorldId // World this card belongs to (see WorldId above)
+  isAvatar: boolean // true = Avatar variant of a champion
   name: string
-  description: string        // Rules text (plain English) — always shown
+  description: string // Rules text (plain English) — always shown
   rarity: CardRarity
-  attributes: string[]       // ["Dwarf", "Undead", "Flyer", etc.] or []
-  supportIds: SupportRef[]   // What support this card can use/receive
-  weight: number | null      // For deck weight calculations
-  effects: CardEffect[]      // Tier 1 effects (declarative). Empty = Tier 2 fallback.
+  attributes: string[] // ["Dwarf", "Undead", "Flyer", etc.] or []
+  supportIds: SupportRef[] // What support this card can use/receive
+  weight: number | null // For deck weight calculations
+  effects: CardEffect[] // Tier 1 effects (declarative). Empty = Tier 2 fallback.
 }
 ```
 
@@ -245,29 +250,29 @@ type Card = {
 
 ```ts
 enum CardTypeId {
-  All           = 0,   // Meta: matches any type
-  Ally          = 1,
-  Artifact      = 2,
-  BloodAbility  = 3,
-  ClericSpell   = 4,
-  Cleric        = 5,   // Champion subtype
-  Event         = 6,
-  Hero          = 7,   // Champion subtype
-  Holding       = 8,
-  MagicalItem   = 9,
-  Monster       = 10,  // Champion subtype
-  PsionicPower  = 11,
-  Psionicist    = 12,  // Champion subtype
-  Realm         = 13,
-  Regent        = 14,  // Champion subtype
-  Rule          = 15,
-  Thief         = 16,  // Champion subtype
-  ThiefAbility  = 17,
+  All = 0, // Meta: matches any type
+  Ally = 1,
+  Artifact = 2,
+  BloodAbility = 3,
+  ClericSpell = 4,
+  Cleric = 5, // Champion subtype
+  Event = 6,
+  Hero = 7, // Champion subtype
+  Holding = 8,
+  MagicalItem = 9,
+  Monster = 10, // Champion subtype
+  PsionicPower = 11,
+  Psionicist = 12, // Champion subtype
+  Realm = 13,
+  Regent = 14, // Champion subtype
+  Rule = 15,
+  Thief = 16, // Champion subtype
+  ThiefAbility = 17,
   UnarmedCombat = 18,
-  WizardSpell   = 19,
-  Wizard        = 20,  // Champion subtype
-  Dungeon       = 21,
-  Champion      = 22   // Meta
+  WizardSpell = 19,
+  Wizard = 20, // Champion subtype
+  Dungeon = 21,
+  Champion = 22, // Meta
 }
 
 // Champion subtypes: 5, 7, 10, 12, 14, 16, 20
@@ -300,8 +305,8 @@ type SupportRef = number | string
 type CardSetClass = "edition" | "booster" | "international" | "fan"
 
 type CardSet = {
-  id: string        // "1st", "2nd", "FR", "DL", "AB", etc.
-  name: string      // "1st Edition", "Forgotten Realms", "The Abby"
+  id: string // "1st", "2nd", "FR", "DL", "AB", etc.
+  name: string // "1st Edition", "Forgotten Realms", "The Abby"
   class: CardSetClass
   cardCount: number
 }
@@ -337,16 +342,16 @@ type GameState = {
   activePlayer: PlayerId
   phase: Phase
   combatState: CombatState | null
-  pendingEffects: PendingEffect[]               // Queue of Tier 2 effects awaiting player resolution
+  pendingEffects: PendingEffect[] // Queue of Tier 2 effects awaiting player resolution
   winner: PlayerId | null
-  events: GameEvent[]                           // Full event log for determinism/replay
+  events: GameEvent[] // Full event log for determinism/replay
 }
 
 type PlayerState = {
   id: PlayerId
   hand: CardInstance[]
   drawPile: CardInstance[]
-  discardPile: CardInstance[]    // Normal discard
+  discardPile: CardInstance[] // Normal discard
   /**
    * Temporary removal. Champion returns at end of owner's next turn.
    * IMPORTANT: behaviour differs by context:
@@ -357,29 +362,29 @@ type PlayerState = {
    * Champions in Limbo are NOT "in play" for Rule of the Cosmos.
    */
   limbo: LimboEntry[]
-  abyss: CardInstance[]          // Semi-permanent removal — some cards can retrieve
-  formation: Formation           // Realm layout
+  abyss: CardInstance[] // Semi-permanent removal — some cards can retrieve
+  formation: Formation // Realm layout
   dungeon: CardInstance | null
-  pool: PoolEntry[]              // Champions + their attached items/artifacts
+  pool: PoolEntry[] // Champions + their attached items/artifacts
 }
 
 type LimboEntry = {
   champion: CardInstance
-  attachments: CardInstance[]    // empty if sent to Limbo during combat
-  returnsOnTurn: number          // game turn number when champion returns
+  attachments: CardInstance[] // empty if sent to Limbo during combat
+  returnsOnTurn: number // game turn number when champion returns
 }
 
 type PoolEntry = {
   champion: CardInstance
-  attachments: CardInstance[]    // artifacts + magical items attached in Phase 3
+  attachments: CardInstance[] // artifacts + magical items attached in Phase 3
 }
 
 // Emitted when the engine hits a card with no Tier 1 effect spec
 type ManualResolution = {
   cardInstanceId: string
   triggeringPlayerId: PlayerId
-  cardDescription: string        // Full card text shown to both players
-  trigger: EffectTrigger         // When in the phase this fired
+  cardDescription: string // Full card text shown to both players
+  trigger: EffectTrigger // When in the phase this fired
   confirmedBy: PlayerId | null
   disputedBy: PlayerId | null
 }
@@ -391,23 +396,23 @@ Based on official Spellfire rules (CrossFire doesn't enforce these — we do):
 
 ```ts
 enum Phase {
-  StartOfTurn    = "START_OF_TURN",   // Phase 0: rule cards, start-of-turn powers
-  Draw           = "DRAW",            // Phase 1: draw cards
-  PlayRealm      = "PLAY_REALM",      // Phase 2: play realm + holding
-  Pool           = "POOL",            // Phase 3: place champions, use phase-3 spells
-  Combat         = "COMBAT",          // Phase 4: attack one realm
-  PhaseFive      = "PHASE_FIVE",      // Phase 5: phase-5 cards + discard to hand limit
-  EndTurn        = "END_TURN",        // Phase 6: end turn
+  StartOfTurn = "START_OF_TURN", // Phase 0: rule cards, start-of-turn powers
+  Draw = "DRAW", // Phase 1: draw cards
+  PlayRealm = "PLAY_REALM", // Phase 2: play realm + holding
+  Pool = "POOL", // Phase 3: place champions, use phase-3 spells
+  Combat = "COMBAT", // Phase 4: attack one realm
+  PhaseFive = "PHASE_FIVE", // Phase 5: phase-5 cards + discard to hand limit
+  EndTurn = "END_TURN", // Phase 6: end turn
 }
 ```
 
 ### Hand Sizes
 
 | Deck Size | Starting Hand | Draw Per Turn | Max Hand at End of Turn |
-|-----------|--------------|---------------|------------------------|
-| 55-card   | 5            | 3             | 8                      |
-| 75-card   | 6            | 4             | 10                     |
-| 110-card  | 7            | 5             | 12                     |
+| --------- | ------------- | ------------- | ----------------------- |
+| 55-card   | 5             | 3             | 8                       |
+| 75-card   | 6             | 4             | 10                      |
+| 110-card  | 7             | 5             | 12                      |
 
 ### Phase Flow
 
@@ -445,37 +450,42 @@ PHASE 6 — END TURN (mandatory)
 ```ts
 type Move =
   // Phase 0
-  | { type: "PLAY_RULE_CARD";    cardInstanceId: string }
+  | { type: "PLAY_RULE_CARD"; cardInstanceId: string }
 
   // Phase 2
-  | { type: "PLAY_REALM";        cardInstanceId: string; slot: string }
-  | { type: "REBUILD_REALM";     slot: string }                           // costs 3 cards from hand
-  | { type: "PLAY_HOLDING";      cardInstanceId: string; realmSlot: string }
+  | { type: "PLAY_REALM"; cardInstanceId: string; slot: string }
+  | { type: "REBUILD_REALM"; slot: string } // costs 3 cards from hand
+  | { type: "PLAY_HOLDING"; cardInstanceId: string; realmSlot: string }
 
   // Phase 3
-  | { type: "PLACE_CHAMPION";    cardInstanceId: string }
-  | { type: "ATTACH_ITEM";       cardInstanceId: string; championId: string }
-  | { type: "PLAY_PHASE3_CARD";  cardInstanceId: string }                 // spells, psionics, etc.
+  | { type: "PLACE_CHAMPION"; cardInstanceId: string }
+  | { type: "ATTACH_ITEM"; cardInstanceId: string; championId: string }
+  | { type: "PLAY_PHASE3_CARD"; cardInstanceId: string } // spells, psionics, etc.
 
   // Phase 4 — combat
-  | { type: "DECLARE_ATTACK";    championId: string; targetRealmSlot: string; targetPlayerId: PlayerId }
-  | { type: "DECLARE_DEFENSE";   championId: string }
-  | { type: "DECLINE_DEFENSE" }                                           // defender concedes, realm is razed
-  | { type: "PLAY_COMBAT_CARD";  cardInstanceId: string }                 // Step F: losing player plays a card
-  | { type: "STOP_PLAYING" }                                              // losing player declines to play more
-  | { type: "CONTINUE_ATTACK";   championId: string }                     // new round vs. same realm
-  | { type: "END_ATTACK" }                                                // attacker stops voluntarily
+  | {
+      type: "DECLARE_ATTACK"
+      championId: string
+      targetRealmSlot: string
+      targetPlayerId: PlayerId
+    }
+  | { type: "DECLARE_DEFENSE"; championId: string }
+  | { type: "DECLINE_DEFENSE" } // defender concedes, realm is razed
+  | { type: "PLAY_COMBAT_CARD"; cardInstanceId: string } // Step F: losing player plays a card
+  | { type: "STOP_PLAYING" } // losing player declines to play more
+  | { type: "CONTINUE_ATTACK"; championId: string } // new round vs. same realm
+  | { type: "END_ATTACK" } // attacker stops voluntarily
 
   // Phase 5
-  | { type: "PLAY_PHASE5_CARD";  cardInstanceId: string }
+  | { type: "PLAY_PHASE5_CARD"; cardInstanceId: string }
 
   // Any phase
-  | { type: "PLAY_EVENT";        cardInstanceId: string }
+  | { type: "PLAY_EVENT"; cardInstanceId: string }
   | { type: "PASS" }
 
   // Manual fallback — used when engine queues a Tier 2 effect
-  | { type: "RESOLVE_EFFECT"; targetId: string }  // remove/target a card
-  | { type: "SKIP_EFFECT" }                        // waive the effect
+  | { type: "RESOLVE_EFFECT"; targetId: string } // remove/target a card
+  | { type: "SKIP_EFFECT" } // waive the effect
 
 type EngineResult = {
   newState: GameState
@@ -496,35 +506,39 @@ This is extended over time as more effects are promoted from Tier 2 to Tier 1.
 ```ts
 type CardEffect =
   // ── Group A · Combat level modifications ─────────────────────────────────
-  | { type: "LEVEL_BONUS";         value: number; condition?: EffectCondition }
-  | { type: "LEVEL_BONUS_VS";      value: number; targetAttribute: string }  // e.g. "+3 vs Undead"
-  | { type: "LEVEL_BONUS_VS_TYPE"; value: number; typeId: number }           // e.g. "+2 vs monsters (typeId 10)"
+  | { type: "LEVEL_BONUS"; value: number; condition?: EffectCondition }
+  | { type: "LEVEL_BONUS_VS"; value: number; targetAttribute: string } // e.g. "+3 vs Undead"
+  | { type: "LEVEL_BONUS_VS_TYPE"; value: number; typeId: number } // e.g. "+2 vs monsters (typeId 10)"
 
   // ── Group A · Spell access ────────────────────────────────────────────────
-  | { type: "GRANT_SPELL_ACCESS";  spellTypeId: number; window: "offense" | "defense" | "both" }
+  | { type: "GRANT_SPELL_ACCESS"; spellTypeId: number; window: "offense" | "defense" | "both" }
 
   // ── Group A · Immunity ────────────────────────────────────────────────────
   // World bonus (+3 when champion.worldId === realm.worldId) is automatic — not a CardEffect.
-  | { type: "IMMUNE_TO_SPELLS";    scope?: "offensive" | "defensive" | "both" }
+  | { type: "IMMUNE_TO_SPELLS"; scope?: "offensive" | "defensive" | "both" }
   | { type: "IMMUNE_TO_ATTRIBUTE"; attribute: string }
   | { type: "IMMUNE_TO_ALL_MAGIC" }
 
   // ── Group A · Card draw / hand ────────────────────────────────────────────
-  | { type: "DRAW_CARD";           count: number }
-  | { type: "DISCARD_CARD";        target: "self" | "opponent"; count: number }
+  | { type: "DRAW_CARD"; count: number }
+  | { type: "DISCARD_CARD"; target: "self" | "opponent"; count: number }
 
   // ── Group A · Combat bonus ────────────────────────────────────────────────
   // typeIds: which card types benefit; typeId 0 = all, 1 = Ally, [5,7,10,12,14,16,20] = champions
-  | { type: "COMBAT_BONUS";        value: number; typeIds: number[] }
+  | { type: "COMBAT_BONUS"; value: number; typeIds: number[] }
 
   // ── Group B · Passive / structural ───────────────────────────────────────
-  | { type: "HAND_SIZE_BONUS";           count: number }
-  | { type: "DRAW_PER_TURN";             count: number }
-  | { type: "DRAW_ON_REALM_PLAY";        count: number }
-  | { type: "REALM_GRANTS_SPELL_ACCESS"; spellTypeId: number; window: "offense" | "defense" | "both" }
+  | { type: "HAND_SIZE_BONUS"; count: number }
+  | { type: "DRAW_PER_TURN"; count: number }
+  | { type: "DRAW_ON_REALM_PLAY"; count: number }
+  | {
+      type: "REALM_GRANTS_SPELL_ACCESS"
+      spellTypeId: number
+      window: "offense" | "defense" | "both"
+    }
   | { type: "NEGATE_ITEM_BONUS" }
-  | { type: "RESTRICTED_ATTACKERS";      attribute?: string; typeId?: number }
-  | { type: "REALM_SELF_DEFENDS";        level: number; typeId: number }
+  | { type: "RESTRICTED_ATTACKERS"; attribute?: string; typeId?: number }
+  | { type: "REALM_SELF_DEFENDS"; level: number; typeId: number }
 
 type EffectCondition =
   | { when: "attacking" }
@@ -538,7 +552,7 @@ type EffectTrigger =
   | "ON_SUPPORT_PLAYED"
   | "ON_COMBAT_RESOLVE"
   | "ON_DISCARD"
-  | "PASSIVE"                 // Always active while in play
+  | "PASSIVE" // Always active while in play
 
 // A card's effect spec — stored in packages/data, keyed by card ref
 type CardEffectSpec = {
@@ -560,19 +574,19 @@ type CombatState = {
   targetRealmSlot: string
   roundPhase: CombatRoundPhase
   attacker: CardInstance | null
-  defender: CardInstance | null    // null = undefended (realm will be razed)
+  defender: CardInstance | null // null = undefended (realm will be razed)
   // Cards added during the round (come from hand during step F)
   attackerCards: CardInstance[]
   defenderCards: CardInstance[]
-  championsUsedThisBattle: CardInstanceId[]  // can't reuse in later rounds
+  championsUsedThisBattle: CardInstanceId[] // can't reuse in later rounds
 }
 
 type CombatRoundPhase =
-  | "AWAITING_ATTACKER"     // attacker picks champion (or ends attack)
-  | "AWAITING_DEFENDER"     // defender picks champion (or concedes realm)
-  | "ACTIVATION"            // attacker's cards activate, then defender's (engine-resolved)
-  | "CARD_PLAY"             // losing player plays cards one at a time
-  | "RESOLVING"             // compare final levels, determine winner
+  | "AWAITING_ATTACKER" // attacker picks champion (or ends attack)
+  | "AWAITING_DEFENDER" // defender picks champion (or concedes realm)
+  | "ACTIVATION" // attacker's cards activate, then defender's (engine-resolved)
+  | "CARD_PLAY" // losing player plays cards one at a time
+  | "RESOLVING" // compare final levels, determine winner
 
 /**
  * Three possible outcomes at the end of a combat round:
@@ -641,9 +655,9 @@ Spoils card may be played immediately — even out-of-phase (e.g. a realm played
 // Pure function — deterministic, no side effects
 function calculateCombatLevel(
   champion: CardInstance,
-  combatCards: CardInstance[],    // cards played during this round
-  worldMatch: boolean,            // champion's world === target realm's world
-  effectSpecs: CardEffectSpec[]
+  combatCards: CardInstance[], // cards played during this round
+  worldMatch: boolean, // champion's world === target realm's world
+  effectSpecs: CardEffectSpec[],
 ): number {
   let level = champion.baseLevel
 
@@ -658,7 +672,7 @@ function calculateCombatLevel(
       level += parseMagicalItemBonus(card.description)
     }
     // Tier 1 spell / ability effects
-    const spec = effectSpecs.find(s => matchesCard(s.cardRef, card))
+    const spec = effectSpecs.find((s) => matchesCard(s.cardRef, card))
     if (spec) {
       level += applyLevelEffects(spec.effects)
     }
@@ -678,8 +692,7 @@ function canUse(champion: Card, card: Card): boolean {
   const typeId = card.typeId
   // Spells and abilities use the "d{typeId}"/"o{typeId}" ref system
   if (isSpellType(typeId)) {
-    return champion.supportIds.includes(`d${typeId}`) ||
-           champion.supportIds.includes(`o${typeId}`)
+    return champion.supportIds.includes(`d${typeId}`) || champion.supportIds.includes(`o${typeId}`)
   }
   // Non-spell cards (allies, artifacts, magical items) use bare type IDs
   return champion.supportIds.includes(typeId)
@@ -687,11 +700,7 @@ function canUse(champion: Card, card: Card): boolean {
 
 // Can a champion play a spell of the given direction at this realm?
 // Checks champion supportIds; realm may also grant extra access via Tier 1 effects.
-function canPlaySpell(
-  champion: Card,
-  spell: Card,
-  direction: "offensive" | "defensive"
-): boolean {
+function canPlaySpell(champion: Card, spell: Card, direction: "offensive" | "defensive"): boolean {
   const ref = `${direction === "offensive" ? "o" : "d"}${spell.typeId}`
   return champion.supportIds.includes(ref)
 }
@@ -702,7 +711,7 @@ function requiresManualResolution(card: Card, effectSpecs: CardEffectSpec[]): bo
   if (card.typeId === CardTypeId.Ally && isStatCard(card)) return false
   if (card.typeId === CardTypeId.MagicalItem && isStatCard(card)) return false
   // Otherwise check if we have a Tier 1 effect spec for it
-  return !effectSpecs.some(s => matchesCard(s.cardRef, card))
+  return !effectSpecs.some((s) => matchesCard(s.cardRef, card))
 }
 ```
 
@@ -717,6 +726,7 @@ The standard formation is a **pyramid** with its base toward the owning player:
 ```
 
 Protection rules:
+
 - A realm cannot be attacked if an **unrazed realm is in front of it**.
 - A protects B and C.
 - B protects D and E. C protects E and F. (E is doubly protected.)
@@ -726,6 +736,7 @@ Protection rules:
 - Earthwalkers can attack any realm not explicitly restricted.
 
 Placement order (enforced by `getLegalMoves`):
+
 - Slot A must be filled (even if razed) before B or C can be placed.
 - Both B and C must be filled before D, E, or F can be placed.
 - If cardplay forces a realm out of an interior slot, that slot must be filled before
@@ -733,14 +744,20 @@ Placement order (enforced by `getLegalMoves`):
 
 ```ts
 // Slot IDs for 6-realm (standard), 8-realm, 10-realm formations
-type FormationSlot = "A"|"B"|"C"|"D"|"E"|"F"|"G"|"H"|"I"|"J"
+type FormationSlot = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J"
 
 // Which slots protect which — used for attack legality checks
 const PROTECTS: Record<FormationSlot, FormationSlot[]> = {
   A: ["B", "C"],
   B: ["D", "E"],
   C: ["E", "F"],
-  D: [], E: [], F: [], G: [], H: [], I: [], J: []
+  D: [],
+  E: [],
+  F: [],
+  G: [],
+  H: [],
+  I: [],
+  J: [],
 }
 
 type Formation = {
@@ -749,9 +766,9 @@ type Formation = {
 }
 
 type RealmSlot = {
-  realm: CardInstance         // the realm card
+  realm: CardInstance // the realm card
   isRazed: boolean
-  holdings: CardInstance[]   // attached holdings (discarded when realm is razed)
+  holdings: CardInstance[] // attached holdings (discarded when realm is razed)
 }
 ```
 
@@ -771,13 +788,10 @@ This is a **global uniqueness constraint** enforced by `getLegalMoves` and `appl
 
 ```ts
 // Engine check — called before allowing any PLACE_CHAMPION / PLAY_REALM / ATTACH_ITEM move
-function isUniqueCardInPlay(
-  card: CardData,
-  allPlayerStates: PlayerState[]
-): boolean {
-  if (!isCosmosCard(card)) return true          // non-unique types always allowed
+function isUniqueCardInPlay(card: CardData, allPlayerStates: PlayerState[]): boolean {
+  if (!isCosmosCard(card)) return true // non-unique types always allowed
   for (const player of allPlayerStates) {
-    if (player.pool.some(e => nameAndTypeMatch(e.champion.card, card))) return false
+    if (player.pool.some((e) => nameAndTypeMatch(e.champion.card, card))) return false
     if (formationHasCard(player.formation, card)) return false
     // Limbo is intentionally excluded — limbo champions are not "in play"
   }
@@ -801,7 +815,7 @@ type DeckFormat = {
   worldLimits?: Record<string, WorldLimit>
   setLimits?: Record<string, SetLimit>
   banned: CardRef[]
-  allowed: CardRef[]    // If non-empty, ONLY these cards are legal
+  allowed: CardRef[] // If non-empty, ONLY these cards are legal
 }
 
 type CardTypeLimit = { min: number; max: number; maxCopies: number }
@@ -809,6 +823,7 @@ type CardRef = { setId: string; cardNumber: number }
 ```
 
 **Standard 55-Card Format:**
+
 - Total: 55 cards
 - Realms: 8–15
 - Champions: 1–20
@@ -823,17 +838,20 @@ type CardRef = { setId: string; cardNumber: number }
 ## Card Images
 
 CrossFire ships 3000+ card JPGs organized as:
+
 ```
 Graphics/Cards/{setId}/{cardNumber}.jpg
 ```
 
 **Format decision: keep JPEGs as source, serve WebP.**
+
 - PNG: larger than JPEG with no quality benefit for photographic content — skip
 - WebP: ~30-40% smaller than JPEG at equivalent quality, universal browser support — use this
 - Quality enhancement / AI upscaling: source scans are the best available, don't modify
 - Never re-encode originals (JPEG→JPEG loses quality each generation)
 
 **Pipeline:**
+
 ```
 Source (repo, committed):
   packages/data/assets/cards/{setId}/{cardNumber}.jpg   ← originals, never modified
@@ -845,6 +863,7 @@ Served via: Supabase Storage / CDN
 ```
 
 **Conversion script** (Bun + sharp):
+
 ```ts
 sharp(inputJpeg).webp({ quality: 82 }).toFile(outputWebp)
 // quality 82: visually indistinguishable from source, ~40% smaller
@@ -956,17 +975,17 @@ packages/data/
   gameId: uuid
   userId: uuid
   seatPosition: number
-  deckSnapshot: jsonb        // Immutable after game starts
+  deckSnapshot: jsonb // Immutable after game starts
 }
 
 // game_actions — the event log
 {
   id: uuid
   gameId: uuid
-  sequence: number           // Monotonic — determines replay order
+  sequence: number // Monotonic — determines replay order
   playerId: uuid
-  move: jsonb                // Serialized Move (includes MANUAL moves)
-  stateHash: string          // Hash of resulting state (integrity check)
+  move: jsonb // Serialized Move (includes MANUAL moves)
+  stateHash: string // Hash of resulting state (integrity check)
   createdAt: timestamp
 }
 ```
@@ -980,9 +999,9 @@ On replay, they re-emit the same `ManualResolution` events in the same order.
 async function reconstructGame(gameId: string): Promise<GameState> {
   const [players, actions] = await Promise.all([
     db.getPlayers(gameId),
-    db.getActions(gameId),  // ordered by sequence
+    db.getActions(gameId), // ordered by sequence
   ])
-  let state = initGame(players.map(p => ({ id: p.userId, deck: p.deckSnapshot })))
+  let state = initGame(players.map((p) => ({ id: p.userId, deck: p.deckSnapshot })))
   for (const action of actions) {
     const { newState } = applyMove(state, action.move)
     state = newState
@@ -1060,6 +1079,7 @@ continuously based on usage data and player feedback.
 5. Deploy — the fallback for that card is now gone
 
 **Target milestones:**
+
 - Launch: Tier 1 covers ~80% of 1st Edition cards
 - 3 months post-launch: ~90% of 1st Edition, ~70% of expansions
 - Long-term: fallback only for the exotic fringe (~5%)
@@ -1085,19 +1105,19 @@ Effects fall into four groups based on engine implementation difficulty.
 These effects can be populated directly into the `effects[]` array inside `cards/1st.json`
 immediately once extraction is complete. No engine changes required.
 
-| Pattern | `CardEffect` encoding | Example cards |
-|---------|----------------------|---------------|
-| +N (Off) ally/item | `LEVEL_BONUS { value, condition: { when:"attacking" } }` | War Party, Dwarven Hammer |
-| +N (Def) ally/item | `LEVEL_BONUS { value, condition: { when:"defending" } }` | Shield of Destruction, Magical Barding |
-| +N always | `LEVEL_BONUS { value }` | Banner of the One-Eyed God |
-| +N vs attribute | `LEVEL_BONUS_VS { value, targetAttribute }` | Staff of Striking (+3 vs clerics), Magic Sword (+5 vs undead) |
-| Draw N cards | `DRAW_CARD { count }` | Good Fortune, Temple of Elemental Evil |
-| Discard N cards | `DISCARD_CARD { target, count }` | Transformation! |
-| Spell access for champion | `GRANT_SPELL_ACCESS { spellTypeId, window }` | Dracolich (wizard), Harpers (both) |
-| Immune to offensive spells | `IMMUNE_TO_SPELLS { scope:"offensive" }` | Elminster, Alias the Sell-Sword |
-| Immune to attribute | `IMMUNE_TO_ATTRIBUTE { attribute }` | Treants (vs wizard spells) |
-| Immune to all magic | `IMMUNE_TO_ALL_MAGIC` | Gib Htimsen, Gib Evets |
-| Defender/ally combat bonus | `COMBAT_BONUS { value, typeIds }` | Fortifications (all defenders: `typeIds:[0]`), Moonshae (allies: `typeIds:[1]`) |
+| Pattern                    | `CardEffect` encoding                                    | Example cards                                                                   |
+| -------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| +N (Off) ally/item         | `LEVEL_BONUS { value, condition: { when:"attacking" } }` | War Party, Dwarven Hammer                                                       |
+| +N (Def) ally/item         | `LEVEL_BONUS { value, condition: { when:"defending" } }` | Shield of Destruction, Magical Barding                                          |
+| +N always                  | `LEVEL_BONUS { value }`                                  | Banner of the One-Eyed God                                                      |
+| +N vs attribute            | `LEVEL_BONUS_VS { value, targetAttribute }`              | Staff of Striking (+3 vs clerics), Magic Sword (+5 vs undead)                   |
+| Draw N cards               | `DRAW_CARD { count }`                                    | Good Fortune, Temple of Elemental Evil                                          |
+| Discard N cards            | `DISCARD_CARD { target, count }`                         | Transformation!                                                                 |
+| Spell access for champion  | `GRANT_SPELL_ACCESS { spellTypeId, window }`             | Dracolich (wizard), Harpers (both)                                              |
+| Immune to offensive spells | `IMMUNE_TO_SPELLS { scope:"offensive" }`                 | Elminster, Alias the Sell-Sword                                                 |
+| Immune to attribute        | `IMMUNE_TO_ATTRIBUTE { attribute }`                      | Treants (vs wizard spells)                                                      |
+| Immune to all magic        | `IMMUNE_TO_ALL_MAGIC`                                    | Gib Htimsen, Gib Evets                                                          |
+| Defender/ally combat bonus | `COMBAT_BONUS { value, typeIds }`                        | Fortifications (all defenders: `typeIds:[0]`), Moonshae (allies: `typeIds:[1]`) |
 
 **Note on attributes:** "Flyer.", "Undead.", "Dwarf.", race tags etc. are already stored in
 `CardData.attributes[]` extracted from the TCL file. They do **not** need a `CardEffect`
@@ -1110,20 +1130,21 @@ entry — the engine queries them directly (e.g., `IMMUNE_TO_ATTRIBUTE { attribu
 ### Group B — New simple `CardEffect` types required
 
 Small, deterministic additions to the TypeScript union. Each type needs:
+
 - A new variant in `CardEffect`
 - A handler in the appropriate engine phase function
 - No complex state required
 
-| New type | Fields | When applied | Example cards |
-|----------|--------|--------------|---------------|
-| `HAND_SIZE_BONUS` | `count: number` | Passive — scanned at start of each turn across all cards in play | Myth Drannor (+1), The Great Kingdom (+2), Mud Palace (+2) |
-| `DRAW_PER_TURN` | `count: number` | Start-of-turn draw — scanned across all cards in play | Arkhold (+1/turn), Mulmaster (on spell played) |
-| `DRAW_ON_REALM_PLAY` | `count: number` | When this realm card is placed | Haunted Hall of Eveningstar, Temple of Elemental Evil |
-| `REALM_GRANTS_SPELL_ACCESS` | `spellTypeId: number; window: "offense"\|"defense"\|"both"` | Passive: any champion at this realm gains spell access | Waterdeep (wizard, defense), Shadowdale (cleric+wizard, defense), Evermeet (wizard) |
-| `LEVEL_BONUS_VS_TYPE` | `value: number; typeId: number` | In combat | "+3 vs monsters" (typeId 10) — Bruenor, Vargas |
-| `NEGATE_ITEM_BONUS` | _(none)_ | In combat, negates opponent's magical item level bonuses | Dwarven Hammer, Codex of Infinite Planes |
-| `RESTRICTED_ATTACKERS` | `attribute?: string; typeId?: number` | Combat declaration — some attacker type cannot attack this realm | Pirate Isles (Flyers), Arms of Nyrond (Monsters typeId:10) |
-| `REALM_SELF_DEFENDS` | `level: number; typeId: number` | If no champion defends, realm acts as champion of given level/type | Arabel (level 4 Monster), Zhentil Keep (level 5 Cleric) |
+| New type                    | Fields                                                      | When applied                                                       | Example cards                                                                       |
+| --------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `HAND_SIZE_BONUS`           | `count: number`                                             | Passive — scanned at start of each turn across all cards in play   | Myth Drannor (+1), The Great Kingdom (+2), Mud Palace (+2)                          |
+| `DRAW_PER_TURN`             | `count: number`                                             | Start-of-turn draw — scanned across all cards in play              | Arkhold (+1/turn), Mulmaster (on spell played)                                      |
+| `DRAW_ON_REALM_PLAY`        | `count: number`                                             | When this realm card is placed                                     | Haunted Hall of Eveningstar, Temple of Elemental Evil                               |
+| `REALM_GRANTS_SPELL_ACCESS` | `spellTypeId: number; window: "offense"\|"defense"\|"both"` | Passive: any champion at this realm gains spell access             | Waterdeep (wizard, defense), Shadowdale (cleric+wizard, defense), Evermeet (wizard) |
+| `LEVEL_BONUS_VS_TYPE`       | `value: number; typeId: number`                             | In combat                                                          | "+3 vs monsters" (typeId 10) — Bruenor, Vargas                                      |
+| `NEGATE_ITEM_BONUS`         | _(none)_                                                    | In combat, negates opponent's magical item level bonuses           | Dwarven Hammer, Codex of Infinite Planes                                            |
+| `RESTRICTED_ATTACKERS`      | `attribute?: string; typeId?: number`                       | Combat declaration — some attacker type cannot attack this realm   | Pirate Isles (Flyers), Arms of Nyrond (Monsters typeId:10)                          |
+| `REALM_SELF_DEFENDS`        | `level: number; typeId: number`                             | If no champion defends, realm acts as champion of given level/type | Arabel (level 4 Monster), Zhentil Keep (level 5 Cleric)                             |
 
 **Decision — passive effects outside combat:**
 Passive effects like `HAND_SIZE_BONUS` and `DRAW_PER_TURN` are evaluated by a **dynamic
@@ -1131,6 +1152,7 @@ scan at phase boundaries** (start of turn and phase 5 hand-limit check). No dedi
 `PlayerState` fields are added.
 
 The scan covers **every card currently in play for that player**:
+
 - All formation slots (realms) and their attached holdings
 - All pool champions and their attachments (magical items, artifacts)
 
@@ -1147,20 +1169,20 @@ No state synchronization bugs when realms are razed or champions are discarded.
 These need deeper engine integration: new state tracking, modified combat flow, or
 interactions across multiple game objects. Implement one at a time with tests.
 
-| New type | Fields | Description | ~Cards | Example cards |
-|----------|--------|-------------|--------|---------------|
-| `DESTROY_ATTACHMENT` | `scope: "opponent_item"\|"opponent_holding"\|"any_item"` | Destroys one or more attached items/holdings from a champion or realm | ~33 | Icewind Dale (discard magic item), Midnight, Crime Lord |
-| `LEVEL_PENALTY` | `value: number; condition?: EffectCondition` | Champion loses N levels during combat | ~8 | Anauroch, Peasant Militia, Mind Flayer |
-| `AURA_LEVEL_BONUS` | `value: number` | +N to ALL allied allies currently in combat | ~15 | King Azoun IV, Charge! event |
-| `MUST_DEFEAT_TWICE` | _(none)_ | Champion is not discarded on first defeat; second defeat in same battle discards | ~17 | Drizzt Do'Urden, Amarill, Lolth |
-| `STEAL_ALLY` | `count: number` | Shift N opponent allies to your side during combat round | ~5 | Maligor the Red, Mind Flayer |
-| `WALL_BARRIER` | `crossCondition: "flyer_only"\|"min_level"; minLevel?: number` | Spell creates a wall; only flyers (or level ≥ N) can attack across it | ~5 | Wall of Fire, Wall of Iron, Wall of Thorns |
-| `DESTROY_ALL_ATTRIBUTE` | `attribute: string; scope: "global"\|"offensive"\|"defensive"` | Immediately destroy all cards bearing the attribute | ~5 | Wind Dancers (flyers), Holy Word (undead) |
-| `SURVIVE_DEFEAT_RETURN` | `destination: "pool"\|"hand"` | Instead of being discarded after combat loss, return to pool/hand | ~3 | Labyrinth Map of Shuuc artifact |
-| `LEVEL_DOUBLED_DEFENDING` | `condition?: EffectCondition` | Double the defending champion's level if condition met | ~3 | Damara (doubles FR champion), South Ledopolus |
-| `LEVEL_BONUS_PER_ALLY` | `value: number` | +N for each friendly ally in combat | ~3 | Aurum Gold Dragon |
-| `LEVEL_BONUS_AT_REALM` | `realmCardNumber: number; setId: string; value: number` | +N bonus when defending the named realm | ~3 | Drow Matron (+3 at Menzoberranzan) |
-| `IMMUNE_TO_MONSTERS` | _(none)_ | Champion cannot be attacked or harmed by monsters | ~2 | King of the Elves |
+| New type                  | Fields                                                         | Description                                                                      | ~Cards | Example cards                                           |
+| ------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | ------------------------------------------------------- |
+| `DESTROY_ATTACHMENT`      | `scope: "opponent_item"\|"opponent_holding"\|"any_item"`       | Destroys one or more attached items/holdings from a champion or realm            | ~33    | Icewind Dale (discard magic item), Midnight, Crime Lord |
+| `LEVEL_PENALTY`           | `value: number; condition?: EffectCondition`                   | Champion loses N levels during combat                                            | ~8     | Anauroch, Peasant Militia, Mind Flayer                  |
+| `AURA_LEVEL_BONUS`        | `value: number`                                                | +N to ALL allied allies currently in combat                                      | ~15    | King Azoun IV, Charge! event                            |
+| `MUST_DEFEAT_TWICE`       | _(none)_                                                       | Champion is not discarded on first defeat; second defeat in same battle discards | ~17    | Drizzt Do'Urden, Amarill, Lolth                         |
+| `STEAL_ALLY`              | `count: number`                                                | Shift N opponent allies to your side during combat round                         | ~5     | Maligor the Red, Mind Flayer                            |
+| `WALL_BARRIER`            | `crossCondition: "flyer_only"\|"min_level"; minLevel?: number` | Spell creates a wall; only flyers (or level ≥ N) can attack across it            | ~5     | Wall of Fire, Wall of Iron, Wall of Thorns              |
+| `DESTROY_ALL_ATTRIBUTE`   | `attribute: string; scope: "global"\|"offensive"\|"defensive"` | Immediately destroy all cards bearing the attribute                              | ~5     | Wind Dancers (flyers), Holy Word (undead)               |
+| `SURVIVE_DEFEAT_RETURN`   | `destination: "pool"\|"hand"`                                  | Instead of being discarded after combat loss, return to pool/hand                | ~3     | Labyrinth Map of Shuuc artifact                         |
+| `LEVEL_DOUBLED_DEFENDING` | `condition?: EffectCondition`                                  | Double the defending champion's level if condition met                           | ~3     | Damara (doubles FR champion), South Ledopolus           |
+| `LEVEL_BONUS_PER_ALLY`    | `value: number`                                                | +N for each friendly ally in combat                                              | ~3     | Aurum Gold Dragon                                       |
+| `LEVEL_BONUS_AT_REALM`    | `realmCardNumber: number; setId: string; value: number`        | +N bonus when defending the named realm                                          | ~3     | Drow Matron (+3 at Menzoberranzan)                      |
+| `IMMUNE_TO_MONSTERS`      | _(none)_                                                       | Champion cannot be attacked or harmed by monsters                                | ~2     | King of the Elves                                       |
 
 **Estimated additional coverage:** +22% → ~80% total.
 
@@ -1171,21 +1193,22 @@ interactions across multiple game objects. Implement one at a time with tests.
 These require either global state across turns, fundamentally new game flow, or are
 rare enough that the manual fallback suffices for a long time.
 
-| Mechanic | Cards | Complexity |
-|----------|-------|------------|
-| Rule cards (persistent global rules) | Age of Entropy, Barbarian's Decree, Abyssal Vortex | Requires `activeRuleCard` state, affects all players every turn |
-| Triggered on round win | Shalbaal (steal hand card per win), Halcyon (return from discard per win), Rikus (attack again) | Mid-combat branching |
-| Triggered on defeat | Iuz (raze another realm), Smolder (destroy own holding), Myrmidons (reshuffle deck) | Post-combat callbacks |
-| Replace champion | Rod of Shapechange (use champion from discard) | Combat-time substitution |
-| Psionic pre-battle | Agis, Chividal, Dlasva (destroy before battle) | New pre-combat phase |
-| Face-down cards | Cleric of Mask (hidden until battle) | New visibility model |
-| Event response window | Negate, Calm, Deflect (opponent may counter events) | New interrupt window |
+| Mechanic                             | Cards                                                                                           | Complexity                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Rule cards (persistent global rules) | Age of Entropy, Barbarian's Decree, Abyssal Vortex                                              | Requires `activeRuleCard` state, affects all players every turn |
+| Triggered on round win               | Shalbaal (steal hand card per win), Halcyon (return from discard per win), Rikus (attack again) | Mid-combat branching                                            |
+| Triggered on defeat                  | Iuz (raze another realm), Smolder (destroy own holding), Myrmidons (reshuffle deck)             | Post-combat callbacks                                           |
+| Replace champion                     | Rod of Shapechange (use champion from discard)                                                  | Combat-time substitution                                        |
+| Psionic pre-battle                   | Agis, Chividal, Dlasva (destroy before battle)                                                  | New pre-combat phase                                            |
+| Face-down cards                      | Cleric of Mask (hidden until battle)                                                            | New visibility model                                            |
+| Event response window                | Negate, Calm, Deflect (opponent may counter events)                                             | New interrupt window                                            |
 
 ---
 
 ## 2. Data Extraction Pipeline
 
 ### Source
+
 `CrossFire READONLY/DataBase/1st.tcl` — already parsed into `packages/data/cards/1st.json`.
 The `description` field of each card record contains plain-English rules text.
 The `attributes` field contains tags like `Flyer`, `Undead`, `Dwarf` etc.
@@ -1200,12 +1223,14 @@ packages/data/src/validate-effects.ts      ← Zod-based schema validator
 ```
 
 **`extract-effects.md`** contains everything the LLM needs to produce correct output:
+
 - Task instructions and output format rules
 - The `CardEffect` TypeScript union (Groups A + B only; trimmed to types with ≥2 confirmed occurrences in the target set)
 - 20+ worked few-shot examples covering all Group A + B patterns
 - A list of Group C/D patterns to leave as `effects: []` rather than guess
 
 **Workflow:**
+
 1. Open a Claude chat session (claude.ai or similar)
 2. Paste the contents of `prompts/extract-effects.md` as context
 3. Attach / paste the target `cards/{setId}.json` (or a ~100-card slice of it)
@@ -1217,6 +1242,7 @@ packages/data/src/validate-effects.ts      ← Zod-based schema validator
 When the prompt improves, edit the `.md` file and re-run with a new chat session — no code changes needed. The prompt version number in the header makes it easy to track which version produced which outputs.
 
 **`validate-effects.ts`** does:
+
 1. Read `cards/{setId}.json` (default: `cards/1st.json`)
 2. For every card, validate that each entry in `effects[]` matches the Zod schema
 3. Report invalid effects by card number + card name + path + error message
@@ -1235,6 +1261,7 @@ the prompt. Cards with unsupported Group C/D effects stay as `effects: []` (Tier
 until the engine adds the required type.
 
 **Accuracy expectation (Groups A + B only):**
+
 - Group A effects: ~95% (simple, formulaic patterns)
 - Group B effects: ~85% (slightly more phrasing variation)
 - Group C/D effects: left as `[]` by design
@@ -1296,11 +1323,13 @@ of current Tier 2 fallbacks with zero engine code changes.
 ### Phase 3 — Add Group C types
 
 One sub-phase per type. Each gets:
+
 - TypeScript union addition
 - Engine handler
 - At least 2 unit tests (effect active, effect inactive)
 
 Priority order within Group C (highest card count first):
+
 1. `DESTROY_ATTACHMENT` (~33 cards) — mid-combat item/holding removal
 2. `MUST_DEFEAT_TWICE` (~17 cards) — combat state tracking
 3. `AURA_LEVEL_BONUS` (~15 cards) — affects combat math
@@ -1318,28 +1347,28 @@ Priority order within Group C (highest card count first):
 
 ## 4. Coverage Roadmap
 
-| Milestone | Work | Cumulative Tier 1 coverage |
-|-----------|------|---------------------------|
-| **Now** | Pure-level allies/items (already handled) | ~17% |
-| **After chat extraction + Group A wiring** | Populate `effects[]` via chat prompt, no engine changes | ~40% |
-| **After Group B engine work** | Add 8 new types, wire passive effects | ~58% |
-| **After Group C engine work** | Add 12 complex types (incl. newly found destroy/defeat/penalty) | ~80% |
-| **After Group D (post-MVP)** | Rule cards, triggered effects | ~90%+ |
+| Milestone                                  | Work                                                            | Cumulative Tier 1 coverage |
+| ------------------------------------------ | --------------------------------------------------------------- | -------------------------- |
+| **Now**                                    | Pure-level allies/items (already handled)                       | ~17%                       |
+| **After chat extraction + Group A wiring** | Populate `effects[]` via chat prompt, no engine changes         | ~40%                       |
+| **After Group B engine work**              | Add 8 new types, wire passive effects                           | ~58%                       |
+| **After Group C engine work**              | Add 12 complex types (incl. newly found destroy/defeat/penalty) | ~80%                       |
+| **After Group D (post-MVP)**               | Rule cards, triggered effects                                   | ~90%+                      |
 
 ---
 
 ## 5. Decisions Made
 
-| # | Question | Decision |
-|---|----------|----------|
-| 1 | **Passive effect evaluation** | Dynamic scan of all cards in play at phase boundaries (`collectPassiveEffects`). Covers formation realms + holdings + pool champions + attachments. No dedicated `PlayerState` fields. |
-| 2 | **Extraction approach** | Chat-based LLM extraction: paste `prompts/extract-effects.md` + the cards JSON into a Claude chat session; get back the modified JSON; validate with `validate-effects.ts`. No API script. |
-| 3 | **Where effects live** | Inline in `CardData.effects[]` inside `cards/1st.json`. Patched in-place via chat output. No separate effects lookup file at runtime. |
-| 4 | **Multi-set scope** | 1st edition only for now. Same prompt file reused for each additional set when needed. |
-| 5 | **Prompt scope** | Types in `extract-effects.md` are trimmed to types with ≥2 confirmed occurrences in the target edition (verified against the actual card descriptions). Absent/singleton types are excluded from both the prompt and `engine/src/types.ts` until implemented. |
-| 6 | **`COMBAT_BONUS` replaces `HOLDING_BONUS`** | The flat "defenders gain N levels" bonus applies to specific card type categories, not just "holdings". `typeIds: number[]` specifies which card types benefit; typeId 0 = all, 1 = Ally. Previously called `HOLDING_BONUS { value }`. |
-| 7 | **`RESTRICTED_ATTACKERS` replaces `MONSTERS_CANT_ATTACK`** | Generalized to cover any movement type (Flyer, Earthwalker) or card type restriction on who can attack a realm. Use `attribute` for movement types, `typeId` for card type IDs. |
-| 8 | **`REALM_SELF_DEFENDS` promoted to Group B** | Moved from Group C (complex) to Group B (simple passive). Encodes "realm can defend as a level N type-X champion if no champion defends." Realms with a non-null `level` field self-defend implicitly; this effect is only needed for holdings that grant the ability. |
+| #   | Question                                                   | Decision                                                                                                                                                                                                                                                               |
+| --- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Passive effect evaluation**                              | Dynamic scan of all cards in play at phase boundaries (`collectPassiveEffects`). Covers formation realms + holdings + pool champions + attachments. No dedicated `PlayerState` fields.                                                                                 |
+| 2   | **Extraction approach**                                    | Chat-based LLM extraction: paste `prompts/extract-effects.md` + the cards JSON into a Claude chat session; get back the modified JSON; validate with `validate-effects.ts`. No API script.                                                                             |
+| 3   | **Where effects live**                                     | Inline in `CardData.effects[]` inside `cards/1st.json`. Patched in-place via chat output. No separate effects lookup file at runtime.                                                                                                                                  |
+| 4   | **Multi-set scope**                                        | 1st edition only for now. Same prompt file reused for each additional set when needed.                                                                                                                                                                                 |
+| 5   | **Prompt scope**                                           | Types in `extract-effects.md` are trimmed to types with ≥2 confirmed occurrences in the target edition (verified against the actual card descriptions). Absent/singleton types are excluded from both the prompt and `engine/src/types.ts` until implemented.          |
+| 6   | **`COMBAT_BONUS` replaces `HOLDING_BONUS`**                | The flat "defenders gain N levels" bonus applies to specific card type categories, not just "holdings". `typeIds: number[]` specifies which card types benefit; typeId 0 = all, 1 = Ally. Previously called `HOLDING_BONUS { value }`.                                 |
+| 7   | **`RESTRICTED_ATTACKERS` replaces `MONSTERS_CANT_ATTACK`** | Generalized to cover any movement type (Flyer, Earthwalker) or card type restriction on who can attack a realm. Use `attribute` for movement types, `typeId` for card type IDs.                                                                                        |
+| 8   | **`REALM_SELF_DEFENDS` promoted to Group B**               | Moved from Group C (complex) to Group B (simple passive). Encodes "realm can defend as a level N type-X champion if no champion defends." Realms with a non-null `level` field self-defend implicitly; this effect is only needed for holdings that grant the ability. |
 
 ---
 
@@ -1348,6 +1377,7 @@ Priority order within Group C (highest card count first):
 **Target:** 2 human players, 1st Edition only, 55-card standard format, async play.
 
 **In scope:**
+
 - Full 1st Edition card data + images
 - Complete turn phase flow with engine enforcement
 - Combat with level math (allies, magic items, spells)
@@ -1359,6 +1389,7 @@ Priority order within Group C (highest card count first):
 - Event sourcing + game reconstruction
 
 **Out of scope for MVP:**
+
 - Expansions beyond 1st Edition
 - Real-time WebSocket mode
 - AI bot
@@ -1381,37 +1412,37 @@ Priority order within Group C (highest card count first):
 These are confirmed rules from RULES.md that are **not yet modelled** in the engine design.
 They will be addressed when encountered during implementation or testing.
 
-| Gap | Rule | Impact |
-|-----|------|--------|
-| Ally movement restriction | When a flyer attacks a protected realm, only flyer/swimmer/earthwalker allies can support them. "Flying is not automatically conferred to allies." | `canUse` validation during combat needs to check attacker movement type vs realm position |
-| Spoils out-of-phase play | A spoils card can be played immediately even out-of-phase (e.g. a realm played during Phase 4). | `applyMove` needs a `PLAY_SPOILS_CARD` move variant with relaxed phase checks |
-| Phase 3 spell pool requirement | A champion in the pool must be available to use a Phase 3/5 spell — not just any card. | `getLegalMoves` needs to check pool for a qualifying champion before allowing Phase 3 spell moves |
-| Event response window | Both players may respond to an event (Negate, Calm, Deflect, Duplicate) before it resolves. For 2-player MVP this simplifies to one response window. | Requires `pendingEventResponse` state and a round-trip response move |
+| Gap                            | Rule                                                                                                                                                 | Impact                                                                                            |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Ally movement restriction      | When a flyer attacks a protected realm, only flyer/swimmer/earthwalker allies can support them. "Flying is not automatically conferred to allies."   | `canUse` validation during combat needs to check attacker movement type vs realm position         |
+| Spoils out-of-phase play       | A spoils card can be played immediately even out-of-phase (e.g. a realm played during Phase 4).                                                      | `applyMove` needs a `PLAY_SPOILS_CARD` move variant with relaxed phase checks                     |
+| Phase 3 spell pool requirement | A champion in the pool must be available to use a Phase 3/5 spell — not just any card.                                                               | `getLegalMoves` needs to check pool for a qualifying champion before allowing Phase 3 spell moves |
+| Event response window          | Both players may respond to an event (Negate, Calm, Deflect, Duplicate) before it resolves. For 2-player MVP this simplifies to one response window. | Requires `pendingEventResponse` state and a round-trip response move                              |
 
 ---
 
 # Open Questions — Resolved
 
-| Question | Answer |
-|---|---|
-| Full engine or honor system? | Hybrid (Option C). Engine enforces structure + Tier 1 effects. Tier 2 = manual fallback. |
-| Does CrossFire implement stack resolution? | No. We implement it ourselves. |
-| How are interrupt windows modeled? | Not a symmetric window. Losing player plays cards one at a time; winning player limited to events + play-at-any-time cards. |
+| Question                                       | Answer                                                                                                                             |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Full engine or honor system?                   | Hybrid (Option C). Engine enforces structure + Tier 1 effects. Tier 2 = manual fallback.                                           |
+| Does CrossFire implement stack resolution?     | No. We implement it ourselves.                                                                                                     |
+| How are interrupt windows modeled?             | Not a symmetric window. Losing player plays cards one at a time; winning player limited to events + play-at-any-time cards.        |
 | What does offensive/defensive mean for spells? | Effect direction only (offensive = affects opponent, defensive = affects yourself). Both sides can play either type during combat. |
-| Are card effects centralized or distributed? | Centralized declarative specs in packages/data/effects/. |
-| Is there a scripting language? | No. Declarative effect types only. Exotic effects stay as manual fallback. |
-| How is deck legality enforced? | Multi-dimensional: type/rarity/world/set limits + banned lists. |
-| How are expansions separated? | setId per card + per-set limits in DeckFormat. |
-| How are simultaneous effects handled? | Deferred. Handle as encountered in practice. |
-| What is the combat resolution order? | Attacker activates → Defender activates → losing player plays cards one at a time → compare levels → defender wins ties. |
-| What is the win condition? | 6 unrazed realms in formation (55/75-card). 10 for 110-card games. |
-| What are hand sizes? | 55-card: start 5, draw 3, max 8. 75-card: start 6, draw 4, max 10. 110-card: start 7, draw 5, max 12. |
-| How does formation protection work? | Pyramid: A protects B,C. B protects D,E. C protects E,F. Razed realms don't protect. |
-| What zones exist? | Hand, Draw Pile, Discard Pile, Limbo (temp removal), Abyss (semi-permanent), Void (permanent). |
-| What is the world bonus? | +3 to adjusted level when attacking or defending a realm from the same world. Tier 1 effect. |
-| How does multi-round combat work? | Attacker can use a new champion each round against the same realm. Cannot switch realms. |
-| What are spoils of victory? | Attacker draws 1 card if realm razed. Defender draws 1 card if attacking champion discarded. Card may be played immediately. |
-| What happens when draw pile runs out? | Reshuffle discard pile at **end of current turn** (not immediately). Cards that would have been drawn mid-turn are lost. |
+| Are card effects centralized or distributed?   | Centralized declarative specs in packages/data/effects/.                                                                           |
+| Is there a scripting language?                 | No. Declarative effect types only. Exotic effects stay as manual fallback.                                                         |
+| How is deck legality enforced?                 | Multi-dimensional: type/rarity/world/set limits + banned lists.                                                                    |
+| How are expansions separated?                  | setId per card + per-set limits in DeckFormat.                                                                                     |
+| How are simultaneous effects handled?          | Deferred. Handle as encountered in practice.                                                                                       |
+| What is the combat resolution order?           | Attacker activates → Defender activates → losing player plays cards one at a time → compare levels → defender wins ties.           |
+| What is the win condition?                     | 6 unrazed realms in formation (55/75-card). 10 for 110-card games.                                                                 |
+| What are hand sizes?                           | 55-card: start 5, draw 3, max 8. 75-card: start 6, draw 4, max 10. 110-card: start 7, draw 5, max 12.                              |
+| How does formation protection work?            | Pyramid: A protects B,C. B protects D,E. C protects E,F. Razed realms don't protect.                                               |
+| What zones exist?                              | Hand, Draw Pile, Discard Pile, Limbo (temp removal), Abyss (semi-permanent), Void (permanent).                                     |
+| What is the world bonus?                       | +3 to adjusted level when attacking or defending a realm from the same world. Tier 1 effect.                                       |
+| How does multi-round combat work?              | Attacker can use a new champion each round against the same realm. Cannot switch realms.                                           |
+| What are spoils of victory?                    | Attacker draws 1 card if realm razed. Defender draws 1 card if attacking champion discarded. Card may be played immediately.       |
+| What happens when draw pile runs out?          | Reshuffle discard pile at **end of current turn** (not immediately). Cards that would have been drawn mid-turn are lost.           |
 
 ---
 
@@ -1430,6 +1461,7 @@ If ever public: text-only card display, or require users to own physical cards.
 # Development Roadmap
 
 ## Step 1 — Data Extraction
+
 - TCL → JSON parser (Bun script)
 - All 25+ sets extracted to JSON
 - 3000+ card images copied
@@ -1451,18 +1483,21 @@ If ever public: text-only card display, or require users to own physical cards.
 - 100% unit test coverage
 
 ## Step 3 — Effect Specs (1st Edition, Tier 1)
+
 - Write `CardEffectSpec` for all 1st Edition cards
 - Stat cards (allies, magic items): confirmed as no-spec needed — level math handles them
 - Common effect cards: specify using existing `CardEffect` types
 - Target: ~80% of 1st Edition covered at this step
 
 ## Step 4 — Async Backend
+
 - Postgres schema + Drizzle migrations
 - Move persistence API (structural + manual moves)
 - Game reconstruction
 - Supabase auth
 
 ## Step 5 — Web Client (React + Vite SPA)
+
 - Game board (formation grid, hand, pool, combat zone)
 - Move picker driven by `legalMoves[]` — no rules logic in frontend
 - Card rendering from `packages/data/assets`
@@ -1472,10 +1507,12 @@ If ever public: text-only card display, or require users to own physical cards.
 - Auth via Supabase
 
 ## Step 6 — Real-Time Mode
+
 - WebSocket layer on the existing HTTP API
 - Live `GameEvent[]` broadcast after each move
 
 ## Step 7 — Polish + Expand
+
 - Remaining 1st Edition effect coverage (→ 90%+)
 - Add expansion sets
 - AI bot (Level 1 → Level 2)

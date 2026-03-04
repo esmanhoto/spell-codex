@@ -6,7 +6,7 @@ describe("GET /decks", () => {
     const res = await app.request("/decks")
     expect(res.status).toBe(200)
 
-    const body = await res.json() as { decks: string[] }
+    const body = (await res.json()) as { decks: string[] }
     expect(Array.isArray(body.decks)).toBe(true)
     expect(body.decks.length).toBeGreaterThan(0)
 
@@ -22,7 +22,7 @@ describe("GET /decks/:name", () => {
     const res = await app.request("/decks/1st_edition_starter_deck_a-1")
     expect(res.status).toBe(200)
 
-    const body = await res.json() as { name: string; cards: unknown[] }
+    const body = (await res.json()) as { name: string; cards: unknown[] }
     expect(body.name).toBe("1st_edition_starter_deck_a-1")
     expect(Array.isArray(body.cards)).toBe(true)
     expect(body.cards).toHaveLength(55)
@@ -32,7 +32,7 @@ describe("GET /decks/:name", () => {
     const res = await app.request("/decks/battle_mages")
     expect(res.status).toBe(422)
 
-    const body = await res.json() as {
+    const body = (await res.json()) as {
       error: string
       requested: string
       refCount: number

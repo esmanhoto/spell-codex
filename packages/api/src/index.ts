@@ -17,17 +17,21 @@ app.use(cors())
 
 app.onError((err, c) => {
   const message = err instanceof Error ? err.message : String(err)
-  const code = (
+  const code =
     typeof err === "object" &&
     err !== null &&
     "code" in err &&
     typeof (err as { code?: unknown }).code === "string"
-  ) ? (err as { code: string }).code : undefined
+      ? (err as { code: string }).code
+      : undefined
 
   if (code === "ECONNREFUSED" || message.includes("ECONNREFUSED")) {
-    return c.json({
-      error: "Database unavailable. Verify DATABASE_URL and DB availability.",
-    }, 503)
+    return c.json(
+      {
+        error: "Database unavailable. Verify DATABASE_URL and DB availability.",
+      },
+      503,
+    )
   }
 
   console.error(err)
@@ -46,8 +50,8 @@ app.route("/decks", decksRouter)
 // ─── Authenticated routes ─────────────────────────────────────────────────────
 
 app.use("/games/*", auth)
-app.route("/games",  gamesRouter)
-app.route("/games",  movesRouter)
+app.route("/games", gamesRouter)
+app.route("/games", movesRouter)
 
 // ─── Export app for tests ─────────────────────────────────────────────────────
 

@@ -42,5 +42,7 @@
 }
 
 @keyframes pulse-target {
-  to { box-shadow: 0 0 24px #e05566aa; }
+  to {
+    box-shadow: 0 0 24px #e05566aa;
+  }
 }

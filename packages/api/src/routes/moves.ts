@@ -2,10 +2,14 @@ import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import { z } from "zod"
 import {
-  getGame, getGamePlayers,
+  getGame,
+  getGamePlayers,
   reconstructState,
-  lastSequence, saveAction,
-  setGameStatus, setGamePlayMode, touchGame,
+  lastSequence,
+  saveAction,
+  setGameStatus,
+  setGamePlayMode,
+  touchGame,
   hashState,
 } from "@spell/db"
 import { applyMove, EngineError } from "@spell/engine"
@@ -13,9 +17,11 @@ import { applyMove, EngineError } from "@spell/engine"
 // ─── Move schema ──────────────────────────────────────────────────────────────
 // We accept any JSON object with a `type` string — the engine validates the rest.
 
-const MoveSchema = z.object({
-  type: z.string(),
-}).passthrough()
+const MoveSchema = z
+  .object({
+    type: z.string(),
+  })
+  .passthrough()
 
 export const movesRouter = new Hono<{ Variables: { userId: string } }>()
 
@@ -24,16 +30,16 @@ export const movesRouter = new Hono<{ Variables: { userId: string } }>()
 movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const userId = c.get("userId")
   const gameId = c.req.param("id")
-  const move   = c.req.valid("json") as { type: string }
+  const move = c.req.valid("json") as { type: string }
 
   // 1. Load game row
   const game = await getGame(gameId)
-  if (!game)                     return c.json({ error: "Game not found" }, 404)
+  if (!game) return c.json({ error: "Game not found" }, 404)
   if (game.status !== "active") return c.json({ error: "Game is not active" }, 409)
 
   // 2. Verify the requester is a participant
   const players = await getGamePlayers(gameId)
-  const isPlayer = players.some(p => p.userId === userId)
+  const isPlayer = players.some((p) => p.userId === userId)
   if (!isPlayer) return c.json({ error: "Forbidden" }, 403)
 
   // 3. Reconstruct current state
@@ -56,9 +62,9 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   let seq = await lastSequence(gameId)
   const action = await saveAction({
     gameId,
-    sequence:  seq + 1,
-    playerId:  userId,
-    move:      move as Parameters<typeof saveAction>[0]["move"],
+    sequence: seq + 1,
+    playerId: userId,
+    move: move as Parameters<typeof saveAction>[0]["move"],
     stateHash: hashState(result.newState),
   })
   seq = action.sequence
@@ -67,7 +73,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
 
   // 8. Update game metadata + set the next turn deadline (24 h from now)
   const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
-  const newStatus    = currentState.winner ? "finished" : "active"
+  const newStatus = currentState.winner ? "finished" : "active"
   const turnDeadline = currentState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
   const modeChanged = state.playMode !== currentState.playMode
   await Promise.all([
@@ -76,11 +82,14 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
     touchGame(gameId, turnDeadline),
   ])
 
-  return c.json({
-    sequence:     seq,
-    phase:        currentState.phase,
-    activePlayer: currentState.winner ? null : currentState.activePlayer,
-    events:       result.events,
-    winner:       currentState.winner ?? null,
-  }, 201)
+  return c.json(
+    {
+      sequence: seq,
+      phase: currentState.phase,
+      activePlayer: currentState.winner ? null : currentState.activePlayer,
+      events: result.events,
+      winner: currentState.winner ?? null,
+    },
+    201,
+  )
 })

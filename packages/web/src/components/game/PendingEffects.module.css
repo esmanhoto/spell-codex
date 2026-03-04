@@ -63,8 +63,13 @@
   border: 1px solid #2a5a9a;
 }
 
-.actionBtn:hover:not(:disabled) { background: #2a4a8a; }
-.actionBtn:disabled { opacity: 0.35; cursor: default; }
+.actionBtn:hover:not(:disabled) {
+  background: #2a4a8a;
+}
+.actionBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
 
 .skipBtn {
   font-size: 12px;
@@ -77,5 +82,11 @@
   border: 1px solid #333;
 }
 
-.skipBtn:hover:not(:disabled) { color: #aaa; background: #2a2a3e; }
-.skipBtn:disabled { opacity: 0.35; cursor: default; }
+.skipBtn:hover:not(:disabled) {
+  color: #aaa;
+  background: #2a2a3e;
+}
+.skipBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

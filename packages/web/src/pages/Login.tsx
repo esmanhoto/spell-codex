@@ -7,14 +7,8 @@ function isUuid(value: string): boolean {
 }
 
 export function Login() {
-  const {
-    isAuthenticated,
-    bypass,
-    signInWithPassword,
-    setBypassUserId,
-    identity,
-    configError,
-  } = useAuth()
+  const { isAuthenticated, bypass, signInWithPassword, setBypassUserId, identity, configError } =
+    useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -49,7 +43,9 @@ export function Login() {
       <h2>{bypass ? "Local Auth (Bypass)" : "Sign In"}</h2>
 
       {configError && (
-        <p className="error" data-testid="login-config-error">{configError}</p>
+        <p className="error" data-testid="login-config-error">
+          {configError}
+        </p>
       )}
 
       <div className="form">
@@ -60,7 +56,7 @@ export function Login() {
               <input
                 data-testid="bypass-user-id-input"
                 value={bypassUserIdInput}
-                onChange={e => setBypassUserIdInput(e.target.value)}
+                onChange={(e) => setBypassUserIdInput(e.target.value)}
               />
             </label>
             <button data-testid="bypass-continue-btn" onClick={handleBypassContinue}>
@@ -75,7 +71,7 @@ export function Login() {
                 data-testid="login-email-input"
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
               />
             </label>
@@ -85,7 +81,7 @@ export function Login() {
                 data-testid="login-password-input"
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Your password"
               />
             </label>
@@ -99,7 +95,11 @@ export function Login() {
           </>
         )}
 
-        {error && <p className="error" data-testid="login-error">{error}</p>}
+        {error && (
+          <p className="error" data-testid="login-error">
+            {error}
+          </p>
+        )}
       </div>
     </div>
   )

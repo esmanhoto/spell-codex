@@ -115,6 +115,7 @@ bun run --cwd packages/web test:e2e:ui
 6. Start API + Web and open `/login`.
 
 Notes:
+
 - API verifies bearer tokens against Supabase Auth (`/auth/v1/user`).
 - Lobby UI flow:
   - `Create a New Game` -> pick deck -> share Game ID -> wait for friend

@@ -8,9 +8,15 @@
   user-select: none;
 }
 
-.card.clickable { cursor: pointer; }
-.card.clickable:hover .imgWrap { box-shadow: 0 0 0 2px var(--gold-dim); }
-.card.selected .imgWrap { box-shadow: 0 0 0 2px var(--gold); }
+.card.clickable {
+  cursor: pointer;
+}
+.card.clickable:hover .imgWrap {
+  box-shadow: 0 0 0 2px var(--gold-dim);
+}
+.card.selected .imgWrap {
+  box-shadow: 0 0 0 2px var(--gold);
+}
 
 .imgWrap {
   position: relative;

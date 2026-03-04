@@ -13,8 +13,15 @@ process.env["AUTH_BYPASS"] = "true"
 // ─── Minimal deck (55 realm cards) ───────────────────────────────────────────
 
 const REALM = {
-  id: "r1", setId: "01", cardNumber: 1, name: "Forest",
-  typeId: 3, worldId: 1, level: 0, gold: 0, description: "",
+  id: "r1",
+  setId: "01",
+  cardNumber: 1,
+  name: "Forest",
+  typeId: 3,
+  worldId: 1,
+  level: 0,
+  gold: 0,
+  description: "",
 }
 const DECK = Array.from({ length: 55 }, () => REALM)
 
@@ -29,11 +36,11 @@ function headers(userId: string) {
 
 async function createGame() {
   const res = await app.request("/games", {
-    method:  "POST",
+    method: "POST",
     headers: headers(PLAYER_A),
     body: JSON.stringify({
       formatId: "standard-55",
-      seed:     42,
+      seed: 42,
       players: [
         { userId: PLAYER_A, deckSnapshot: DECK },
         { userId: PLAYER_B, deckSnapshot: DECK },
@@ -41,7 +48,7 @@ async function createGame() {
     }),
   })
   expect(res.status).toBe(201)
-  const body = await res.json() as { gameId: string }
+  const body = (await res.json()) as { gameId: string }
   return body.gameId
 }
 
@@ -56,7 +63,7 @@ async function createLobbyGame() {
     }),
   })
   expect(res.status).toBe(201)
-  const body = await res.json() as { gameId: string }
+  const body = (await res.json()) as { gameId: string }
   return body.gameId
 }
 
@@ -90,9 +97,9 @@ describe("POST /games", () => {
 
   it("rejects invalid body", async () => {
     const res = await app.request("/games", {
-      method:  "POST",
+      method: "POST",
       headers: headers(PLAYER_A),
-      body:    JSON.stringify({ formatId: "x" }), // missing players + seed
+      body: JSON.stringify({ formatId: "x" }), // missing players + seed
     })
     expect(res.status).toBe(400)
   })
@@ -102,14 +109,16 @@ describe("POST /games", () => {
 
 describe("GET /games/:id", () => {
   let gameId: string
-  beforeAll(async () => { gameId = await createGame() })
+  beforeAll(async () => {
+    gameId = await createGame()
+  })
 
   it("returns game state for a participant", async () => {
     const res = await app.request(`/games/${gameId}`, {
       headers: headers(PLAYER_A),
     })
     expect(res.status).toBe(200)
-    const body = await res.json() as Record<string, unknown>
+    const body = (await res.json()) as Record<string, unknown>
     expect(body.gameId).toBe(gameId)
     expect(body.phase).toBeString()
     expect(body.playMode).toBe("full_manual")
@@ -148,7 +157,11 @@ describe("lobby flow", () => {
       headers: headers(PLAYER_A),
     })
     expect(lobbyRes.status).toBe(200)
-    const lobby = await lobbyRes.json() as { status: string; playerCount: number; isFull: boolean }
+    const lobby = (await lobbyRes.json()) as {
+      status: string
+      playerCount: number
+      isFull: boolean
+    }
     expect(lobby.status).toBe("waiting")
     expect(lobby.playerCount).toBe(1)
     expect(lobby.isFull).toBe(false)
@@ -159,7 +172,7 @@ describe("lobby flow", () => {
       body: JSON.stringify({ deckSnapshot: DECK }),
     })
     expect(joinRes.status).toBe(200)
-    const join = await joinRes.json() as { status: string; playerCount: number; joined: boolean }
+    const join = (await joinRes.json()) as { status: string; playerCount: number; joined: boolean }
     expect(join.joined).toBe(true)
     expect(join.status).toBe("active")
     expect(join.playerCount).toBe(2)
@@ -192,28 +205,30 @@ describe("lobby flow", () => {
 
 describe("POST /games/:id/moves", () => {
   let gameId: string
-  beforeAll(async () => { gameId = await createGame() })
+  beforeAll(async () => {
+    gameId = await createGame()
+  })
 
   it("accepts a valid PASS move from the active player", async () => {
     const res = await app.request(`/games/${gameId}/moves`, {
-      method:  "POST",
+      method: "POST",
       headers: headers(PLAYER_A),
-      body:    JSON.stringify({ type: "PASS" }),
+      body: JSON.stringify({ type: "PASS" }),
     })
     expect(res.status).toBe(201)
-    const body = await res.json() as Record<string, unknown>
+    const body = (await res.json()) as Record<string, unknown>
     expect(body.sequence).toBe(0)
     expect(body.phase).toBeString()
   })
 
   it("rejects a move from the wrong player", async () => {
     const res = await app.request(`/games/${gameId}/moves`, {
-      method:  "POST",
+      method: "POST",
       headers: headers(PLAYER_B), // not the active player
-      body:    JSON.stringify({ type: "PASS" }),
+      body: JSON.stringify({ type: "PASS" }),
     })
     expect(res.status).toBe(422)
-    const body = await res.json() as { code?: string }
+    const body = (await res.json()) as { code?: string }
     expect(body.code).toBe("NOT_YOUR_TURN")
   })
 
@@ -229,7 +244,7 @@ describe("POST /games/:id/moves", () => {
       headers: headers(PLAYER_A),
     })
     expect(stateRes.status).toBe(200)
-    const state = await stateRes.json() as { playMode: string }
+    const state = (await stateRes.json()) as { playMode: string }
     expect(state.playMode).toBe("semi_auto")
   })
 
@@ -245,12 +260,12 @@ describe("POST /games/:id/moves", () => {
 
   it("rejects an invalid move type", async () => {
     const res = await app.request(`/games/${gameId}/moves`, {
-      method:  "POST",
+      method: "POST",
       headers: headers(PLAYER_A),
-      body:    JSON.stringify({ type: "EXPLODE_EVERYTHING" }),
+      body: JSON.stringify({ type: "EXPLODE_EVERYTHING" }),
     })
     expect(res.status).toBe(422)
-    const body = await res.json() as { code?: string }
+    const body = (await res.json()) as { code?: string }
     expect(body.code).toBe("UNKNOWN_MOVE")
   })
 })

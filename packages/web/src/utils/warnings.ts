@@ -11,7 +11,8 @@ function classifyWarningCodeFromMessage(message: string): WarningCode {
   const m = message.toLowerCase()
 
   if (m.includes("manual mode")) return "manual_mode_switch"
-  if (m.includes("rule of cosmos") || m.includes("duplicate in-play cosmos")) return "duplicate_in_game"
+  if (m.includes("rule of cosmos") || m.includes("duplicate in-play cosmos"))
+    return "duplicate_in_game"
   if (
     m.includes("world mismatch") ||
     (m.includes("holding") && m.includes("realm") && m.includes("world")) ||
@@ -47,7 +48,9 @@ function classifyWarningCodeFromServerCode(code: string): WarningCode | null {
   return null
 }
 
-export function classifyWarningCode(input: { message?: string; code?: string } | string): WarningCode {
+export function classifyWarningCode(
+  input: { message?: string; code?: string } | string,
+): WarningCode {
   if (typeof input === "string") return classifyWarningCodeFromMessage(input)
   const byCode = input.code ? classifyWarningCodeFromServerCode(input.code) : null
   if (byCode) return byCode

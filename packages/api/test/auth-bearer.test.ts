@@ -31,11 +31,14 @@ beforeAll(() => {
   process.env["SUPABASE_ANON_KEY"] = "test-key"
 
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url
 
     if (url === "http://supabase.mock/auth/v1/user") {
       const authHeader = new Headers(init?.headers).get("Authorization")
-      const token = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : ""
+      const token = authHeader?.startsWith("Bearer ")
+        ? authHeader.slice("Bearer ".length).trim()
+        : ""
 
       if (token === "token-player-a") {
         return new Response(JSON.stringify({ id: PLAYER_A }), {

@@ -35,7 +35,7 @@ The world logo on a card ties it to a specific game world. Only champions, artif
 
 The text box on each card contains its special power — an ability that falls outside the normal rules.
 
-- **Racial and movement characteristics** (elf, flyer, undead) are *not* special powers and cannot be stripped by cards that remove special powers.
+- **Racial and movement characteristics** (elf, flyer, undead) are _not_ special powers and cannot be stripped by cards that remove special powers.
 - Cards that specifically strip away a characteristic (e.g., the ability to fly) work normally.
 
 ---
@@ -46,55 +46,55 @@ No individual card may appear more than once in a deck unless that card explicit
 
 ### 55-Card Deck (Standard)
 
-| Card Type       | Min | Max |
-|-----------------|-----|-----|
-| Rule cards      | 0   | 3   |
-| Realms          | 8   | 15  |
-| Holdings        | 0   | 6   |
-| Champions*      | 1   | 20  |
-| Artifacts       | 0   | 10  |
-| Magical items   | 0   | 12  |
-| Events          | 0   | 10  |
-| Allies          | 0   | any |
-| Blood abilities | 0   | any |
-| Cleric spells   | 0   | any |
-| Psionic powers  | 0   | any |
-| Thief abilities | 0   | any |
-| Unarmed combat  | 0   | any |
-| Wizard spells   | 0   | any |
+| Card Type       | Min    | Max    |
+| --------------- | ------ | ------ |
+| Rule cards      | 0      | 3      |
+| Realms          | 8      | 15     |
+| Holdings        | 0      | 6      |
+| Champions\*     | 1      | 20     |
+| Artifacts       | 0      | 10     |
+| Magical items   | 0      | 12     |
+| Events          | 0      | 10     |
+| Allies          | 0      | any    |
+| Blood abilities | 0      | any    |
+| Cleric spells   | 0      | any    |
+| Psionic powers  | 0      | any    |
+| Thief abilities | 0      | any    |
+| Unarmed combat  | 0      | any    |
+| Wizard spells   | 0      | any    |
 | **Total**       | **55** | **55** |
 
-*Champions may not total more than **90 levels**. Use the first number in the icon. One avatar per deck is "free" — its levels don't count toward the cap, but it counts as one champion.
+\*Champions may not total more than **90 levels**. Use the first number in the icon. One avatar per deck is "free" — its levels don't count toward the cap, but it counts as one champion.
 
 ### 75-Card Deck
 
-| Card Type  | Min | Max |
-|------------|-----|-----|
-| Rule cards | 0   | 4   |
-| Realms     | 10  | 20  |
-| Holdings   | 0   | 7   |
-| Champions* | 3   | 27  |
-| Artifacts  | 0   | 12  |
-| Magical items | 0 | 15 |
-| Events     | 0   | 13  |
-| **Total**  | **75** | **75** |
+| Card Type     | Min    | Max    |
+| ------------- | ------ | ------ |
+| Rule cards    | 0      | 4      |
+| Realms        | 10     | 20     |
+| Holdings      | 0      | 7      |
+| Champions\*   | 3      | 27     |
+| Artifacts     | 0      | 12     |
+| Magical items | 0      | 15     |
+| Events        | 0      | 13     |
+| **Total**     | **75** | **75** |
 
-*Max 125 total champion levels. One free avatar.
+\*Max 125 total champion levels. One free avatar.
 
 ### 110-Card Deck
 
-| Card Type  | Min | Max |
-|------------|-----|-----|
-| Rule cards | 0   | 5   |
-| Realms     | 15  | 30  |
-| Holdings   | 0   | 10  |
-| Champions* | 4   | 40  |
-| Artifacts  | 0   | 15  |
-| Magical items | 0 | 20 |
-| Events     | 0   | 17  |
-| **Total**  | **110** | **110** |
+| Card Type     | Min     | Max     |
+| ------------- | ------- | ------- |
+| Rule cards    | 0       | 5       |
+| Realms        | 15      | 30      |
+| Holdings      | 0       | 10      |
+| Champions\*   | 4       | 40      |
+| Artifacts     | 0       | 15      |
+| Magical items | 0       | 20      |
+| Events        | 0       | 17      |
+| **Total**     | **110** | **110** |
 
-*Max 180 total champion levels. Two free avatars (though card limitations may prevent both from being in play simultaneously).
+\*Max 180 total champion levels. Two free avatars (though card limitations may prevent both from being in play simultaneously).
 
 ---
 
@@ -125,10 +125,10 @@ All players draw their starting hand on their first turn regardless of any cards
 ### Hand Size by Deck Size
 
 | Deck Size | Starting Hand | Draw Per Turn | Max Hand |
-|-----------|--------------|---------------|----------|
-| 55-card   | 5            | 3             | 8        |
-| 75-card   | 6            | 4             | 10       |
-| 110-card  | 7            | 5             | 12       |
+| --------- | ------------- | ------------- | -------- |
+| 55-card   | 5             | 3             | 8        |
+| 75-card   | 6             | 4             | 10       |
+| 110-card  | 7             | 5             | 12       |
 
 ### Mulligan
 
@@ -182,13 +182,15 @@ Only one realm and one holding can be played per turn. Steps A and B can be perf
 The active player may bounce back and forth between steps A and B freely. Only the active player acts during this phase.
 
 **A) Place any number of champions, artifacts, and magical items into the pool.**
-  - Artifacts must be attached to a champion from the same world (one artifact per champion).
-  - Any number of magical items may be attached to any champion.
-  - Once attached, artifacts and magical items cannot be rearranged.
+
+- Artifacts must be attached to a champion from the same world (one artifact per champion).
+- Any number of magical items may be attached to any champion.
+- Once attached, artifacts and magical items cannot be rearranged.
 
 **B) Use any Phase 3 spell, psionic power, blood ability, or thief skill.**
-  - A champion in the pool must be able to use the card.
-  - Other players may respond.
+
+- A champion in the pool must be able to use the card.
+- Other players may respond.
 
 ### Phase 4 — Attack One Realm
 
@@ -270,17 +272,18 @@ A champion in the pool may already have artifacts and magical items attached whe
 
 ## Zones
 
-| Zone           | Description |
-|----------------|-------------|
-| **Hand**       | Cards held by the player, not yet in play. |
-| **Draw Pile**  | The face-down deck. Cards are drawn from here. |
-| **Discard Pile** | Where most cards go when removed from play. Can be reshuffled into a new draw pile when the draw pile runs out. |
-| **Pool / Formation** | "In play" — cards actively in the game. |
-| **Limbo**      | Temporary removal. Champions typically return at the end of their owner's next turn. Cards in Limbo are not "in play." |
-| **Abyss**      | Cards sent here by specific effects, or events discarded before being played. Some cards can retrieve from the Abyss. |
-| **Void**       | Permanently removed from the game. Events go here after being played. Nothing can be retrieved from the Void. |
+| Zone                 | Description                                                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Hand**             | Cards held by the player, not yet in play.                                                                             |
+| **Draw Pile**        | The face-down deck. Cards are drawn from here.                                                                         |
+| **Discard Pile**     | Where most cards go when removed from play. Can be reshuffled into a new draw pile when the draw pile runs out.        |
+| **Pool / Formation** | "In play" — cards actively in the game.                                                                                |
+| **Limbo**            | Temporary removal. Champions typically return at the end of their owner's next turn. Cards in Limbo are not "in play." |
+| **Abyss**            | Cards sent here by specific effects, or events discarded before being played. Some cards can retrieve from the Abyss.  |
+| **Void**             | Permanently removed from the game. Events go here after being played. Nothing can be retrieved from the Void.          |
 
 **Limbo notes:**
+
 - A champion sent to Limbo **during combat** loses all attached cards (sent to discard).
 - A champion sent to Limbo **outside of combat** retains all attachments.
 - If another player brings an identical champion into play, the Limbo champion is discarded when it would return.
@@ -371,19 +374,19 @@ When a combat round begins, cards activate in this order:
    - h. Spells
 8. **Defender's** special power and attached cards (same order as attacker)
 
-*Within the same card type, cards with higher bonus modifiers activate first. If bonus is equal, alphabetical order by card name. Same-name cards with no bonus: lowest card number goes first.*
+_Within the same card type, cards with higher bonus modifiers activate first. If bonus is equal, alphabetical order by card name. Same-name cards with no bonus: lowest card number goes first._
 
 ### Ending the Battle
 
-| Situation | Result |
-|-----------|--------|
-| Defender defeats and discards attacking champion | Battle over. Defender earns spoils. |
-| Attacker wins round, realm not razed | Attacker may send a new champion for another round. |
-| Defender declines to defend | Realm is razed. Battle over. Attacker earns spoils. |
-| Attacker declines to send a champion | Battle over. No spoils for either side. |
-| Cardplay razes/discards realm during combat | Battle over. Attacker earns spoils. Both champions return to pools. |
-| Cardplay discards both champions | Battle over. No winner. No spoils. |
-| Cardplay discards attacking champion | Battle over. Defender earns spoils. |
+| Situation                                        | Result                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------- |
+| Defender defeats and discards attacking champion | Battle over. Defender earns spoils.                                 |
+| Attacker wins round, realm not razed             | Attacker may send a new champion for another round.                 |
+| Defender declines to defend                      | Realm is razed. Battle over. Attacker earns spoils.                 |
+| Attacker declines to send a champion             | Battle over. No spoils for either side.                             |
+| Cardplay razes/discards realm during combat      | Battle over. Attacker earns spoils. Both champions return to pools. |
+| Cardplay discards both champions                 | Battle over. No winner. No spoils.                                  |
+| Cardplay discards attacking champion             | Battle over. Defender earns spoils.                                 |
 
 ### World Bonuses
 
@@ -403,14 +406,14 @@ An attacking champion always has the opportunity to play one card to continue th
 
 Each champion type has an icon ability:
 
-| Champion Type | Icon Ability |
-|---------------|-------------|
-| Wizard        | Cast wizard spells |
-| Cleric        | Cast cleric spells; immune to Fear of Undead |
-| Psionicist    | Use psionic power cards |
-| Regent        | Use blood ability cards |
-| Thief         | Use thief skill cards |
-| Hero          | Use unarmed combat cards |
+| Champion Type | Icon Ability                                                |
+| ------------- | ----------------------------------------------------------- |
+| Wizard        | Cast wizard spells                                          |
+| Cleric        | Cast cleric spells; immune to Fear of Undead                |
+| Psionicist    | Use psionic power cards                                     |
+| Regent        | Use blood ability cards                                     |
+| Thief         | Use thief skill cards                                       |
+| Hero          | Use unarmed combat cards                                    |
 | Monster       | No icon power; can use magical items and artifacts normally |
 
 Removing a champion's special power does **not** remove their icon ability. Changing the champion's type changes their icon ability.

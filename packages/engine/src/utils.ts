@@ -1,6 +1,10 @@
 import type {
-  CardData, CardInstance, CardInstanceId,
-  GameState, PlayerId, PlayerState,
+  CardData,
+  CardInstance,
+  CardInstanceId,
+  GameState,
+  PlayerId,
+  PlayerState,
 } from "./types.ts"
 import { CHAMPION_TYPE_IDS, COSMOS_TYPE_IDS, SPELL_TYPE_IDS } from "./constants.ts"
 
@@ -12,7 +16,7 @@ import { CHAMPION_TYPE_IDS, COSMOS_TYPE_IDS, SPELL_TYPE_IDS } from "./constants.
  */
 export function seededShuffle<T>(arr: readonly T[], seed: number): T[] {
   const result = [...arr]
-  let s = (seed >>> 0) || 1  // ensure non-zero seed
+  let s = seed >>> 0 || 1 // ensure non-zero seed
 
   function next(): number {
     s ^= s << 13
@@ -70,9 +74,7 @@ export function parseLevel(
   // "+2/+1" format — slash separates offensive/defensive bonus
   if (level.includes("/")) {
     const [offStr, defStr] = level.split("/")
-    const val = side === "offensive"
-      ? parseInt(offStr ?? "0", 10)
-      : parseInt(defStr ?? "0", 10)
+    const val = side === "offensive" ? parseInt(offStr ?? "0", 10) : parseInt(defStr ?? "0", 10)
     return isNaN(val) ? 0 : val
   }
 
@@ -85,9 +87,10 @@ export function parseLevel(
  * Looks for "+N/+M" patterns (offensive/defensive).
  * Returns { offensive: 0, defensive: 0 } if not parseable.
  */
-export function parseMagicalItemBonus(
-  description: string,
-): { offensive: number; defensive: number } {
+export function parseMagicalItemBonus(description: string): {
+  offensive: number
+  defensive: number
+} {
   // "+2/+1" → off=2, def=1
   const slashMatch = description.match(/\+(\d+)\/\+(\d+)/)
   if (slashMatch) {
@@ -154,7 +157,7 @@ export function removeFromHand(
   hand: CardInstance[],
   instanceId: CardInstanceId,
 ): [CardInstance, CardInstance[]] {
-  const idx = hand.findIndex(c => c.instanceId === instanceId)
+  const idx = hand.findIndex((c) => c.instanceId === instanceId)
   if (idx === -1) throw new Error(`Card ${instanceId} not in hand`)
   const card = hand[idx]!
   return [card, [...hand.slice(0, idx), ...hand.slice(idx + 1)]]
@@ -173,5 +176,5 @@ export function nextPlayer(state: GameState): PlayerId {
 
 /** Returns the opponent's player ID (2-player assumption) */
 export function opponentOf(state: GameState, playerId: PlayerId): PlayerId {
-  return state.playerOrder.find(id => id !== playerId)!
+  return state.playerOrder.find((id) => id !== playerId)!
 }

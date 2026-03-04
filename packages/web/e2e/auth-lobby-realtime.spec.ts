@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test"
 import { AUTH_USER_A, AUTH_USER_B, signInWithPassword } from "./helpers/auth.ts"
 
-test("two authenticated users can create/join and receive realtime updates", async ({ browser, page }) => {
+test("two authenticated users can create/join and receive realtime updates", async ({
+  browser,
+  page,
+}) => {
   await signInWithPassword(page, AUTH_USER_A)
 
   await page.getByTestId("create-mode-btn").click()
@@ -22,7 +25,10 @@ test("two authenticated users can create/join and receive realtime updates", asy
 
     await page.waitForURL(new RegExp(`/game/${gameId}`), { timeout: 15_000 })
     await expect(page.getByTestId("game-board")).toBeVisible()
-    await expect(pageB.getByTestId("phase-pill-START_OF_TURN")).toHaveAttribute("data-active", "true")
+    await expect(pageB.getByTestId("phase-pill-START_OF_TURN")).toHaveAttribute(
+      "data-active",
+      "true",
+    )
 
     await page.getByTestId("manual-controls").getByRole("button", { name: "End Turn" }).click()
 

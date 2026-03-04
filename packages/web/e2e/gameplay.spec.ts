@@ -1,9 +1,17 @@
 import { test, expect, type Page } from "@playwright/test"
-import { PLAYER_A, apiCreateCombatReadyGameForUi, driveGameToCombat, startGame } from "./helpers/game.ts"
+import {
+  PLAYER_A,
+  apiCreateCombatReadyGameForUi,
+  driveGameToCombat,
+  startGame,
+} from "./helpers/game.ts"
 
 async function dismissWarningIfPresent(page: Page, timeout = 1500): Promise<void> {
   const modal = page.getByTestId("warning-modal")
-  const shown = await modal.waitFor({ state: "visible", timeout }).then(() => true).catch(() => false)
+  const shown = await modal
+    .waitFor({ state: "visible", timeout })
+    .then(() => true)
+    .catch(() => false)
   if (!shown) return
 
   const okButton = page.getByTestId("warning-ok")
@@ -57,10 +65,13 @@ test("manual move can be executed without breaking board", async ({ page, reques
   await expect(page.getByTestId("game-board")).toBeVisible()
 })
 
-test("right-click Play/Cast flow works for hand cards in full manual", async ({ page, request }) => {
+test("right-click Play/Cast flow works for hand cards in full manual", async ({
+  page,
+  request,
+}) => {
   await startGame(page, request)
 
-  const handCards = page.locator("[data-testid^=\"hand-card-\"]")
+  const handCards = page.locator('[data-testid^="hand-card-"]')
   await expect(handCards.first()).toBeVisible()
   const dataTestId = await handCards.first().getAttribute("data-testid")
   expect(dataTestId).toBeTruthy()
@@ -86,7 +97,10 @@ test("right-click Play/Cast flow works for hand cards in full manual", async ({ 
   await expect(page.getByTestId(movedCardTestId)).toHaveCount(0)
 })
 
-test("semi_auto switch in active combat is blocked with exact reason", async ({ page, request }) => {
+test("semi_auto switch in active combat is blocked with exact reason", async ({
+  page,
+  request,
+}) => {
   const gameId = await apiCreateCombatReadyGameForUi(request)
   await driveGameToCombat(request, gameId)
 
@@ -105,5 +119,7 @@ test("semi_auto switch in active combat is blocked with exact reason", async ({ 
   }
 
   await expect(page.getByTestId("warning-modal")).toBeVisible()
-  await expect(page.getByTestId("warning-modal")).toContainText("Cannot switch to semi_auto while combat is active.")
+  await expect(page.getByTestId("warning-modal")).toContainText(
+    "Cannot switch to semi_auto while combat is active.",
+  )
 })
