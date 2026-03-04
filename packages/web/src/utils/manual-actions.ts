@@ -3,12 +3,13 @@ import type { ContextMenuAction } from "../context/GameContext.tsx"
 import type { WarningCode } from "./warnings.ts"
 import { isSpellCard } from "./spell-casting.ts"
 
-function findCardMove(
-  legalMoves: Move[],
-  type: Move["type"],
-  cardInstanceId: string,
-): Move | null {
-  return legalMoves.find(m => m.type === type && (m as { cardInstanceId?: string }).cardInstanceId === cardInstanceId) ?? null
+function findCardMove(legalMoves: Move[], type: Move["type"], cardInstanceId: string): Move | null {
+  return (
+    legalMoves.find(
+      (m) =>
+        m.type === type && (m as { cardInstanceId?: string }).cardInstanceId === cardInstanceId,
+    ) ?? null
+  )
 }
 
 export function buildHandContextActions(args: {
@@ -19,10 +20,7 @@ export function buildHandContextActions(args: {
   requestSpellCast: (spellInstanceId: string) => void
   requestManualPlay: (cardInstanceId: string) => void
 }): ContextMenuAction[] {
-  const {
-    card, isOpponent, playMode, legalMoves,
-    requestSpellCast, requestManualPlay,
-  } = args
+  const { card, isOpponent, playMode, legalMoves, requestSpellCast, requestManualPlay } = args
   if (isOpponent) return []
 
   const discardMove = findCardMove(legalMoves, "DISCARD_CARD", card.instanceId)
@@ -31,7 +29,6 @@ export function buildHandContextActions(args: {
       label: "Discard",
       move: discardMove ?? { type: "MANUAL_DISCARD", cardInstanceId: card.instanceId },
     },
-    { label: "To Abyss", move: { type: "MANUAL_TO_ABYSS", cardInstanceId: card.instanceId } },
   ]
 
   if (playMode === "full_manual") {
@@ -55,7 +52,12 @@ export function buildHandContextActions(args: {
 export type HandDropTarget =
   | { zone: "pool" }
   | { zone: "champion"; owner: "self" | "opponent"; championId: string }
-  | { zone: "formation_slot"; owner: "self" | "opponent"; slot: string; slotState: SlotState | null }
+  | {
+      zone: "formation_slot"
+      owner: "self" | "opponent"
+      slot: string
+      slotState: SlotState | null
+    }
 
 export function resolveHandDropMove(args: {
   playMode: PlayMode
@@ -70,7 +72,7 @@ export function resolveHandDropMove(args: {
       return {
         type: "MANUAL_PLAY_CARD",
         cardInstanceId,
-        targetKind: "none",
+        targetKind: "pool",
         resolution: "lasting",
       }
     }
@@ -86,22 +88,14 @@ export function resolveHandDropMove(args: {
       }
     }
 
-    if (target.slotState) {
-      return {
-        type: "MANUAL_PLAY_CARD",
-        cardInstanceId,
-        targetKind: "card",
-        resolution: "lasting_target",
-        targetOwner: target.owner,
-        targetCardInstanceId: target.slotState.realm.instanceId,
-      }
-    }
-
     return {
       type: "MANUAL_PLAY_CARD",
       cardInstanceId,
-      targetKind: "none",
+      targetKind: "realm",
       resolution: "lasting",
+      targetOwner: target.owner,
+      targetRealmSlot: target.slot,
+      ...(target.slotState ? { targetCardInstanceId: target.slotState.realm.instanceId } : {}),
     }
   }
 
@@ -110,33 +104,43 @@ export function resolveHandDropMove(args: {
   }
 
   if (target.zone === "champion") {
-    return legalMoves.find(m =>
-      m.type === "ATTACH_ITEM" &&
-      (m as { cardInstanceId: string; championId: string }).cardInstanceId === cardInstanceId &&
-      (m as { cardInstanceId: string; championId: string }).championId === target.championId,
-    ) ?? null
+    return (
+      legalMoves.find(
+        (m) =>
+          m.type === "ATTACH_ITEM" &&
+          (m as { cardInstanceId: string; championId: string }).cardInstanceId === cardInstanceId &&
+          (m as { cardInstanceId: string; championId: string }).championId === target.championId,
+      ) ?? null
+    )
   }
 
   if (target.slotState) {
-    const realmMove = legalMoves.find(m =>
-      m.type === "PLAY_REALM" &&
-      (m as { cardInstanceId: string; slot: string }).cardInstanceId === cardInstanceId &&
-      (m as { cardInstanceId: string; slot: string }).slot === target.slot,
+    const realmMove = legalMoves.find(
+      (m) =>
+        m.type === "PLAY_REALM" &&
+        (m as { cardInstanceId: string; slot: string }).cardInstanceId === cardInstanceId &&
+        (m as { cardInstanceId: string; slot: string }).slot === target.slot,
     )
     if (realmMove) return realmMove
 
-    return legalMoves.find(m =>
-      m.type === "PLAY_HOLDING" &&
-      (m as { cardInstanceId: string; realmSlot: string }).cardInstanceId === cardInstanceId &&
-      (m as { cardInstanceId: string; realmSlot: string }).realmSlot === target.slot,
-    ) ?? null
+    return (
+      legalMoves.find(
+        (m) =>
+          m.type === "PLAY_HOLDING" &&
+          (m as { cardInstanceId: string; realmSlot: string }).cardInstanceId === cardInstanceId &&
+          (m as { cardInstanceId: string; realmSlot: string }).realmSlot === target.slot,
+      ) ?? null
+    )
   }
 
-  return legalMoves.find(m =>
-    m.type === "PLAY_REALM" &&
-    (m as { cardInstanceId: string; slot: string }).cardInstanceId === cardInstanceId &&
-    (m as { cardInstanceId: string; slot: string }).slot === target.slot,
-  ) ?? null
+  return (
+    legalMoves.find(
+      (m) =>
+        m.type === "PLAY_REALM" &&
+        (m as { cardInstanceId: string; slot: string }).cardInstanceId === cardInstanceId &&
+        (m as { cardInstanceId: string; slot: string }).slot === target.slot,
+    ) ?? null
+  )
 }
 
 export function showModeAwareWarning(args: {

@@ -6,8 +6,13 @@ import { PoolEntry } from "./PoolEntry.tsx"
 import { CardComponent } from "./CardComponent.tsx"
 import styles from "./Pool.module.css"
 
-export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
-  entries:     PoolEntryType[]
+export function Pool({
+  entries,
+  isOpponent,
+  lingeringSpells,
+  ownerId,
+}: {
+  entries: PoolEntryType[]
   isOpponent?: boolean
   lingeringSpells?: CardInfo[]
   ownerId?: string
@@ -17,7 +22,7 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
 
   function findDraggedHandCard(instanceId: string) {
     for (const board of Object.values(allBoards)) {
-      const c = board.hand.find(card => card.instanceId === instanceId)
+      const c = board.hand.find((card) => card.instanceId === instanceId)
       if (c) return c
     }
     return undefined
@@ -27,6 +32,12 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
     e.preventDefault()
     setDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
+    const card = findDraggedHandCard(id)
+    if (playMode === "full_manual" && card && (card.typeId === 13 || card.typeId === 8)) {
+      showWarning("Realms and holdings cannot be played to pool.")
+      return
+    }
+
     const move = resolveHandDropMove({
       playMode,
       legalMoves,
@@ -38,7 +49,6 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
       return
     }
 
-    const card = findDraggedHandCard(id)
     if (!card) {
       showWarning("That card cannot be placed in pool right now.")
       return
@@ -49,12 +59,23 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
       return
     }
 
-    const alreadyInPlay = Object.values(allBoards).some(board =>
-      board.pool.some(entry => entry.champion.name === card.name && entry.champion.typeId === card.typeId) ||
-      Object.values(board.formation).some(slotState => !!slotState && slotState.realm.name === card.name && slotState.realm.typeId === card.typeId),
+    const alreadyInPlay = Object.values(allBoards).some(
+      (board) =>
+        board.pool.some(
+          (entry) => entry.champion.name === card.name && entry.champion.typeId === card.typeId,
+        ) ||
+        Object.values(board.formation).some(
+          (slotState) =>
+            !!slotState &&
+            slotState.realm.name === card.name &&
+            slotState.realm.typeId === card.typeId,
+        ),
     )
     if (alreadyInPlay) {
-      showWarning(`${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`, "duplicate_in_game")
+      showWarning(
+        `${card.name} is already in play. Rule of Cosmos blocks duplicate copies.`,
+        "duplicate_in_game",
+      )
       return
     }
 
@@ -65,7 +86,10 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
     <div
       data-testid={ownerId ? `pool-${ownerId}` : undefined}
       className={`${styles.pool} ${dragOver ? styles.dragOver : ""}`}
-      onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+      onDragOver={(e) => {
+        e.preventDefault()
+        setDragOver(true)
+      }}
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
     >
@@ -74,7 +98,7 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
       </span>
       <div className={styles.zoneWrap}>
         <div className={styles.row}>
-          {entries.map(e => (
+          {entries.map((e) => (
             <PoolEntry
               key={e.champion.instanceId}
               entry={e}
@@ -84,7 +108,7 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
         </div>
         <div data-testid={ownerId ? `lasting-spells-${ownerId}` : undefined}>
           <div className={styles.row}>
-            {(lingeringSpells ?? []).map(card => (
+            {(lingeringSpells ?? []).map((card) => (
               <CardComponent
                 key={card.instanceId}
                 card={card}

@@ -7,9 +7,12 @@ import type { GameState, CardInstance } from "../src/types.ts"
 import { _resetInstanceCounter } from "../src/utils.ts"
 import {
   DEFAULT_CONFIG,
-  REALM_FR, REALM_GENERIC,
-  CHAMPION_CLERIC_FR, CHAMPION_WIZARD_FR,
-  ALLY_PLUS4, HOLDING_FR,
+  REALM_FR,
+  REALM_GENERIC,
+  CHAMPION_CLERIC_FR,
+  CHAMPION_WIZARD_FR,
+  ALLY_PLUS4,
+  HOLDING_FR,
 } from "./fixtures.ts"
 
 beforeEach(() => {
@@ -20,13 +23,7 @@ beforeEach(() => {
 
 function advanceTo(state: GameState, phase: Phase): GameState {
   let s = state
-  const phases = [
-    Phase.StartOfTurn,
-    Phase.PlayRealm,
-    Phase.Pool,
-    Phase.Combat,
-    Phase.PhaseFive,
-  ]
+  const phases = [Phase.StartOfTurn, Phase.PlayRealm, Phase.Pool, Phase.Combat, Phase.PhaseFive]
   const target = phases.indexOf(phase)
   const current = phases.indexOf(s.phase as Phase)
   for (let i = current; i < target; i++) {
@@ -37,7 +34,7 @@ function advanceTo(state: GameState, phase: Phase): GameState {
 
 /** Finds the first card of the given typeId in the active player's hand */
 function findInHand(state: GameState, typeId: number): CardInstance | undefined {
-  return state.players[state.activePlayer]!.hand.find(c => c.card.typeId === typeId)
+  return state.players[state.activePlayer]!.hand.find((c) => c.card.typeId === typeId)
 }
 
 // ─── Phase transitions ────────────────────────────────────────────────────────
@@ -48,7 +45,7 @@ describe("phase transitions via PASS", () => {
     const hand0 = init.players["p1"]!.hand.length
     const { newState } = applyMove(init, "p1", { type: "PASS" })
     expect(newState.phase).toBe(Phase.PlayRealm)
-    expect(newState.players["p1"]!.hand.length).toBe(hand0 + 3)  // 55-card draws 3
+    expect(newState.players["p1"]!.hand.length).toBe(hand0 + 3) // 55-card draws 3
   })
 
   test("PLAY_REALM → POOL", () => {
@@ -98,9 +95,10 @@ describe("phase transitions via PASS", () => {
     let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.PhaseFive)
     // Stuff hand to over limit (max 8 for 55-card)
     const player = s.players["p1"]!
-    const extra: CardInstance[] = Array.from({ length: 5 }, (_, i) =>
-      ({ instanceId: `extra-${i}`, card: ALLY_PLUS4 }),
-    )
+    const extra: CardInstance[] = Array.from({ length: 5 }, (_, i) => ({
+      instanceId: `extra-${i}`,
+      card: ALLY_PLUS4,
+    }))
     s = { ...s, players: { ...s.players, p1: { ...player, hand: [...player.hand, ...extra] } } }
     expect(() => applyMove(s, "p1", { type: "PASS" })).toThrow(EngineError)
   })
@@ -111,8 +109,8 @@ describe("phase transitions via PASS", () => {
 describe("PLAY_REALM", () => {
   test("plays a realm into slot A", () => {
     let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.PlayRealm)
-    const realm = findInHand(s, 13)  // Realm typeId=13
-    if (!realm) return  // skip if none in hand after shuffle
+    const realm = findInHand(s, 13) // Realm typeId=13
+    if (!realm) return // skip if none in hand after shuffle
 
     const { newState } = applyMove(s, "p1", {
       type: "PLAY_REALM",
@@ -123,7 +121,9 @@ describe("PLAY_REALM", () => {
     expect(newState.players["p1"]!.formation.slots["A"]).toBeDefined()
     expect(newState.players["p1"]!.formation.slots["A"]!.realm.instanceId).toBe(realm.instanceId)
     expect(newState.players["p1"]!.formation.slots["A"]!.isRazed).toBe(false)
-    expect(newState.players["p1"]!.hand.find(c => c.instanceId === realm.instanceId)).toBeUndefined()
+    expect(
+      newState.players["p1"]!.hand.find((c) => c.instanceId === realm.instanceId),
+    ).toBeUndefined()
   })
 
   test("cannot play realm into slot B before A is filled", () => {
@@ -137,7 +137,7 @@ describe("PLAY_REALM", () => {
   })
 
   test("cannot play realm in wrong phase", () => {
-    const s = initGame(DEFAULT_CONFIG)  // START_OF_TURN
+    const s = initGame(DEFAULT_CONFIG) // START_OF_TURN
     const realm = findInHand(s, 13)
     if (!realm) return
 
@@ -157,7 +157,7 @@ describe("PLAY_REALM", () => {
       slot: "A",
     })
 
-    expect(events.some(e => e.type === "REALM_PLAYED")).toBe(true)
+    expect(events.some((e) => e.type === "REALM_PLAYED")).toBe(true)
   })
 })
 
@@ -166,7 +166,9 @@ describe("PLAY_REALM", () => {
 describe("PLACE_CHAMPION", () => {
   test("moves champion from hand to pool", () => {
     let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.Pool)
-    const champ = s.players["p1"]!.hand.find(c => [5, 7, 10, 12, 14, 16, 20].includes(c.card.typeId))
+    const champ = s.players["p1"]!.hand.find((c) =>
+      [5, 7, 10, 12, 14, 16, 20].includes(c.card.typeId),
+    )
     if (!champ) return
 
     const { newState } = applyMove(s, "p1", {
@@ -174,29 +176,45 @@ describe("PLACE_CHAMPION", () => {
       cardInstanceId: champ.instanceId,
     })
 
-    const inPool = newState.players["p1"]!.pool.find(e => e.champion.instanceId === champ.instanceId)
+    const inPool = newState.players["p1"]!.pool.find(
+      (e) => e.champion.instanceId === champ.instanceId,
+    )
     expect(inPool).toBeDefined()
     expect(inPool!.attachments).toHaveLength(0)
-    expect(newState.players["p1"]!.hand.find(c => c.instanceId === champ.instanceId)).toBeUndefined()
+    expect(
+      newState.players["p1"]!.hand.find((c) => c.instanceId === champ.instanceId),
+    ).toBeUndefined()
   })
 
   test("pool entry starts with empty attachments", () => {
     let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.Pool)
-    const champ = s.players["p1"]!.hand.find(c => [5, 7, 10, 12, 14, 16, 20].includes(c.card.typeId))
+    const champ = s.players["p1"]!.hand.find((c) =>
+      [5, 7, 10, 12, 14, 16, 20].includes(c.card.typeId),
+    )
     if (!champ) return
 
-    const { newState } = applyMove(s, "p1", { type: "PLACE_CHAMPION", cardInstanceId: champ.instanceId })
-    const entry = newState.players["p1"]!.pool.find(e => e.champion.instanceId === champ.instanceId)!
+    const { newState } = applyMove(s, "p1", {
+      type: "PLACE_CHAMPION",
+      cardInstanceId: champ.instanceId,
+    })
+    const entry = newState.players["p1"]!.pool.find(
+      (e) => e.champion.instanceId === champ.instanceId,
+    )!
     expect(entry.attachments).toHaveLength(0)
   })
 
   test("emits CHAMPION_PLACED event", () => {
     let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.Pool)
-    const champ = s.players["p1"]!.hand.find(c => [5, 7, 10, 12, 14, 16, 20].includes(c.card.typeId))
+    const champ = s.players["p1"]!.hand.find((c) =>
+      [5, 7, 10, 12, 14, 16, 20].includes(c.card.typeId),
+    )
     if (!champ) return
 
-    const { events } = applyMove(s, "p1", { type: "PLACE_CHAMPION", cardInstanceId: champ.instanceId })
-    expect(events.some(e => e.type === "CHAMPION_PLACED")).toBe(true)
+    const { events } = applyMove(s, "p1", {
+      type: "PLACE_CHAMPION",
+      cardInstanceId: champ.instanceId,
+    })
+    expect(events.some((e) => e.type === "CHAMPION_PLACED")).toBe(true)
   })
 })
 
@@ -205,12 +223,19 @@ describe("PLACE_CHAMPION", () => {
 describe("DISCARD_CARD in Phase 5", () => {
   test("non-event card goes to discard pile", () => {
     let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.PhaseFive)
-    const card = s.players["p1"]!.hand.find(c => c.card.typeId !== 6)  // not Event
+    const card = s.players["p1"]!.hand.find((c) => c.card.typeId !== 6) // not Event
     if (!card) return
 
-    const { newState } = applyMove(s, "p1", { type: "DISCARD_CARD", cardInstanceId: card.instanceId })
-    expect(newState.players["p1"]!.discardPile.find(c => c.instanceId === card.instanceId)).toBeDefined()
-    expect(newState.players["p1"]!.abyss.find(c => c.instanceId === card.instanceId)).toBeUndefined()
+    const { newState } = applyMove(s, "p1", {
+      type: "DISCARD_CARD",
+      cardInstanceId: card.instanceId,
+    })
+    expect(
+      newState.players["p1"]!.discardPile.find((c) => c.instanceId === card.instanceId),
+    ).toBeDefined()
+    expect(
+      newState.players["p1"]!.abyss.find((c) => c.instanceId === card.instanceId),
+    ).toBeUndefined()
   })
 
   test("event card goes to abyss", () => {
@@ -218,12 +243,23 @@ describe("DISCARD_CARD in Phase 5", () => {
 
     // Force an event card into hand
     const player = s.players["p1"]!
-    const eventInstance: CardInstance = { instanceId: "event-test-1", card: { ...ALLY_PLUS4, typeId: 6, name: "Test Event" } }
-    s = { ...s, players: { ...s.players, p1: { ...player, hand: [eventInstance, ...player.hand] } } }
+    const eventInstance: CardInstance = {
+      instanceId: "event-test-1",
+      card: { ...ALLY_PLUS4, typeId: 6, name: "Test Event" },
+    }
+    s = {
+      ...s,
+      players: { ...s.players, p1: { ...player, hand: [eventInstance, ...player.hand] } },
+    }
 
-    const { newState } = applyMove(s, "p1", { type: "DISCARD_CARD", cardInstanceId: "event-test-1" })
-    expect(newState.players["p1"]!.abyss.find(c => c.instanceId === "event-test-1")).toBeDefined()
-    expect(newState.players["p1"]!.discardPile.find(c => c.instanceId === "event-test-1")).toBeUndefined()
+    const { newState } = applyMove(s, "p1", {
+      type: "DISCARD_CARD",
+      cardInstanceId: "event-test-1",
+    })
+    expect(newState.players["p1"]!.abyss.find((c) => c.instanceId === "event-test-1")).toBeDefined()
+    expect(
+      newState.players["p1"]!.discardPile.find((c) => c.instanceId === "event-test-1"),
+    ).toBeUndefined()
   })
 })
 
@@ -251,9 +287,12 @@ describe("TOGGLE_HOLDING_REVEAL", () => {
       },
     }
 
-    const { newState, events } = applyMove(s, "p1", { type: "TOGGLE_HOLDING_REVEAL", realmSlot: "A" })
+    const { newState, events } = applyMove(s, "p1", {
+      type: "TOGGLE_HOLDING_REVEAL",
+      realmSlot: "A",
+    })
     expect(newState.players["p1"]!.formation.slots["A"]!.holdingRevealedToAll).toBe(true)
-    expect(events.some(e => e.type === "HOLDING_REVEAL_TOGGLED")).toBe(true)
+    expect(events.some((e) => e.type === "HOLDING_REVEAL_TOGGLED")).toBe(true)
   })
 
   test("legal moves include TOGGLE_HOLDING_REVEAL when holding is attached", () => {
@@ -279,7 +318,9 @@ describe("TOGGLE_HOLDING_REVEAL", () => {
 
     const moves = getLegalMoves(s, "p1")
     expect(
-      moves.some(m => m.type === "TOGGLE_HOLDING_REVEAL" && (m as { realmSlot: string }).realmSlot === "A"),
+      moves.some(
+        (m) => m.type === "TOGGLE_HOLDING_REVEAL" && (m as { realmSlot: string }).realmSlot === "A",
+      ),
     ).toBe(true)
   })
 })
@@ -297,33 +338,36 @@ describe("getLegalMoves", () => {
   test("START_OF_TURN always includes PASS", () => {
     const state = initGame(DEFAULT_CONFIG)
     const moves = getLegalMoves(state, "p1")
-    expect(moves.some(m => m.type === "PASS")).toBe(true)
+    expect(moves.some((m) => m.type === "PASS")).toBe(true)
   })
 
   test("PHASE_FIVE shows only DISCARD_CARD when hand is over limit", () => {
     let s = advanceTo(initGame(DEFAULT_CONFIG), Phase.PhaseFive)
     const player = s.players["p1"]!
-    const extra: CardInstance[] = Array.from({ length: 5 }, (_, i) =>
-      ({ instanceId: `over-limit-${i}`, card: ALLY_PLUS4 }),
-    )
+    const extra: CardInstance[] = Array.from({ length: 5 }, (_, i) => ({
+      instanceId: `over-limit-${i}`,
+      card: ALLY_PLUS4,
+    }))
     s = { ...s, players: { ...s.players, p1: { ...player, hand: [...player.hand, ...extra] } } }
 
     const moves = getLegalMoves(s, "p1")
-    expect(moves.every(m => m.type === "DISCARD_CARD" || m.type === "SET_PLAY_MODE")).toBe(true)
-    expect(moves.some(m => m.type === "PASS")).toBe(false)
+    expect(moves.every((m) => m.type === "DISCARD_CARD" || m.type === "SET_PLAY_MODE")).toBe(true)
+    expect(moves.some((m) => m.type === "PASS")).toBe(false)
   })
 
   test("PHASE_FIVE includes END_TURN when hand is at limit", () => {
     const s = advanceTo(initGame(DEFAULT_CONFIG), Phase.PhaseFive)
     const moves = getLegalMoves(s, "p1")
     // After drawing, hand is at 5 (starting) + 3 (drawn) = 8, which equals maxEnd for 55-card
-    expect(moves.some(m => m.type === "END_TURN")).toBe(true)
+    expect(moves.some((m) => m.type === "END_TURN")).toBe(true)
   })
 
   test("START_OF_TURN includes manual draw when draw pile has cards", () => {
     const s = initGame(DEFAULT_CONFIG)
     const moves = getLegalMoves(s, "p1")
-    expect(moves.some(m => m.type === "MANUAL_DRAW_CARDS" && (m as { count: number }).count === 1)).toBe(true)
+    expect(
+      moves.some((m) => m.type === "MANUAL_DRAW_CARDS" && (m as { count: number }).count === 1),
+    ).toBe(true)
   })
 
   test("manual affect opponent is available without pending effects", () => {
@@ -332,10 +376,12 @@ describe("getLegalMoves", () => {
     expect(opponentCard).toBeDefined()
     const moves = getLegalMoves(s, "p1")
     expect(
-      moves.some(m =>
-        m.type === "MANUAL_AFFECT_OPPONENT" &&
-        (m as { cardInstanceId: string; action: string }).cardInstanceId === opponentCard!.instanceId &&
-        (m as { cardInstanceId: string; action: string }).action === "discard",
+      moves.some(
+        (m) =>
+          m.type === "MANUAL_AFFECT_OPPONENT" &&
+          (m as { cardInstanceId: string; action: string }).cardInstanceId ===
+            opponentCard!.instanceId &&
+          (m as { cardInstanceId: string; action: string }).action === "discard",
       ),
     ).toBe(true)
   })
@@ -353,7 +399,7 @@ describe("play mode governance", () => {
     const { newState, events } = applyMove(s, "p2", { type: "SET_PLAY_MODE", mode: "full_manual" })
 
     expect(newState.playMode).toBe("full_manual")
-    expect(events.some(e => e.type === "PLAY_MODE_CHANGED")).toBe(true)
+    expect(events.some((e) => e.type === "PLAY_MODE_CHANGED")).toBe(true)
   })
 
   test("full_manual END_TURN always advances turn and resets phase/combat flags", () => {
@@ -400,8 +446,10 @@ describe("play mode governance", () => {
       cardInstanceId: card!.instanceId,
     })
 
-    expect(newState.players["p1"]!.hand.some(c => c.instanceId === card!.instanceId)).toBe(false)
-    expect(newState.players["p1"]!.discardPile.some(c => c.instanceId === card!.instanceId)).toBe(true)
+    expect(newState.players["p1"]!.hand.some((c) => c.instanceId === card!.instanceId)).toBe(false)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === card!.instanceId)).toBe(
+      true,
+    )
   })
 
   test("MANUAL_PLAY_CARD can discard from hand regardless phase gating", () => {
@@ -416,12 +464,14 @@ describe("play mode governance", () => {
       resolution: "discard",
     })
 
-    expect(newState.players["p1"]!.hand.some(c => c.instanceId === card!.instanceId)).toBe(false)
-    expect(newState.players["p1"]!.discardPile.some(c => c.instanceId === card!.instanceId)).toBe(true)
+    expect(newState.players["p1"]!.hand.some((c) => c.instanceId === card!.instanceId)).toBe(false)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === card!.instanceId)).toBe(
+      true,
+    )
   })
 
   test("MANUAL_PLAY_CARD lasting_target can attach to opponent realm", () => {
-    const card: CardInstance = { instanceId: "manual-card", card: ALLY_PLUS4 }
+    const card: CardInstance = { instanceId: "manual-card", card: HOLDING_FR }
     const opponentRealm: CardInstance = { instanceId: "opp-realm", card: REALM_FR }
     const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
     const withSetup = {
@@ -454,9 +504,11 @@ describe("play mode governance", () => {
       targetCardInstanceId: "opp-realm",
     })
 
-    expect(newState.players["p1"]!.hand.some(c => c.instanceId === "manual-card")).toBe(false)
+    expect(newState.players["p1"]!.hand.some((c) => c.instanceId === "manual-card")).toBe(false)
     expect(
-      newState.players["p2"]!.formation.slots["A"]!.holdings.some(c => c.instanceId === "manual-card"),
+      newState.players["p2"]!.formation.slots["A"]!.holdings.some(
+        (c) => c.instanceId === "manual-card",
+      ),
     ).toBe(true)
   })
 
@@ -481,8 +533,260 @@ describe("play mode governance", () => {
       resolution: "lasting",
     })
 
-    expect(newState.players["p1"]!.hand.some(c => c.instanceId === "manual-champ")).toBe(false)
-    expect(newState.players["p1"]!.pool.some(entry => entry.champion.instanceId === "manual-champ")).toBe(true)
+    expect(newState.players["p1"]!.hand.some((c) => c.instanceId === "manual-champ")).toBe(false)
+    expect(
+      newState.players["p1"]!.pool.some((entry) => entry.champion.instanceId === "manual-champ"),
+    ).toBe(true)
+  })
+
+  test("MANUAL_PLAY_CARD realm target places realm into explicit slot", () => {
+    const manualRealm: CardInstance = { instanceId: "manual-realm", card: REALM_GENERIC }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withSetup = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [manualRealm, ...s.players["p1"]!.hand],
+        },
+      },
+    }
+
+    const { newState } = applyMove(withSetup, "p1", {
+      type: "MANUAL_PLAY_CARD",
+      cardInstanceId: "manual-realm",
+      targetKind: "realm",
+      resolution: "lasting",
+      targetRealmSlot: "A",
+    })
+
+    expect(newState.players["p1"]!.hand.some((c) => c.instanceId === "manual-realm")).toBe(false)
+    expect(newState.players["p1"]!.formation.slots["A"]?.realm.instanceId).toBe("manual-realm")
+  })
+
+  test("MANUAL_PLAY_CARD pool target places champion into pool", () => {
+    const manualChampion: CardInstance = {
+      instanceId: "manual-pool-champion",
+      card: CHAMPION_CLERIC_FR,
+    }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withSetup = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [manualChampion, ...s.players["p1"]!.hand],
+        },
+      },
+    }
+
+    const { newState } = applyMove(withSetup, "p1", {
+      type: "MANUAL_PLAY_CARD",
+      cardInstanceId: "manual-pool-champion",
+      targetKind: "pool",
+      resolution: "lasting",
+    })
+
+    expect(newState.players["p1"]!.hand.some((c) => c.instanceId === "manual-pool-champion")).toBe(
+      false,
+    )
+    expect(
+      newState.players["p1"]!.pool.some(
+        (entry) => entry.champion.instanceId === "manual-pool-champion",
+      ),
+    ).toBe(true)
+  })
+
+  test("MANUAL_PLAY_CARD lasting self effect emits keep-in-play event", () => {
+    const manualEffect: CardInstance = { instanceId: "manual-effect", card: ALLY_PLUS4 }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withSetup = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [manualEffect, ...s.players["p1"]!.hand],
+        },
+      },
+    }
+
+    const { newState, events } = applyMove(withSetup, "p1", {
+      type: "MANUAL_PLAY_CARD",
+      cardInstanceId: "manual-effect",
+      targetKind: "player",
+      targetOwner: "self",
+      resolution: "lasting",
+    })
+
+    expect(newState.players["p1"]!.hand.some((c) => c.instanceId === "manual-effect")).toBe(false)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "manual-effect")).toBe(
+      true,
+    )
+    expect(
+      events.some(
+        (e) =>
+          e.type === "PHASE3_SPELL_CAST" &&
+          (e as { instanceId: string; keepInPlay: boolean }).instanceId === "manual-effect" &&
+          (e as { instanceId: string; keepInPlay: boolean }).keepInPlay,
+      ),
+    ).toBe(true)
+  })
+
+  test("MANUAL_PLAY_CARD blocks realms/holdings in pool target", () => {
+    const manualRealm: CardInstance = { instanceId: "manual-realm-pool", card: REALM_FR }
+    const manualHolding: CardInstance = { instanceId: "manual-holding-pool", card: HOLDING_FR }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withSetup = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [manualRealm, manualHolding, ...s.players["p1"]!.hand],
+        },
+      },
+    }
+
+    expect(() =>
+      applyMove(withSetup, "p1", {
+        type: "MANUAL_PLAY_CARD",
+        cardInstanceId: "manual-realm-pool",
+        targetKind: "pool",
+        resolution: "lasting",
+      }),
+    ).toThrow(EngineError)
+    expect(() =>
+      applyMove(withSetup, "p1", {
+        type: "MANUAL_PLAY_CARD",
+        cardInstanceId: "manual-holding-pool",
+        targetKind: "pool",
+        resolution: "lasting",
+      }),
+    ).toThrow(EngineError)
+  })
+
+  test("MANUAL_PLAY_CARD blocks non-realm/holding in formation target", () => {
+    const manualChampion: CardInstance = {
+      instanceId: "manual-champion-formation",
+      card: CHAMPION_CLERIC_FR,
+    }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withSetup = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [manualChampion, ...s.players["p1"]!.hand],
+        },
+      },
+    }
+
+    expect(() =>
+      applyMove(withSetup, "p1", {
+        type: "MANUAL_PLAY_CARD",
+        cardInstanceId: "manual-champion-formation",
+        targetKind: "realm",
+        resolution: "lasting",
+        targetRealmSlot: "A",
+      }),
+    ).toThrow(EngineError)
+  })
+
+  test("MANUAL_PLAY_CARD enforces pool/formation restrictions for card targets", () => {
+    const manualHolding: CardInstance = {
+      instanceId: "manual-holding-card-target",
+      card: HOLDING_FR,
+    }
+    const manualChampion: CardInstance = {
+      instanceId: "manual-champion-card-target",
+      card: CHAMPION_CLERIC_FR,
+    }
+    const ownPoolChampion: CardInstance = {
+      instanceId: "own-pool-champion",
+      card: CHAMPION_WIZARD_FR,
+    }
+    const ownRealm: CardInstance = { instanceId: "own-realm", card: REALM_FR }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withSetup = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [manualHolding, manualChampion, ...s.players["p1"]!.hand],
+          pool: [{ champion: ownPoolChampion, attachments: [] }],
+          formation: {
+            ...s.players["p1"]!.formation,
+            slots: {
+              ...s.players["p1"]!.formation.slots,
+              A: { realm: ownRealm, isRazed: false, holdings: [] },
+            },
+          },
+        },
+      },
+    }
+
+    expect(() =>
+      applyMove(withSetup, "p1", {
+        type: "MANUAL_PLAY_CARD",
+        cardInstanceId: "manual-holding-card-target",
+        targetKind: "card",
+        resolution: "lasting_target",
+        targetCardInstanceId: "own-pool-champion",
+      }),
+    ).toThrow(EngineError)
+
+    expect(() =>
+      applyMove(withSetup, "p1", {
+        type: "MANUAL_PLAY_CARD",
+        cardInstanceId: "manual-champion-card-target",
+        targetKind: "card",
+        resolution: "lasting_target",
+        targetCardInstanceId: "own-realm",
+      }),
+    ).toThrow(EngineError)
+  })
+
+  test("full_manual allows declaring attack from START_OF_TURN", () => {
+    const attacker: CardInstance = { instanceId: "manual-attacker", card: CHAMPION_CLERIC_FR }
+    const targetRealm: CardInstance = { instanceId: "manual-target-realm", card: REALM_FR }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withSetup = {
+      ...s,
+      phase: Phase.StartOfTurn,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [{ champion: attacker, attachments: [] }],
+        },
+        p2: {
+          ...s.players["p2"]!,
+          formation: {
+            ...s.players["p2"]!.formation,
+            slots: {
+              ...s.players["p2"]!.formation.slots,
+              A: { realm: targetRealm, isRazed: false, holdings: [] },
+            },
+          },
+        },
+      },
+    }
+
+    const { newState } = applyMove(withSetup, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "manual-attacker",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+
+    expect(newState.phase).toBe(Phase.Combat)
+    expect(newState.combatState).toBeDefined()
+    expect(newState.combatState?.attacker?.instanceId).toBe("manual-attacker")
   })
 
   test("manual->semi_auto switch is blocked when board is inconsistent", () => {
@@ -507,7 +811,9 @@ describe("play mode governance", () => {
       },
     }
 
-    expect(() => applyMove(s, "p1", { type: "SET_PLAY_MODE", mode: "semi_auto" })).toThrow(EngineError)
+    expect(() => applyMove(s, "p1", { type: "SET_PLAY_MODE", mode: "semi_auto" })).toThrow(
+      EngineError,
+    )
   })
 })
 
@@ -539,8 +845,10 @@ describe("PLAY_RULE_CARD", () => {
       cardInstanceId: "rule-test-1",
     })
 
-    expect(newState.players["p1"]!.hand.some(c => c.instanceId === "rule-test-1")).toBe(false)
-    expect(newState.players["p1"]!.discardPile.some(c => c.instanceId === "rule-test-1")).toBe(true)
+    expect(newState.players["p1"]!.hand.some((c) => c.instanceId === "rule-test-1")).toBe(false)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "rule-test-1")).toBe(
+      true,
+    )
     expect(events).toEqual([
       { type: "CARDS_DISCARDED", playerId: "p1", instanceIds: ["rule-test-1"] },
     ])
@@ -565,7 +873,10 @@ describe("combat: DECLARE_ATTACK → DECLINE_DEFENSE → realm razed", () => {
         p1: { ...s.players["p1"]!, pool: [{ champion: champInstance, attachments: [] }] },
         p2: {
           ...s.players["p2"]!,
-          formation: { size: 6, slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } } },
+          formation: {
+            size: 6,
+            slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } },
+          },
         },
       },
     }
@@ -600,14 +911,20 @@ describe("combat: DECLARE_ATTACK → DECLINE_DEFENSE → realm razed", () => {
         p1: { ...s.players["p1"]!, pool: [{ champion: champInstance, attachments: [] }] },
         p2: {
           ...s.players["p2"]!,
-          formation: { size: 6, slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } } },
+          formation: {
+            size: 6,
+            slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } },
+          },
         },
       },
     }
 
     const handSizeBefore = s.players["p1"]!.hand.length
     const { newState: afterAttack } = applyMove(s, "p1", {
-      type: "DECLARE_ATTACK", championId: "champ-p1", targetRealmSlot: "A", targetPlayerId: "p2",
+      type: "DECLARE_ATTACK",
+      championId: "champ-p1",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
     })
     const { newState: afterDecline } = applyMove(afterAttack, "p2", { type: "DECLINE_DEFENSE" })
 
@@ -627,19 +944,25 @@ describe("combat: DECLARE_ATTACK → DECLINE_DEFENSE → realm razed", () => {
         p1: { ...s.players["p1"]!, pool: [{ champion: champInstance, attachments: [] }] },
         p2: {
           ...s.players["p2"]!,
-          formation: { size: 6, slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } } },
+          formation: {
+            size: 6,
+            slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } },
+          },
         },
       },
     }
 
     const { newState: afterAttack } = applyMove(s, "p1", {
-      type: "DECLARE_ATTACK", championId: "champ-p1", targetRealmSlot: "A", targetPlayerId: "p2",
+      type: "DECLARE_ATTACK",
+      championId: "champ-p1",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
     })
     const { events } = applyMove(afterAttack, "p2", { type: "DECLINE_DEFENSE" })
 
-    expect(events.some(e => e.type === "DEFENSE_DECLINED")).toBe(true)
-    expect(events.some(e => e.type === "REALM_RAZED")).toBe(true)
-    expect(events.some(e => e.type === "SPOILS_EARNED")).toBe(true)
+    expect(events.some((e) => e.type === "DEFENSE_DECLINED")).toBe(true)
+    expect(events.some((e) => e.type === "REALM_RAZED")).toBe(true)
+    expect(events.some((e) => e.type === "SPOILS_EARNED")).toBe(true)
   })
 })
 
@@ -647,8 +970,8 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
   test("attacker wins when higher level — defender discarded", () => {
     let s = initGame(DEFAULT_CONFIG)
 
-    const attacker: CardInstance = { instanceId: "att", card: CHAMPION_WIZARD_FR }   // level 8
-    const defender: CardInstance = { instanceId: "def", card: CHAMPION_CLERIC_FR }   // level 6
+    const attacker: CardInstance = { instanceId: "att", card: CHAMPION_WIZARD_FR } // level 8
+    const defender: CardInstance = { instanceId: "def", card: CHAMPION_CLERIC_FR } // level 6
     const realmInstance: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
 
     s = {
@@ -660,13 +983,19 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
         p2: {
           ...s.players["p2"]!,
           pool: [{ champion: defender, attachments: [] }],
-          formation: { size: 6, slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } } },
+          formation: {
+            size: 6,
+            slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } },
+          },
         },
       },
     }
 
     const { newState: s1 } = applyMove(s, "p1", {
-      type: "DECLARE_ATTACK", championId: "att", targetRealmSlot: "A", targetPlayerId: "p2",
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
     })
     expect(s1.activePlayer).toBe("p2")
 
@@ -679,17 +1008,17 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
     const { newState: s3, events } = applyMove(s2, "p2", { type: "STOP_PLAYING" })
 
     // Attacker wins (8 > 6)
-    expect(events.find(e => e.type === "COMBAT_RESOLVED")).toMatchObject({
+    expect(events.find((e) => e.type === "COMBAT_RESOLVED")).toMatchObject({
       type: "COMBAT_RESOLVED",
       outcome: "ATTACKER_WINS",
     })
 
     // Defender discarded
-    expect(s3.players["p2"]!.pool.find(e => e.champion.instanceId === "def")).toBeUndefined()
-    expect(s3.players["p2"]!.discardPile.find(c => c.instanceId === "def")).toBeDefined()
+    expect(s3.players["p2"]!.pool.find((e) => e.champion.instanceId === "def")).toBeUndefined()
+    expect(s3.players["p2"]!.discardPile.find((c) => c.instanceId === "def")).toBeDefined()
 
     // Attacker champion still in pool
-    expect(s3.players["p1"]!.pool.find(e => e.champion.instanceId === "att")).toBeDefined()
+    expect(s3.players["p1"]!.pool.find((e) => e.champion.instanceId === "att")).toBeDefined()
 
     // Transitions to AWAITING_ATTACKER for next round
     expect(s3.combatState!.roundPhase).toBe("AWAITING_ATTACKER")
@@ -699,8 +1028,8 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
   test("defender wins on tie — attacker discarded, defender earns spoils", () => {
     let s = initGame(DEFAULT_CONFIG)
 
-    const attacker: CardInstance = { instanceId: "att", card: CHAMPION_CLERIC_FR }   // level 6
-    const defender: CardInstance = { instanceId: "def", card: CHAMPION_CLERIC_FR }   // level 6
+    const attacker: CardInstance = { instanceId: "att", card: CHAMPION_CLERIC_FR } // level 6
+    const defender: CardInstance = { instanceId: "def", card: CHAMPION_CLERIC_FR } // level 6
     const realmInstance: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
 
     s = {
@@ -712,13 +1041,19 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
         p2: {
           ...s.players["p2"]!,
           pool: [{ champion: defender, attachments: [] }],
-          formation: { size: 6, slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } } },
+          formation: {
+            size: 6,
+            slots: { A: { realm: realmInstance, isRazed: false, holdings: [] } },
+          },
         },
       },
     }
 
     const { newState: s1 } = applyMove(s, "p1", {
-      type: "DECLARE_ATTACK", championId: "att", targetRealmSlot: "A", targetPlayerId: "p2",
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
     })
     const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
 
@@ -726,13 +1061,13 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
     expect(s2.activePlayer).toBe("p1")
     const { newState: s3, events } = applyMove(s2, "p1", { type: "STOP_PLAYING" })
 
-    expect(events.find(e => e.type === "COMBAT_RESOLVED")).toMatchObject({
+    expect(events.find((e) => e.type === "COMBAT_RESOLVED")).toMatchObject({
       outcome: "DEFENDER_WINS",
     })
-    expect(s3.players["p1"]!.discardPile.find(c => c.instanceId === "att")).toBeDefined()
-    expect(s3.players["p2"]!.pool.find(e => e.champion.instanceId === "def")).toBeDefined()
-    expect(events.some(e => e.type === "SPOILS_EARNED")).toBe(true)
+    expect(s3.players["p1"]!.discardPile.find((c) => c.instanceId === "att")).toBeDefined()
+    expect(s3.players["p2"]!.pool.find((e) => e.champion.instanceId === "def")).toBeDefined()
+    expect(events.some((e) => e.type === "SPOILS_EARNED")).toBe(true)
     expect(s3.combatState).toBeNull()
-    expect(s3.activePlayer).toBe("p1")  // return control to attacker
+    expect(s3.activePlayer).toBe("p1") // return control to attacker
   })
 })

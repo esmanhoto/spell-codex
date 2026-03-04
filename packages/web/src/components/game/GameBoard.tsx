@@ -60,8 +60,10 @@ function AttackLine() {
         </filter>
       </defs>
       <line
-        x1={line.x1} y1={line.y1}
-        x2={line.x2} y2={line.y2}
+        x1={line.x1}
+        y1={line.y1}
+        x2={line.x2}
+        y2={line.y2}
         stroke="url(#attackLineGrad)"
         strokeWidth="3"
         strokeDasharray="12 8"
@@ -73,15 +75,21 @@ function AttackLine() {
   )
 }
 
-export function GameBoard({ events, wsError }: {
-  events:  GameEvent[]
-  wsError: string | null
-}) {
+export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: string | null }) {
   const {
-    playerA, playerB, allBoards, combat,
-    contextMenu, closeContextMenu, onMove,
-    warningMessage, warningCode, warningSuppressible,
-    suppressWarningCode, clearWarning,
+    playerA,
+    playerB,
+    allBoards,
+    combat,
+    contextMenu,
+    closeContextMenu,
+    onMove,
+    warningMessage,
+    warningCode,
+    warningSuppressible,
+    warningConfirmAction,
+    suppressWarningCode,
+    clearWarning,
   } = useGame()
   const showMovePanel = import.meta.env["VITE_SHOW_MOVE_PANEL"] === "true"
 
@@ -93,7 +101,11 @@ export function GameBoard({ events, wsError }: {
   return (
     <div className={styles.table} data-testid="game-board">
       <div className={styles.content}>
-        {wsError && <p className={styles.error} data-testid="ws-error">{wsError}</p>}
+        {wsError && (
+          <p className={styles.error} data-testid="ws-error">
+            {wsError}
+          </p>
+        )}
 
         {/* Opponent hand (top) */}
         {boardB && (
@@ -170,10 +182,20 @@ export function GameBoard({ events, wsError }: {
           <WarningModal
             message={warningMessage}
             suppressible={warningSuppressible}
-            onClose={(suppress) => {
+            onCancel={(suppress) => {
               if (suppress && warningCode) suppressWarningCode(warningCode)
               clearWarning()
             }}
+            {...(warningConfirmAction
+              ? {
+                  onProceed: (suppress: boolean) => {
+                    if (suppress && warningCode) suppressWarningCode(warningCode)
+                    const proceed = warningConfirmAction
+                    clearWarning()
+                    proceed()
+                  },
+                }
+              : {})}
           />
         )}
       </div>

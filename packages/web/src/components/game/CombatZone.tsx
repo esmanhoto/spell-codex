@@ -9,8 +9,15 @@ import styles from "./CombatZone.module.css"
 
 export function CombatZone() {
   const {
-    combat, playerA, playerB, legalMoves, onMove, openContextMenu,
-    allBoards, requestSpellCast, playMode,
+    combat,
+    playerA,
+    playerB,
+    legalMoves,
+    onMove,
+    openContextMenu,
+    allBoards,
+    requestSpellCast,
+    playMode,
   } = useGame()
   const [inputA, setInputA] = useState("")
   const [inputB, setInputB] = useState("")
@@ -43,9 +50,17 @@ export function CombatZone() {
   const bWinning = levelB > levelA
   const hasLevels = combat.attacker !== null && combat.defender !== null
 
-  const canEditLevel = legalMoves.some(m => m.type === "MANUAL_SET_COMBAT_LEVEL")
+  const canEditLevel = legalMoves.some((m) => m.type === "MANUAL_SET_COMBAT_LEVEL")
+  const canAcceptDefeat =
+    combat.roundPhase === "AWAITING_DEFENDER" &&
+    legalMoves.some((m) => m.type === "DECLINE_DEFENSE")
 
-  function submitLevel(playerId: string, input: string, setter: (v: string) => void, closeFn: (v: boolean) => void) {
+  function submitLevel(
+    playerId: string,
+    input: string,
+    setter: (v: string) => void,
+    closeFn: (v: boolean) => void,
+  ) {
     const level = parseInt(input, 10)
     if (!isNaN(level)) {
       onMove({ type: "MANUAL_SET_COMBAT_LEVEL", playerId, level })
@@ -58,8 +73,14 @@ export function CombatZone() {
     if (!canEditLevel) return []
     return [
       { label: "Discard", move: { type: "MANUAL_DISCARD", cardInstanceId: card.instanceId } },
-      { label: "Return to pool", move: { type: "MANUAL_RETURN_TO_POOL", cardInstanceId: card.instanceId } },
-      { label: "Switch sides", move: { type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId } },
+      {
+        label: "Return to pool",
+        move: { type: "MANUAL_RETURN_TO_POOL", cardInstanceId: card.instanceId },
+      },
+      {
+        label: "Switch sides",
+        move: { type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId },
+      },
     ]
   }
 
@@ -73,7 +94,7 @@ export function CombatZone() {
 
   function findDraggedHandCard(instanceId: string): CardInfo | undefined {
     for (const board of Object.values(allBoards)) {
-      const c = board.hand.find(card => card.instanceId === instanceId)
+      const c = board.hand.find((card) => card.instanceId === instanceId)
       if (c) return c
     }
     return undefined
@@ -91,7 +112,7 @@ export function CombatZone() {
     e.stopPropagation()
     const targetIsSelf =
       targetCard.instanceId === champA?.instanceId ||
-      cardsA.some(c => c.instanceId === targetCard.instanceId)
+      cardsA.some((c) => c.instanceId === targetCard.instanceId)
     if (playMode === "full_manual") {
       onMove({
         type: "MANUAL_PLAY_CARD",
@@ -126,18 +147,20 @@ export function CombatZone() {
             <CombatTooltip card={champion}>
               <div
                 data-combat-champion={champion.instanceId}
-                onContextMenu={e => handleCardContextMenu(e, champion)}
+                onContextMenu={(e) => handleCardContextMenu(e, champion)}
                 className={styles.championInner}
-                onDragOver={e => {
+                onDragOver={(e) => {
                   const source = e.dataTransfer.getData("drag-source")
                   if (source === "hand") e.preventDefault()
                 }}
-                onDrop={e => handleCardDrop(e, champion)}
+                onDrop={(e) => handleCardDrop(e, champion)}
               >
                 <img
                   src={cardImageUrl(champion.setId, champion.cardNumber)}
                   alt={champion.name}
-                  onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                  onError={(e) => {
+                    ;(e.target as HTMLImageElement).style.display = "none"
+                  }}
                 />
               </div>
             </CombatTooltip>
@@ -178,19 +201,21 @@ export function CombatZone() {
               key={c.instanceId}
               className={styles.supportCard}
               style={{ top: topPos, zIndex }}
-              onContextMenu={e => handleCardContextMenu(e, c)}
-              onDragOver={e => {
+              onContextMenu={(e) => handleCardContextMenu(e, c)}
+              onDragOver={(e) => {
                 const source = e.dataTransfer.getData("drag-source")
                 if (source === "hand") e.preventDefault()
               }}
-              onDrop={e => handleCardDrop(e, c)}
+              onDrop={(e) => handleCardDrop(e, c)}
             >
               <CombatTooltip card={c}>
                 <div className={styles.supportInner}>
                   <img
                     src={cardImageUrl(c.setId, c.cardNumber)}
                     alt={c.name}
-                    onError={e => { (e.target as HTMLImageElement).style.display = "none" }}
+                    onError={(e) => {
+                      ;(e.target as HTMLImageElement).style.display = "none"
+                    }}
                   />
                 </div>
               </CombatTooltip>
@@ -221,7 +246,8 @@ export function CombatZone() {
         <div className={styles.infoPanel}>
           {hasLevels && (
             <>
-              <span className={`${styles.levelDisplay} ${levelColorClass(bWinning, aWinning)}`}
+              <span
+                className={`${styles.levelDisplay} ${levelColorClass(bWinning, aWinning)}`}
                 onClick={() => canEditLevel && setEditingB(true)}
                 title={canEditLevel ? "Click to override level" : undefined}
               >
@@ -238,15 +264,29 @@ export function CombatZone() {
                 autoFocus
                 placeholder={String(levelB)}
                 value={inputB}
-                onChange={e => setInputB(e.target.value)}
-                onKeyDown={e => {
+                onChange={(e) => setInputB(e.target.value)}
+                onKeyDown={(e) => {
                   if (e.key === "Enter") submitLevel(playerB, inputB, setInputB, setEditingB)
-                  if (e.key === "Escape") { setEditingB(false); setInputB("") }
+                  if (e.key === "Escape") {
+                    setEditingB(false)
+                    setInputB("")
+                  }
                 }}
-                onBlur={() => { setEditingB(false); setInputB("") }}
+                onBlur={() => {
+                  setEditingB(false)
+                  setInputB("")
+                }}
                 className={styles.levelInput}
               />
-              <button className={styles.setBtn} onMouseDown={e => { e.preventDefault(); submitLevel(playerB, inputB, setInputB, setEditingB) }}>Set</button>
+              <button
+                className={styles.setBtn}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  submitLevel(playerB, inputB, setInputB, setEditingB)
+                }}
+              >
+                Set
+              </button>
             </div>
           )}
         </div>
@@ -264,9 +304,18 @@ export function CombatZone() {
         {renderCardStack(champA, cardsA)}
         <div className={styles.infoPanel}>
           <span className={styles.roleLabel}>{roleA}</span>
+          {canAcceptDefeat && (
+            <button
+              className={styles.defeatBtn}
+              onClick={() => onMove({ type: "DECLINE_DEFENSE" })}
+            >
+              Accept Defeat
+            </button>
+          )}
           {hasLevels && (
             <>
-              <span className={`${styles.levelDisplay} ${levelColorClass(aWinning, bWinning)}`}
+              <span
+                className={`${styles.levelDisplay} ${levelColorClass(aWinning, bWinning)}`}
                 onClick={() => canEditLevel && setEditingA(true)}
                 title={canEditLevel ? "Click to override level" : undefined}
               >
@@ -282,15 +331,29 @@ export function CombatZone() {
                 autoFocus
                 placeholder={String(levelA)}
                 value={inputA}
-                onChange={e => setInputA(e.target.value)}
-                onKeyDown={e => {
+                onChange={(e) => setInputA(e.target.value)}
+                onKeyDown={(e) => {
                   if (e.key === "Enter") submitLevel(playerA, inputA, setInputA, setEditingA)
-                  if (e.key === "Escape") { setEditingA(false); setInputA("") }
+                  if (e.key === "Escape") {
+                    setEditingA(false)
+                    setInputA("")
+                  }
                 }}
-                onBlur={() => { setEditingA(false); setInputA("") }}
+                onBlur={() => {
+                  setEditingA(false)
+                  setInputA("")
+                }}
                 className={styles.levelInput}
               />
-              <button className={styles.setBtn} onMouseDown={e => { e.preventDefault(); submitLevel(playerA, inputA, setInputA, setEditingA) }}>Set</button>
+              <button
+                className={styles.setBtn}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  submitLevel(playerA, inputA, setInputA, setEditingA)
+                }}
+              >
+                Set
+              </button>
             </div>
           )}
         </div>

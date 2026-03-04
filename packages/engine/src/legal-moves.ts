@@ -1,12 +1,22 @@
 import type {
-  GameState, Move, PlayerId, FormationSlot,
-  CardInstance, CardData, PoolEntry, PlayerState,
-  CombatState, Formation,
+  GameState,
+  Move,
+  PlayerId,
+  FormationSlot,
+  CardInstance,
+  CardData,
+  PoolEntry,
+  PlayerState,
+  CombatState,
+  Formation,
 } from "./types.ts"
 import { Phase } from "./types.ts"
 import {
-  CardTypeId, COSMOS_TYPE_IDS,
-  HAND_SIZES, COMBAT_SUPPORT_TYPE_IDS, PROTECTED_BY,
+  CardTypeId,
+  COSMOS_TYPE_IDS,
+  HAND_SIZES,
+  COMBAT_SUPPORT_TYPE_IDS,
+  PROTECTED_BY,
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
 import { calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "./combat.ts"
@@ -31,6 +41,8 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
 
   if (state.playMode === "full_manual") {
     if (state.activePlayer !== playerId) return modeMoves
+    const attackMoves = state.combatState ? [] : getFullManualAttackDeclMoves(state, playerId)
+    const combatMoves = state.combatState ? getCombatMoves(state, playerId) : []
     return dedupeMoves([
       ...modeMoves,
       ...getFullManualGovernanceMoves(state),
@@ -38,6 +50,8 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
       ...getManualOwnMoves(state, playerId),
       ...getManualOpponentMoves(state, playerId),
       ...getFullManualCombatMoves(state, playerId),
+      ...attackMoves,
+      ...combatMoves,
     ])
   }
 
@@ -50,14 +64,22 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   if (state.activePlayer !== playerId) return modeMoves
 
   switch (state.phase) {
-    case Phase.StartOfTurn: return dedupeMoves([...getStartOfTurnMoves(state, playerId), ...modeMoves])
-    case Phase.Draw:        return modeMoves
-    case Phase.PlayRealm:   return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.PlayRealm), ...modeMoves])
-    case Phase.Pool:        return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.Pool), ...modeMoves])
-    case Phase.Combat:      return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.Combat), ...modeMoves])
-    case Phase.PhaseFive:   return dedupeMoves([...getPhaseFiveMoves(state, playerId), ...modeMoves])
-    case Phase.EndTurn:     return []
-    default:                return []
+    case Phase.StartOfTurn:
+      return dedupeMoves([...getStartOfTurnMoves(state, playerId), ...modeMoves])
+    case Phase.Draw:
+      return modeMoves
+    case Phase.PlayRealm:
+      return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.PlayRealm), ...modeMoves])
+    case Phase.Pool:
+      return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.Pool), ...modeMoves])
+    case Phase.Combat:
+      return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.Combat), ...modeMoves])
+    case Phase.PhaseFive:
+      return dedupeMoves([...getPhaseFiveMoves(state, playerId), ...modeMoves])
+    case Phase.EndTurn:
+      return []
+    default:
+      return []
   }
 }
 
@@ -117,6 +139,28 @@ function getFullManualCombatMoves(state: GameState, playerId: PlayerId): Move[] 
   return moves
 }
 
+function getFullManualAttackDeclMoves(state: GameState, playerId: PlayerId): Move[] {
+  const player = state.players[playerId]!
+  const moves: Move[] = []
+
+  for (const entry of player.pool) {
+    for (const [otherPlayerId, otherPlayer] of Object.entries(state.players)) {
+      if (otherPlayerId === playerId) continue
+      for (const [slot, realmSlot] of Object.entries(otherPlayer.formation.slots)) {
+        if (!realmSlot || realmSlot.isRazed) continue
+        moves.push({
+          type: "DECLARE_ATTACK",
+          championId: entry.champion.instanceId,
+          targetRealmSlot: slot as FormationSlot,
+          targetPlayerId: otherPlayerId,
+        })
+      }
+    }
+  }
+
+  return moves
+}
+
 function dedupeMoves(moves: Move[]): Move[] {
   const seen = new Set<string>()
   const out: Move[] = []
@@ -144,14 +188,20 @@ const PHASE_ORDER = [Phase.PlayRealm, Phase.Pool, Phase.Combat] as const
 function getForwardPhaseMoves(state: GameState, playerId: PlayerId, fromPhase: Phase): Move[] {
   const player = state.players[playerId]!
   const moves: Move[] = []
-  const startIdx = PHASE_ORDER.indexOf(fromPhase as typeof PHASE_ORDER[number])
+  const startIdx = PHASE_ORDER.indexOf(fromPhase as (typeof PHASE_ORDER)[number])
 
   // Collect moves from current phase onward
   for (let i = startIdx; i < PHASE_ORDER.length; i++) {
     switch (PHASE_ORDER[i]) {
-      case Phase.PlayRealm: moves.push(...getRealmOnlyMoves(state, playerId)); break
-      case Phase.Pool:      moves.push(...getPoolOnlyMoves(state, player)); break
-      case Phase.Combat:    moves.push(...getCombatDeclOnlyMoves(state, playerId)); break
+      case Phase.PlayRealm:
+        moves.push(...getRealmOnlyMoves(state, playerId))
+        break
+      case Phase.Pool:
+        moves.push(...getPoolOnlyMoves(state, player))
+        break
+      case Phase.Combat:
+        moves.push(...getCombatDeclOnlyMoves(state, playerId))
+        break
     }
   }
 
@@ -172,7 +222,7 @@ function getForwardPhaseMoves(state: GameState, playerId: PlayerId, fromPhase: P
 
 /** Discard moves — one per hand card */
 function getDiscardMoves(player: PlayerState): Move[] {
-  return player.hand.map(card => ({
+  return player.hand.map((card) => ({
     type: "DISCARD_CARD" as const,
     cardInstanceId: card.instanceId,
   }))
@@ -214,7 +264,11 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
         }
         for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
           if (realmSlot?.isRazed) {
-            moves.push({ type: "PLAY_REALM", cardInstanceId: card.instanceId, slot: slot as FormationSlot })
+            moves.push({
+              type: "PLAY_REALM",
+              cardInstanceId: card.instanceId,
+              slot: slot as FormationSlot,
+            })
           }
         }
       }
@@ -253,7 +307,7 @@ function getPoolOnlyMoves(state: GameState, player: PlayerState): Move[] {
   const moves: Move[] = []
 
   const hasUnrazedRealm = Object.values(player.formation.slots).some(
-    slot => slot && !slot.isRazed,
+    (slot) => slot && !slot.isRazed,
   )
   if (hasUnrazedRealm) {
     for (const card of player.hand) {
@@ -269,7 +323,7 @@ function getPoolOnlyMoves(state: GameState, player: PlayerState): Move[] {
       if (!isUniqueInPlay(card.card, state)) continue
       for (const entry of player.pool) {
         const alreadyHasArtifact = entry.attachments.some(
-          a => a.card.typeId === CardTypeId.Artifact,
+          (a) => a.card.typeId === CardTypeId.Artifact,
         )
         if (alreadyHasArtifact) continue
         if (!worldCompatible(card.card, entry.champion.card)) continue
@@ -376,11 +430,7 @@ function getAttackerContinueMoves(
   return moves
 }
 
-function getDefenderMoves(
-  state: GameState,
-  playerId: PlayerId,
-  combat: CombatState,
-): Move[] {
+function getDefenderMoves(state: GameState, playerId: PlayerId, combat: CombatState): Move[] {
   if (playerId !== combat.defendingPlayer) return []
 
   const moves: Move[] = [{ type: "DECLINE_DEFENSE" }]
@@ -402,26 +452,26 @@ function getDefenderMoves(
 
   // Self-defending realm — realm can act as its own defender if it has a level
   const targetSlot = player.formation.slots[combat.targetRealmSlot]
-  if (targetSlot && !targetSlot.isRazed && targetSlot.realm.card.level != null &&
-      !combat.championsUsedThisBattle.includes(targetSlot.realm.instanceId)) {
+  if (
+    targetSlot &&
+    !targetSlot.isRazed &&
+    targetSlot.realm.card.level != null &&
+    !combat.championsUsedThisBattle.includes(targetSlot.realm.instanceId)
+  ) {
     moves.push({ type: "DECLARE_DEFENSE", championId: targetSlot.realm.instanceId })
   }
 
   return moves
 }
 
-function getCardPlayMoves(
-  state: GameState,
-  playerId: PlayerId,
-  combat: CombatState,
-): Move[] {
+function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatState): Move[] {
   // Determine who is losing to know who may play freely
   const isAttacker = playerId === combat.attackingPlayer
   const isDefender = playerId === combat.defendingPlayer
   if (!isAttacker && !isDefender) return []
 
-  const targetRealmSlot = state.players[combat.defendingPlayer]!
-    .formation.slots[combat.targetRealmSlot]
+  const targetRealmSlot =
+    state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
   const realmWorldId = targetRealmSlot?.realm.card.worldId ?? 0
 
   const attackerLevel = combat.attacker
@@ -485,7 +535,7 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
 
   // Must discard to meet hand limit before ending turn
   if (player.hand.length > maxEnd) {
-    return player.hand.map(card => ({
+    return player.hand.map((card) => ({
       type: "DISCARD_CARD" as const,
       cardInstanceId: card.instanceId,
     }))
@@ -495,10 +545,12 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
   const moves: Move[] = [{ type: "END_TURN" }]
 
   for (const card of player.hand) {
-    if (card.card.typeId === CardTypeId.Event ||
-        (isSpellType(card.card.typeId) &&
-         getCastPhases(card).includes(5) &&
-         poolHasSpellCaster(player.pool, card))) {
+    if (
+      card.card.typeId === CardTypeId.Event ||
+      (isSpellType(card.card.typeId) &&
+        getCastPhases(card).includes(5) &&
+        poolHasSpellCaster(player.pool, card))
+    ) {
       moves.push({ type: "PLAY_PHASE5_CARD", cardInstanceId: card.instanceId })
     }
   }
@@ -584,22 +636,38 @@ function getManualOwnMoves(state: GameState, playerId: PlayerId): Move[] {
  * Generates MANUAL_AFFECT_OPPONENT moves for opponent's cards.
  */
 function getManualOpponentMoves(state: GameState, playerId: PlayerId): Move[] {
-  const opponentId = state.playerOrder.find(id => id !== playerId)
+  const opponentId = state.playerOrder.find((id) => id !== playerId)
   if (!opponentId) return []
   const opponent = state.players[opponentId]!
   const moves: Move[] = []
 
   // Discard / to_abyss: opponent's hand
   for (const card of opponent.hand) {
-    moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: card.instanceId, action: "discard" })
-    moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: card.instanceId, action: "to_abyss" })
+    moves.push({
+      type: "MANUAL_AFFECT_OPPONENT",
+      cardInstanceId: card.instanceId,
+      action: "discard",
+    })
+    moves.push({
+      type: "MANUAL_AFFECT_OPPONENT",
+      cardInstanceId: card.instanceId,
+      action: "to_abyss",
+    })
   }
   for (const entry of opponent.pool) {
     // to_limbo only applies to champions
-    moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: entry.champion.instanceId, action: "to_limbo" })
+    moves.push({
+      type: "MANUAL_AFFECT_OPPONENT",
+      cardInstanceId: entry.champion.instanceId,
+      action: "to_limbo",
+    })
     // discard/to_abyss applies to champion and attachments
-    for (const action of (["discard", "to_abyss"] as const)) {
-      moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: entry.champion.instanceId, action })
+    for (const action of ["discard", "to_abyss"] as const) {
+      moves.push({
+        type: "MANUAL_AFFECT_OPPONENT",
+        cardInstanceId: entry.champion.instanceId,
+        action,
+      })
       for (const att of entry.attachments) {
         moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: att.instanceId, action })
       }
@@ -609,8 +677,12 @@ function getManualOpponentMoves(state: GameState, playerId: PlayerId): Move[] {
   // Raze realm: opponent's unrazed formation slots
   for (const [slot, realmSlot] of Object.entries(opponent.formation.slots)) {
     if (realmSlot && !realmSlot.isRazed) {
-      moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: realmSlot.realm.instanceId, action: "raze_realm" })
-      void slot  // slot info is recoverable from the cardInstanceId
+      moves.push({
+        type: "MANUAL_AFFECT_OPPONENT",
+        cardInstanceId: realmSlot.realm.instanceId,
+        action: "raze_realm",
+      })
+      void slot // slot info is recoverable from the cardInstanceId
     }
   }
 
@@ -626,7 +698,7 @@ function getManualOpponentMoves(state: GameState, playerId: PlayerId): Move[] {
 export function getLegalRealmSlots(formation: Formation): FormationSlot[] {
   const { slots } = formation
 
-  if (!slots["A"]) return ["A"]  // A must be placed first
+  if (!slots["A"]) return ["A"] // A must be placed first
 
   const legal: FormationSlot[] = []
 
@@ -664,16 +736,16 @@ export function isAttackable(
   champion: CardInstance,
 ): boolean {
   const isFlyer = champion.card.attributes.includes("Flyer")
-  if (isFlyer) return true  // Flyers can attack any realm
+  if (isFlyer) return true // Flyers can attack any realm
 
   const isSwimmer = champion.card.attributes.includes("Swimmer")
   const targetRealm = formation.slots[slot]?.realm
   const isCoastal = targetRealm?.card.attributes.includes("Coast") ?? false
-  if (isSwimmer && isCoastal) return true  // Swimmers attack any coastal realm
+  if (isSwimmer && isCoastal) return true // Swimmers attack any coastal realm
 
   // Standard protection: all protecting slots must be razed or empty
   const protectors = PROTECTED_BY[slot] ?? []
-  return protectors.every(p => {
+  return protectors.every((p) => {
     const s = formation.slots[p as FormationSlot]
     return !s || s.isRazed
   })
@@ -693,16 +765,16 @@ export function isUniqueInPlay(card: CardData, state: GameState): boolean {
 
   for (const player of Object.values(state.players)) {
     // Pool champions
-    if (player.pool.some(e => nameAndTypeMatch(e.champion.card, card))) return false
+    if (player.pool.some((e) => nameAndTypeMatch(e.champion.card, card))) return false
     // Pool attachments (artifacts)
     for (const e of player.pool) {
-      if (e.attachments.some(a => nameAndTypeMatch(a.card, card))) return false
+      if (e.attachments.some((a) => nameAndTypeMatch(a.card, card))) return false
     }
     // Formation (including razed realms)
     for (const realmSlot of Object.values(player.formation.slots)) {
       if (!realmSlot) continue
       if (nameAndTypeMatch(realmSlot.realm.card, card)) return false
-      if (realmSlot.holdings.some(h => nameAndTypeMatch(h.card, card))) return false
+      if (realmSlot.holdings.some((h) => nameAndTypeMatch(h.card, card))) return false
     }
     // Limbo intentionally not checked — limbo champions are NOT in play
   }
@@ -719,8 +791,8 @@ function nameAndTypeMatch(a: CardData, b: CardData): boolean {
 /** Returns PLAY_EVENT moves for all event cards in hand. */
 function getEventMoves(player: PlayerState): Move[] {
   return player.hand
-    .filter(c => c.card.typeId === CardTypeId.Event)
-    .map(c => ({ type: "PLAY_EVENT" as const, cardInstanceId: c.instanceId }))
+    .filter((c) => c.card.typeId === CardTypeId.Event)
+    .map((c) => ({ type: "PLAY_EVENT" as const, cardInstanceId: c.instanceId }))
 }
 
 /** Returns TOGGLE_HOLDING_REVEAL moves for every own realm with at least one holding. */
@@ -742,15 +814,11 @@ function isPhase3Card(typeId: number): boolean {
  * Returns true if at least one pool champion can use the given support card.
  * @param dir - "o" for offensive (phase 3), "d" or "o" for combat
  */
-function poolHasChampionFor(
-  pool: PoolEntry[],
-  card: CardInstance,
-  dir: "d" | "o",
-): boolean {
+function poolHasChampionFor(pool: PoolEntry[], card: CardInstance, dir: "d" | "o"): boolean {
   const typeRef = card.card.typeId
   const dirRef = `${dir}${typeRef}`
 
-  return pool.some(entry => {
+  return pool.some((entry) => {
     const { supportIds } = entry.champion.card
     if (isSpellType(typeRef)) {
       return supportIds.includes(dirRef) || supportIds.includes(typeRef)
@@ -760,17 +828,14 @@ function poolHasChampionFor(
 }
 
 function poolHasSpellCaster(pool: PoolEntry[], card: CardInstance): boolean {
-  return pool.some(entry => canChampionUseSpell(card, entry.champion))
+  return pool.some((entry) => canChampionUseSpell(card, entry.champion))
 }
 
 /**
  * Returns true if a card can be played during CARD_PLAY phase.
  * The active champion determines spell access. Spell direction is card-defined.
  */
-export function canPlayInCombat(
-  card: CardInstance,
-  activeChampion: CardInstance | null,
-): boolean {
+export function canPlayInCombat(card: CardInstance, activeChampion: CardInstance | null): boolean {
   const { typeId } = card.card
   if (!COMBAT_SUPPORT_TYPE_IDS.has(typeId)) return false
 

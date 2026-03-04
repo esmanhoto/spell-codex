@@ -122,10 +122,10 @@ export interface PlayerState {
 // ─── Combat ───────────────────────────────────────────────────────────────────
 
 export type CombatRoundPhase =
-  | "AWAITING_ATTACKER"  // attacker picks champion (or ends attack)
-  | "AWAITING_DEFENDER"  // defender picks champion (or concedes)
-  | "CARD_PLAY"          // losing player plays cards
-  | "RESOLVING"          // engine resolves outcome
+  | "AWAITING_ATTACKER" // attacker picks champion (or ends attack)
+  | "AWAITING_DEFENDER" // defender picks champion (or concedes)
+  | "CARD_PLAY" // losing player plays cards
+  | "RESOLVING" // engine resolves outcome
 
 /**
  * Three possible outcomes at the end of a combat round:
@@ -169,12 +169,12 @@ export interface CombatState {
 
 export enum Phase {
   StartOfTurn = "START_OF_TURN",
-  Draw        = "DRAW",
-  PlayRealm   = "PLAY_REALM",
-  Pool        = "POOL",
-  Combat      = "COMBAT",
-  PhaseFive   = "PHASE_FIVE",
-  EndTurn     = "END_TURN",
+  Draw = "DRAW",
+  PlayRealm = "PLAY_REALM",
+  Pool = "POOL",
+  Combat = "COMBAT",
+  PhaseFive = "PHASE_FIVE",
+  EndTurn = "END_TURN",
 }
 
 // ─── Play Mode ────────────────────────────────────────────────────────────────
@@ -186,7 +186,7 @@ export interface ManualSettings {
   maxHandSize: number
 }
 
-export type ManualPlayTargetKind = "none" | "player" | "card"
+export type ManualPlayTargetKind = "none" | "player" | "card" | "realm" | "pool"
 export type ManualPlayResolution = "discard" | "lasting" | "lasting_target"
 
 // ─── Game State ───────────────────────────────────────────────────────────────
@@ -225,17 +225,17 @@ export type ManualAction = "discard" | "to_limbo" | "to_abyss" | "raze_realm"
 
 export type Move =
   // Phase 0 — start of turn
-  | { type: "PLAY_RULE_CARD";    cardInstanceId: CardInstanceId }
+  | { type: "PLAY_RULE_CARD"; cardInstanceId: CardInstanceId }
 
   // Phase 2 — realm and holding
-  | { type: "PLAY_REALM";        cardInstanceId: CardInstanceId; slot: FormationSlot }
-  | { type: "REBUILD_REALM";     slot: FormationSlot }                              // costs 3 cards from hand
-  | { type: "PLAY_HOLDING";      cardInstanceId: CardInstanceId; realmSlot: FormationSlot }
+  | { type: "PLAY_REALM"; cardInstanceId: CardInstanceId; slot: FormationSlot }
+  | { type: "REBUILD_REALM"; slot: FormationSlot } // costs 3 cards from hand
+  | { type: "PLAY_HOLDING"; cardInstanceId: CardInstanceId; realmSlot: FormationSlot }
   | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: FormationSlot }
 
   // Phase 3 — pool
-  | { type: "PLACE_CHAMPION";    cardInstanceId: CardInstanceId }
-  | { type: "ATTACH_ITEM";       cardInstanceId: CardInstanceId; championId: CardInstanceId }
+  | { type: "PLACE_CHAMPION"; cardInstanceId: CardInstanceId }
+  | { type: "ATTACH_ITEM"; cardInstanceId: CardInstanceId; championId: CardInstanceId }
   | {
       type: "PLAY_PHASE3_CARD"
       cardInstanceId: CardInstanceId
@@ -243,23 +243,28 @@ export type Move =
       casterInstanceId?: CardInstanceId
       targetCardInstanceId?: CardInstanceId
       targetOwner?: "self" | "opponent"
-    }                                                                                // spells, psionics, etc.
+    } // spells, psionics, etc.
 
   // Phase 4 — combat
-  | { type: "DECLARE_ATTACK";    championId: CardInstanceId; targetRealmSlot: FormationSlot; targetPlayerId: PlayerId }
-  | { type: "DECLARE_DEFENSE";   championId: CardInstanceId }
-  | { type: "DECLINE_DEFENSE" }                                                    // concede realm
-  | { type: "PLAY_COMBAT_CARD";  cardInstanceId: CardInstanceId }                  // losing player plays a card
-  | { type: "STOP_PLAYING" }                                                       // done playing combat cards
-  | { type: "CONTINUE_ATTACK";   championId: CardInstanceId }                      // new round vs same realm
-  | { type: "END_ATTACK" }                                                         // attacker stops voluntarily
+  | {
+      type: "DECLARE_ATTACK"
+      championId: CardInstanceId
+      targetRealmSlot: FormationSlot
+      targetPlayerId: PlayerId
+    }
+  | { type: "DECLARE_DEFENSE"; championId: CardInstanceId }
+  | { type: "DECLINE_DEFENSE" } // concede realm
+  | { type: "PLAY_COMBAT_CARD"; cardInstanceId: CardInstanceId } // losing player plays a card
+  | { type: "STOP_PLAYING" } // done playing combat cards
+  | { type: "CONTINUE_ATTACK"; championId: CardInstanceId } // new round vs same realm
+  | { type: "END_ATTACK" } // attacker stops voluntarily
 
   // Phase 5 — end phase
-  | { type: "PLAY_PHASE5_CARD";  cardInstanceId: CardInstanceId }
-  | { type: "DISCARD_CARD";      cardInstanceId: CardInstanceId }                  // discard to meet hand limit
+  | { type: "PLAY_PHASE5_CARD"; cardInstanceId: CardInstanceId }
+  | { type: "DISCARD_CARD"; cardInstanceId: CardInstanceId } // discard to meet hand limit
 
   // Any phase
-  | { type: "PLAY_EVENT";        cardInstanceId: CardInstanceId }
+  | { type: "PLAY_EVENT"; cardInstanceId: CardInstanceId }
   | { type: "PASS" }
   /** Skip remaining phases and end the turn (only when hand ≤ maxEnd) */
   | { type: "END_TURN" }
@@ -277,23 +282,24 @@ export type Move =
       resolution: ManualPlayResolution
       targetOwner?: "self" | "opponent"
       targetCardInstanceId?: CardInstanceId
+      targetRealmSlot?: FormationSlot
     }
 
   // Manual board control — own cards (always legal on your turn)
   /** Move any own card (hand/pool/formation/discard) to own discard pile */
-  | { type: "MANUAL_DISCARD";         cardInstanceId: CardInstanceId }
+  | { type: "MANUAL_DISCARD"; cardInstanceId: CardInstanceId }
   /** Move a pool champion (and its attachments) to limbo */
-  | { type: "MANUAL_TO_LIMBO";        cardInstanceId: CardInstanceId; returnsInTurns?: number }
+  | { type: "MANUAL_TO_LIMBO"; cardInstanceId: CardInstanceId; returnsInTurns?: number }
   /** Move any own card to the abyss */
-  | { type: "MANUAL_TO_ABYSS";        cardInstanceId: CardInstanceId }
+  | { type: "MANUAL_TO_ABYSS"; cardInstanceId: CardInstanceId }
   /** Move a card from own discard/abyss back to hand */
-  | { type: "MANUAL_TO_HAND";         cardInstanceId: CardInstanceId }
+  | { type: "MANUAL_TO_HAND"; cardInstanceId: CardInstanceId }
   /** Raze one of own formation realms (and discard its holdings) */
-  | { type: "MANUAL_RAZE_REALM";      slot: FormationSlot }
+  | { type: "MANUAL_RAZE_REALM"; slot: FormationSlot }
   /** Draw N cards from own draw pile to hand */
-  | { type: "MANUAL_DRAW_CARDS";      count: number }
+  | { type: "MANUAL_DRAW_CARDS"; count: number }
   /** Return a champion from own discard pile to pool */
-  | { type: "MANUAL_RETURN_TO_POOL";  cardInstanceId: CardInstanceId }
+  | { type: "MANUAL_RETURN_TO_POOL"; cardInstanceId: CardInstanceId }
 
   // Manual board control — opponent cards
   /** Execute an effect action on an opponent's card */
@@ -318,37 +324,74 @@ export interface EngineResult {
 // ─── Game Events ──────────────────────────────────────────────────────────────
 
 export type GameEvent =
-  | { type: "GAME_STARTED";              players: PlayerId[] }
-  | { type: "PLAY_MODE_CHANGED";         playerId: PlayerId; mode: PlayMode }
-  | { type: "MANUAL_ACTIVE_PLAYER_SET";  playerId: PlayerId; activePlayer: PlayerId }
-  | { type: "MANUAL_DRAW_COUNT_SET";     playerId: PlayerId; count: number }
-  | { type: "MANUAL_MAX_HAND_SIZE_SET";  playerId: PlayerId; size: number }
-  | { type: "TURN_STARTED";              playerId: PlayerId; turn: number }
-  | { type: "PHASE_CHANGED";             phase: Phase }
-  | { type: "CARDS_DRAWN";               playerId: PlayerId; count: number }
-  | { type: "REALM_PLAYED";              playerId: PlayerId; instanceId: CardInstanceId; slot: FormationSlot }
-  | { type: "REALM_REBUILT";             playerId: PlayerId; slot: FormationSlot; discardedIds: CardInstanceId[] }
-  | { type: "REALM_RAZED";               playerId: PlayerId; slot: FormationSlot }
-  | { type: "HOLDING_PLAYED";            playerId: PlayerId; instanceId: CardInstanceId; slot: FormationSlot }
-  | { type: "HOLDING_REVEAL_TOGGLED";    playerId: PlayerId; slot: FormationSlot; revealedToAll: boolean }
-  | { type: "CHAMPION_PLACED";           playerId: PlayerId; instanceId: CardInstanceId }
-  | { type: "ITEM_ATTACHED";             playerId: PlayerId; itemId: CardInstanceId; championId: CardInstanceId }
-  | { type: "CHAMPION_DISCARDED";        playerId: PlayerId; instanceId: CardInstanceId }
-  | { type: "CHAMPION_TO_LIMBO";         playerId: PlayerId; instanceId: CardInstanceId; returnsOnTurn: number }
-  | { type: "CHAMPION_FROM_LIMBO";       playerId: PlayerId; instanceId: CardInstanceId }
-  | { type: "CARDS_DISCARDED";           playerId: PlayerId; instanceIds: CardInstanceId[] }
-  | { type: "CARD_TO_ABYSS";            playerId: PlayerId; instanceId: CardInstanceId }
-  | { type: "ATTACK_DECLARED";           attackingPlayer: PlayerId; defendingPlayer: PlayerId; slot: FormationSlot; championId: CardInstanceId }
-  | { type: "DEFENSE_DECLARED";          playerId: PlayerId; championId: CardInstanceId }
-  | { type: "DEFENSE_DECLINED";          playerId: PlayerId }
-  | { type: "COMBAT_CARD_PLAYED";        playerId: PlayerId; instanceId: CardInstanceId }
-  | { type: "COMBAT_RESOLVED";           outcome: CombatRoundOutcome; attackerLevel: number; defenderLevel: number }
-  | { type: "SPOILS_EARNED";             playerId: PlayerId }
-  | { type: "POOL_CLEARED";              playerId: PlayerId }
-  | { type: "MANUAL_ZONE_MOVE";          playerId: PlayerId; instanceId: CardInstanceId; from: string; to: string }
-  | { type: "MANUAL_REALM_RAZED";        playerId: PlayerId; slot: FormationSlot }
-  | { type: "MANUAL_CARDS_DRAWN";        playerId: PlayerId; count: number }
-  | { type: "COMBAT_LEVEL_SET";          playerId: PlayerId; level: number }
+  | { type: "GAME_STARTED"; players: PlayerId[] }
+  | { type: "PLAY_MODE_CHANGED"; playerId: PlayerId; mode: PlayMode }
+  | { type: "MANUAL_ACTIVE_PLAYER_SET"; playerId: PlayerId; activePlayer: PlayerId }
+  | { type: "MANUAL_DRAW_COUNT_SET"; playerId: PlayerId; count: number }
+  | { type: "MANUAL_MAX_HAND_SIZE_SET"; playerId: PlayerId; size: number }
+  | { type: "TURN_STARTED"; playerId: PlayerId; turn: number }
+  | { type: "PHASE_CHANGED"; phase: Phase }
+  | { type: "CARDS_DRAWN"; playerId: PlayerId; count: number }
+  | { type: "REALM_PLAYED"; playerId: PlayerId; instanceId: CardInstanceId; slot: FormationSlot }
+  | {
+      type: "REALM_REBUILT"
+      playerId: PlayerId
+      slot: FormationSlot
+      discardedIds: CardInstanceId[]
+    }
+  | { type: "REALM_RAZED"; playerId: PlayerId; slot: FormationSlot }
+  | { type: "HOLDING_PLAYED"; playerId: PlayerId; instanceId: CardInstanceId; slot: FormationSlot }
+  | {
+      type: "HOLDING_REVEAL_TOGGLED"
+      playerId: PlayerId
+      slot: FormationSlot
+      revealedToAll: boolean
+    }
+  | { type: "CHAMPION_PLACED"; playerId: PlayerId; instanceId: CardInstanceId }
+  | {
+      type: "ITEM_ATTACHED"
+      playerId: PlayerId
+      itemId: CardInstanceId
+      championId: CardInstanceId
+    }
+  | { type: "CHAMPION_DISCARDED"; playerId: PlayerId; instanceId: CardInstanceId }
+  | {
+      type: "CHAMPION_TO_LIMBO"
+      playerId: PlayerId
+      instanceId: CardInstanceId
+      returnsOnTurn: number
+    }
+  | { type: "CHAMPION_FROM_LIMBO"; playerId: PlayerId; instanceId: CardInstanceId }
+  | { type: "CARDS_DISCARDED"; playerId: PlayerId; instanceIds: CardInstanceId[] }
+  | { type: "CARD_TO_ABYSS"; playerId: PlayerId; instanceId: CardInstanceId }
+  | {
+      type: "ATTACK_DECLARED"
+      attackingPlayer: PlayerId
+      defendingPlayer: PlayerId
+      slot: FormationSlot
+      championId: CardInstanceId
+    }
+  | { type: "DEFENSE_DECLARED"; playerId: PlayerId; championId: CardInstanceId }
+  | { type: "DEFENSE_DECLINED"; playerId: PlayerId }
+  | { type: "COMBAT_CARD_PLAYED"; playerId: PlayerId; instanceId: CardInstanceId }
+  | {
+      type: "COMBAT_RESOLVED"
+      outcome: CombatRoundOutcome
+      attackerLevel: number
+      defenderLevel: number
+    }
+  | { type: "SPOILS_EARNED"; playerId: PlayerId }
+  | { type: "POOL_CLEARED"; playerId: PlayerId }
+  | {
+      type: "MANUAL_ZONE_MOVE"
+      playerId: PlayerId
+      instanceId: CardInstanceId
+      from: string
+      to: string
+    }
+  | { type: "MANUAL_REALM_RAZED"; playerId: PlayerId; slot: FormationSlot }
+  | { type: "MANUAL_CARDS_DRAWN"; playerId: PlayerId; count: number }
+  | { type: "COMBAT_LEVEL_SET"; playerId: PlayerId; level: number }
   | {
       type: "PHASE3_SPELL_CAST"
       playerId: PlayerId
@@ -362,8 +405,8 @@ export type GameEvent =
       targetCardInstanceId?: CardInstanceId
       targetOwner?: "self" | "opponent"
     }
-  | { type: "TURN_ENDED";               playerId: PlayerId }
-  | { type: "GAME_OVER";                winner: PlayerId }
+  | { type: "TURN_ENDED"; playerId: PlayerId }
+  | { type: "GAME_OVER"; winner: PlayerId }
 
 // ─── Game Config ──────────────────────────────────────────────────────────────
 

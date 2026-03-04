@@ -38,16 +38,15 @@ test("phase 3 spell cast announcement appears and keep-in-play spell is shown in
   })
   expect(castRes.ok()).toBe(true)
 
-  await page.addInitScript(({ gid, playerA, playerB }) => {
-    sessionStorage.setItem(`game:${gid}:playerA`, playerA)
-    sessionStorage.setItem(`game:${gid}:playerB`, playerB)
-  }, { gid: gameId, playerA: PLAYER_A, playerB: PLAYER_B })
+  await page.addInitScript(({ playerId }) => {
+    localStorage.setItem("spell:bypass-user-id", playerId)
+  }, { playerId: PLAYER_B })
 
   await page.goto(`/game/${gameId}`)
   await expect(page.getByTestId("game-board")).toBeVisible()
   await expect(page.getByTestId("spell-cast-modal")).toBeVisible()
   await expect(page.getByTestId("spell-cast-modal")).toContainText("cast")
-  await page.getByTestId("spell-cast-modal").getByRole("button", { name: "OK" }).click()
+  await page.getByTestId("spell-cast-modal").getByRole("button", { name: /Acknowledge|OK/ }).click()
 
   await expect(page.getByTestId(`lasting-spells-${PLAYER_A}`).locator("img").first()).toBeVisible()
 })

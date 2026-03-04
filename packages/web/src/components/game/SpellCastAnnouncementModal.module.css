@@ -57,3 +57,9 @@
 .button:hover {
   background: #352a27;
 }
+
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

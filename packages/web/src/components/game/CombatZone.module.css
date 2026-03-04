@@ -14,16 +14,25 @@
   color: var(--text-primary);
   font-size: 13px;
   z-index: 150;
-  box-shadow: -4px 0 30px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(122, 58, 42, 0.08);
+  box-shadow:
+    -4px 0 30px rgba(0, 0, 0, 0.6),
+    inset 0 0 60px rgba(122, 58, 42, 0.08);
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
 /* Scrollbar styling */
-.combat::-webkit-scrollbar { width: 4px; }
-.combat::-webkit-scrollbar-track { background: transparent; }
-.combat::-webkit-scrollbar-thumb { background: var(--combat-border); border-radius: 2px; }
+.combat::-webkit-scrollbar {
+  width: 4px;
+}
+.combat::-webkit-scrollbar-track {
+  background: transparent;
+}
+.combat::-webkit-scrollbar-thumb {
+  background: var(--combat-border);
+  border-radius: 2px;
+}
 
 /* Header */
 .header {
@@ -31,6 +40,26 @@
   margin-bottom: 16px;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(122, 58, 42, 0.3);
+}
+
+.actionRow {
+  display: flex;
+  justify-content: center;
+  margin: -6px 0 12px;
+}
+
+.defeatBtn {
+  border: 1px solid #845a4f;
+  background: #2a211f;
+  color: #f2e8d5;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.defeatBtn:hover {
+  background: #352a27;
 }
 
 .title {

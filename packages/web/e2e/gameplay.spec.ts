@@ -1,5 +1,23 @@
-import { test, expect } from "@playwright/test"
-import { PLAYER_A, apiCreateGameForUi, driveGameToCombat, startGame } from "./helpers/game.ts"
+import { test, expect, type Page } from "@playwright/test"
+import { PLAYER_A, apiCreateCombatReadyGameForUi, driveGameToCombat, startGame } from "./helpers/game.ts"
+
+async function dismissWarningIfPresent(page: Page, timeout = 1500): Promise<void> {
+  const modal = page.getByTestId("warning-modal")
+  const shown = await modal.waitFor({ state: "visible", timeout }).then(() => true).catch(() => false)
+  if (!shown) return
+
+  const okButton = page.getByTestId("warning-ok")
+  const cancelButton = page.getByTestId("warning-cancel")
+  if ((await okButton.count()) > 0) {
+    await okButton.click()
+  } else if ((await cancelButton.count()) > 0) {
+    await cancelButton.click()
+  } else {
+    await page.keyboard.press("Escape")
+  }
+
+  await expect(modal).toHaveCount(0)
+}
 
 test("start game navigates and renders board", async ({ page, request }) => {
   await startGame(page, request)
@@ -52,14 +70,24 @@ test("right-click Play/Cast flow works for hand cards in full manual", async ({ 
   await page.getByRole("button", { name: "Play/Cast..." }).click()
   await expect(page.getByTestId("manual-play-modal")).toBeVisible()
 
-  await page.getByTestId("manual-play-resolution").selectOption("discard")
+  const targetKind = page.getByTestId("manual-play-target-kind")
+  if ((await targetKind.count()) > 0) {
+    await targetKind.selectOption("none")
+  }
+
+  const resolution = page.getByTestId("manual-play-resolution")
+  if ((await resolution.count()) > 0) {
+    await resolution.selectOption("discard")
+  }
+
+  await expect(page.getByTestId("manual-play-confirm")).toBeEnabled()
   await page.getByTestId("manual-play-confirm").click()
   await expect(page.getByTestId("manual-play-modal")).toHaveCount(0)
   await expect(page.getByTestId(movedCardTestId)).toHaveCount(0)
 })
 
 test("semi_auto switch in active combat is blocked with exact reason", async ({ page, request }) => {
-  const gameId = await apiCreateGameForUi(request)
+  const gameId = await apiCreateCombatReadyGameForUi(request)
   await driveGameToCombat(request, gameId)
 
   await page.goto(`/game/${gameId}`)
@@ -67,11 +95,15 @@ test("semi_auto switch in active combat is blocked with exact reason", async ({ 
 
   const controls = page.getByTestId("manual-controls")
   await controls.getByRole("button", { name: "Full Manual" }).click()
-  if (await page.getByTestId("warning-modal").count()) {
-    await page.getByTestId("warning-ok").click()
+  await dismissWarningIfPresent(page)
+
+  try {
+    await controls.getByRole("button", { name: "Semi Auto" }).click()
+  } catch {
+    await dismissWarningIfPresent(page)
+    await controls.getByRole("button", { name: "Semi Auto" }).click()
   }
 
-  await controls.getByRole("button", { name: "Semi Auto" }).click()
   await expect(page.getByTestId("warning-modal")).toBeVisible()
   await expect(page.getByTestId("warning-modal")).toContainText("Cannot switch to semi_auto while combat is active.")
 })
