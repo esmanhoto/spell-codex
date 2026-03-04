@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
-import { getTypeInfo } from "../../utils/type-labels.ts"
 import type { CardInfo } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
 import { isSpellCard } from "../../utils/spell-casting.ts"
@@ -112,8 +111,6 @@ export function CombatZone() {
 
   // PEEK = how many px of each support card peek out below the champion
   const PEEK = 34
-  // Card dimensions (must match CSS vars)
-  const CARD_H = 168
 
   function renderCardStack(champion: CardInfo | null, supportCards: CardInfo[]) {
     const totalSupportHeight = supportCards.length * PEEK
@@ -149,7 +146,6 @@ export function CombatZone() {
 
         {/* Support cards — full size, positioned so only PEEK px peek below champion */}
         {supportCards.map((c, i) => {
-          const typeInfo = getTypeInfo(c.typeId)
           // Position: card is mostly behind the champion, only bottom PEEK*(i+1) px visible
           // For normal (bottom player): top = CARD_H - CARD_H + PEEK*(i+1) = PEEK*(i+1)
           //   but we want the card to start higher so it's hidden behind the champ.

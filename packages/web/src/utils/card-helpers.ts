@@ -1,4 +1,4 @@
-import type { CardInfo, PlayerBoard } from "../api.ts"
+import type { PlayerBoard } from "../api.ts"
 
 export const CARD_BACK_URL = "/api/cards/cardback.jpg"
 

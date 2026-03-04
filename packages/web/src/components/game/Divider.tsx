@@ -4,7 +4,7 @@ import { ManualControls } from "./ManualControls.tsx"
 import styles from "./Divider.module.css"
 
 export function Divider() {
-  const { playerA, playerB, phase, turnNumber, winner, activePlayer, playMode } = useGame()
+  const { playerA, phase, turnNumber, winner, activePlayer, playMode } = useGame()
   const activeLabel = activePlayer === playerA ? "Player A" : "Player B"
 
   // console.log("Phase is", phase)

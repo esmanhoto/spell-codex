@@ -75,7 +75,11 @@ export function Pool({ entries, isOpponent, lingeringSpells, ownerId }: {
       <div className={styles.zoneWrap}>
         <div className={styles.row}>
           {entries.map(e => (
-            <PoolEntry key={e.champion.instanceId} entry={e} isOpponent={isOpponent} />
+            <PoolEntry
+              key={e.champion.instanceId}
+              entry={e}
+              {...(isOpponent !== undefined ? { isOpponent } : {})}
+            />
           ))}
         </div>
         <div data-testid={ownerId ? `lasting-spells-${ownerId}` : undefined}>

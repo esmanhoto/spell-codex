@@ -21,7 +21,7 @@ export function PlayerArea({ board, playerId, isOpponent, attackedSlot }: {
         slots={board.formation}
         formationOwnerId={playerId}
         isOpponent={isOpponent}
-        attackedSlot={attackedSlot}
+        {...(attackedSlot ? { attackedSlot } : {})}
       />
     </div>
   )

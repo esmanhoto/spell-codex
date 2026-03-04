@@ -11,7 +11,7 @@ import { CardContextMenu } from "./CardContextMenu.tsx"
 import { WarningModal } from "./WarningModal.tsx"
 import styles from "./GameBoard.module.css"
 
-function AttackLine({ combat }: { combat: { targetSlot: string } }) {
+function AttackLine() {
   const [line, setLine] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
   const rafRef = useRef<number>(0)
 
@@ -110,7 +110,12 @@ export function GameBoard({ events, wsError }: {
 
         {/* Opponent area */}
         {boardB && (
-          <PlayerArea board={boardB} playerId={playerB} isOpponent attackedSlot={attackedSlotB} />
+          <PlayerArea
+            board={boardB}
+            playerId={playerB}
+            isOpponent
+            {...(attackedSlotB ? { attackedSlot: attackedSlotB } : {})}
+          />
         )}
 
         {/* Divider with phase tracker */}
@@ -118,7 +123,12 @@ export function GameBoard({ events, wsError }: {
 
         {/* Own area */}
         {boardA && (
-          <PlayerArea board={boardA} playerId={playerA} isOpponent={false} attackedSlot={attackedSlotA} />
+          <PlayerArea
+            board={boardA}
+            playerId={playerA}
+            isOpponent={false}
+            {...(attackedSlotA ? { attackedSlot: attackedSlotA } : {})}
+          />
         )}
 
         {/* Own hand (bottom) */}
@@ -143,7 +153,7 @@ export function GameBoard({ events, wsError }: {
         {combat && <CombatZone />}
 
         {/* SVG attack line from attacker to targeted realm */}
-        {combat && <AttackLine combat={combat} />}
+        {combat && <AttackLine />}
 
         {/* Context menu */}
         {contextMenu && (

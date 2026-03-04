@@ -154,7 +154,7 @@ export function PoolEntry({ entry, isOpponent }: {
                 showLabel={false}
                 draggable={isChampion && !isOpponent}
                 dragSource="pool"
-                contextActions={contextActions.length ? contextActions : undefined}
+                {...(contextActions.length > 0 ? { contextActions } : {})}
               />
             </div>
           )
