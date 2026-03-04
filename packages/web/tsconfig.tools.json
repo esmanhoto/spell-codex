@@ -3,10 +3,5 @@
   "compilerOptions": {
     "types": ["@types/bun", "node", "@playwright/test"]
   },
-  "include": [
-    "vite.config.ts",
-    "playwright.config.ts",
-    "playwright.auth.config.ts",
-    "e2e/**/*.ts"
-  ]
+  "include": ["vite.config.ts", "playwright.config.ts", "playwright.auth.config.ts", "e2e/**/*.ts"]
 }

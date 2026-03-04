@@ -16,8 +16,8 @@ export default defineConfig({
     proxy: {
       // Proxy API calls in dev so we avoid CORS issues
       "/api": {
-        target:    apiProxyTarget,
-        rewrite:   path => path.replace(/^\/api/, ""),
+        target: apiProxyTarget,
+        rewrite: (path) => path.replace(/^\/api/, ""),
         changeOrigin: true,
       },
       // Proxy WS upgrades in dev (`ws://localhost:5173/ws` -> API `:3001/ws`)
