@@ -24,13 +24,10 @@ test("two authenticated users can create/join and receive realtime updates", asy
     await expect(page.getByTestId("game-board")).toBeVisible()
     await expect(pageB.getByTestId("phase-pill-START_OF_TURN")).toHaveAttribute("data-active", "true")
 
-    await page
-      .getByTestId(`move-panel-${AUTH_USER_A.userId}`)
-      .locator('button[data-move-type="PASS"]')
-      .first()
-      .click()
+    await page.getByTestId("manual-controls").getByRole("button", { name: "End Turn" }).click()
 
-    await expect(pageB.getByTestId("phase-pill-PLAY_REALM")).toHaveAttribute("data-active", "true", { timeout: 8_000 })
+    await expect(pageB.getByTestId("turn-info")).toContainText("Turn 2", { timeout: 8_000 })
+    await expect(pageB.getByTestId("active-player-label")).toContainText("Player A")
   } finally {
     await contextB.close()
   }

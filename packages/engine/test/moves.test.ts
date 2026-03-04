@@ -287,9 +287,11 @@ describe("TOGGLE_HOLDING_REVEAL", () => {
 // ─── getLegalMoves ────────────────────────────────────────────────────────────
 
 describe("getLegalMoves", () => {
-  test("non-active player gets no legal moves (out of combat)", () => {
+  test("non-active player can still switch play mode (out of combat)", () => {
     const state = initGame(DEFAULT_CONFIG)
-    expect(getLegalMoves(state, "p2")).toHaveLength(0)
+    const moves = getLegalMoves(state, "p2")
+    expect(moves).toHaveLength(1)
+    expect(moves[0]).toEqual({ type: "SET_PLAY_MODE", mode: "full_manual" })
   })
 
   test("START_OF_TURN always includes PASS", () => {
@@ -307,7 +309,7 @@ describe("getLegalMoves", () => {
     s = { ...s, players: { ...s.players, p1: { ...player, hand: [...player.hand, ...extra] } } }
 
     const moves = getLegalMoves(s, "p1")
-    expect(moves.every(m => m.type === "DISCARD_CARD")).toBe(true)
+    expect(moves.every(m => m.type === "DISCARD_CARD" || m.type === "SET_PLAY_MODE")).toBe(true)
     expect(moves.some(m => m.type === "PASS")).toBe(false)
   })
 
@@ -342,6 +344,170 @@ describe("getLegalMoves", () => {
     const s = { ...initGame(DEFAULT_CONFIG), winner: "p1" }
     expect(getLegalMoves(s, "p1")).toHaveLength(0)
     expect(getLegalMoves(s, "p2")).toHaveLength(0)
+  })
+})
+
+describe("play mode governance", () => {
+  test("out-of-turn mode switch is allowed for either participant", () => {
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "semi_auto" })
+    const { newState, events } = applyMove(s, "p2", { type: "SET_PLAY_MODE", mode: "full_manual" })
+
+    expect(newState.playMode).toBe("full_manual")
+    expect(events.some(e => e.type === "PLAY_MODE_CHANGED")).toBe(true)
+  })
+
+  test("full_manual END_TURN always advances turn and resets phase/combat flags", () => {
+    const attacker: CardInstance = { instanceId: "attacker", card: CHAMPION_WIZARD_FR }
+    const defender: CardInstance = { instanceId: "defender", card: CHAMPION_CLERIC_FR }
+
+    let s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    s = {
+      ...s,
+      phase: Phase.Combat,
+      hasAttackedThisTurn: true,
+      hasPlayedRealmThisTurn: true,
+      combatState: {
+        attackingPlayer: "p1",
+        defendingPlayer: "p2",
+        targetRealmSlot: "A",
+        roundPhase: "CARD_PLAY",
+        attacker,
+        defender,
+        attackerCards: [],
+        defenderCards: [],
+        championsUsedThisBattle: [attacker.instanceId, defender.instanceId],
+        attackerManualLevel: null,
+        defenderManualLevel: null,
+      },
+    }
+
+    const { newState } = applyMove(s, "p1", { type: "END_TURN" })
+    expect(newState.activePlayer).toBe("p2")
+    expect(newState.currentTurn).toBe(2)
+    expect(newState.phase).toBe(Phase.StartOfTurn)
+    expect(newState.combatState).toBeNull()
+    expect(newState.hasAttackedThisTurn).toBe(false)
+    expect(newState.hasPlayedRealmThisTurn).toBe(false)
+  })
+
+  test("manual card actions are phase-independent in full_manual", () => {
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const card = s.players["p1"]!.hand[0]
+    expect(card).toBeDefined()
+
+    const { newState } = applyMove(s, "p1", {
+      type: "MANUAL_DISCARD",
+      cardInstanceId: card!.instanceId,
+    })
+
+    expect(newState.players["p1"]!.hand.some(c => c.instanceId === card!.instanceId)).toBe(false)
+    expect(newState.players["p1"]!.discardPile.some(c => c.instanceId === card!.instanceId)).toBe(true)
+  })
+
+  test("MANUAL_PLAY_CARD can discard from hand regardless phase gating", () => {
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const card = s.players["p1"]!.hand[0]
+    expect(card).toBeDefined()
+
+    const { newState } = applyMove(s, "p1", {
+      type: "MANUAL_PLAY_CARD",
+      cardInstanceId: card!.instanceId,
+      targetKind: "none",
+      resolution: "discard",
+    })
+
+    expect(newState.players["p1"]!.hand.some(c => c.instanceId === card!.instanceId)).toBe(false)
+    expect(newState.players["p1"]!.discardPile.some(c => c.instanceId === card!.instanceId)).toBe(true)
+  })
+
+  test("MANUAL_PLAY_CARD lasting_target can attach to opponent realm", () => {
+    const card: CardInstance = { instanceId: "manual-card", card: ALLY_PLUS4 }
+    const opponentRealm: CardInstance = { instanceId: "opp-realm", card: REALM_FR }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withSetup = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [card, ...s.players["p1"]!.hand],
+        },
+        p2: {
+          ...s.players["p2"]!,
+          formation: {
+            ...s.players["p2"]!.formation,
+            slots: {
+              ...s.players["p2"]!.formation.slots,
+              A: { realm: opponentRealm, isRazed: false, holdings: [] },
+            },
+          },
+        },
+      },
+    }
+
+    const { newState } = applyMove(withSetup, "p1", {
+      type: "MANUAL_PLAY_CARD",
+      cardInstanceId: "manual-card",
+      targetKind: "card",
+      resolution: "lasting_target",
+      targetOwner: "opponent",
+      targetCardInstanceId: "opp-realm",
+    })
+
+    expect(newState.players["p1"]!.hand.some(c => c.instanceId === "manual-card")).toBe(false)
+    expect(
+      newState.players["p2"]!.formation.slots["A"]!.holdings.some(c => c.instanceId === "manual-card"),
+    ).toBe(true)
+  })
+
+  test("MANUAL_PLAY_CARD lasting places champion into pool", () => {
+    const manualChampion: CardInstance = { instanceId: "manual-champ", card: CHAMPION_CLERIC_FR }
+    const s = initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" })
+    const withHandChampion = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [manualChampion, ...s.players["p1"]!.hand],
+        },
+      },
+    }
+
+    const { newState } = applyMove(withHandChampion, "p1", {
+      type: "MANUAL_PLAY_CARD",
+      cardInstanceId: "manual-champ",
+      targetKind: "none",
+      resolution: "lasting",
+    })
+
+    expect(newState.players["p1"]!.hand.some(c => c.instanceId === "manual-champ")).toBe(false)
+    expect(newState.players["p1"]!.pool.some(entry => entry.champion.instanceId === "manual-champ")).toBe(true)
+  })
+
+  test("manual->semi_auto switch is blocked when board is inconsistent", () => {
+    const attacker: CardInstance = { instanceId: "attacker", card: CHAMPION_WIZARD_FR }
+    const defender: CardInstance = { instanceId: "defender", card: CHAMPION_CLERIC_FR }
+
+    const s: GameState = {
+      ...initGame({ ...DEFAULT_CONFIG, playMode: "full_manual" }),
+      phase: Phase.Combat,
+      combatState: {
+        attackingPlayer: "p1",
+        defendingPlayer: "p2",
+        targetRealmSlot: "A",
+        roundPhase: "CARD_PLAY",
+        attacker,
+        defender,
+        attackerCards: [],
+        defenderCards: [],
+        championsUsedThisBattle: [attacker.instanceId, defender.instanceId],
+        attackerManualLevel: null,
+        defenderManualLevel: null,
+      },
+    }
+
+    expect(() => applyMove(s, "p1", { type: "SET_PLAY_MODE", mode: "semi_auto" })).toThrow(EngineError)
   })
 })
 

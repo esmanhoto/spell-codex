@@ -20,6 +20,22 @@ describe("initGame", () => {
     expect(state.phase).toBe(Phase.StartOfTurn)
   })
 
+  test("defaults to full_manual when mode not provided", () => {
+    const state = initGame({
+      gameId: DEFAULT_CONFIG.gameId,
+      players: DEFAULT_CONFIG.players,
+      seed: DEFAULT_CONFIG.seed,
+      ...(DEFAULT_CONFIG.formationSize != null ? { formationSize: DEFAULT_CONFIG.formationSize } : {}),
+    })
+    expect(state.playMode).toBe("full_manual")
+  })
+
+  test("manual settings default from deck profile", () => {
+    const state = initGame(DEFAULT_CONFIG)
+    expect(state.manualSettings.drawCount).toBe(HAND_SIZES[state.deckSize]!.drawPerTurn)
+    expect(state.manualSettings.maxHandSize).toBe(HAND_SIZES[state.deckSize]!.maxEnd)
+  })
+
   test("first player is active", () => {
     const state = initGame(DEFAULT_CONFIG)
     expect(state.activePlayer).toBe("p1")

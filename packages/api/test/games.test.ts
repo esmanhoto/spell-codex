@@ -112,6 +112,7 @@ describe("GET /games/:id", () => {
     const body = await res.json() as Record<string, unknown>
     expect(body.gameId).toBe(gameId)
     expect(body.phase).toBeString()
+    expect(body.playMode).toBe("full_manual")
     expect(Array.isArray(body.legalMoves)).toBe(true)
   })
 
@@ -211,7 +212,35 @@ describe("POST /games/:id/moves", () => {
       headers: headers(PLAYER_B), // not the active player
       body:    JSON.stringify({ type: "PASS" }),
     })
-    expect(res.status).toBe(409)
+    expect(res.status).toBe(422)
+    const body = await res.json() as { code?: string }
+    expect(body.code).toBe("NOT_YOUR_TURN")
+  })
+
+  it("accepts out-of-turn mode switch from a participant", async () => {
+    const res = await app.request(`/games/${gameId}/moves`, {
+      method: "POST",
+      headers: headers(PLAYER_B),
+      body: JSON.stringify({ type: "SET_PLAY_MODE", mode: "semi_auto" }),
+    })
+    expect(res.status).toBe(201)
+
+    const stateRes = await app.request(`/games/${gameId}`, {
+      headers: headers(PLAYER_A),
+    })
+    expect(stateRes.status).toBe(200)
+    const state = await stateRes.json() as { playMode: string }
+    expect(state.playMode).toBe("semi_auto")
+  })
+
+  it("still rejects move submission from non-participants", async () => {
+    const outsider = "00000000-0000-0000-0000-000000000099"
+    const res = await app.request(`/games/${gameId}/moves`, {
+      method: "POST",
+      headers: headers(outsider),
+      body: JSON.stringify({ type: "SET_PLAY_MODE", mode: "full_manual" }),
+    })
+    expect(res.status).toBe(403)
   })
 
   it("rejects an invalid move type", async () => {
@@ -221,5 +250,7 @@ describe("POST /games/:id/moves", () => {
       body:    JSON.stringify({ type: "EXPLODE_EVERYTHING" }),
     })
     expect(res.status).toBe(422)
+    const body = await res.json() as { code?: string }
+    expect(body.code).toBe("UNKNOWN_MOVE")
   })
 })

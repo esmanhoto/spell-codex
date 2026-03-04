@@ -196,6 +196,6 @@ export const DEFAULT_CONFIG: GameConfig = {
     { id: "p2", deckCards: DECK_P2 },
   ],
   seed: 42,
+  playMode: "semi_auto",
   formationSize: 6,
 }
-
