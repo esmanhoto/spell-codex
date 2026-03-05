@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
+import { Plus, LogIn, Users, Swords } from "lucide-react"
 import { listDecks, getDeck, createLobbyGame, joinLobbyGame, getLobbyStatus } from "../api.ts"
 import { useAuth } from "../auth.tsx"
+import styles from "./NewGame.module.css"
 
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
@@ -55,6 +57,7 @@ export function NewGame() {
         deck: cards,
       })
       setWaitingGameId(gameId)
+      setMode(null)
       setInfo("Game created. Share this Game ID so your friend can join.")
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create game")
@@ -109,129 +112,233 @@ export function NewGame() {
     setWaitingGameId(null)
   }
 
+  function openMode(nextMode: Exclude<LobbyMode, null>) {
+    setError(null)
+    setInfo(null)
+    setMode(nextMode)
+  }
+
   const decks = deckList?.decks ?? []
 
   return (
-    <div className="page" data-testid="lobby-page">
-      <h1>Spellfire</h1>
-      <h2>Lobby</h2>
+    <div className={styles.lobbyPage} data-testid="lobby-page">
+      <header className={styles.topBar}>
+        <div className={styles.topBrand}>
+          <img className={styles.logo} src="/auth/codex-frog-logo.png" alt="Codex logo" />
+          <h1 className={styles.brandName}>CODEX</h1>
+        </div>
 
-      <div className="form">
-        {!waitingGameId && mode == null && (
-          <>
-            <button type="button" data-testid="create-mode-btn" onClick={() => setMode("create")}>
-              Create a New Game
-            </button>
-            <button type="button" data-testid="join-mode-btn" onClick={() => setMode("join")}>
-              Join a Game
-            </button>
-          </>
-        )}
+        <div className={styles.topTools}>
+          <div className={styles.onlineBadge}>
+            <span className={styles.onlineDot} aria-hidden />
+            <span>Online</span>
+          </div>
+          <button className={styles.signOut} type="button" onClick={() => signOut()}>
+            Sign Out
+          </button>
+        </div>
+      </header>
 
-        {!waitingGameId && mode === "create" && (
-          <>
-            <label>
-              Your Deck
-              <select
-                data-testid="create-deck-select"
-                value={createDeck}
-                onChange={(e) => setCreateDeck(e.target.value)}
-              >
-                {decks.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </label>
+      <main className={styles.mainContent}>
+        <section className={styles.leftColumn}>
+          <div className={styles.hero}>
+            <h2 className={styles.heroTitle}>Ready for Battle?</h2>
+            <p className={styles.heroSubtitle}>Create a game or join a friend&apos;s match</p>
+          </div>
+
+          <div className={styles.actions}>
             <button
-              data-testid="create-game-btn"
-              onClick={handleCreate}
-              disabled={loading || decks.length === 0}
-            >
-              {loading ? "Creating..." : "Create Game"}
-            </button>
-            <button type="button" onClick={resetToMenu}>
-              Back
-            </button>
-          </>
-        )}
-
-        {!waitingGameId && mode === "join" && (
-          <>
-            <label>
-              Game ID
-              <input
-                data-testid="join-game-id-input"
-                value={joinGameId}
-                onChange={(e) => setJoinGameId(e.target.value)}
-                placeholder="Paste game UUID"
-              />
-            </label>
-            <label>
-              Your Deck
-              <select
-                data-testid="join-deck-select"
-                value={joinDeck}
-                onChange={(e) => setJoinDeck(e.target.value)}
-              >
-                {decks.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              data-testid="join-game-btn"
-              onClick={handleJoin}
-              disabled={loading || decks.length === 0 || joinGameId.trim().length === 0}
-            >
-              {loading ? "Joining..." : "Join Game"}
-            </button>
-            <button type="button" onClick={resetToMenu}>
-              Back
-            </button>
-          </>
-        )}
-
-        {waitingGameId && (
-          <div data-testid="waiting-room">
-            <label>
-              Game ID
-              <input data-testid="created-game-id-input" value={waitingGameId} readOnly />
-            </label>
-            <button type="button" data-testid="copy-game-id-btn" onClick={copyGameId}>
-              Copy Game ID
-            </button>
-            <p className="hint">Waiting for opponent to join...</p>
-            <p className="hint" data-testid="waiting-player-count">
-              Players in room: {lobbyStatus?.playerCount ?? 1}/2
-            </p>
-            <button
+              className={styles.actionCard}
               type="button"
-              data-testid="enter-game-btn"
-              disabled={lobbyStatus?.status !== "active"}
-              onClick={() => navigate(`/game/${waitingGameId}`)}
+              data-testid="create-mode-btn"
+              onClick={() => openMode("create")}
             >
-              Enter Game
+              <span className={styles.createIcon} aria-hidden>
+                <Plus className={styles.iconGlyph} />
+              </span>
+              <span className={styles.actionTitle}>Create Game</span>
+              <span className={styles.actionHint}>Host a new match</span>
             </button>
-            <button type="button" onClick={resetToMenu}>
-              Cancel
+
+            <button
+              className={styles.actionCard}
+              type="button"
+              data-testid="join-mode-btn"
+              onClick={() => openMode("join")}
+            >
+              <span className={styles.joinIcon} aria-hidden>
+                <LogIn className={styles.iconGlyph} />
+              </span>
+              <span className={styles.actionTitle}>Join Game</span>
+              <span className={styles.actionHint}>Enter a game code</span>
             </button>
           </div>
-        )}
+        </section>
 
+        <aside className={styles.rightColumn}>
+          <h3 className={styles.rightTitle}>
+            <Users className={styles.rightTitleIcon} aria-hidden />
+            Waiting Lobby
+          </h3>
+
+          {!waitingGameId && (
+            <div className={styles.emptyState}>
+              <Swords className={styles.emptyIcon} aria-hidden />
+              <p className={styles.emptyStrong}>No active games</p>
+              <p className={styles.emptySub}>Create or join a game to get started</p>
+            </div>
+          )}
+
+          {waitingGameId && (
+            <div className={styles.waitingRoom} data-testid="waiting-room">
+              <div className={styles.waitingCard}>
+                <p className={styles.waitingLabel}>Your Game</p>
+
+                <label className={styles.field}>
+                  <span className={styles.subLabel}>Game ID</span>
+                  <input
+                    className={styles.input}
+                    data-testid="created-game-id-input"
+                    value={waitingGameId}
+                    readOnly
+                  />
+                </label>
+
+                <button
+                  className={styles.secondaryBtn}
+                  type="button"
+                  data-testid="copy-game-id-btn"
+                  onClick={copyGameId}
+                >
+                  Copy Game ID
+                </button>
+
+                <p className={styles.waitingHint}>Waiting for opponent...</p>
+                <p className={styles.waitingHint} data-testid="waiting-player-count">
+                  Players in room: {lobbyStatus?.playerCount ?? 1}/2
+                </p>
+              </div>
+
+              <button
+                className={styles.secondaryBtn}
+                type="button"
+                data-testid="enter-game-btn"
+                disabled={lobbyStatus?.status !== "active"}
+                onClick={() => navigate(`/game/${waitingGameId}`)}
+              >
+                Enter Game
+              </button>
+
+              <button className={styles.secondaryBtn} type="button" onClick={resetToMenu}>
+                Cancel
+              </button>
+            </div>
+          )}
+        </aside>
+      </main>
+
+      {mode && !waitingGameId && (
+        <div className={styles.modalOverlay} onClick={resetToMenu}>
+          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            {mode === "create" && (
+              <>
+                <h3 className={styles.modalTitle}>Create Game</h3>
+                <p className={styles.modalSubtitle}>Set up your match and invite a friend</p>
+
+                <label className={styles.field}>
+                  <span className={styles.label}>Choose your deck</span>
+                  <select
+                    className={styles.select}
+                    data-testid="create-deck-select"
+                    value={createDeck}
+                    onChange={(e) => setCreateDeck(e.target.value)}
+                  >
+                    {decks.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className={styles.modalActions}>
+                  <button className={styles.modalCancelBtn} type="button" onClick={resetToMenu}>
+                    Back
+                  </button>
+                  <button
+                    className={styles.modalCreateBtn}
+                    data-testid="create-game-btn"
+                    onClick={handleCreate}
+                    disabled={loading || decks.length === 0}
+                  >
+                    {loading ? "Creating..." : "Create"}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {mode === "join" && (
+              <>
+                <h3 className={styles.modalTitle}>Join Game</h3>
+                <p className={styles.modalSubtitle}>Enter the game code shared by your opponent</p>
+
+                <label className={styles.field}>
+                  <span className={styles.label}>Game ID</span>
+                  <input
+                    className={styles.input}
+                    data-testid="join-game-id-input"
+                    value={joinGameId}
+                    onChange={(e) => setJoinGameId(e.target.value)}
+                    placeholder="Paste game UUID"
+                  />
+                </label>
+
+                <label className={styles.field}>
+                  <span className={styles.label}>Choose your deck</span>
+                  <select
+                    className={styles.select}
+                    data-testid="join-deck-select"
+                    value={joinDeck}
+                    onChange={(e) => setJoinDeck(e.target.value)}
+                  >
+                    {decks.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className={styles.modalActions}>
+                  <button className={styles.modalCancelBtn} type="button" onClick={resetToMenu}>
+                    Back
+                  </button>
+                  <button
+                    className={styles.modalJoinBtn}
+                    data-testid="join-game-btn"
+                    onClick={handleJoin}
+                    disabled={loading || decks.length === 0 || joinGameId.trim().length === 0}
+                  >
+                    {loading ? "Joining..." : "Join"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className={styles.feedback}>
         {error && (
-          <p className="error" data-testid="new-game-error">
+          <p className={styles.error} data-testid="new-game-error">
             {error}
           </p>
         )}
-        {info && <p data-testid="new-game-info">{info}</p>}
-
-        <button type="button" onClick={() => signOut()}>
-          Sign Out
-        </button>
+        {info && (
+          <p className={styles.info} data-testid="new-game-info">
+            {info}
+          </p>
+        )}
       </div>
     </div>
   )
