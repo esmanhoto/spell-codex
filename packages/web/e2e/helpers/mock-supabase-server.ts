@@ -33,6 +33,12 @@ const usersByToken = new Map<string, MockUser>(
   Array.from(usersByEmail.values()).map((user) => [user.accessToken, user]),
 )
 
+function createMockUser(email: string, password: string): MockUser {
+  const userId = crypto.randomUUID()
+  const accessToken = `token-${userId}`
+  return { email, password, userId, accessToken }
+}
+
 function corsHeaders(origin: string | null): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": origin ?? "*",
@@ -120,6 +126,40 @@ bunRuntime.Bun.serve({
         )
       }
 
+      return json(
+        {
+          access_token: user.accessToken,
+          token_type: "bearer",
+          expires_in: 3600,
+          user: {
+            id: user.userId,
+            email: user.email,
+          },
+        },
+        200,
+        origin,
+      )
+    }
+
+    if (url.pathname === "/auth/v1/signup" && req.method === "POST") {
+      const apiKeyError = requireApiKey(req, origin)
+      if (apiKeyError) return apiKeyError
+
+      const body = await parseBody(req)
+      if (!body) return json({ error: "invalid_json" }, 400, origin)
+
+      const email = typeof body["email"] === "string" ? body["email"].trim().toLowerCase() : ""
+      const password = typeof body["password"] === "string" ? body["password"] : ""
+      if (email.length === 0 || password.length < 6) {
+        return json({ msg: "Email + password(6+) required" }, 400, origin)
+      }
+      if (usersByEmail.has(email)) {
+        return json({ msg: "User already registered" }, 422, origin)
+      }
+
+      const user = createMockUser(email, password)
+      usersByEmail.set(email, user)
+      usersByToken.set(user.accessToken, user)
       return json(
         {
           access_token: user.accessToken,
