@@ -20,6 +20,7 @@ interface AuthContextType {
   bypass: boolean
   configError: string | null
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>
+  signUpWithPassword: (email: string, password: string) => Promise<{ error: string | null }>
   signInWithGoogle: () => Promise<{ error: string | null }>
   signOut: () => Promise<void>
   setBypassUserId: (userId: string) => void
@@ -32,10 +33,28 @@ const AuthContext = createContext<AuthContextType>({
   bypass: false,
   configError: null,
   signInWithPassword: async () => ({ error: "Auth not initialized" }),
+  signUpWithPassword: async () => ({ error: "Auth not initialized" }),
   signInWithGoogle: async () => ({ error: "Auth not initialized" }),
   signOut: async () => {},
   setBypassUserId: () => {},
 })
+
+type SupabaseAuthResponse = {
+  access_token?: unknown
+  user?: { id?: unknown }
+  msg?: unknown
+  error_description?: unknown
+  error?: unknown
+}
+
+function authErrorMessage(body: SupabaseAuthResponse, fallback: string): string {
+  return (
+    (typeof body.msg === "string" && body.msg) ||
+    (typeof body.error_description === "string" && body.error_description) ||
+    (typeof body.error === "string" && body.error) ||
+    fallback
+  )
+}
 
 function consumeTokenFromUrlHash(): string | null {
   const hash = window.location.hash.startsWith("#")
@@ -151,21 +170,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     )
 
-    const body = (await response.json()) as {
-      access_token?: unknown
-      user?: { id?: unknown }
-      msg?: unknown
-      error_description?: unknown
-      error?: unknown
-    }
+    const body = (await response.json()) as SupabaseAuthResponse
 
     if (!response.ok) {
-      const msg =
-        (typeof body.msg === "string" && body.msg) ||
-        (typeof body.error_description === "string" && body.error_description) ||
-        (typeof body.error === "string" && body.error) ||
-        "Invalid email/password"
-      return { error: msg }
+      return { error: authErrorMessage(body, "Invalid email/password") }
     }
 
     const token = typeof body.access_token === "string" ? body.access_token : null
@@ -176,6 +184,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     sessionStorage.setItem(TOKEN_STORAGE_KEY, token)
     setIdentity({ userId, accessToken: token })
+    return { error: null }
+  }
+
+  async function signUpWithPassword(
+    email: string,
+    password: string,
+  ): Promise<{ error: string | null }> {
+    if (BYPASS) return { error: null }
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      return { error: "Supabase client not configured" }
+    }
+
+    const response = await fetch(`${SUPABASE_URL.replace(/\/$/, "")}/auth/v1/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ email, password }),
+    })
+
+    const body = (await response.json()) as SupabaseAuthResponse
+    if (!response.ok) {
+      return { error: authErrorMessage(body, "Could not create account") }
+    }
+
+    const token = typeof body.access_token === "string" ? body.access_token : null
+    const userId = typeof body.user?.id === "string" ? body.user.id : null
+    if (token && userId) {
+      sessionStorage.setItem(TOKEN_STORAGE_KEY, token)
+      setIdentity({ userId, accessToken: token })
+      return { error: null }
+    }
+
+    const signInResult = await signInWithPassword(email, password)
+    if (signInResult.error) return { error: "Account created. Sign in once email is confirmed." }
     return { error: null }
   }
 
@@ -223,6 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       bypass: BYPASS,
       configError,
       signInWithPassword,
+      signUpWithPassword,
       signInWithGoogle,
       signOut,
       setBypassUserId,
