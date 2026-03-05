@@ -14,3 +14,14 @@ test("password login rejects invalid credentials", async ({ page }) => {
   await page.getByTestId("login-password-btn").click()
   await expect(page.getByTestId("login-error")).toContainText("Invalid login credentials")
 })
+
+test("create account signs user in", async ({ page }) => {
+  const email = `new.player.${Date.now()}@example.com`
+  await page.goto("/login")
+  await page.getByTestId("auth-toggle-mode-btn").click()
+  await page.getByTestId("login-email-input").fill(email)
+  await page.getByTestId("login-password-input").fill("password123")
+  await page.getByTestId("signup-confirm-password-input").fill("password123")
+  await page.getByTestId("login-password-btn").click()
+  await expect(page.getByTestId("lobby-page")).toBeVisible()
+})
