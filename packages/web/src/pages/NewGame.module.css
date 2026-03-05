@@ -1,0 +1,549 @@
+.lobbyPage {
+  --background: 220 20% 8%;
+  --foreground: 45 20% 85%;
+  --card: 220 15% 14%;
+  --popover: 220 18% 12%;
+  --border: 220 15% 20%;
+  --input: 220 15% 18%;
+  --ring: 45 70% 50%;
+  --muted-foreground: 220 10% 50%;
+  --gold: 45 70% 50%;
+  --gold-dim: 45 50% 30%;
+  --gold-bright: 45 80% 65%;
+  --arcane-blue: 200 60% 40%;
+  --arcane-glow: 200 80% 55%;
+  --realm-green: 140 40% 35%;
+  --realm-glow: 140 50% 50%;
+  --zone-bg: 220 15% 10%;
+  --table-surface: 220 22% 7%;
+  --table-felt: 150 26% 14%;
+  position: relative;
+  min-height: 100svh;
+  color: hsl(var(--foreground));
+  font-family: "Crimson Text", Georgia, serif;
+  overflow: hidden;
+  background: radial-gradient(
+    ellipse at 30% 50%,
+    hsl(var(--table-felt)) 0%,
+    hsl(var(--table-surface)) 70%
+  );
+}
+
+.lobbyPage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/auth/login-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  filter: saturate(1.16) hue-rotate(14deg) brightness(0.86);
+  pointer-events: none;
+}
+
+.lobbyPage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 78%, rgb(84 140 82 / 18%), transparent 35%),
+    linear-gradient(180deg, rgb(8 16 29 / 28%), rgb(3 7 14 / 62%));
+}
+
+.topBar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 22px;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  background: hsl(var(--card) / 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.topBrand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+}
+
+.brandName {
+  margin: 0;
+  color: hsl(var(--gold-bright));
+  font-family: "Cinzel", serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.topTools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.onlineBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.onlineDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: hsl(var(--realm-glow));
+  box-shadow: 0 0 10px hsl(var(--realm-glow) / 0.5);
+}
+
+.signOut {
+  border: 1px solid hsl(var(--border) / 0.75);
+  background: hsl(var(--card) / 0.45);
+  color: hsl(var(--foreground) / 0.9);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-family: "Cinzel", serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.signOut:hover {
+  background: hsl(var(--card) / 0.65);
+}
+
+.mainContent {
+  position: relative;
+  z-index: 2;
+  width: min(1200px, 100% - 48px);
+  margin: 54px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 40px;
+  align-items: start;
+}
+
+.leftColumn {
+  display: grid;
+  justify-items: center;
+  gap: 24px;
+}
+
+.hero {
+  text-align: center;
+}
+
+.heroTitle {
+  margin: 0;
+  color: hsl(var(--gold));
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.heroSubtitle {
+  margin-top: 8px;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+.actions {
+  width: min(100%, 500px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.actionCard {
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  background: hsl(var(--card) / 0.6);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px hsl(220 20% 4% / 0.4);
+  color: hsl(var(--foreground));
+  padding: 22px 14px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.actionCard:hover {
+  transform: translateY(-2px);
+  border-color: hsl(var(--gold) / 0.5);
+}
+
+.createIcon,
+.joinIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: hsl(220 20% 8%);
+}
+
+.createIcon {
+  background: linear-gradient(135deg, hsl(var(--realm-green)), hsl(var(--realm-glow)));
+  box-shadow: 0 0 20px hsl(var(--realm-glow) / 0.2);
+}
+
+.joinIcon {
+  background: linear-gradient(135deg, hsl(var(--arcane-blue)), hsl(var(--arcane-glow)));
+  box-shadow: 0 0 20px hsl(var(--arcane-glow) / 0.2);
+}
+
+.iconGlyph {
+  width: 28px;
+  height: 28px;
+}
+
+.actionTitle {
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.actionHint {
+  color: hsl(var(--muted-foreground));
+  font-family: "Cinzel", serif;
+  font-size: 0.75rem;
+}
+
+.rightColumn {
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  padding: 18px;
+  background: hsl(var(--card) / 0.5);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px hsl(220 20% 4% / 0.4);
+}
+
+.rightTitle {
+  margin: 0 0 14px;
+  color: hsl(var(--gold));
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.rightTitleIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.emptyState {
+  min-height: 188px;
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 12px;
+  background: hsl(var(--zone-bg) / 0.45);
+  display: grid;
+  place-content: center;
+  text-align: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 14px;
+}
+
+.emptyIcon {
+  width: 24px;
+  height: 24px;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.3;
+  margin-bottom: 12px;
+}
+
+.emptyStrong {
+  margin: 0;
+  color: hsl(var(--foreground) / 0.9);
+  font-size: 0.75rem;
+}
+
+.emptySub {
+  margin: 0;
+  color: hsl(var(--muted-foreground) / 0.6);
+  font-size: 0.625rem;
+}
+
+.waitingRoom {
+  display: grid;
+  gap: 10px;
+}
+
+.waitingCard {
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: 12px;
+  background: hsl(var(--zone-bg) / 0.6);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.waitingLabel {
+  margin: 0;
+  color: hsl(var(--realm-glow));
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.label,
+.subLabel {
+  color: hsl(var(--gold-dim));
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.625rem;
+  font-weight: 600;
+}
+
+.input,
+.select {
+  width: 100%;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: hsl(var(--input));
+  color: hsl(var(--foreground));
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.875rem;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 1px hsl(var(--ring));
+}
+
+.secondaryBtn {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: hsl(var(--card) / 0.3);
+  color: hsl(var(--muted-foreground));
+  font-family: "Cinzel", serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.secondaryBtn:hover {
+  background: hsl(var(--card) / 0.65);
+}
+
+.secondaryBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.waitingHint {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: hsl(var(--background) / 0.7);
+  backdrop-filter: blur(4px);
+  padding: 16px;
+}
+
+.modalCard {
+  width: min(448px, 100%);
+  border-radius: 12px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card) / 0.9);
+  box-shadow:
+    0 0 60px hsl(var(--gold) / 0.06),
+    0 25px 50px hsl(220 20% 4% / 0.5);
+  backdrop-filter: blur(24px);
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+}
+
+.modalTitle {
+  margin: 0;
+  color: hsl(var(--gold));
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1.125rem;
+}
+
+.modalSubtitle {
+  margin: -2px 0 4px;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
+.modalActions {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modalCancelBtn {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 10px;
+  background: hsl(var(--card) / 0.45);
+  color: hsl(var(--muted-foreground));
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modalCancelBtn:hover {
+  background: hsl(var(--card) / 0.65);
+}
+
+.modalCreateBtn,
+.modalJoinBtn {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px;
+  color: hsl(var(--background));
+  font-family: "Cinzel", serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.modalCreateBtn {
+  background: linear-gradient(135deg, hsl(var(--realm-green)), hsl(var(--realm-glow)));
+  box-shadow: 0 4px 16px hsl(var(--realm-glow) / 0.25);
+}
+
+.modalJoinBtn {
+  background: linear-gradient(135deg, hsl(var(--arcane-blue)), hsl(var(--arcane-glow)));
+  box-shadow: 0 4px 16px hsl(var(--arcane-glow) / 0.25);
+}
+
+.modalCreateBtn:disabled,
+.modalJoinBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.feedback {
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: min(620px, calc(100% - 24px));
+  display: grid;
+  gap: 8px;
+}
+
+.error,
+.info {
+  margin: 0;
+  border-radius: 10px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card) / 0.85);
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+.error {
+  color: #ff9d9a;
+}
+
+.info {
+  color: #b8e0ae;
+}
+
+@media (max-width: 980px) {
+  .mainContent {
+    grid-template-columns: 1fr;
+    margin-top: 34px;
+    gap: 20px;
+  }
+
+  .rightColumn {
+    width: min(100%, 650px);
+    justify-self: center;
+  }
+
+  .modalCard {
+    width: min(448px, 100%);
+    padding: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topBar {
+    padding: 12px;
+  }
+
+  .brandName {
+    font-size: 1.3rem;
+  }
+
+  .mainContent {
+    width: calc(100% - 24px);
+    margin-top: 22px;
+  }
+
+  .heroTitle {
+    font-size: 1.25rem;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .modalActions {
+    grid-template-columns: 1fr;
+  }
+}
