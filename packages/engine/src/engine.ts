@@ -34,18 +34,18 @@ import {
   canPlayInCombat,
 } from "./legal-moves.ts"
 import { canChampionUseSpell, getCastPhases } from "./spell-gating.ts"
-
-// ─── Public API ───────────────────────────────────────────────────────────────
-
-export class EngineError extends Error {
-  constructor(
-    public readonly code: string,
-    message?: string,
-  ) {
-    super(message ?? code)
-    this.name = "EngineError"
-  }
-}
+import {
+  handleResolveMoveCard,
+  handleResolveAttachCard,
+  handleResolveRazeRealm,
+  handleResolveDrawCards,
+  handleResolveReturnToPool,
+  handleResolveSetCardDestination,
+  handleResolveDone,
+  openResolutionContext,
+} from "./resolution.ts"
+export { EngineError } from "./errors.ts"
+import { EngineError } from "./errors.ts"
 
 /**
  * The core engine function. Pure — no side effects.
@@ -127,11 +127,32 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "PLAY_EVENT":
       newState = handlePlaySpellCard(state, playerId, move, events)
       break
-    case "MANUAL_SET_COMBAT_LEVEL":
-      newState = handleManualSetCombatLevel(state, playerId, move, events)
+    case "SET_COMBAT_LEVEL":
+      newState = handleSetCombatLevel(state, playerId, move, events)
       break
-    case "MANUAL_SWITCH_COMBAT_SIDE":
-      newState = handleManualSwitchCombatSide(state, playerId, move, events)
+    case "SWITCH_COMBAT_SIDE":
+      newState = handleSwitchCombatSide(state, playerId, move, events)
+      break
+    case "RESOLVE_MOVE_CARD":
+      newState = handleResolveMoveCard(state, playerId, move, events)
+      break
+    case "RESOLVE_ATTACH_CARD":
+      newState = handleResolveAttachCard(state, playerId, move, events)
+      break
+    case "RESOLVE_RAZE_REALM":
+      newState = handleResolveRazeRealm(state, playerId, move, events)
+      break
+    case "RESOLVE_DRAW_CARDS":
+      newState = handleResolveDrawCards(state, playerId, move, events)
+      break
+    case "RESOLVE_RETURN_TO_POOL":
+      newState = handleResolveReturnToPool(state, playerId, move, events)
+      break
+    case "RESOLVE_SET_CARD_DESTINATION":
+      newState = handleResolveSetCardDestination(state, playerId, move, events)
+      break
+    case "RESOLVE_DONE":
+      newState = handleResolveDone(state, playerId, events)
       break
     default:
       throw new EngineError("UNKNOWN_MOVE", `Unrecognised move type`)
@@ -152,6 +173,11 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
 // ─── Out-of-turn validation ───────────────────────────────────────────────────
 
 function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move): boolean {
+  // During resolution, the resolving player can make RESOLVE_* moves even out of turn
+  if (state.resolutionContext && playerId === state.resolutionContext.resolvingPlayer) {
+    return move.type.startsWith("RESOLVE_")
+  }
+
   const combat = state.combatState
   if (!combat) return false
 
@@ -162,11 +188,11 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
   }
 
   if (combat.roundPhase === "CARD_PLAY") {
-    // Winning player may act out of turn only for events/manual combat control.
+    // Winning player may act out of turn only for events/combat control.
     return (
       move.type === "PLAY_EVENT" ||
-      move.type === "MANUAL_SET_COMBAT_LEVEL" ||
-      move.type === "MANUAL_SWITCH_COMBAT_SIDE"
+      move.type === "SET_COMBAT_LEVEL" ||
+      move.type === "SWITCH_COMBAT_SIDE"
     )
   }
 
@@ -594,7 +620,6 @@ function handlePlaySpellCard(
         cardNumber: card.card.cardNumber,
         cardName: card.card.name,
         cardTypeId: card.card.typeId,
-        keepInPlay: move.keepInPlay ?? false,
         ...(move.casterInstanceId != null ? { casterInstanceId: move.casterInstanceId } : {}),
         ...(move.targetCardInstanceId != null
           ? { targetCardInstanceId: move.targetCardInstanceId }
@@ -610,16 +635,12 @@ function handlePlaySpellCard(
     }
   }
 
-  // Events sent to Abyss, all other cards to discard pile
+  // Remove card from hand; open resolution context (player decides destination)
   const isEvent = card.card.typeId === CardTypeId.Event
-  const newDiscardPile = isEvent ? player.discardPile : [...player.discardPile, card]
-  const newAbyss = isEvent ? [...player.abyss, card] : player.abyss
+  const defaultDestination = isEvent ? "void" : "discard"
 
-  let s = updatePlayer(state, playerId, {
-    hand: newHand,
-    discardPile: newDiscardPile,
-    abyss: newAbyss,
-  })
+  let s = updatePlayer(state, playerId, { hand: newHand })
+  s = openResolutionContext(s, playerId, card, defaultDestination, events)
 
   return s
 }
@@ -863,20 +884,25 @@ function handlePlayCombatCard(
   const s = updatePlayer({ ...state, combatState: newCombat }, playerId, { hand: newHand })
 
   // Recalculate levels and update active player (new losing side goes next)
+  // Respect manual overrides — same logic as getLegalMoves/getCardPlayMoves
   const realmSlot = s.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
   const realmWorldId = realmSlot?.realm.card.worldId ?? 0
-  const attackerLevel = calculateCombatLevel(
-    newCombat.attacker!,
-    newCombat.attackerCards,
-    hasWorldMatch(newCombat.attacker!, realmWorldId),
-    "offensive",
-  )
-  const defenderLevel = calculateCombatLevel(
-    newCombat.defender!,
-    newCombat.defenderCards,
-    hasWorldMatch(newCombat.defender!, realmWorldId),
-    "defensive",
-  )
+  const attackerLevel =
+    newCombat.attackerManualLevel ??
+    calculateCombatLevel(
+      newCombat.attacker!,
+      newCombat.attackerCards,
+      hasWorldMatch(newCombat.attacker!, realmWorldId),
+      "offensive",
+    )
+  const defenderLevel =
+    newCombat.defenderManualLevel ??
+    calculateCombatLevel(
+      newCombat.defender!,
+      newCombat.defenderCards,
+      hasWorldMatch(newCombat.defender!, realmWorldId),
+      "defensive",
+    )
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
 
   return { ...s, activePlayer: losingPlayer }
@@ -969,14 +995,14 @@ function handleEndAttack(state: GameState, playerId: PlayerId, _events: GameEven
   return endBattle(state, combat.attackingPlayer, _events)
 }
 
-function handleManualSetCombatLevel(
+function handleSetCombatLevel(
   state: GameState,
   _playerId: PlayerId,
-  move: Extract<Move, { type: "MANUAL_SET_COMBAT_LEVEL" }>,
+  move: Extract<Move, { type: "SET_COMBAT_LEVEL" }>,
   events: GameEvent[],
 ): GameState {
   if (!state.combatState) {
-    throw new EngineError("NOT_IN_COMBAT", "MANUAL_SET_COMBAT_LEVEL requires active combat")
+    throw new EngineError("NOT_IN_COMBAT", "SET_COMBAT_LEVEL requires active combat")
   }
   const combat = state.combatState
   const isAttacker = combat.attackingPlayer === move.playerId
@@ -992,17 +1018,38 @@ function handleManualSetCombatLevel(
     ? { ...combat, attackerManualLevel: move.level }
     : { ...combat, defenderManualLevel: move.level }
 
-  return { ...state, combatState: newCombat }
+  // Recalculate who is losing after the level change and update active player
+  const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
+  const realmWorldId = realmSlot?.realm.card.worldId ?? 0
+  const newAttackerLevel =
+    newCombat.attackerManualLevel ??
+    calculateCombatLevel(
+      newCombat.attacker!,
+      newCombat.attackerCards,
+      hasWorldMatch(newCombat.attacker!, realmWorldId),
+      "offensive",
+    )
+  const newDefenderLevel =
+    newCombat.defenderManualLevel ??
+    calculateCombatLevel(
+      newCombat.defender!,
+      newCombat.defenderCards,
+      hasWorldMatch(newCombat.defender!, realmWorldId),
+      "defensive",
+    )
+  const losingPlayer = getLosingPlayer(newAttackerLevel, newDefenderLevel, newCombat)
+
+  return { ...state, combatState: newCombat, activePlayer: losingPlayer }
 }
 
-function handleManualSwitchCombatSide(
+function handleSwitchCombatSide(
   state: GameState,
   _playerId: PlayerId,
-  move: Extract<Move, { type: "MANUAL_SWITCH_COMBAT_SIDE" }>,
+  move: Extract<Move, { type: "SWITCH_COMBAT_SIDE" }>,
   events: GameEvent[],
 ): GameState {
   if (!state.combatState) {
-    throw new EngineError("NOT_IN_COMBAT", "MANUAL_SWITCH_COMBAT_SIDE requires active combat")
+    throw new EngineError("NOT_IN_COMBAT", "SWITCH_COMBAT_SIDE requires active combat")
   }
   const combat = state.combatState
   const { cardInstanceId } = move
@@ -1018,12 +1065,15 @@ function handleManualSwitchCombatSide(
     (c) => c.instanceId === cardInstanceId,
   )!
 
+  const from = inAttacker ? "attacker_combat" : "defender_combat"
+  const to = inAttacker ? "defender_combat" : "attacker_combat"
+
   events.push({
-    type: "MANUAL_ZONE_MOVE",
+    type: "COMBAT_CARD_SWITCHED",
     playerId: inAttacker ? combat.attackingPlayer : combat.defendingPlayer,
     instanceId: cardInstanceId,
-    from: inAttacker ? "attacker_combat" : "defender_combat",
-    to: inAttacker ? "defender_combat" : "attacker_combat",
+    from,
+    to,
   })
 
   const newCombat: CombatState = inAttacker
