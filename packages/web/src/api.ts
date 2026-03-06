@@ -58,20 +58,11 @@ export interface CombatInfo {
   defenderManualLevel: number | null
 }
 
-export type PlayMode = "full_manual" | "semi_auto"
-
-export interface ManualSettings {
-  drawCount: number
-  maxHandSize: number
-}
-
 export interface GameState {
   gameId: string
   viewerPlayerId: string | null
   playerOrder: string[]
   status: string
-  playMode: PlayMode
-  manualSettings: ManualSettings
   phase: string
   activePlayer: string
   turnNumber: number
@@ -98,27 +89,9 @@ export interface AuthIdentity {
 }
 
 // Moves — mirror the engine's Move union (field names must match exactly)
-export type ManualAction = "discard" | "to_limbo" | "to_abyss" | "raze_realm"
-export type ManualPlayTargetKind = "none" | "player" | "card" | "realm" | "pool"
-export type ManualPlayResolution = "discard" | "lasting" | "lasting_target"
-
 export type Move =
   | { type: "PASS" }
   | { type: "END_TURN" }
-  | { type: "SET_PLAY_MODE"; mode: PlayMode }
-  | { type: "MANUAL_END_TURN" }
-  | { type: "MANUAL_SET_ACTIVE_PLAYER"; playerId: string }
-  | { type: "MANUAL_SET_DRAW_COUNT"; count: number }
-  | { type: "MANUAL_SET_MAX_HAND_SIZE"; size: number }
-  | {
-      type: "MANUAL_PLAY_CARD"
-      cardInstanceId: string
-      targetKind: ManualPlayTargetKind
-      resolution: ManualPlayResolution
-      targetOwner?: "self" | "opponent"
-      targetCardInstanceId?: string
-      targetRealmSlot?: string
-    }
   | { type: "PLAY_REALM"; cardInstanceId: string; slot: string }
   | { type: "REBUILD_REALM"; slot: string }
   | { type: "PLAY_HOLDING"; cardInstanceId: string; realmSlot: string }
@@ -144,14 +117,6 @@ export type Move =
   | { type: "CONTINUE_ATTACK"; championId: string }
   | { type: "END_ATTACK" }
   | { type: "DISCARD_CARD"; cardInstanceId: string }
-  | { type: "MANUAL_DISCARD"; cardInstanceId: string }
-  | { type: "MANUAL_TO_LIMBO"; cardInstanceId: string; returnsInTurns?: number }
-  | { type: "MANUAL_TO_ABYSS"; cardInstanceId: string }
-  | { type: "MANUAL_TO_HAND"; cardInstanceId: string }
-  | { type: "MANUAL_RAZE_REALM"; slot: string }
-  | { type: "MANUAL_DRAW_CARDS"; count: number }
-  | { type: "MANUAL_RETURN_TO_POOL"; cardInstanceId: string }
-  | { type: "MANUAL_AFFECT_OPPONENT"; cardInstanceId: string; action: ManualAction }
   | { type: "MANUAL_SET_COMBAT_LEVEL"; playerId: string; level: number }
   | { type: "MANUAL_SWITCH_COMBAT_SIDE"; cardInstanceId: string }
   | { type: string; [key: string]: unknown }

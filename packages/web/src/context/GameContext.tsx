@@ -1,5 +1,5 @@
 import React from "react"
-import type { Move, PlayerBoard, CombatInfo, CardInfo, PlayMode, ManualSettings } from "../api.ts"
+import type { Move, PlayerBoard, CombatInfo, CardInfo } from "../api.ts"
 import type { WarningCode } from "../utils/warnings.ts"
 
 export interface ContextMenuAction {
@@ -22,8 +22,6 @@ export interface GameContextType {
   activePlayer: string
   phase: string
   turnNumber: number
-  playMode: PlayMode
-  manualSettings: ManualSettings
   winner: string | null
   allBoards: Record<string, PlayerBoard>
   lingeringSpellsByPlayer: Record<string, CardInfo[]>
@@ -65,7 +63,6 @@ export interface GameContextType {
       owner: "self" | "opponent"
     },
   ) => void
-  requestManualPlay: (cardInstanceId: string) => void
 }
 
 export const GameContext = React.createContext<GameContextType>({
@@ -75,8 +72,6 @@ export const GameContext = React.createContext<GameContextType>({
   activePlayer: "",
   phase: "",
   turnNumber: 0,
-  playMode: "full_manual",
-  manualSettings: { drawCount: 3, maxHandSize: 8 },
   winner: null,
   allBoards: {},
   lingeringSpellsByPlayer: {},
@@ -96,7 +91,6 @@ export const GameContext = React.createContext<GameContextType>({
   suppressWarningCode: () => {},
   clearWarning: () => {},
   requestSpellCast: () => {},
-  requestManualPlay: () => {},
 })
 
 export function useGame() {

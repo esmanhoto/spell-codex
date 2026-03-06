@@ -2,7 +2,6 @@ export type WarningCode =
   | "structural_error"
   | "duplicate_in_game"
   | "world_mismatch_attachment"
-  | "manual_mode_switch"
   | "generic_warning"
 
 const STORAGE_KEY = "spell.warning.suppressed"
@@ -10,7 +9,6 @@ const STORAGE_KEY = "spell.warning.suppressed"
 function classifyWarningCodeFromMessage(message: string): WarningCode {
   const m = message.toLowerCase()
 
-  if (m.includes("manual mode")) return "manual_mode_switch"
   if (m.includes("rule of cosmos") || m.includes("duplicate in-play cosmos"))
     return "duplicate_in_game"
   if (
@@ -32,7 +30,6 @@ function classifyWarningCodeFromMessage(message: string): WarningCode {
 }
 
 function classifyWarningCodeFromServerCode(code: string): WarningCode | null {
-  if (code === "MANUAL_MODE_SWITCH") return "manual_mode_switch"
   if (code === "COSMOS_VIOLATION" || code === "COSMOS_DUPLICATE_IN_PLAY") return "duplicate_in_game"
   if (code === "WORLD_MISMATCH_HOLDING" || code === "WORLD_MISMATCH_MAGICAL_ITEM") {
     return "world_mismatch_attachment"

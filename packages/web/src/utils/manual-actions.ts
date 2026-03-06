@@ -1,6 +1,5 @@
-import type { CardInfo, Move, PlayMode, SlotState } from "../api.ts"
+import type { CardInfo, Move, SlotState } from "../api.ts"
 import type { ContextMenuAction } from "../context/GameContext.tsx"
-import type { WarningCode } from "./warnings.ts"
 import { isSpellCard } from "./spell-casting.ts"
 
 function findCardMove(legalMoves: Move[], type: Move["type"], cardInstanceId: string): Move | null {
@@ -15,28 +14,17 @@ function findCardMove(legalMoves: Move[], type: Move["type"], cardInstanceId: st
 export function buildHandContextActions(args: {
   card: CardInfo
   isOpponent: boolean
-  playMode: PlayMode
   legalMoves: Move[]
   requestSpellCast: (spellInstanceId: string) => void
-  requestManualPlay: (cardInstanceId: string) => void
 }): ContextMenuAction[] {
-  const { card, isOpponent, playMode, legalMoves, requestSpellCast, requestManualPlay } = args
+  const { card, isOpponent, legalMoves, requestSpellCast } = args
   if (isOpponent) return []
 
   const discardMove = findCardMove(legalMoves, "DISCARD_CARD", card.instanceId)
-  const actions: ContextMenuAction[] = [
-    {
-      label: "Discard",
-      move: discardMove ?? { type: "MANUAL_DISCARD", cardInstanceId: card.instanceId },
-    },
-  ]
+  const actions: ContextMenuAction[] = []
 
-  if (playMode === "full_manual") {
-    actions.unshift({
-      label: "Play/Cast...",
-      action: () => requestManualPlay(card.instanceId),
-    })
-    return actions
+  if (discardMove) {
+    actions.push({ label: "Discard", move: discardMove })
   }
 
   if (isSpellCard(card)) {
@@ -60,44 +48,11 @@ export type HandDropTarget =
     }
 
 export function resolveHandDropMove(args: {
-  playMode: PlayMode
   legalMoves: Move[]
   cardInstanceId: string
   target: HandDropTarget
 }): Move | null {
-  const { playMode, legalMoves, cardInstanceId, target } = args
-
-  if (playMode === "full_manual") {
-    if (target.zone === "pool") {
-      return {
-        type: "MANUAL_PLAY_CARD",
-        cardInstanceId,
-        targetKind: "pool",
-        resolution: "lasting",
-      }
-    }
-
-    if (target.zone === "champion") {
-      return {
-        type: "MANUAL_PLAY_CARD",
-        cardInstanceId,
-        targetKind: "card",
-        resolution: "lasting_target",
-        targetOwner: target.owner,
-        targetCardInstanceId: target.championId,
-      }
-    }
-
-    return {
-      type: "MANUAL_PLAY_CARD",
-      cardInstanceId,
-      targetKind: "realm",
-      resolution: "lasting",
-      targetOwner: target.owner,
-      targetRealmSlot: target.slot,
-      ...(target.slotState ? { targetCardInstanceId: target.slotState.realm.instanceId } : {}),
-    }
-  }
+  const { legalMoves, cardInstanceId, target } = args
 
   if (target.zone === "pool") {
     return findCardMove(legalMoves, "PLACE_CHAMPION", cardInstanceId)
@@ -141,18 +96,4 @@ export function resolveHandDropMove(args: {
         (m as { cardInstanceId: string; slot: string }).slot === target.slot,
     ) ?? null
   )
-}
-
-export function showModeAwareWarning(args: {
-  playMode: PlayMode
-  showWarning: (message: string, code?: WarningCode, suppressible?: boolean) => void
-  semiAutoMessage: string
-  code?: WarningCode
-}): void {
-  const { playMode, showWarning, semiAutoMessage, code } = args
-  if (playMode === "full_manual") {
-    showWarning("Manual action failed for this target.", "structural_error")
-    return
-  }
-  showWarning(semiAutoMessage, code)
 }
