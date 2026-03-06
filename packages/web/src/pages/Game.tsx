@@ -8,7 +8,7 @@ import type { ContextMenuState } from "../context/GameContext.tsx"
 import { useAuth } from "../auth.tsx"
 import { GameBoard } from "../components/game/GameBoard.tsx"
 import { CasterSelectModal } from "../components/game/CasterSelectModal.tsx"
-import { Phase3SpellOutcomeModal } from "../components/game/Phase3SpellOutcomeModal.tsx"
+import { ResolutionPanel } from "../components/game/ResolutionPanel.tsx"
 import {
   SpellCastAnnouncementModal,
   type SpellCastAnnouncement,
@@ -38,7 +38,7 @@ type Phase3SpellCastEvent = {
   cardNumber: number
   cardName: string
   cardTypeId: number
-  keepInPlay: boolean
+  keepInPlay?: boolean
 }
 
 function isPhase3SpellCastEvent(event: GameEvent): event is GameEvent & Phase3SpellCastEvent {
@@ -47,33 +47,12 @@ function isPhase3SpellCastEvent(event: GameEvent): event is GameEvent & Phase3Sp
 
 function buildLingeringSpellsByPlayer(
   playerIds: string[],
-  events: GameEvent[] | undefined,
+  boards: Record<string, import("../api.ts").PlayerBoard> | undefined,
 ): Record<string, CardInfo[]> {
   const result = Object.fromEntries(playerIds.map((id) => [id, [] as CardInfo[]]))
-  if (!events) return result
-
-  const byPlayerSeen = new Map<string, Set<string>>()
-  for (const id of playerIds) byPlayerSeen.set(id, new Set())
-
-  for (const event of events) {
-    if (!isPhase3SpellCastEvent(event) || !event.keepInPlay) continue
-    if (!playerIds.includes(event.playerId)) continue
-    const seen = byPlayerSeen.get(event.playerId)!
-    if (seen.has(event.instanceId)) continue
-    seen.add(event.instanceId)
-    result[event.playerId]!.push({
-      instanceId: event.instanceId,
-      name: event.cardName,
-      typeId: event.cardTypeId,
-      worldId: 0,
-      level: null,
-      setId: event.setId,
-      cardNumber: event.cardNumber,
-      description: "",
-      supportIds: [],
-      spellNature: null,
-      castPhases: [],
-    })
+  if (!boards) return result
+  for (const id of playerIds) {
+    result[id] = boards[id]?.lastingEffects ?? []
   }
   return result
 }
@@ -93,17 +72,10 @@ export function Game() {
     suppressible: boolean
     confirmAction?: () => void
   } | null>(null)
-  const [phase3OutcomePrompt, setPhase3OutcomePrompt] = useState<{
-    spell: CardInfo
-    move: Extract<Move, { type: "PLAY_PHASE3_CARD" }>
-    casters: CardInfo[]
-    target?: { cardInstanceId: string; owner: "self" | "opponent" }
-  } | null>(null)
   const [casterPrompt, setCasterPrompt] = useState<{
     spell: CardInfo
     move: Move
     casters: CardInfo[]
-    keepInPlay: boolean
     target?: { cardInstanceId: string; owner: "self" | "opponent" }
   } | null>(null)
   const [announcementQueue, setAnnouncementQueue] = useState<SpellCastAnnouncement[]>([])
@@ -197,7 +169,7 @@ export function Game() {
               cardName: event.cardName,
               setId: event.setId,
               cardNumber: event.cardNumber,
-              keepInPlay: event.keepInPlay,
+              keepInPlay: event.keepInPlay ?? false,
             })
           }
         }
@@ -281,10 +253,9 @@ export function Game() {
       spell: CardInfo
       move: Move
       casterInstanceId?: string
-      keepInPlay?: boolean
       target?: { cardInstanceId: string; owner: "self" | "opponent" }
     }) => {
-      const { spell, move, casterInstanceId, keepInPlay = false, target } = args
+      const { spell, move, casterInstanceId, target } = args
       if (target) {
         spellTargetsRef.current[spell.instanceId] = {
           ...target,
@@ -295,7 +266,6 @@ export function Game() {
       if (move.type === "PLAY_PHASE3_CARD") {
         sendMove({
           ...move,
-          keepInPlay,
           ...(casterInstanceId !== undefined ? { casterInstanceId } : {}),
           ...(target
             ? {
@@ -365,26 +335,11 @@ export function Game() {
 
       const availableCasters = allCasters.length > 0 ? allCasters : fallbackCasters
 
-      if (move.type === "PLAY_PHASE3_CARD") {
-        const phase3Move: Extract<Move, { type: "PLAY_PHASE3_CARD" }> = {
-          type: "PLAY_PHASE3_CARD",
-          cardInstanceId: spell.instanceId,
-        }
-        setPhase3OutcomePrompt({
-          spell,
-          move: phase3Move,
-          casters: availableCasters,
-          ...(target ? { target } : {}),
-        })
-        return
-      }
-
       if (availableCasters.length > 1) {
         setCasterPrompt({
           spell,
           move,
           casters: availableCasters,
-          keepInPlay: false,
           ...(target ? { target } : {}),
         })
         return
@@ -394,7 +349,6 @@ export function Game() {
         spell,
         move,
         ...(availableCasters[0] ? { casterInstanceId: availableCasters[0].instanceId } : {}),
-        keepInPlay: false,
         ...(target ? { target } : {}),
       })
     },
@@ -414,8 +368,8 @@ export function Game() {
   const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? ""
 
   const lingeringSpellsByPlayer = useMemo(
-    () => buildLingeringSpellsByPlayer(playerIds, data?.events),
-    [data?.events, playerIds],
+    () => buildLingeringSpellsByPlayer(playerIds, data?.board.players),
+    [data?.board.players, playerIds],
   )
 
   if (isLoading)
@@ -452,6 +406,7 @@ export function Game() {
         allBoards: data.board.players,
         lingeringSpellsByPlayer,
         combat: data.board.combat,
+        resolutionContext: data.resolutionContext,
         legalMoves: data.legalMoves,
         ...(data.legalMovesPerPlayer ? { legalMovesPerPlayer: data.legalMovesPerPlayer } : {}),
         onMove: sendMove,
@@ -471,32 +426,12 @@ export function Game() {
       }}
     >
       <GameBoard events={eventLog} wsError={wsError} />
-      {phase3OutcomePrompt && (
-        <Phase3SpellOutcomeModal
-          spell={phase3OutcomePrompt.spell}
-          onPick={(keepInPlay) => {
-            if (phase3OutcomePrompt.casters.length > 1) {
-              setCasterPrompt({
-                spell: phase3OutcomePrompt.spell,
-                move: phase3OutcomePrompt.move,
-                casters: phase3OutcomePrompt.casters,
-                keepInPlay,
-                ...(phase3OutcomePrompt.target ? { target: phase3OutcomePrompt.target } : {}),
-              })
-            } else {
-              dispatchSpellMove({
-                spell: phase3OutcomePrompt.spell,
-                move: phase3OutcomePrompt.move,
-                ...(phase3OutcomePrompt.casters[0]
-                  ? { casterInstanceId: phase3OutcomePrompt.casters[0].instanceId }
-                  : {}),
-                keepInPlay,
-                ...(phase3OutcomePrompt.target ? { target: phase3OutcomePrompt.target } : {}),
-              })
-            }
-            setPhase3OutcomePrompt(null)
-          }}
-          onClose={() => setPhase3OutcomePrompt(null)}
+      {data.resolutionContext && (
+        <ResolutionPanel
+          ctx={data.resolutionContext}
+          allBoards={data.board.players}
+          myPlayerId={myPlayerId}
+          onMove={sendMove}
         />
       )}
       {casterPrompt && (
@@ -508,7 +443,6 @@ export function Game() {
               spell: casterPrompt.spell,
               move: casterPrompt.move,
               casterInstanceId,
-              keepInPlay: casterPrompt.keepInPlay,
               ...(casterPrompt.target ? { target: casterPrompt.target } : {}),
             })
             setCasterPrompt(null)

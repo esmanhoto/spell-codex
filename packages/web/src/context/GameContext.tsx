@@ -1,5 +1,5 @@
 import React from "react"
-import type { Move, PlayerBoard, CombatInfo, CardInfo } from "../api.ts"
+import type { Move, PlayerBoard, CombatInfo, CardInfo, ResolutionContextInfo } from "../api.ts"
 import type { WarningCode } from "../utils/warnings.ts"
 
 export interface ContextMenuAction {
@@ -26,6 +26,7 @@ export interface GameContextType {
   allBoards: Record<string, PlayerBoard>
   lingeringSpellsByPlayer: Record<string, CardInfo[]>
   combat: CombatInfo | null
+  resolutionContext: ResolutionContextInfo | null
 
   // Moves
   legalMoves: Move[]
@@ -76,6 +77,7 @@ export const GameContext = React.createContext<GameContextType>({
   allBoards: {},
   lingeringSpellsByPlayer: {},
   combat: null,
+  resolutionContext: null,
   legalMoves: [],
   onMove: () => {},
   selectedId: null,
