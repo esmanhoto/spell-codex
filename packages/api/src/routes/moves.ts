@@ -8,7 +8,6 @@ import {
   lastSequence,
   saveAction,
   setGameStatus,
-  setGamePlayMode,
   touchGame,
   hashState,
 } from "@spell/db"
@@ -43,7 +42,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   if (!isPlayer) return c.json({ error: "Forbidden" }, 403)
 
   // 3. Reconstruct current state
-  const { state } = await reconstructState(gameId, game.seed, game.playMode)
+  const { state } = await reconstructState(gameId, game.seed)
 
   // 4. Apply the move through the engine (throws EngineError on invalid moves)
   let result
@@ -75,10 +74,8 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
   const newStatus = currentState.winner ? "finished" : "active"
   const turnDeadline = currentState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
-  const modeChanged = state.playMode !== currentState.playMode
   await Promise.all([
     setGameStatus(gameId, newStatus, currentState.winner ?? undefined),
-    ...(modeChanged ? [setGamePlayMode(gameId, currentState.playMode)] : []),
     touchGame(gameId, turnDeadline),
   ])
 

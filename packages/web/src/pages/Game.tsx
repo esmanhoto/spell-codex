@@ -10,14 +10,9 @@ import { GameBoard } from "../components/game/GameBoard.tsx"
 import { CasterSelectModal } from "../components/game/CasterSelectModal.tsx"
 import { Phase3SpellOutcomeModal } from "../components/game/Phase3SpellOutcomeModal.tsx"
 import {
-  ManualPlayModal,
-  type ManualPlayTargetOption,
-} from "../components/game/ManualPlayModal.tsx"
-import {
   SpellCastAnnouncementModal,
   type SpellCastAnnouncement,
 } from "../components/game/SpellCastAnnouncementModal.tsx"
-import { CounterCastModal } from "../components/game/CounterCastModal.tsx"
 import { usePhaseTracker } from "../hooks/usePhaseTracker.ts"
 import {
   isSpellCard,
@@ -48,16 +43,6 @@ type Phase3SpellCastEvent = {
 
 function isPhase3SpellCastEvent(event: GameEvent): event is GameEvent & Phase3SpellCastEvent {
   return event.type === "PHASE3_SPELL_CAST"
-}
-
-type PlayModeChangedEvent = {
-  type: "PLAY_MODE_CHANGED"
-  playerId: string
-  mode: "full_manual" | "semi_auto"
-}
-
-function isPlayModeChangedEvent(event: GameEvent): event is GameEvent & PlayModeChangedEvent {
-  return event.type === "PLAY_MODE_CHANGED"
 }
 
 function buildLingeringSpellsByPlayer(
@@ -123,8 +108,6 @@ export function Game() {
   } | null>(null)
   const [announcementQueue, setAnnouncementQueue] = useState<SpellCastAnnouncement[]>([])
   const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
-  const [counterPrompt, setCounterPrompt] = useState<SpellCastAnnouncement | null>(null)
-  const [manualPlayPrompt, setManualPlayPrompt] = useState<{ card: CardInfo } | null>(null)
   const spellTargetsRef = useRef<
     Record<
       string,
@@ -186,8 +169,6 @@ export function Game() {
     setEventLog([])
     setAnnouncementQueue([])
     setActiveAnnouncement(null)
-    setCounterPrompt(null)
-    setManualPlayPrompt(null)
   }, [gameId])
 
   const { data, error, isLoading, refetch } = useQuery<GameState>({
@@ -219,10 +200,6 @@ export function Game() {
               keepInPlay: event.keepInPlay,
             })
           }
-        }
-
-        if (isPlayModeChangedEvent(event) && event.mode === "full_manual") {
-          showWarning(`Game put on manual mode by ${event.playerId}.`, "manual_mode_switch")
         }
       }
       if (announcements.length > 0) {
@@ -294,10 +271,10 @@ export function Game() {
   }, [data?.events, processIncomingEvents])
 
   useEffect(() => {
-    if (activeAnnouncement || counterPrompt || announcementQueue.length === 0) return
+    if (activeAnnouncement || announcementQueue.length === 0) return
     setActiveAnnouncement(announcementQueue[0]!)
     setAnnouncementQueue((prev) => prev.slice(1))
-  }, [activeAnnouncement, announcementQueue, counterPrompt])
+  }, [activeAnnouncement, announcementQueue])
 
   const dispatchSpellMove = useCallback(
     (args: {
@@ -424,21 +401,6 @@ export function Game() {
     [data, dispatchSpellMove, showWarning],
   )
 
-  const requestManualPlay = useCallback(
-    (cardInstanceId: string) => {
-      if (!data) return
-      const me = data.board.players[myPlayerId]
-      if (!me) return
-      const card = me.hand.find((c) => c.instanceId === cardInstanceId)
-      if (!card) {
-        showWarning("Card not found in hand.")
-        return
-      }
-      setManualPlayPrompt({ card })
-    },
-    [data, myPlayerId, showWarning],
-  )
-
   usePhaseTracker(
     data?.phase ?? "",
     data?.legalMoves ?? [],
@@ -450,65 +412,6 @@ export function Game() {
 
   const playerIds = useMemo(() => Object.keys(data?.board.players ?? {}), [data?.board.players])
   const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? ""
-
-  const manualPlayTargets = useMemo<ManualPlayTargetOption[]>(() => {
-    if (!data || !myPlayerId || !opponentPlayerId) return []
-    const game = data
-    const result: ManualPlayTargetOption[] = []
-
-    function pushBoardTargets(owner: "self" | "opponent", ownerId: string): void {
-      const board = game.board.players[ownerId]
-      if (!board) return
-      for (const [slot, slotState] of Object.entries(board.formation)) {
-        if (!slotState) continue
-        result.push({
-          cardInstanceId: slotState.realm.instanceId,
-          label: `${slotState.realm.name} (realm ${slot})`,
-          owner,
-          kind: "realm",
-          realmSlot: slot,
-        })
-        for (const holding of slotState.holdings) {
-          result.push({
-            cardInstanceId: holding.instanceId,
-            label: `${holding.name} (holding ${slot})`,
-            owner,
-            kind: "card",
-          })
-        }
-      }
-      for (const entry of board.pool) {
-        result.push({
-          cardInstanceId: entry.champion.instanceId,
-          label: `${entry.champion.name} (champion)`,
-          owner,
-          kind: "card",
-        })
-        for (const attachment of entry.attachments) {
-          result.push({
-            cardInstanceId: attachment.instanceId,
-            label: `${attachment.name} (attachment)`,
-            owner,
-            kind: "card",
-          })
-        }
-      }
-    }
-
-    pushBoardTargets("self", myPlayerId)
-    pushBoardTargets("opponent", opponentPlayerId)
-    return result
-  }, [data, myPlayerId, opponentPlayerId])
-  const selfRealmSlots = useMemo(() => {
-    const slotsFromBoard = Object.keys(data?.board.players[myPlayerId]?.formation ?? {})
-    const slotsFromMoves = (data?.legalMoves ?? []).flatMap((m) => {
-      if (m.type === "PLAY_REALM") return [(m as { slot: string }).slot]
-      if (m.type === "REBUILD_REALM") return [(m as { slot: string }).slot]
-      return []
-    })
-    const unique = [...new Set([...slotsFromBoard, ...slotsFromMoves])]
-    return unique.length > 0 ? unique : ["A", "B", "C", "D", "E", "F"]
-  }, [data?.board.players, data?.legalMoves, myPlayerId])
 
   const lingeringSpellsByPlayer = useMemo(
     () => buildLingeringSpellsByPlayer(playerIds, data?.events),
@@ -545,8 +448,6 @@ export function Game() {
         activePlayer: data.activePlayer,
         phase: data.phase,
         turnNumber: data.turnNumber,
-        playMode: data.playMode,
-        manualSettings: data.manualSettings,
         winner: data.winner,
         allBoards: data.board.players,
         lingeringSpellsByPlayer,
@@ -567,7 +468,6 @@ export function Game() {
         suppressWarningCode,
         clearWarning,
         requestSpellCast,
-        requestManualPlay,
       }}
     >
       <GameBoard events={eventLog} wsError={wsError} />
@@ -619,57 +519,9 @@ export function Game() {
       {activeAnnouncement && (
         <SpellCastAnnouncementModal
           announcement={activeAnnouncement}
-          canCounter={
-            activeAnnouncement.playerId !== myPlayerId &&
-            data.playMode === "full_manual" &&
-            (data.board.players[myPlayerId]?.hand.length ?? 0) > 0
-          }
-          onCounter={() => {
-            setCounterPrompt(activeAnnouncement)
-            setActiveAnnouncement(null)
-          }}
+          canCounter={false}
+          onCounter={() => {}}
           onClose={() => setActiveAnnouncement(null)}
-        />
-      )}
-      {counterPrompt && (
-        <CounterCastModal
-          cards={data.board.players[myPlayerId]?.hand ?? []}
-          onPick={(cardInstanceId) => {
-            const me = data.board.players[myPlayerId]
-            const card = me?.hand.find((c) => c.instanceId === cardInstanceId)
-            if (!card) {
-              showWarning("Card not found in hand.")
-              setCounterPrompt(null)
-              return
-            }
-            setManualPlayPrompt({ card })
-            setCounterPrompt(null)
-          }}
-          onClose={() => setCounterPrompt(null)}
-        />
-      )}
-      {manualPlayPrompt && (
-        <ManualPlayModal
-          card={manualPlayPrompt.card}
-          targets={manualPlayTargets}
-          selfRealmSlots={selfRealmSlots}
-          onPick={(selection) => {
-            sendMove({
-              type: "MANUAL_PLAY_CARD",
-              cardInstanceId: manualPlayPrompt.card.instanceId,
-              targetKind: selection.targetKind,
-              resolution: selection.resolution,
-              ...(selection.targetOwner != null ? { targetOwner: selection.targetOwner } : {}),
-              ...(selection.targetCardInstanceId != null
-                ? { targetCardInstanceId: selection.targetCardInstanceId }
-                : {}),
-              ...(selection.targetRealmSlot != null
-                ? { targetRealmSlot: selection.targetRealmSlot }
-                : {}),
-            })
-            setManualPlayPrompt(null)
-          }}
-          onClose={() => setManualPlayPrompt(null)}
         />
       )}
     </GameContext.Provider>

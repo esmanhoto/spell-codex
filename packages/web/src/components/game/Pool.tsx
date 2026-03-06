@@ -17,7 +17,7 @@ export function Pool({
   lingeringSpells?: CardInfo[]
   ownerId?: string
 }) {
-  const { legalMoves, onMove, allBoards, phase, showWarning, playMode } = useGame()
+  const { legalMoves, onMove, allBoards, phase, showWarning } = useGame()
   const [dragOver, setDragOver] = useState(false)
 
   function findDraggedHandCard(instanceId: string) {
@@ -33,13 +33,7 @@ export function Pool({
     setDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
     const card = findDraggedHandCard(id)
-    if (playMode === "full_manual" && card && (card.typeId === 13 || card.typeId === 8)) {
-      showWarning("Realms and holdings cannot be played to pool.")
-      return
-    }
-
     const move = resolveHandDropMove({
-      playMode,
       legalMoves,
       cardInstanceId: id,
       target: { zone: "pool" },

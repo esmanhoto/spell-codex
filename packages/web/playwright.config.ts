@@ -1,5 +1,9 @@
 import { defineConfig, devices } from "@playwright/test"
 
+const repoRoot = new URL("../..", import.meta.url).pathname
+const rootEnvFile = `${repoRoot}.env`
+const apiDir = `${repoRoot}packages/api`
+
 function env(name: string): string | undefined {
   const g = globalThis as { process?: { env?: Record<string, string | undefined> } }
   return g.process?.env?.[name]
@@ -33,7 +37,7 @@ export default defineConfig({
     const webUrl = `http://127.0.0.1:${webPort}`
     return [
       {
-        command: "bun --env-file=../../.env --cwd ../api src/index.ts",
+        command: `bun --env-file=${rootEnvFile} --cwd ${apiDir} src/index.ts`,
         url: `${apiUrl}/health`,
         reuseExistingServer: false,
         timeout: 120_000,

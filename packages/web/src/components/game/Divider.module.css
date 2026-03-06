@@ -71,9 +71,21 @@
   margin-top: 2px;
 }
 
-.modeLabel {
+.passBtn {
+  display: block;
+  margin: 4px auto 0;
+  padding: 2px 10px;
   font-size: 10px;
-  color: #9fd58d;
-  text-align: center;
-  margin-top: 2px;
+  color: var(--gold);
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.passBtn:hover {
+  background: rgba(200, 160, 60, 0.12);
+  border-color: var(--gold);
 }

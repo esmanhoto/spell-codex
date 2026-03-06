@@ -8,7 +8,6 @@ export {
   getGame,
   getGamePlayers,
   setGameStatus,
-  setGamePlayMode,
   touchGame,
   findExpiredGames,
 } from "./games.ts"

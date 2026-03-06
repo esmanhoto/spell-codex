@@ -3,7 +3,7 @@ import { useGame } from "../../context/GameContext.tsx"
 import type { PoolEntry as PoolEntryType } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
 import { isSpellCard } from "../../utils/spell-casting.ts"
-import { resolveHandDropMove, showModeAwareWarning } from "../../utils/manual-actions.ts"
+import { resolveHandDropMove } from "../../utils/manual-actions.ts"
 import { CardComponent } from "./CardComponent.tsx"
 import styles from "./PoolEntry.module.css"
 
@@ -20,7 +20,6 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
     phase,
     showWarning,
     requestSpellCast,
-    playMode,
   } = useGame()
   const [attachDragOver, setAttachDragOver] = useState(false)
 
@@ -41,13 +40,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
     setAttachDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
     const card = findDraggedHandCard(id)
-    if (playMode === "full_manual" && card && (card.typeId === 13 || card.typeId === 8)) {
-      showWarning("Realms and holdings cannot be played to pool.")
-      return
-    }
-
     const move = resolveHandDropMove({
-      playMode,
       legalMoves,
       cardInstanceId: id,
       target: {
@@ -64,15 +57,6 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
     const hasWorldMismatch = !!card && (card.typeId === 9 || card.typeId === 2) && !worldsCompatible
 
     if (move) {
-      if (playMode === "full_manual" && hasWorldMismatch) {
-        showWarning(
-          `${card!.name} world mismatches champion ${entry.champion.name}.`,
-          "world_mismatch_attachment",
-          true,
-          () => onMove(move),
-        )
-        return
-      }
       onMove(move)
       return
     }
@@ -81,7 +65,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
       showWarning("That card cannot be attached right now.")
       return
     }
-    if (playMode !== "full_manual" && isSpellCard(card)) {
+    if (isSpellCard(card)) {
       requestSpellCast(card.instanceId, {
         cardInstanceId: entry.champion.instanceId,
         owner: isOpponent ? "opponent" : "self",
@@ -98,11 +82,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
     }
 
     if (phase !== "POOL" && phase !== "PLAY_REALM") {
-      showModeAwareWarning({
-        playMode,
-        showWarning,
-        semiAutoMessage: `Cannot attach item now. Current phase: ${phase.replaceAll("_", " ")}.`,
-      })
+      showWarning(`Cannot attach item now. Current phase: ${phase.replaceAll("_", " ")}.`)
       return
     }
     showWarning(`Cannot attach ${card.name} to ${entry.champion.name}.`)
@@ -154,22 +134,15 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
           const contextActions: ContextMenuAction[] = []
 
           if (!isOpponent) {
-            contextActions.push({
-              label: "Discard",
-              move: { type: "MANUAL_DISCARD", cardInstanceId: c.instanceId },
-            })
+            const discardMove = legalMoves.find(
+              (m) =>
+                m.type === "DISCARD_CARD" &&
+                (m as { cardInstanceId: string }).cardInstanceId === c.instanceId,
+            )
+            if (discardMove) contextActions.push({ label: "Discard", move: discardMove })
             if (isChampion && defendMove) {
               contextActions.push({ label: "Join combat as defender", move: defendMove })
             }
-          } else {
-            contextActions.push({
-              label: "Discard (opponent)",
-              move: {
-                type: "MANUAL_AFFECT_OPPONENT",
-                cardInstanceId: c.instanceId,
-                action: "discard",
-              },
-            })
           }
 
           return (

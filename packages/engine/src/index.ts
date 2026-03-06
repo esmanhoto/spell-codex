@@ -10,8 +10,6 @@ export {
   resolveCombatRound,
   getLosingPlayer,
 } from "./combat.ts"
-export { validateManualStateForSemiAuto } from "./manual-consistency.ts"
-export type { ManualConsistencyIssue } from "./manual-consistency.ts"
 
 export {
   seededShuffle,
@@ -62,9 +60,6 @@ export type {
   CombatRoundPhase,
   CombatRoundOutcome,
   CombatState,
-  // Modes
-  PlayMode,
-  ManualSettings,
   // Game state
   GameState,
   // Moves & results

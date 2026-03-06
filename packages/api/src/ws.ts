@@ -6,7 +6,6 @@ import {
   lastSequence,
   saveAction,
   setGameStatus,
-  setGamePlayMode,
   touchGame,
   hashState,
 } from "@spell/db"
@@ -75,7 +74,7 @@ export async function processWsMove(
     return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
   }
 
-  const { state } = await reconstructState(gameId, game.seed, game.playMode)
+  const { state } = await reconstructState(gameId, game.seed)
 
   let result
   try {
@@ -101,10 +100,8 @@ export async function processWsMove(
 
   const newStatus = result.newState.winner ? "finished" : "active"
   const turnDeadline = result.newState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
-  const modeChanged = state.playMode !== result.newState.playMode
   await Promise.all([
     setGameStatus(gameId, newStatus, result.newState.winner ?? undefined),
-    ...(modeChanged ? [setGamePlayMode(gameId, result.newState.playMode)] : []),
     touchGame(gameId, turnDeadline),
   ])
 
@@ -214,7 +211,7 @@ export const wsHandlers = {
           registry.get(gameId)!.set(userId, ws)
 
           // Send current state (serialized to the API shape the client expects)
-          const { state } = await reconstructState(gameId, game.seed, game.playMode)
+          const { state } = await reconstructState(gameId, game.seed)
           send(ws, {
             type: "STATE_UPDATE",
             gameId,
