@@ -99,6 +99,7 @@ export function serializeBoard(state: GameState, viewerPlayerId?: string) {
           pool: serializePool(p.pool),
           drawPileCount: p.drawPile.length,
           discardCount: p.discardPile.length,
+          lastingEffects: p.lastingEffects.map(card),
         },
       ]),
     ),
@@ -139,5 +140,15 @@ export function serializeGameState(
     legalMovesPerPlayer,
     board: serializeBoard(state, viewerPlayerId),
     events: state.events,
+    resolutionContext: state.resolutionContext
+      ? {
+          cardInstanceId: state.resolutionContext.cardInstanceId,
+          pendingCard: card(state.resolutionContext.pendingCard),
+          initiatingPlayer: state.resolutionContext.initiatingPlayer,
+          resolvingPlayer: state.resolutionContext.resolvingPlayer,
+          cardDestination: state.resolutionContext.cardDestination,
+          attachTarget: state.resolutionContext.attachTarget ?? null,
+        }
+      : null,
   }
 }
