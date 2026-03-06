@@ -1,13 +1,16 @@
 import { useGame } from "../../context/GameContext.tsx"
 import { PhaseTracker } from "./PhaseTracker.tsx"
-import { ManualControls } from "./ManualControls.tsx"
 import styles from "./Divider.module.css"
 
 export function Divider() {
-  const { playerA, phase, turnNumber, winner, activePlayer, playMode } = useGame()
+  const { playerA, myPlayerId, phase, turnNumber, winner, activePlayer, legalMoves, onMove } =
+    useGame()
   const activeLabel = activePlayer === playerA ? "Player A" : "Player B"
+  const isMyTurn = myPlayerId === activePlayer
 
-  // console.log("Phase is", phase)
+  const passMove = isMyTurn
+    ? (legalMoves.find((m) => m.type === "END_TURN") ?? legalMoves.find((m) => m.type === "PASS"))
+    : null
 
   return (
     <div className={styles.divider}>
@@ -26,10 +29,16 @@ export function Divider() {
             <div className={styles.activeLabel} data-testid="active-player-label">
               Active: {activeLabel}
             </div>
-            <div className={styles.modeLabel} data-testid="play-mode-label">
-              Mode: {playMode === "full_manual" ? "Full Manual" : "Semi Auto"}
-            </div>
-            <ManualControls />
+            {passMove && (
+              <button
+                className={styles.passBtn}
+                data-testid="pass-btn"
+                data-move-type={passMove.type}
+                onClick={() => onMove(passMove)}
+              >
+                {passMove.type === "END_TURN" ? "End Turn" : "Pass"}
+              </button>
+            )}
           </>
         )}
       </div>
