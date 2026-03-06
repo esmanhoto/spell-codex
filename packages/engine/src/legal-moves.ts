@@ -37,128 +37,33 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
 
   const player = state.players[playerId]
   if (!player) return []
-  const modeMoves = getModeMoves(state)
-
-  if (state.playMode === "full_manual") {
-    if (state.activePlayer !== playerId) return modeMoves
-    const attackMoves = state.combatState ? [] : getFullManualAttackDeclMoves(state, playerId)
-    const combatMoves = state.combatState ? getCombatMoves(state, playerId) : []
-    return dedupeMoves([
-      ...modeMoves,
-      ...getFullManualGovernanceMoves(state),
-      ...getHoldingRevealMoves(player),
-      ...getManualOwnMoves(state, playerId),
-      ...getManualOpponentMoves(state, playerId),
-      ...getFullManualCombatMoves(state, playerId),
-      ...attackMoves,
-      ...combatMoves,
-    ])
-  }
 
   // 1. During active combat, use combat-specific move set
   if (state.combatState) {
-    return dedupeMoves([...getCombatMoves(state, playerId), ...modeMoves])
+    return dedupeMoves(getCombatMoves(state, playerId))
   }
 
   // 2. Out-of-combat: only the active player may act
-  if (state.activePlayer !== playerId) return modeMoves
+  if (state.activePlayer !== playerId) return []
 
   switch (state.phase) {
     case Phase.StartOfTurn:
-      return dedupeMoves([...getStartOfTurnMoves(state, playerId), ...modeMoves])
+      return dedupeMoves(getStartOfTurnMoves(state, playerId))
     case Phase.Draw:
-      return modeMoves
+      return []
     case Phase.PlayRealm:
-      return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.PlayRealm), ...modeMoves])
+      return dedupeMoves(getForwardPhaseMoves(state, playerId, Phase.PlayRealm))
     case Phase.Pool:
-      return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.Pool), ...modeMoves])
+      return dedupeMoves(getForwardPhaseMoves(state, playerId, Phase.Pool))
     case Phase.Combat:
-      return dedupeMoves([...getForwardPhaseMoves(state, playerId, Phase.Combat), ...modeMoves])
+      return dedupeMoves(getForwardPhaseMoves(state, playerId, Phase.Combat))
     case Phase.PhaseFive:
-      return dedupeMoves([...getPhaseFiveMoves(state, playerId), ...modeMoves])
+      return dedupeMoves(getPhaseFiveMoves(state, playerId))
     case Phase.EndTurn:
       return []
     default:
       return []
   }
-}
-
-function getModeMoves(state: GameState): Move[] {
-  return state.playMode === "full_manual"
-    ? [{ type: "SET_PLAY_MODE", mode: "semi_auto" }]
-    : [{ type: "SET_PLAY_MODE", mode: "full_manual" }]
-}
-
-function getFullManualGovernanceMoves(state: GameState): Move[] {
-  const moves: Move[] = [
-    { type: "END_TURN" },
-    { type: "MANUAL_END_TURN" },
-    { type: "MANUAL_SET_DRAW_COUNT", count: state.manualSettings.drawCount },
-    { type: "MANUAL_SET_MAX_HAND_SIZE", size: state.manualSettings.maxHandSize },
-  ]
-  for (const id of state.playerOrder) {
-    moves.push({ type: "MANUAL_SET_ACTIVE_PLAYER", playerId: id })
-  }
-  return moves
-}
-
-function getFullManualCombatMoves(state: GameState, playerId: PlayerId): Move[] {
-  const combat = state.combatState
-  if (!combat) return []
-  if (playerId !== combat.attackingPlayer && playerId !== combat.defendingPlayer) return []
-
-  const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
-  const realmWorldId = realmSlot?.realm.card.worldId ?? 0
-  const attackerLevel = combat.attacker
-    ? calculateCombatLevel(
-        combat.attacker,
-        combat.attackerCards,
-        hasWorldMatch(combat.attacker, realmWorldId),
-        "offensive",
-      )
-    : 0
-  const defenderLevel = combat.defender
-    ? calculateCombatLevel(
-        combat.defender,
-        combat.defenderCards,
-        hasWorldMatch(combat.defender, realmWorldId),
-        "defensive",
-      )
-    : 0
-
-  const moves: Move[] = [
-    { type: "MANUAL_SET_COMBAT_LEVEL", playerId: combat.attackingPlayer, level: attackerLevel },
-    { type: "MANUAL_SET_COMBAT_LEVEL", playerId: combat.defendingPlayer, level: defenderLevel },
-  ]
-  for (const card of combat.attackerCards) {
-    moves.push({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
-  }
-  for (const card of combat.defenderCards) {
-    moves.push({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
-  }
-  return moves
-}
-
-function getFullManualAttackDeclMoves(state: GameState, playerId: PlayerId): Move[] {
-  const player = state.players[playerId]!
-  const moves: Move[] = []
-
-  for (const entry of player.pool) {
-    for (const [otherPlayerId, otherPlayer] of Object.entries(state.players)) {
-      if (otherPlayerId === playerId) continue
-      for (const [slot, realmSlot] of Object.entries(otherPlayer.formation.slots)) {
-        if (!realmSlot || realmSlot.isRazed) continue
-        moves.push({
-          type: "DECLARE_ATTACK",
-          championId: entry.champion.instanceId,
-          targetRealmSlot: slot as FormationSlot,
-          targetPlayerId: otherPlayerId,
-        })
-      }
-    }
-  }
-
-  return moves
 }
 
 function dedupeMoves(moves: Move[]): Move[] {
@@ -209,8 +114,6 @@ function getForwardPhaseMoves(state: GameState, playerId: PlayerId, fromPhase: P
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
   moves.push(...getDiscardMoves(player))
-  moves.push(...getManualOwnMoves(state, playerId))
-  moves.push(...getManualOpponentMoves(state, playerId))
 
   const { maxEnd } = HAND_SIZES[state.deckSize]!
   if (player.hand.length <= maxEnd) {
@@ -241,8 +144,6 @@ function getStartOfTurnMoves(state: GameState, playerId: PlayerId): Move[] {
   }
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
-  moves.push(...getManualOwnMoves(state, playerId))
-  moves.push(...getManualOpponentMoves(state, playerId))
 
   return moves
 }
@@ -555,136 +456,6 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
     }
   }
   moves.push(...getHoldingRevealMoves(player))
-  moves.push(...getManualOwnMoves(state, playerId))
-  moves.push(...getManualOpponentMoves(state, playerId))
-
-  return moves
-}
-
-/**
- * Generates MANUAL_* moves for a player's own board.
- * These give the player full control to execute card effects manually.
- */
-function getManualOwnMoves(state: GameState, playerId: PlayerId): Move[] {
-  const player = state.players[playerId]!
-  const moves: Move[] = []
-
-  // MANUAL_DISCARD: any card in hand, pool (champion+attachments), formation holdings
-  for (const card of player.hand) {
-    moves.push({ type: "MANUAL_DISCARD", cardInstanceId: card.instanceId })
-  }
-  for (const entry of player.pool) {
-    moves.push({ type: "MANUAL_DISCARD", cardInstanceId: entry.champion.instanceId })
-    for (const att of entry.attachments) {
-      moves.push({ type: "MANUAL_DISCARD", cardInstanceId: att.instanceId })
-    }
-  }
-  for (const realmSlot of Object.values(player.formation.slots)) {
-    if (!realmSlot) continue
-    for (const h of realmSlot.holdings) {
-      moves.push({ type: "MANUAL_DISCARD", cardInstanceId: h.instanceId })
-    }
-  }
-
-  // MANUAL_TO_LIMBO: pool champions
-  for (const entry of player.pool) {
-    moves.push({ type: "MANUAL_TO_LIMBO", cardInstanceId: entry.champion.instanceId })
-  }
-
-  // MANUAL_TO_ABYSS: same scope as MANUAL_DISCARD
-  for (const card of player.hand) {
-    moves.push({ type: "MANUAL_TO_ABYSS", cardInstanceId: card.instanceId })
-  }
-  for (const entry of player.pool) {
-    moves.push({ type: "MANUAL_TO_ABYSS", cardInstanceId: entry.champion.instanceId })
-    for (const att of entry.attachments) {
-      moves.push({ type: "MANUAL_TO_ABYSS", cardInstanceId: att.instanceId })
-    }
-  }
-
-  // MANUAL_TO_HAND: discard and abyss
-  for (const card of player.discardPile) {
-    moves.push({ type: "MANUAL_TO_HAND", cardInstanceId: card.instanceId })
-  }
-  for (const card of player.abyss) {
-    moves.push({ type: "MANUAL_TO_HAND", cardInstanceId: card.instanceId })
-  }
-
-  // MANUAL_RAZE_REALM: own unrazed realms
-  for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
-    if (realmSlot && !realmSlot.isRazed) {
-      moves.push({ type: "MANUAL_RAZE_REALM", slot: slot as FormationSlot })
-    }
-  }
-
-  // MANUAL_DRAW_CARDS: draw 1 (standard single-draw action)
-  if (player.drawPile.length > 0) {
-    moves.push({ type: "MANUAL_DRAW_CARDS", count: 1 })
-  }
-
-  // MANUAL_RETURN_TO_POOL: champions in discard pile
-  for (const card of player.discardPile) {
-    if (isChampionType(card.card.typeId)) {
-      moves.push({ type: "MANUAL_RETURN_TO_POOL", cardInstanceId: card.instanceId })
-    }
-  }
-
-  return moves
-}
-
-/**
- * Generates MANUAL_AFFECT_OPPONENT moves for opponent's cards.
- */
-function getManualOpponentMoves(state: GameState, playerId: PlayerId): Move[] {
-  const opponentId = state.playerOrder.find((id) => id !== playerId)
-  if (!opponentId) return []
-  const opponent = state.players[opponentId]!
-  const moves: Move[] = []
-
-  // Discard / to_abyss: opponent's hand
-  for (const card of opponent.hand) {
-    moves.push({
-      type: "MANUAL_AFFECT_OPPONENT",
-      cardInstanceId: card.instanceId,
-      action: "discard",
-    })
-    moves.push({
-      type: "MANUAL_AFFECT_OPPONENT",
-      cardInstanceId: card.instanceId,
-      action: "to_abyss",
-    })
-  }
-  for (const entry of opponent.pool) {
-    // to_limbo only applies to champions
-    moves.push({
-      type: "MANUAL_AFFECT_OPPONENT",
-      cardInstanceId: entry.champion.instanceId,
-      action: "to_limbo",
-    })
-    // discard/to_abyss applies to champion and attachments
-    for (const action of ["discard", "to_abyss"] as const) {
-      moves.push({
-        type: "MANUAL_AFFECT_OPPONENT",
-        cardInstanceId: entry.champion.instanceId,
-        action,
-      })
-      for (const att of entry.attachments) {
-        moves.push({ type: "MANUAL_AFFECT_OPPONENT", cardInstanceId: att.instanceId, action })
-      }
-    }
-  }
-
-  // Raze realm: opponent's unrazed formation slots
-  for (const [slot, realmSlot] of Object.entries(opponent.formation.slots)) {
-    if (realmSlot && !realmSlot.isRazed) {
-      moves.push({
-        type: "MANUAL_AFFECT_OPPONENT",
-        cardInstanceId: realmSlot.realm.instanceId,
-        action: "raze_realm",
-      })
-      void slot // slot info is recoverable from the cardInstanceId
-    }
-  }
 
   return moves
 }

@@ -12,12 +12,7 @@ export function initGame(config: GameConfig): GameState {
   const [p1Config, p2Config] = config.players
 
   const deckSize = determineDeckSize(p1Config.deckCards.length)
-  const { starting, drawPerTurn, maxEnd } = HAND_SIZES[deckSize]!
-  const playMode = config.playMode ?? "full_manual"
-  const manualSettings = {
-    drawCount: config.manualSettings?.drawCount ?? drawPerTurn,
-    maxHandSize: config.manualSettings?.maxHandSize ?? maxEnd,
-  }
+  const { starting } = HAND_SIZES[deckSize]!
 
   // Create runtime instances with deterministic IDs: gameId + player index + deck position.
   // This ensures reconstructState always produces identical IDs for the same game,
@@ -53,8 +48,6 @@ export function initGame(config: GameConfig): GameState {
     winner: null,
     events: [{ type: "GAME_STARTED", players: [p1Config.id, p2Config.id] }],
     deckSize,
-    playMode,
-    manualSettings,
     hasAttackedThisTurn: false,
     hasPlayedRealmThisTurn: false,
   }
