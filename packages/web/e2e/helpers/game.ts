@@ -220,7 +220,6 @@ export async function apiDriveToPlayerAPhase3SpellMove(
     expect(viewerRes.ok()).toBe(true)
     const viewerState = (await viewerRes.json()) as {
       activePlayer: string
-      playMode?: string
       board: {
         players: Record<
           string,
@@ -264,10 +263,6 @@ export async function apiDriveToPlayerAPhase3SpellMove(
     }
 
     const picked =
-      state.legalMoves.find(
-        (m): m is { type: "SET_PLAY_MODE"; mode: string } =>
-          m.type === "SET_PLAY_MODE" && m.mode === "semi_auto",
-      ) ??
       state.legalMoves.find((m) => m.type === "PLAY_REALM") ??
       state.legalMoves.find((m) => m.type === "PLACE_CHAMPION") ??
       state.legalMoves.find((m) => m.type === "PASS") ??
@@ -299,7 +294,6 @@ export async function driveGameToCombat(request: APIRequestContext, gameId: stri
     const viewerState = (await viewerRes.json()) as {
       activePlayer: string
       phase: string
-      playMode?: string
       board: {
         players: Record<
           string,
@@ -325,20 +319,14 @@ export async function driveGameToCombat(request: APIRequestContext, gameId: stri
 
     const moves = state.legalMoves
     const activePoolCount = state.board.players[state.activePlayer]?.pool.length ?? 0
-    const switchToSemiAuto = moves.find(
-      (m): m is { type: "SET_PLAY_MODE"; mode: string } =>
-        m.type === "SET_PLAY_MODE" && m.mode === "semi_auto",
-    )
     const attack = moves.find((m) => m.type === "DECLARE_ATTACK")
     const picked =
-      switchToSemiAuto ??
       attack ??
       moves.find((m) => m.type === "PLAY_REALM") ??
       (activePoolCount === 0 ? moves.find((m) => m.type === "PLACE_CHAMPION") : undefined) ??
       moves.find((m) => m.type === "PASS") ??
       moves.find((m) => m.type === "DISCARD_CARD") ??
       moves.find((m) => m.type === "END_TURN") ??
-      moves.find((m) => !m.type.startsWith("MANUAL_")) ??
       moves[0]
 
     if (!picked) break
