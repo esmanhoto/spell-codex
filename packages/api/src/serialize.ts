@@ -130,8 +130,6 @@ export function serializeGameState(
     viewerPlayerId: viewerPlayerId ?? null,
     playerOrder: state.playerOrder,
     status: extra?.status ?? (state.winner ? "finished" : "active"),
-    playMode: state.playMode,
-    manualSettings: state.manualSettings,
     phase: state.phase,
     activePlayer: state.activePlayer,
     turnNumber: state.currentTurn,
