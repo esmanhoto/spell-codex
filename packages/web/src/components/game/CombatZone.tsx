@@ -17,7 +17,6 @@ export function CombatZone() {
     openContextMenu,
     allBoards,
     requestSpellCast,
-    playMode,
   } = useGame()
   const [inputA, setInputA] = useState("")
   const [inputB, setInputB] = useState("")
@@ -72,11 +71,6 @@ export function CombatZone() {
   function buildContextActions(card: CardInfo): ContextMenuAction[] {
     if (!canEditLevel) return []
     return [
-      { label: "Discard", move: { type: "MANUAL_DISCARD", cardInstanceId: card.instanceId } },
-      {
-        label: "Return to pool",
-        move: { type: "MANUAL_RETURN_TO_POOL", cardInstanceId: card.instanceId },
-      },
       {
         label: "Switch sides",
         move: { type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId },
@@ -113,17 +107,6 @@ export function CombatZone() {
     const targetIsSelf =
       targetCard.instanceId === champA?.instanceId ||
       cardsA.some((c) => c.instanceId === targetCard.instanceId)
-    if (playMode === "full_manual") {
-      onMove({
-        type: "MANUAL_PLAY_CARD",
-        cardInstanceId: card.instanceId,
-        targetKind: "card",
-        resolution: "lasting_target",
-        targetOwner: targetIsSelf ? "self" : "opponent",
-        targetCardInstanceId: targetCard.instanceId,
-      })
-      return
-    }
     requestSpellCast(card.instanceId, {
       cardInstanceId: targetCard.instanceId,
       owner: targetIsSelf ? "self" : "opponent",

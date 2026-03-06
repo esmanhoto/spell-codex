@@ -20,15 +20,7 @@ export function PlayerHand({
   discardCount: number
   isOpponent: boolean
 }) {
-  const {
-    selectedId,
-    onSelect,
-    openContextMenu,
-    legalMoves,
-    requestSpellCast,
-    requestManualPlay,
-    playMode,
-  } = useGame()
+  const { selectedId, onSelect, openContextMenu, legalMoves, requestSpellCast } = useGame()
   const total = isOpponent ? (hiddenCount ?? cards.length) : cards.length
 
   function fanTransform(index: number): React.CSSProperties {
@@ -46,10 +38,8 @@ export function PlayerHand({
     return buildHandContextActions({
       card,
       isOpponent,
-      playMode,
       legalMoves,
       requestSpellCast,
-      requestManualPlay,
     })
   }
 

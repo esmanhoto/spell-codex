@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
-import type { CardInfo, ManualPlayResolution, ManualPlayTargetKind } from "../../api.ts"
+import type { CardInfo } from "../../api.ts"
+
+type ManualPlayTargetKind = "none" | "player" | "card" | "realm" | "pool"
+type ManualPlayResolution = "discard" | "lasting" | "lasting_target"
 import styles from "./ManualPlayModal.module.css"
 
 export interface ManualPlayTargetOption {

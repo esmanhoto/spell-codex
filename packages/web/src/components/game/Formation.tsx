@@ -3,7 +3,7 @@ import { useGame } from "../../context/GameContext.tsx"
 import type { CardInfo, SlotState } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
-import { resolveHandDropMove, showModeAwareWarning } from "../../utils/manual-actions.ts"
+import { resolveHandDropMove } from "../../utils/manual-actions.ts"
 import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./Formation.module.css"
 
@@ -34,7 +34,6 @@ export function Formation({
     activePlayer,
     turnNumber,
     requestSpellCast,
-    playMode,
   } = useGame()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
 
@@ -125,12 +124,7 @@ export function Formation({
       showWarning("Not your turn.")
       return
     }
-    if (
-      playMode !== "full_manual" &&
-      phase !== "PLAY_REALM" &&
-      phase !== "POOL" &&
-      phase !== "COMBAT"
-    ) {
+    if (phase !== "PLAY_REALM" && phase !== "POOL" && phase !== "COMBAT") {
       showWarning(`Cannot declare attack now. Current phase: ${phase.replaceAll("_", " ")}.`)
       return
     }
@@ -162,12 +156,7 @@ export function Formation({
     if (source === "hand") {
       const card = findDraggedHandCard(id)
       const slotState = slots[slot] ?? null
-      if (playMode === "full_manual" && card && card.typeId !== 13 && card.typeId !== 8) {
-        showWarning("Only realms and holdings can be played in formation.")
-        return
-      }
       const resolved = resolveHandDropMove({
-        playMode,
         legalMoves,
         cardInstanceId: id,
         target: {
@@ -178,29 +167,11 @@ export function Formation({
         },
       })
       if (resolved) {
-        if (
-          playMode === "full_manual" &&
-          card?.typeId === 8 &&
-          slotState &&
-          !(
-            WORLD_WILDCARD.has(card.worldId) ||
-            WORLD_WILDCARD.has(slotState.realm.worldId) ||
-            card.worldId === slotState.realm.worldId
-          )
-        ) {
-          showWarning(
-            `Holding ${card.name} world mismatches realm ${slotState.realm.name}.`,
-            "world_mismatch_attachment",
-            true,
-            () => onMove(resolved),
-          )
-          return
-        }
         onMove(resolved)
         return
       }
 
-      if (playMode !== "full_manual" && card && isSpellCard(card)) {
+      if (card && isSpellCard(card)) {
         if (!slotState) {
           showWarning("Drop the spell on a card target, not an empty slot.")
           return
@@ -213,14 +184,6 @@ export function Formation({
       }
 
       if (card) {
-        if (playMode === "full_manual") {
-          showModeAwareWarning({
-            playMode,
-            showWarning,
-            semiAutoMessage: "That card cannot be played there right now.",
-          })
-          return
-        }
         warnInvalidHandDrop(card, slot)
       } else {
         showWarning("That card cannot be played there right now.")
@@ -230,28 +193,6 @@ export function Formation({
 
     if (source === "pool") {
       const champion = findDraggedPoolChampion(id)
-      if (playMode === "full_manual") {
-        if (!champion) {
-          showWarning("Cannot declare attack with that card.")
-          return
-        }
-        if (activePlayer !== myPlayerId) {
-          showWarning("Not your turn.")
-          return
-        }
-        if (formationOwnerId === myPlayerId) {
-          showWarning("Cannot attack your own realm.")
-          return
-        }
-        onMove({
-          type: "DECLARE_ATTACK",
-          championId: id,
-          targetRealmSlot: slot,
-          targetPlayerId: formationOwnerId,
-        })
-        return
-      }
-
       const attackMove = legalMoves.find(
         (m) =>
           m.type === "DECLARE_ATTACK" &&
