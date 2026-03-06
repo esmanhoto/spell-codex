@@ -1,5 +1,5 @@
 import { initGame, applyMove } from "@spell/engine"
-import type { GameState, Move, CardData, PlayMode } from "@spell/engine"
+import type { GameState, Move, CardData } from "@spell/engine"
 import { hashState } from "./hash.ts"
 import { listActions } from "./actions.ts"
 import { getGamePlayers } from "./games.ts"
@@ -23,11 +23,7 @@ export interface ReconstructResult {
  * the engine's output) so callers can detect and log integrity issues without
  * crashing.
  */
-export async function reconstructState(
-  gameId: string,
-  seed: number,
-  playMode: PlayMode = "full_manual",
-): Promise<ReconstructResult> {
+export async function reconstructState(gameId: string, seed: number): Promise<ReconstructResult> {
   const [players, actions] = await Promise.all([getGamePlayers(gameId), listActions(gameId)])
 
   // Sort players by seat position so init gets them in the right order.
@@ -40,7 +36,6 @@ export async function reconstructState(
   const state = initGame({
     gameId,
     seed,
-    playMode,
     players: [
       { id: p1.userId, deckCards: p1.deckSnapshot as CardData[] },
       { id: p2.userId, deckCards: p2.deckSnapshot as CardData[] },

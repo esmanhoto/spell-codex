@@ -12,7 +12,6 @@ const db = drizzle(sql)
 export interface CreateGameInput {
   formatId: string
   seed: number
-  playMode?: Game["playMode"]
   players: Array<{
     userId: string
     seatPosition: number
@@ -33,7 +32,6 @@ export async function createGame(input: CreateGameInput): Promise<Game> {
     .values({
       formatId: input.formatId,
       seed: input.seed,
-      ...(input.playMode ? { playMode: input.playMode } : {}),
     })
     .returning()
   if (!game) throw new Error("Failed to insert game row")
@@ -87,10 +85,6 @@ export async function setGameStatus(
     .update(games)
     .set({ status, ...(winnerId ? { winnerId } : {}) })
     .where(eq(games.id, gameId))
-}
-
-export async function setGamePlayMode(gameId: string, playMode: Game["playMode"]): Promise<void> {
-  await db.update(games).set({ playMode }).where(eq(games.id, gameId))
 }
 
 export async function touchGame(gameId: string, turnDeadline?: Date): Promise<void> {
