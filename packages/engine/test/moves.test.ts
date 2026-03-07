@@ -13,6 +13,7 @@ import {
   CHAMPION_WIZARD_FR,
   ALLY_PLUS4,
   HOLDING_FR,
+  EVENT_CARD,
 } from "./fixtures.ts"
 
 beforeEach(() => {
@@ -89,6 +90,24 @@ describe("phase transitions via PASS", () => {
   test("non-active player cannot PASS", () => {
     const s = initGame(DEFAULT_CONFIG)
     expect(() => applyMove(s, "p2", { type: "PASS" })).toThrow(EngineError)
+  })
+
+  test("END_TURN is legal at START_OF_TURN when hand is within limit", () => {
+    const s = initGame(DEFAULT_CONFIG)
+    expect(s.phase).toBe(Phase.StartOfTurn)
+    const moves = getLegalMoves(s, "p1")
+    expect(moves.some((m) => m.type === "END_TURN")).toBe(true)
+  })
+
+  test("END_TURN from START_OF_TURN skips drawing and passes to next player", () => {
+    const s = initGame(DEFAULT_CONFIG)
+    const hand0 = s.players["p1"]!.hand.length
+    const { newState } = applyMove(s, "p1", { type: "END_TURN" })
+    // No cards drawn
+    expect(newState.players["p1"]!.hand.length).toBe(hand0)
+    // Turn passed to next player
+    expect(newState.activePlayer).toBe("p2")
+    expect(newState.phase).toBe(Phase.StartOfTurn)
   })
 
   test("PASS from PHASE_FIVE fails if hand is over limit", () => {
@@ -620,5 +639,148 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
     expect(events.some((e) => e.type === "SPOILS_EARNED")).toBe(true)
     expect(s3.combatState).toBeNull()
     expect(s3.activePlayer).toBe("p1") // return control to attacker
+  })
+})
+
+// ─── Events during combat ─────────────────────────────────────────────────────
+
+describe("events during combat", () => {
+  /** Build a state in Phase.Combat with events in both players' hands. */
+  function buildCombatReadyState() {
+    let s = initGame(DEFAULT_CONFIG)
+    const attacker: CardInstance = { instanceId: "att", card: CHAMPION_WIZARD_FR } // level 8
+    const defender: CardInstance = { instanceId: "def", card: CHAMPION_CLERIC_FR } // level 6
+    const realmP2: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
+    const eventAtt: CardInstance = { instanceId: "ev-att", card: EVENT_CARD }
+    const eventDef: CardInstance = { instanceId: "ev-def", card: EVENT_CARD }
+    return {
+      ...s,
+      phase: Phase.Combat,
+      players: {
+        ...s.players,
+        p1: { ...s.players["p1"]!, pool: [{ champion: attacker, attachments: [] }], hand: [eventAtt] },
+        p2: {
+          ...s.players["p2"]!,
+          pool: [{ champion: defender, attachments: [] }],
+          formation: { size: 6 as const, slots: { A: { realm: realmP2, isRazed: false, holdings: [] } } },
+          hand: [eventDef],
+        },
+      },
+    }
+  }
+
+  // ─── AWAITING_DEFENDER phase ──────────────────────────────────────────────
+
+  test("attacker gets PLAY_EVENT during AWAITING_DEFENDER", () => {
+    const s = buildCombatReadyState()
+    const { newState: afterAttack } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    expect(afterAttack.combatState!.roundPhase).toBe("AWAITING_DEFENDER")
+    const p1Moves = getLegalMoves(afterAttack, "p1")
+    expect(p1Moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
+  })
+
+  test("attacker can successfully applyMove PLAY_EVENT during AWAITING_DEFENDER", () => {
+    const s = buildCombatReadyState()
+    const { newState: afterAttack } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    const { newState } = applyMove(afterAttack, "p1", {
+      type: "PLAY_EVENT",
+      cardInstanceId: "ev-att",
+    })
+    expect(newState.resolutionContext).not.toBeNull()
+    expect(newState.resolutionContext!.initiatingPlayer).toBe("p1")
+  })
+
+  // ─── AWAITING_ATTACKER phase ──────────────────────────────────────────────
+
+  test("defender gets PLAY_EVENT during AWAITING_ATTACKER", () => {
+    const s = buildCombatReadyState()
+    const { newState: s1 } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
+    // Attacker wins (8 > 6) → AWAITING_ATTACKER for next round
+    const { newState: s3 } = applyMove(s2, "p2", { type: "STOP_PLAYING" })
+    expect(s3.combatState!.roundPhase).toBe("AWAITING_ATTACKER")
+
+    const p2Moves = getLegalMoves(s3, "p2")
+    expect(p2Moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
+  })
+
+  test("defender can successfully applyMove PLAY_EVENT during AWAITING_ATTACKER", () => {
+    const s = buildCombatReadyState()
+    const { newState: s1 } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
+    const { newState: s3 } = applyMove(s2, "p2", { type: "STOP_PLAYING" })
+
+    const { newState } = applyMove(s3, "p2", { type: "PLAY_EVENT", cardInstanceId: "ev-def" })
+    expect(newState.resolutionContext).not.toBeNull()
+    expect(newState.resolutionContext!.initiatingPlayer).toBe("p2")
+  })
+
+  // ─── CARD_PLAY phase ──────────────────────────────────────────────────────
+
+  test("losing player gets PLAY_EVENT alongside combat cards during CARD_PLAY", () => {
+    const s = buildCombatReadyState()
+    const { newState: s1 } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
+    // p2 is losing (6 < 8) → p2 is active
+    expect(s2.combatState!.roundPhase).toBe("CARD_PLAY")
+    expect(s2.activePlayer).toBe("p2")
+
+    const p2Moves = getLegalMoves(s2, "p2")
+    expect(p2Moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
+    expect(p2Moves.some((m) => m.type === "STOP_PLAYING")).toBe(true)
+  })
+
+  test("winning player gets PLAY_EVENT during CARD_PLAY", () => {
+    const s = buildCombatReadyState()
+    const { newState: s1 } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
+    // p1 is winning (8 > 6)
+    const p1Moves = getLegalMoves(s2, "p1")
+    expect(p1Moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
+  })
+
+  test("losing player can successfully applyMove PLAY_EVENT during CARD_PLAY", () => {
+    const s = buildCombatReadyState()
+    const { newState: s1 } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
+    // p2 is losing — play event
+    const { newState } = applyMove(s2, "p2", { type: "PLAY_EVENT", cardInstanceId: "ev-def" })
+    expect(newState.resolutionContext).not.toBeNull()
+    expect(newState.resolutionContext!.initiatingPlayer).toBe("p2")
   })
 })
