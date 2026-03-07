@@ -42,10 +42,27 @@ test("phase 3 spell cast announcement appears and keep-in-play spell is shown in
     data: {
       type: "PLAY_PHASE3_CARD",
       cardInstanceId: castMove.cardInstanceId,
-      keepInPlay: true,
     },
   })
   expect(castRes.ok()).toBe(true)
+
+  const setDestRes = await request.post(`/api/games/${gameId}/moves`, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": PLAYER_A,
+    },
+    data: { type: "RESOLVE_SET_CARD_DESTINATION", destination: "in_play" },
+  })
+  expect(setDestRes.ok()).toBe(true)
+
+  const doneRes = await request.post(`/api/games/${gameId}/moves`, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-User-Id": PLAYER_A,
+    },
+    data: { type: "RESOLVE_DONE" },
+  })
+  expect(doneRes.ok()).toBe(true)
 
   await page.addInitScript(
     ({ playerId }) => {
