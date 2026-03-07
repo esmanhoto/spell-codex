@@ -178,22 +178,31 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
     return move.type.startsWith("RESOLVE_")
   }
 
+  // Events are always playable by any player (out of combat, at non-bookkeeping phases)
+  if (move.type === "PLAY_EVENT" && !state.combatState) {
+    return (
+      state.phase !== Phase.StartOfTurn &&
+      state.phase !== Phase.Draw &&
+      state.phase !== Phase.EndTurn
+    )
+  }
+
   const combat = state.combatState
   if (!combat) return false
 
+  const isAttacker = playerId === combat.attackingPlayer
   const isDefender = playerId === combat.defendingPlayer
+  const isCombatParticipant = isAttacker || isDefender
+
+  // Events are always playable by any combat participant at any combat phase
+  if (isCombatParticipant && move.type === "PLAY_EVENT") return true
 
   if (combat.roundPhase === "AWAITING_DEFENDER" && isDefender) {
     return move.type === "DECLARE_DEFENSE" || move.type === "DECLINE_DEFENSE"
   }
 
-  if (combat.roundPhase === "CARD_PLAY") {
-    // Winning player may act out of turn only for events/combat control.
-    return (
-      move.type === "PLAY_EVENT" ||
-      move.type === "SET_COMBAT_LEVEL" ||
-      move.type === "SWITCH_COMBAT_SIDE"
-    )
+  if (combat.roundPhase === "CARD_PLAY" && isCombatParticipant) {
+    return move.type === "SET_COMBAT_LEVEL" || move.type === "SWITCH_COMBAT_SIDE"
   }
 
   return false
@@ -626,12 +635,6 @@ function handlePlaySpellCard(
           : {}),
         ...(move.targetOwner != null ? { targetOwner: move.targetOwner } : {}),
       })
-    }
-  }
-
-  if (state.combatState?.roundPhase === "CARD_PLAY" && move.type === "PLAY_EVENT") {
-    if (playerId === state.activePlayer) {
-      throw new EngineError("LOSING_PLAYER_CANNOT_PLAY_EVENT")
     }
   }
 
@@ -1405,8 +1408,12 @@ function handleEndTurn(state: GameState, playerId: PlayerId, events: GameEvent[]
     throw new EngineError("HAND_TOO_LARGE", `Discard down to ${maxEnd} cards before ending turn`)
   }
 
-  // Advance to PhaseFive first (running side-effects for skipped phases)
+  // Advance to PhaseFive first (running side-effects for skipped phases).
+  // If called from START_OF_TURN, skip drawing entirely and jump straight to PlayRealm.
   let s = state
+  if (s.phase === Phase.StartOfTurn) {
+    s = { ...s, phase: Phase.PlayRealm }
+  }
   if (s.phase !== Phase.PhaseFive) {
     s = advanceToPhase(s, playerId, Phase.PhaseFive, events)
   }
