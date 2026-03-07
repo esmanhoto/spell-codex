@@ -12,14 +12,13 @@ export function MovePanel({ playerId }: { playerId: string }) {
     onSelect,
     onMove,
     allBoards,
-    phase,
     winner,
   } = useGame()
 
   if (winner) return null
 
-  const playerMoves =
-    legalMovesPerPlayer?.[playerId] ?? (activePlayer === playerId ? legalMoves : [])
+  const rawMoves = legalMovesPerPlayer?.[playerId] ?? (activePlayer === playerId ? legalMoves : [])
+  const playerMoves = rawMoves.filter((m) => m.type !== "PASS")
   if (playerMoves.length === 0) return null
 
   const filteredMoves = selectedId
@@ -42,8 +41,8 @@ export function MovePanel({ playerId }: { playerId: string }) {
           </button>
         )}
       </div>
-      {selectedId && filteredMoves.length === 1 && filteredMoves[0]!.type === "PASS" && (
-        <p className={styles.hint}>No moves available for this card — only PASS is shown.</p>
+      {selectedId && filteredMoves.length === 1 && filteredMoves[0]!.type === "END_TURN" && (
+        <p className={styles.hint}>No moves available for this card — only End Turn is shown.</p>
       )}
       <div className={styles.buttons}>
         {filteredMoves.map((m, i) => (
@@ -51,10 +50,10 @@ export function MovePanel({ playerId }: { playerId: string }) {
             key={i}
             data-testid={`move-btn-${playerId}-${i}`}
             data-move-type={m.type}
-            className={`${styles.btn} ${m.type === "PASS" ? styles.pass : styles.action}`}
+            className={`${styles.btn} ${m.type === "END_TURN" ? styles.pass : styles.action}`}
             onClick={() => onMove(m)}
           >
-            {labelMove(m, nameOf, phase)}
+            {labelMove(m, nameOf)}
           </button>
         ))}
       </div>

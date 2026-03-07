@@ -23,6 +23,7 @@ export interface GameContextType {
   phase: string
   turnNumber: number
   winner: string | null
+  handMaxSize: number
   allBoards: Record<string, PlayerBoard>
   lingeringSpellsByPlayer: Record<string, CardInfo[]>
   combat: CombatInfo | null
@@ -74,6 +75,7 @@ export const GameContext = React.createContext<GameContextType>({
   phase: "",
   turnNumber: 0,
   winner: null,
+  handMaxSize: 8,
   allBoards: {},
   lingeringSpellsByPlayer: {},
   combat: null,

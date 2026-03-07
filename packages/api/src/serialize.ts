@@ -1,4 +1,4 @@
-import { getLegalMoves, calculateCombatLevel, hasWorldMatch } from "@spell/engine"
+import { getLegalMoves, calculateCombatLevel, hasWorldMatch, HAND_SIZES } from "@spell/engine"
 import type { CardInstance, Formation, GameState, PoolEntry } from "@spell/engine"
 
 // ─── Card / Formation serialisers ────────────────────────────────────────────
@@ -136,6 +136,7 @@ export function serializeGameState(
     turnNumber: state.currentTurn,
     turnDeadline,
     winner: state.winner ?? null,
+    handMaxSize: HAND_SIZES[state.deckSize]?.maxEnd ?? 8,
     legalMoves: getLegalMoves(state, viewerPlayerId ?? state.activePlayer),
     legalMovesPerPlayer,
     board: serializeBoard(state, viewerPlayerId),

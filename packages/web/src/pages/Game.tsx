@@ -403,6 +403,7 @@ export function Game() {
         phase: data.phase,
         turnNumber: data.turnNumber,
         winner: data.winner,
+        handMaxSize: data.handMaxSize,
         allBoards: data.board.players,
         lingeringSpellsByPlayer,
         combat: data.board.combat,

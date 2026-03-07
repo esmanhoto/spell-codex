@@ -26,12 +26,12 @@ export function moveInvolves(m: Move, id: string): boolean {
   }
 }
 
-export function labelMove(m: Move, nameOf: (id: string) => string, phase?: string): string {
+export function labelMove(m: Move, nameOf: (id: string) => string): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const a = m as any
   switch (m.type) {
     case "PASS":
-      return phase === "START_OF_TURN" ? "Draw cards" : "Next phase"
+      return "Draw cards"
     case "END_TURN":
       return "End Turn"
     case "PLAY_REALM":

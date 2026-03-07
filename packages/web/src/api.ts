@@ -83,6 +83,7 @@ export interface GameState {
   turnNumber: number
   turnDeadline: string | null
   winner: string | null
+  handMaxSize: number
   legalMoves: Move[]
   legalMovesPerPlayer?: Record<string, Move[]>
   board: {
