@@ -27,7 +27,7 @@ export default defineConfig({
     const webPort = env("E2E_WEB_PORT") ?? "4175"
     return {
       baseURL: `http://127.0.0.1:${webPort}`,
-      trace: "on-first-retry" as const,
+      trace: "retain-on-failure" as const,
     }
   })(),
   webServer: (() => {

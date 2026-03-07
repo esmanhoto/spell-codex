@@ -41,6 +41,7 @@ export interface PlayerBoard {
   pool: PoolEntry[]
   drawPileCount: number
   discardCount: number
+  lastingEffects: CardInfo[]
 }
 
 export interface CombatInfo {
@@ -56,6 +57,20 @@ export interface CombatInfo {
   defenderLevel: number
   attackerManualLevel: number | null
   defenderManualLevel: number | null
+}
+
+export interface ResolutionContextInfo {
+  cardInstanceId: string
+  pendingCard: CardInfo
+  initiatingPlayer: string
+  resolvingPlayer: string
+  cardDestination: "discard" | "abyss" | "void" | "in_play"
+  attachTarget: {
+    owner: string
+    zone: "pool" | "formation"
+    targetInstanceId?: string
+    targetRealmSlot?: string
+  } | null
 }
 
 export interface GameState {
@@ -75,6 +90,7 @@ export interface GameState {
     combat: CombatInfo | null
   }
   events?: GameEvent[]
+  resolutionContext: ResolutionContextInfo | null
   integrityErrors?: unknown[]
 }
 
@@ -117,8 +133,19 @@ export type Move =
   | { type: "CONTINUE_ATTACK"; championId: string }
   | { type: "END_ATTACK" }
   | { type: "DISCARD_CARD"; cardInstanceId: string }
-  | { type: "MANUAL_SET_COMBAT_LEVEL"; playerId: string; level: number }
-  | { type: "MANUAL_SWITCH_COMBAT_SIDE"; cardInstanceId: string }
+  | { type: "SET_COMBAT_LEVEL"; playerId: string; level: number }
+  | { type: "SWITCH_COMBAT_SIDE"; cardInstanceId: string }
+  | { type: "RESOLVE_DONE" }
+  | { type: "RESOLVE_SET_CARD_DESTINATION"; destination: "discard" | "abyss" | "void" | "in_play" }
+  | { type: "RESOLVE_RAZE_REALM"; playerId: string; slot: string }
+  | { type: "RESOLVE_DRAW_CARDS"; playerId: string; count: number }
+  | { type: "RESOLVE_RETURN_TO_POOL"; cardInstanceId: string }
+  | {
+      type: "RESOLVE_MOVE_CARD"
+      cardInstanceId: string
+      destination: { zone: string; playerId: string; returnsOnTurn?: number }
+    }
+  | { type: "RESOLVE_ATTACH_CARD"; cardInstanceId: string; targetInstanceId: string }
   | { type: string; [key: string]: unknown }
 
 // ─── API calls ────────────────────────────────────────────────────────────────

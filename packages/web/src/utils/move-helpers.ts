@@ -70,10 +70,24 @@ export function labelMove(m: Move, nameOf: (id: string) => string, phase?: strin
       return "End attack"
     case "DISCARD_CARD":
       return `Discard ${nameOf(a.cardInstanceId)}`
-    case "MANUAL_SET_COMBAT_LEVEL":
+    case "SET_COMBAT_LEVEL":
       return `Set level ${a.level}`
-    case "MANUAL_SWITCH_COMBAT_SIDE":
+    case "SWITCH_COMBAT_SIDE":
       return `Switch side: ${nameOf(a.cardInstanceId)}`
+    case "RESOLVE_DONE":
+      return "Done resolving"
+    case "RESOLVE_SET_CARD_DESTINATION":
+      return `Set destination: ${a.destination}`
+    case "RESOLVE_RAZE_REALM":
+      return `Raze slot ${a.slot}`
+    case "RESOLVE_DRAW_CARDS":
+      return `Draw ${a.count} card(s)`
+    case "RESOLVE_RETURN_TO_POOL":
+      return `Return ${nameOf(a.cardInstanceId)} to pool`
+    case "RESOLVE_MOVE_CARD":
+      return `Move ${nameOf(a.cardInstanceId)} to ${(a.destination as { zone: string }).zone}`
+    case "RESOLVE_ATTACH_CARD":
+      return `Attach ${nameOf(a.cardInstanceId)} to ${nameOf(a.targetInstanceId)}`
     default:
       return m.type as string
   }

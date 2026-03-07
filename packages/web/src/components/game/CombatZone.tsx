@@ -49,7 +49,7 @@ export function CombatZone() {
   const bWinning = levelB > levelA
   const hasLevels = combat.attacker !== null && combat.defender !== null
 
-  const canEditLevel = legalMoves.some((m) => m.type === "MANUAL_SET_COMBAT_LEVEL")
+  const canEditLevel = legalMoves.some((m) => m.type === "SET_COMBAT_LEVEL")
   const canAcceptDefeat =
     combat.roundPhase === "AWAITING_DEFENDER" &&
     legalMoves.some((m) => m.type === "DECLINE_DEFENSE")
@@ -62,7 +62,7 @@ export function CombatZone() {
   ) {
     const level = parseInt(input, 10)
     if (!isNaN(level)) {
-      onMove({ type: "MANUAL_SET_COMBAT_LEVEL", playerId, level })
+      onMove({ type: "SET_COMBAT_LEVEL", playerId, level })
     }
     setter("")
     closeFn(false)
@@ -73,7 +73,7 @@ export function CombatZone() {
     return [
       {
         label: "Switch sides",
-        move: { type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId },
+        move: { type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId },
       },
     ]
   }

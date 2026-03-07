@@ -38,6 +38,14 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]
   if (!player) return []
 
+  // 0. Resolution context — only the resolving player may act, with RESOLVE_* moves only
+  if (state.resolutionContext) {
+    if (playerId === state.resolutionContext.resolvingPlayer) {
+      return dedupeMoves(getResolutionMoves(state, playerId))
+    }
+    return []
+  }
+
   // 1. During active combat, use combat-specific move set
   if (state.combatState) {
     return dedupeMoves(getCombatMoves(state, playerId))
@@ -76,6 +84,89 @@ function dedupeMoves(moves: Move[]): Move[] {
     out.push(move)
   }
   return out
+}
+
+// ─── Resolution Moves ────────────────────────────────────────────────────────
+
+function getResolutionMoves(state: GameState, _playerId: PlayerId): Move[] {
+  const moves: Move[] = [{ type: "RESOLVE_DONE" }]
+
+  // Destination choices for the resolved card
+  for (const dest of ["discard", "abyss", "void", "in_play"] as const) {
+    moves.push({ type: "RESOLVE_SET_CARD_DESTINATION", destination: dest })
+  }
+
+  // Raze any unrazed realm
+  for (const [ownerId, player] of Object.entries(state.players)) {
+    for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+      if (realmSlot && !realmSlot.isRazed) {
+        moves.push({
+          type: "RESOLVE_RAZE_REALM",
+          playerId: ownerId,
+          slot: slot as FormationSlot,
+        })
+      }
+    }
+  }
+
+  // Return champions from any discard pile to pool
+  for (const [, player] of Object.entries(state.players)) {
+    for (const card of player.discardPile) {
+      if (isChampionType(card.card.typeId)) {
+        moves.push({ type: "RESOLVE_RETURN_TO_POOL", cardInstanceId: card.instanceId })
+      }
+    }
+  }
+
+  // Draw cards (1–4) for each player
+  for (const ownerId of Object.keys(state.players)) {
+    for (let n = 1; n <= 4; n++) {
+      moves.push({ type: "RESOLVE_DRAW_CARDS", playerId: ownerId, count: n })
+    }
+  }
+
+  // Move pool champions to discard / limbo / abyss
+  for (const [ownerId, player] of Object.entries(state.players)) {
+    for (const entry of player.pool) {
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: entry.champion.instanceId,
+        destination: { zone: "discard", playerId: ownerId },
+      })
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: entry.champion.instanceId,
+        destination: {
+          zone: "limbo",
+          playerId: ownerId,
+          returnsOnTurn: state.currentTurn + 1,
+        },
+      })
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: entry.champion.instanceId,
+        destination: { zone: "abyss", playerId: ownerId },
+      })
+    }
+
+    // Move discard / abyss cards back to hand
+    for (const card of player.discardPile) {
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: card.instanceId,
+        destination: { zone: "hand", playerId: ownerId },
+      })
+    }
+    for (const card of player.abyss) {
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: card.instanceId,
+        destination: { zone: "hand", playerId: ownerId },
+      })
+    }
+  }
+
+  return moves
 }
 
 // ─── Forward Phase Composition ───────────────────────────────────────────────
@@ -375,23 +466,27 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
   const realmWorldId = targetRealmSlot?.realm.card.worldId ?? 0
 
-  const attackerLevel = combat.attacker
-    ? calculateCombatLevel(
-        combat.attacker,
-        combat.attackerCards,
-        hasWorldMatch(combat.attacker, realmWorldId),
-        "offensive",
-      )
-    : 0
+  const attackerLevel =
+    combat.attackerManualLevel ??
+    (combat.attacker
+      ? calculateCombatLevel(
+          combat.attacker,
+          combat.attackerCards,
+          hasWorldMatch(combat.attacker, realmWorldId),
+          "offensive",
+        )
+      : 0)
 
-  const defenderLevel = combat.defender
-    ? calculateCombatLevel(
-        combat.defender,
-        combat.defenderCards,
-        hasWorldMatch(combat.defender, realmWorldId),
-        "defensive",
-      )
-    : 0
+  const defenderLevel =
+    combat.defenderManualLevel ??
+    (combat.defender
+      ? calculateCombatLevel(
+          combat.defender,
+          combat.defenderCards,
+          hasWorldMatch(combat.defender, realmWorldId),
+          "defensive",
+        )
+      : 0)
 
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, combat)
   const isLosing = playerId === losingPlayer
@@ -416,14 +511,18 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
   }
   moves.push(...getHoldingRevealMoves(player))
 
-  // Either combat participant may set manual level or switch card sides during CARD_PLAY
+  // Either combat participant may set level or switch card sides during CARD_PLAY
   if (isAttacker || isDefender) {
-    moves.push({ type: "MANUAL_SET_COMBAT_LEVEL", playerId, level: attackerLevel })
+    moves.push({
+      type: "SET_COMBAT_LEVEL",
+      playerId,
+      level: isAttacker ? attackerLevel : defenderLevel,
+    })
     for (const card of combat.attackerCards) {
-      moves.push({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+      moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
     }
     for (const card of combat.defenderCards) {
-      moves.push({ type: "MANUAL_SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+      moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
     }
   }
 

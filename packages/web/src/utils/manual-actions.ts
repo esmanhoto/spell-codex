@@ -21,7 +21,12 @@ export function buildHandContextActions(args: {
   if (isOpponent) return []
 
   const discardMove = findCardMove(legalMoves, "DISCARD_CARD", card.instanceId)
+  const combatCardMove = findCardMove(legalMoves, "PLAY_COMBAT_CARD", card.instanceId)
   const actions: ContextMenuAction[] = []
+
+  if (combatCardMove) {
+    actions.push({ label: "Play in Combat", move: combatCardMove })
+  }
 
   if (discardMove) {
     actions.push({ label: "Discard", move: discardMove })

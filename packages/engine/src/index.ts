@@ -1,6 +1,7 @@
 // Public API
 
-export { applyMove, EngineError } from "./engine.ts"
+export { EngineError } from "./errors.ts"
+export { applyMove } from "./engine.ts"
 export { getLegalMoves, isUniqueInPlay, isAttackable, getLegalRealmSlots } from "./legal-moves.ts"
 export { getSpellDirection, getCastPhases, canChampionUseSpell } from "./spell-gating.ts"
 export { initGame } from "./init.ts"
@@ -56,6 +57,10 @@ export type {
   LimboEntry,
   PoolEntry,
   PlayerState,
+  // Resolution
+  ZoneDestination,
+  AttachTarget,
+  ResolutionContext,
   // Combat
   CombatRoundPhase,
   CombatRoundOutcome,

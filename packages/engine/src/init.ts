@@ -50,6 +50,7 @@ export function initGame(config: GameConfig): GameState {
     deckSize,
     hasAttackedThisTurn: false,
     hasPlayedRealmThisTurn: false,
+    resolutionContext: null,
   }
 }
 
@@ -69,6 +70,7 @@ function makePlayerState(
     formation: { size: formationSize, slots: {} },
     dungeon: null,
     pool: [],
+    lastingEffects: [],
   }
 }
 

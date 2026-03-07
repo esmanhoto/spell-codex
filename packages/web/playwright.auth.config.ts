@@ -48,7 +48,7 @@ export default defineConfig({
   reporter: [["list"], ["html", { outputFolder: "playwright-report-auth", open: "never" }]],
   use: {
     baseURL: "http://127.0.0.1:4174",
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
   },
   // Use dedicated ports to avoid collisions with locally running dev servers.
   webServer: (() => {

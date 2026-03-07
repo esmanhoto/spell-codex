@@ -68,7 +68,17 @@ export function EventLog({ events }: { events: GameEvent[] }) {
       case "COMBAT_LEVEL_SET":
         return `  ${playerLabel(e.playerId as string)} set level to ${e.level as number}`
       case "PHASE3_SPELL_CAST":
-        return `  ${p} cast ${e.cardName as string}${(e.keepInPlay as boolean) ? " (kept in play)" : ""}`
+        return `  ${p} cast ${e.cardName as string}`
+      case "RESOLUTION_STARTED":
+        return `  ${p} resolving: ${e.cardName as string}`
+      case "RESOLUTION_COMPLETED":
+        return `  ${p} resolved (→ ${e.destination as string})`
+      case "CARD_ZONE_MOVED":
+        return `  Card moved: ${e.fromZone as string} → ${e.toZone as string}`
+      case "CHAMPION_RETURNED_TO_POOL":
+        return `  ${p} champion returned to pool`
+      case "COMBAT_CARD_SWITCHED":
+        return `  Combat card switched sides`
       case "GAME_OVER":
         return `${playerLabel(e.winner as string)} WINS!`
       default:
