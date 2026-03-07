@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
-import { cardImageUrl } from "../../utils/card-helpers.ts"
+import { cardImageUrl, nameOfCard } from "../../utils/card-helpers.ts"
 import type { CardInfo } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/GameContext.tsx"
 import { isSpellCard } from "../../utils/spell-casting.ts"
@@ -45,14 +45,21 @@ export function CombatZone() {
   const manualB = aIsAttacker ? combat.defenderManualLevel : combat.attackerManualLevel
   const roleB = aIsAttacker ? "Defender" : "Attacker"
 
-  const aWinning = levelA > levelB
-  const bWinning = levelB > levelA
   const hasLevels = combat.attacker !== null && combat.defender !== null
+  const tie = hasLevels && levelA === levelB
+  // On a tie the defender wins — color the defending side as winning
+  const aWinning = levelA > levelB || (tie && !aIsAttacker)
+  const bWinning = levelB > levelA || (tie && aIsAttacker)
 
   const canEditLevel = legalMoves.some((m) => m.type === "SET_COMBAT_LEVEL")
   const canAcceptDefeat =
     combat.roundPhase === "AWAITING_DEFENDER" &&
     legalMoves.some((m) => m.type === "DECLINE_DEFENSE")
+  const canStopPlaying = legalMoves.some((m) => m.type === "STOP_PLAYING")
+  const canEndAttack = legalMoves.some((m) => m.type === "END_ATTACK")
+  const continueAttackMoves = legalMoves.filter(
+    (m): m is Extract<typeof m, { type: "CONTINUE_ATTACK" }> => m.type === "CONTINUE_ATTACK",
+  )
 
   function submitLevel(
     playerId: string,
@@ -112,6 +119,18 @@ export function CombatZone() {
       owner: targetIsSelf ? "self" : "opponent",
     })
   }
+
+  // Include pool entry attachments in the displayed card stacks
+  const boardA = allBoards[playerA]
+  const boardB = allBoards[playerB]
+  const poolAttachmentsA = champA
+    ? (boardA?.pool.find((e) => e.champion.instanceId === champA.instanceId)?.attachments ?? [])
+    : []
+  const poolAttachmentsB = champB
+    ? (boardB?.pool.find((e) => e.champion.instanceId === champB.instanceId)?.attachments ?? [])
+    : []
+  const displayCardsA = [...poolAttachmentsA, ...cardsA]
+  const displayCardsB = [...poolAttachmentsB, ...cardsB]
 
   // PEEK = how many px of each support card peek out below the champion
   const PEEK = 34
@@ -225,7 +244,7 @@ export function CombatZone() {
 
       {/* Player B section (top) */}
       <div className={styles.sideSection}>
-        {renderCardStack(champB, cardsB)}
+        {renderCardStack(champB, displayCardsB)}
         <div className={styles.infoPanel}>
           {hasLevels && (
             <>
@@ -284,7 +303,7 @@ export function CombatZone() {
 
       {/* Player A section (bottom — cards normal orientation) */}
       <div className={styles.sideSection}>
-        {renderCardStack(champA, cardsA)}
+        {renderCardStack(champA, displayCardsA)}
         <div className={styles.infoPanel}>
           <span className={styles.roleLabel}>{roleA}</span>
           {canAcceptDefeat && (
@@ -346,6 +365,31 @@ export function CombatZone() {
       <div className={styles.targetInfo}>
         Player A attacking Player B's realm <strong>{combat.targetSlot}</strong>
       </div>
+
+      {/* Accept defeat — stop playing combat cards and resolve */}
+      {canStopPlaying && (
+        <div className={styles.actionRow}>
+          <button className={styles.defeatBtn} onClick={() => onMove({ type: "STOP_PLAYING" })}>
+            Accept defeat
+          </button>
+        </div>
+      )}
+
+      {/* Attacker continuation — after winning a round */}
+      {(canEndAttack || continueAttackMoves.length > 0) && (
+        <div className={styles.attackerActions}>
+          {canEndAttack && (
+            <button className={styles.endAttackBtn} onClick={() => onMove({ type: "END_ATTACK" })}>
+              End attack
+            </button>
+          )}
+          {continueAttackMoves.map((m) => (
+            <button key={m.championId} className={styles.continueBtn} onClick={() => onMove(m)}>
+              Continue with {nameOfCard(m.championId, allBoards)}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
