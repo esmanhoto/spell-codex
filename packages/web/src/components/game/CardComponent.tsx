@@ -31,6 +31,7 @@ export function CardComponent({
   return (
     <CardTooltip card={card}>
       <div
+        data-testid={`card-${card.instanceId}`}
         className={`${styles.card} ${selected ? styles.selected : ""} ${onClick ? styles.clickable : ""} ${className ?? ""}`}
         style={style}
         onClick={onClick}

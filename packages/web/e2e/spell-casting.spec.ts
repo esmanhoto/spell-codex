@@ -63,5 +63,5 @@ test("phase 3 spell cast announcement appears and keep-in-play spell is shown in
     .getByRole("button", { name: /Acknowledge|OK/ })
     .click()
 
-  await expect(page.getByTestId(`lasting-spells-${PLAYER_A}`).locator("img").first()).toBeVisible()
+  await expect(page.getByTestId(`lasting-spells-${PLAYER_A}`).locator('[data-testid^="card-"]').first()).toBeVisible()
 })
