@@ -85,7 +85,12 @@
   letter-spacing: 0.05em;
 }
 
-.passBtn:hover {
+.passBtn:hover:not(:disabled) {
   background: rgba(200, 160, 60, 0.12);
   border-color: var(--gold);
+}
+
+.passBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }

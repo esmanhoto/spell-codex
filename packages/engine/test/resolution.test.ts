@@ -539,3 +539,71 @@ describe("resolution events", () => {
     expect((evt as { destination: string }).destination).toBe("abyss")
   })
 })
+
+// ─── Non-active player events out-of-combat ───────────────────────────────────
+
+describe("non-active player events out-of-combat", () => {
+  /** p1 is active; p2 has an event in hand. */
+  function buildStateWithP2Event(phase: Phase): GameState {
+    const s = initGame(DEFAULT_CONFIG)
+    const event = ci("ev-p2", EVENT_CARD)
+    return {
+      ...s,
+      phase,
+      activePlayer: "p1",
+      players: {
+        ...s.players,
+        p2: { ...s.players["p2"]!, hand: [event] },
+      },
+    }
+  }
+
+  test("non-active player gets PLAY_EVENT during PlayRealm", () => {
+    const moves = getLegalMoves(buildStateWithP2Event(Phase.PlayRealm), "p2")
+    expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
+  })
+
+  test("non-active player gets PLAY_EVENT during Pool", () => {
+    const moves = getLegalMoves(buildStateWithP2Event(Phase.Pool), "p2")
+    expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
+  })
+
+  test("non-active player gets PLAY_EVENT during Combat", () => {
+    const moves = getLegalMoves(buildStateWithP2Event(Phase.Combat), "p2")
+    expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
+  })
+
+  test("non-active player gets PLAY_EVENT during PhaseFive", () => {
+    const moves = getLegalMoves(buildStateWithP2Event(Phase.PhaseFive), "p2")
+    expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
+  })
+
+  test("non-active player gets no moves at StartOfTurn", () => {
+    const moves = getLegalMoves(buildStateWithP2Event(Phase.StartOfTurn), "p2")
+    expect(moves).toHaveLength(0)
+  })
+
+  test("non-active player only gets events (no normal moves) out-of-combat", () => {
+    const event = ci("ev-p2", EVENT_CARD)
+    const realm = ci("realm-p2", REALM_GENERIC)
+    const s = initGame(DEFAULT_CONFIG)
+    const withCards = {
+      ...s,
+      phase: Phase.Pool,
+      activePlayer: "p1",
+      players: { ...s.players, p2: { ...s.players["p2"]!, hand: [event, realm] } },
+    }
+    const moves = getLegalMoves(withCards, "p2")
+    expect(moves.length).toBeGreaterThan(0)
+    expect(moves.every((m) => m.type === "PLAY_EVENT")).toBe(true)
+  })
+
+  test("non-active player can successfully applyMove PLAY_EVENT during opponent's turn", () => {
+    const s = buildStateWithP2Event(Phase.Pool)
+    const { newState } = applyMove(s, "p2", { type: "PLAY_EVENT", cardInstanceId: "ev-p2" })
+    expect(newState.resolutionContext).not.toBeNull()
+    expect(newState.resolutionContext!.initiatingPlayer).toBe("p2")
+    expect(newState.resolutionContext!.resolvingPlayer).toBe("p2")
+    expect(newState.players["p2"]!.hand).toHaveLength(0)
+  })
+})

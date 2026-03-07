@@ -3,14 +3,24 @@ import { PhaseTracker } from "./PhaseTracker.tsx"
 import styles from "./Divider.module.css"
 
 export function Divider() {
-  const { playerA, myPlayerId, phase, turnNumber, winner, activePlayer, legalMoves, onMove } =
-    useGame()
+  const {
+    playerA,
+    myPlayerId,
+    phase,
+    turnNumber,
+    winner,
+    activePlayer,
+    legalMoves,
+    onMove,
+    allBoards,
+    handMaxSize,
+  } = useGame()
   const activeLabel = activePlayer === playerA ? "Player A" : "Player B"
   const isMyTurn = myPlayerId === activePlayer
 
-  const passMove = isMyTurn
-    ? (legalMoves.find((m) => m.type === "END_TURN") ?? legalMoves.find((m) => m.type === "PASS"))
-    : null
+  const endTurnMove = legalMoves.find((m) => m.type === "END_TURN")
+  const myHand = myPlayerId ? (allBoards[myPlayerId]?.hand ?? []) : []
+  const canEndTurn = myHand.length <= handMaxSize
 
   return (
     <div className={styles.divider}>
@@ -29,14 +39,15 @@ export function Divider() {
             <div className={styles.activeLabel} data-testid="active-player-label">
               Active: {activeLabel}
             </div>
-            {passMove && (
+            {isMyTurn && (
               <button
                 className={styles.passBtn}
                 data-testid="pass-btn"
-                data-move-type={passMove.type}
-                onClick={() => onMove(passMove)}
+                data-move-type="END_TURN"
+                disabled={!canEndTurn || !endTurnMove}
+                onClick={() => endTurnMove && onMove(endTurnMove)}
               >
-                {passMove.type === "END_TURN" ? "End Turn" : "Pass"}
+                End Turn
               </button>
             )}
           </>

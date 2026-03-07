@@ -45,7 +45,7 @@
 .actionRow {
   display: flex;
   justify-content: center;
-  margin: -6px 0 12px;
+  margin-top: 12px;
 }
 
 .defeatBtn {
@@ -258,6 +258,46 @@
   letter-spacing: 0.2em;
   color: var(--gold);
   opacity: 0.6;
+}
+
+/* ─── Attacker continuation buttons ─── */
+.attackerActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(122, 58, 42, 0.3);
+}
+
+.endAttackBtn {
+  border: 1px solid #845a4f;
+  background: #2a211f;
+  color: #f2e8d5;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+}
+
+.endAttackBtn:hover {
+  background: #352a27;
+}
+
+.continueBtn {
+  border: 1px solid rgba(42, 90, 154, 0.5);
+  background: rgba(26, 58, 106, 0.4);
+  color: #7ec8e3;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+}
+
+.continueBtn:hover {
+  background: rgba(42, 74, 138, 0.6);
 }
 
 /* ─── Attack line target indicator ─── */

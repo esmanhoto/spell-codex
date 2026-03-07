@@ -51,8 +51,17 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
     return dedupeMoves(getCombatMoves(state, playerId))
   }
 
-  // 2. Out-of-combat: only the active player may act
-  if (state.activePlayer !== playerId) return []
+  // 2. Out-of-combat: non-active player may only play events (at any non-bookkeeping phase)
+  if (state.activePlayer !== playerId) {
+    if (
+      state.phase !== Phase.StartOfTurn &&
+      state.phase !== Phase.Draw &&
+      state.phase !== Phase.EndTurn
+    ) {
+      return dedupeMoves(getEventMoves(state.players[playerId]!))
+    }
+    return []
+  }
 
   switch (state.phase) {
     case Phase.StartOfTurn:
@@ -227,6 +236,12 @@ function getDiscardMoves(player: PlayerState): Move[] {
 function getStartOfTurnMoves(state: GameState, playerId: PlayerId): Move[] {
   const moves: Move[] = [{ type: "PASS" }]
   const player = state.players[playerId]!
+
+  // END_TURN is available from START_OF_TURN (draws cards then ends the turn in one step)
+  const { maxEnd } = HAND_SIZES[state.deckSize]!
+  if (player.hand.length <= maxEnd) {
+    moves.push({ type: "END_TURN" })
+  }
 
   for (const card of player.hand) {
     if (card.card.typeId === CardTypeId.Rule) {
@@ -409,6 +424,10 @@ function getAttackerContinueMoves(
   playerId: PlayerId,
   combat: CombatState,
 ): Move[] {
+  // Defending player may play events while attacker is choosing next champion
+  if (playerId === combat.defendingPlayer) {
+    return getEventMoves(state.players[playerId]!)
+  }
   if (playerId !== combat.attackingPlayer) return []
 
   const moves: Move[] = [{ type: "END_ATTACK" }]
@@ -423,6 +442,10 @@ function getAttackerContinueMoves(
 }
 
 function getDefenderMoves(state: GameState, playerId: PlayerId, combat: CombatState): Move[] {
+  // Attacking player may play events while defender is choosing their response
+  if (playerId === combat.attackingPlayer) {
+    return getEventMoves(state.players[playerId]!)
+  }
   if (playerId !== combat.defendingPlayer) return []
 
   const moves: Move[] = [{ type: "DECLINE_DEFENSE" }]
@@ -505,10 +528,9 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
       }
     }
     moves.push({ type: "STOP_PLAYING" })
-  } else {
-    // Winning player may play events
-    moves.push(...getEventMoves(player))
   }
+  // Both players may play events during card play
+  moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
 
   // Either combat participant may set level or switch card sides during CARD_PLAY
