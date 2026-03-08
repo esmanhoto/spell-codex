@@ -68,6 +68,8 @@ export function labelMove(m: Move, nameOf: (id: string) => string): string {
       return `Continue with ${nameOf(a.championId)}`
     case "END_ATTACK":
       return "End attack"
+    case "INTERRUPT_COMBAT":
+      return "Interrupt combat"
     case "DISCARD_CARD":
       return `Discard ${nameOf(a.cardInstanceId)}`
     case "SET_COMBAT_LEVEL":
@@ -99,6 +101,7 @@ export const ANCHOR_FREE_TYPES = new Set([
   "STOP_PLAYING",
   "CONTINUE_ATTACK",
   "END_ATTACK",
+  "INTERRUPT_COMBAT",
   "DECLINE_DEFENSE",
   "REBUILD_REALM",
 ])

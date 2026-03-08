@@ -57,6 +57,7 @@ export function CombatZone() {
     legalMoves.some((m) => m.type === "DECLINE_DEFENSE")
   const canStopPlaying = legalMoves.some((m) => m.type === "STOP_PLAYING")
   const canEndAttack = legalMoves.some((m) => m.type === "END_ATTACK")
+  const canInterrupt = legalMoves.some((m) => m.type === "INTERRUPT_COMBAT")
   const continueAttackMoves = legalMoves.filter(
     (m): m is Extract<typeof m, { type: "CONTINUE_ATTACK" }> => m.type === "CONTINUE_ATTACK",
   )
@@ -388,6 +389,15 @@ export function CombatZone() {
               Continue with {nameOfCard(m.championId, allBoards)}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Interrupt — end combat with no winner; champions return intact */}
+      {canInterrupt && (
+        <div className={styles.actionRow}>
+          <button className={styles.defeatBtn} onClick={() => onMove({ type: "INTERRUPT_COMBAT" })}>
+            Interrupt combat
+          </button>
         </div>
       )}
     </div>

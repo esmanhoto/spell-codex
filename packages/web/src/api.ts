@@ -133,6 +133,7 @@ export type Move =
   | { type: "STOP_PLAYING" }
   | { type: "CONTINUE_ATTACK"; championId: string }
   | { type: "END_ATTACK" }
+  | { type: "INTERRUPT_COMBAT" }
   | { type: "DISCARD_CARD"; cardInstanceId: string }
   | { type: "SET_COMBAT_LEVEL"; playerId: string; level: number }
   | { type: "SWITCH_COMBAT_SIDE"; cardInstanceId: string }
