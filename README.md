@@ -147,6 +147,70 @@ bun run db:down
 bun run db:down:volumes
 ```
 
+## Testing
+
+### Running tests
+
+```bash
+# All engine tests
+bun test packages/engine
+
+# Only scenario tests
+bun test packages/engine/test/scenarios/
+```
+
+### Scenario tests (`packages/engine/test/scenarios/`)
+
+When implementing a new rule, we write a **scenario test** that pins the exact card
+combination under test rather than relying on a full game setup. This makes it easy to
+reproduce specific edge cases without navigating the lobby or drawing the right cards.
+
+**How it works:**
+
+1. Use the builder helpers in `test/scenario-builders.ts` to create minimal cards and
+   a pre-built game state at the phase you care about.
+2. Call `getLegalMoves()` or `applyMove()` on that state and assert the result.
+3. One file per rule / interaction — name it after the rule being tested.
+
+**Example — realm grants spell-casting to a non-caster defender:**
+
+```ts
+const attacker = inst("att", makeChampion({ level: 8 }))
+const defender = inst("def", makeChampion({ level: 4 })) // no spell support
+const realm = inst("realm", makeRealm({ supportIds: ["d19", "o19"] }))
+const spell = inst("spell", makeWizardSpell())
+
+const state = buildCombatCardPlayState({
+  attacker,
+  defender,
+  targetRealm: realm,
+  defenderHand: [spell],
+})
+const moves = getLegalMoves(state, "p2")
+
+expect(moves.some((m) => m.type === "PLAY_COMBAT_CARD" && m.cardInstanceId === "spell")).toBe(true)
+```
+
+**Available builders:**
+
+| Builder                            | Produces                                         |
+| ---------------------------------- | ------------------------------------------------ |
+| `inst(id, card)`                   | `CardInstance` with a stable ID                  |
+| `makeChampion(overrides?)`         | Hero, level 5, no spell support                  |
+| `makeRealm(overrides?)`            | Realm, no spell grants                           |
+| `makeWizardSpell(overrides?)`      | Wizard spell, phase-4 castable, no direction tag |
+| `makeMagicalItem(overrides?)`      | Magical item, no bonuses                         |
+| `makeHolding(overrides?)`          | Holding, no special properties                   |
+| `buildCombatCardPlayState(params)` | `GameState` in combat CARD_PLAY phase            |
+
+Override only what matters for the rule under test — leave everything else at the default.
+
+**When to add a scenario test:**
+
+- Any time a new rule-granting interaction is implemented (realm/holding/item → spell access)
+- Any time a bug is found in a specific card combination — write the failing test first,
+  then fix the engine
+
 ## Troubleshooting
 
 If API returns `500/503` with `Database unavailable`, DB is unreachable.
