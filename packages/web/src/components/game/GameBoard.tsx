@@ -183,7 +183,7 @@ export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: s
           <WarningModal
             message={warningMessage}
             suppressible={warningSuppressible}
-            proceedLabel={warningProceedLabel}
+            {...(warningProceedLabel ? { proceedLabel: warningProceedLabel } : {})}
             onCancel={(suppress) => {
               if (suppress && warningCode) suppressWarningCode(warningCode)
               clearWarning()
