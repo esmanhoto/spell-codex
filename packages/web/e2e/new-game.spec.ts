@@ -14,7 +14,7 @@ test("create flow shows waiting room with sharable game id", async ({ page }) =>
   await page.getByTestId("create-game-btn").click()
 
   await expect(page.getByTestId("waiting-room")).toBeVisible()
-  await expect(page.getByTestId("created-game-id-input")).toHaveValue(/[0-9a-f-]{36}/)
+  await expect(page.getByTestId("created-game-id-input")).toHaveValue(/^[a-z]+-[a-z]+-[a-z]+$/)
 })
 
 test("all listed decks are selectable in create and join selectors", async ({ page }) => {
