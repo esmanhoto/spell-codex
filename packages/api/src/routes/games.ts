@@ -10,6 +10,7 @@ import {
   reconstructState,
   setGameStatus,
 } from "@spell/db"
+import type { GameState } from "@spell/engine"
 import type { CardData } from "@spell/engine"
 import { serializeGameState } from "../serialize.ts"
 
@@ -197,7 +198,11 @@ gamesRouter.get("/:id", async (c) => {
     return c.json({ error: "Game is waiting for an opponent to join" }, 409)
   }
 
-  const { state, errors } = await reconstructState(gameId, game.seed)
+  const { state, errors } = await reconstructState(
+    gameId,
+    game.seed,
+    (game.stateSnapshot as GameState | null) ?? null,
+  )
 
   return c.json({
     ...serializeGameState(state, { status: game.status, turnDeadline: game.turnDeadline }, userId),
