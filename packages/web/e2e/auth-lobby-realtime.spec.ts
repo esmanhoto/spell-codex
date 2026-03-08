@@ -12,7 +12,7 @@ test("two authenticated users can create/join and receive realtime updates", asy
   await expect(page.getByTestId("waiting-room")).toBeVisible()
 
   const gameId = await page.getByTestId("created-game-id-input").inputValue()
-  expect(gameId).toMatch(/^[0-9a-f-]{36}$/i)
+  expect(gameId).toMatch(/^[a-z]+-[a-z]+-[a-z]+$/)
 
   const contextB = await browser.newContext()
   try {
