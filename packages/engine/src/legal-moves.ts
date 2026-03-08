@@ -20,7 +20,13 @@ import {
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
 import { calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "./combat.ts"
-import { canChampionUseSpell, getCastPhases } from "./spell-gating.ts"
+import {
+  canChampionUseSpell,
+  canCastWithSupport,
+  getEffectiveSupportIds,
+  getCastPhases,
+} from "./spell-gating.ts"
+import type { SpellCastContext } from "./spell-gating.ts"
 
 /**
  * Returns all legal moves for the given player in the current state.
@@ -426,11 +432,11 @@ function getAttackerContinueMoves(
 ): Move[] {
   // Defending player may play events while attacker is choosing next champion
   if (playerId === combat.defendingPlayer) {
-    return getEventMoves(state.players[playerId]!)
+    return [...getEventMoves(state.players[playerId]!), { type: "INTERRUPT_COMBAT" }]
   }
   if (playerId !== combat.attackingPlayer) return []
 
-  const moves: Move[] = [{ type: "END_ATTACK" }]
+  const moves: Move[] = [{ type: "END_ATTACK" }, { type: "INTERRUPT_COMBAT" }]
   const player = state.players[playerId]!
 
   for (const entry of player.pool) {
@@ -444,11 +450,11 @@ function getAttackerContinueMoves(
 function getDefenderMoves(state: GameState, playerId: PlayerId, combat: CombatState): Move[] {
   // Attacking player may play events while defender is choosing their response
   if (playerId === combat.attackingPlayer) {
-    return getEventMoves(state.players[playerId]!)
+    return [...getEventMoves(state.players[playerId]!), { type: "INTERRUPT_COMBAT" }]
   }
   if (playerId !== combat.defendingPlayer) return []
 
-  const moves: Move[] = [{ type: "DECLINE_DEFENSE" }]
+  const moves: Move[] = [{ type: "DECLINE_DEFENSE" }, { type: "INTERRUPT_COMBAT" }]
   const player = state.players[playerId]!
 
   // Defend with pool champion
@@ -522,8 +528,26 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     // Losing player can play any combat-legal support card
     const activeChampion = isAttacker ? combat.attacker : combat.defender
 
+    // Build spell-casting context: attachments always; defending realm only for the defender
+    const activePoolEntry = activeChampion
+      ? player.pool.find((e) => e.champion.instanceId === activeChampion.instanceId)
+      : null
+    let spellContext: SpellCastContext = {
+      attachments: activePoolEntry?.attachments.map((a) => a.card) ?? [],
+    }
+    if (!isAttacker && activeChampion) {
+      // targetRealmSlot is already looked up above as the RealmSlot object
+      if (targetRealmSlot) {
+        spellContext = {
+          ...spellContext,
+          defendingRealm: targetRealmSlot.realm.card,
+          holdingsOnRealm: targetRealmSlot.holdings.map((h) => h.card),
+        }
+      }
+    }
+
     for (const card of player.hand) {
-      if (canPlayInCombat(card, activeChampion)) {
+      if (canPlayInCombat(card, activeChampion, spellContext)) {
         moves.push({ type: "PLAY_COMBAT_CARD", cardInstanceId: card.instanceId })
       }
     }
@@ -532,6 +556,11 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
   // Both players may play events during card play
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
+
+  // Either participant may interrupt (no winner, champions return intact)
+  if (isAttacker || isDefender) {
+    moves.push({ type: "INTERRUPT_COMBAT" })
+  }
 
   // Either combat participant may set level or switch card sides during CARD_PLAY
   if (isAttacker || isDefender) {
@@ -720,14 +749,23 @@ function poolHasChampionFor(pool: PoolEntry[], card: CardInstance, dir: "d" | "o
 }
 
 function poolHasSpellCaster(pool: PoolEntry[], card: CardInstance): boolean {
-  return pool.some((entry) => canChampionUseSpell(card, entry.champion))
+  return pool.some((entry) =>
+    canChampionUseSpell(card, entry.champion, {
+      attachments: entry.attachments.map((a) => a.card),
+    }),
+  )
 }
 
 /**
  * Returns true if a card can be played during CARD_PLAY phase.
  * The active champion determines spell access. Spell direction is card-defined.
+ * Pass context to include attachments and defending realm/holdings in the check.
  */
-export function canPlayInCombat(card: CardInstance, activeChampion: CardInstance | null): boolean {
+export function canPlayInCombat(
+  card: CardInstance,
+  activeChampion: CardInstance | null,
+  context: SpellCastContext = {},
+): boolean {
   const { typeId } = card.card
   if (!COMBAT_SUPPORT_TYPE_IDS.has(typeId)) return false
 
@@ -738,7 +776,7 @@ export function canPlayInCombat(card: CardInstance, activeChampion: CardInstance
   if (isSpellType(typeId)) {
     if (!activeChampion) return false
     if (!getCastPhases(card).includes(4)) return false
-    return canChampionUseSpell(card, activeChampion)
+    return canCastWithSupport(card, getEffectiveSupportIds(activeChampion.card, context))
   }
 
   return false
