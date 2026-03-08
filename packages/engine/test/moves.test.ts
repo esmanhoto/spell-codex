@@ -658,11 +658,18 @@ describe("events during combat", () => {
       phase: Phase.Combat,
       players: {
         ...s.players,
-        p1: { ...s.players["p1"]!, pool: [{ champion: attacker, attachments: [] }], hand: [eventAtt] },
+        p1: {
+          ...s.players["p1"]!,
+          pool: [{ champion: attacker, attachments: [] }],
+          hand: [eventAtt],
+        },
         p2: {
           ...s.players["p2"]!,
           pool: [{ champion: defender, attachments: [] }],
-          formation: { size: 6 as const, slots: { A: { realm: realmP2, isRazed: false, holdings: [] } } },
+          formation: {
+            size: 6 as const,
+            slots: { A: { realm: realmP2, isRazed: false, holdings: [] } },
+          },
           hand: [eventDef],
         },
       },
