@@ -112,6 +112,41 @@ export async function touchGame(gameId: string, turnDeadline?: Date): Promise<vo
 }
 
 /** Returns all active games whose turnDeadline has passed. */
+// ─── Dev scenarios ────────────────────────────────────────────────────────────
+
+export interface CreateDevGameInput {
+  stateSnapshot: object
+  p1UserId: string
+  p2UserId: string
+}
+
+/**
+ * Creates a fully-active game from a pre-built GameState snapshot.
+ * Used only by the dev scenario loader — never called in normal game flow.
+ * Both players are seeded with an empty deckSnapshot (unused, since state
+ * reconstruction will use stateSnapshot directly).
+ */
+export async function createDevGame(input: CreateDevGameInput): Promise<Game> {
+  const slug = await generateUniqueSlug()
+
+  const [game] = await db
+    .insert(games)
+    .values({ formatId: "dev", seed: 0, slug, status: "active" })
+    .returning()
+  if (!game) throw new Error("Failed to insert dev game row")
+
+  // Re-insert with the corrected state ID (now that we have the DB UUID)
+  const snapshot = { ...input.stateSnapshot, id: game.id }
+  await db.update(games).set({ stateSnapshot: snapshot }).where(eq(games.id, game.id))
+
+  await db.insert(gamePlayers).values([
+    { gameId: game.id, userId: input.p1UserId, seatPosition: 0, deckSnapshot: [] },
+    { gameId: game.id, userId: input.p2UserId, seatPosition: 1, deckSnapshot: [] },
+  ])
+
+  return game
+}
+
 export async function findExpiredGames(): Promise<Game[]> {
   const { lt } = await import("drizzle-orm")
   return db
