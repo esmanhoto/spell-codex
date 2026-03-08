@@ -57,8 +57,9 @@
 3. If schema changes:
 
 - edit `packages/db/src/schema.ts`
-- run `bun run --cwd packages/db db:generate`
+- run `bun run --cwd packages/db db:generate` — this creates BOTH the SQL file AND the snapshot; never write migration SQL manually
 - run `bun run --cwd packages/db db:migrate`
+- NEVER hand-edit migration SQL files or `_journal.json`; missing snapshots cause future `drizzle-kit generate` runs to re-add already-existing columns
 
 4. Run checks:
 
