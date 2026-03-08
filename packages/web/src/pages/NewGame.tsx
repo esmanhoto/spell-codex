@@ -36,9 +36,9 @@ export function NewGame() {
 
   useEffect(() => {
     if (waitingGameId && lobbyStatus?.status === "active") {
-      navigate(`/game/${waitingGameId}`)
+      navigate(`/game/${waitingSlug ?? waitingGameId}`)
     }
-  }, [lobbyStatus?.status, navigate, waitingGameId])
+  }, [lobbyStatus?.status, navigate, waitingGameId, waitingSlug])
 
   async function handleCreate() {
     setError(null)
@@ -82,7 +82,7 @@ export function NewGame() {
       if (result.status !== "active") {
         throw new Error("Game is not ready yet.")
       }
-      navigate(`/game/${result.gameId}`)
+      navigate(`/game/${gameIdentifier}`)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to join game")
     } finally {
@@ -224,7 +224,7 @@ export function NewGame() {
                 type="button"
                 data-testid="enter-game-btn"
                 disabled={lobbyStatus?.status !== "active"}
-                onClick={() => navigate(`/game/${waitingGameId}`)}
+                onClick={() => navigate(`/game/${waitingSlug ?? waitingGameId}`)}
               >
                 Enter Game
               </button>
