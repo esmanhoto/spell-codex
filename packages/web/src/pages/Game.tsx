@@ -70,6 +70,7 @@ export function Game() {
     message: string
     code: WarningCode
     suppressible: boolean
+    proceedLabel?: string
     confirmAction?: () => void
   } | null>(null)
   const [casterPrompt, setCasterPrompt] = useState<{
@@ -107,6 +108,7 @@ export function Game() {
       code: WarningCode = "generic_warning",
       suppressible = true,
       confirmAction?: () => void,
+      proceedLabel?: string,
     ) => {
       if (suppressible && suppressedWarningsRef.current.has(code)) {
         if (confirmAction) confirmAction()
@@ -117,6 +119,7 @@ export function Game() {
         code,
         suppressible,
         ...(confirmAction ? { confirmAction } : {}),
+        ...(proceedLabel ? { proceedLabel } : {}),
       })
     },
     [],
@@ -370,6 +373,25 @@ export function Game() {
     lastMoveType,
   )
 
+  // Auto-show spoil modal when CLAIM_SPOIL enters legal moves
+  const spoilModalShownRef = useRef(false)
+  useEffect(() => {
+    const hasSpoil = (data?.legalMoves ?? []).some((m) => m.type === "CLAIM_SPOIL")
+    if (hasSpoil && !spoilModalShownRef.current) {
+      spoilModalShownRef.current = true
+      showWarning(
+        "You earned a spoil of combat. Draw 1 card?",
+        "generic_warning",
+        false,
+        () => sendMove({ type: "CLAIM_SPOIL" }),
+        "Draw a spoil",
+      )
+    }
+    if (!hasSpoil) {
+      spoilModalShownRef.current = false
+    }
+  }, [data?.legalMoves, showWarning, sendMove])
+
   const playerIds = useMemo(() => Object.keys(data?.board.players ?? {}), [data?.board.players])
   const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? ""
 
@@ -425,6 +447,7 @@ export function Game() {
         warningMessage: warningState?.message ?? null,
         warningCode: warningState?.code ?? null,
         warningSuppressible: warningState?.suppressible ?? true,
+        warningProceedLabel: warningState?.proceedLabel,
         warningConfirmAction: warningState?.confirmAction ?? null,
         showWarning,
         suppressWarningCode,
