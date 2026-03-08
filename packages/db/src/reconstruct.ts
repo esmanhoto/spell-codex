@@ -19,31 +19,43 @@ export interface ReconstructResult {
  * Rebuilds the current GameState for a game by replaying every stored action
  * through the engine in sequence order.
  *
+ * If `stateSnapshot` is provided (dev-only games), it is used as the starting
+ * point instead of calling initGame(). Subsequent moves are replayed on top.
+ *
  * Hash mismatches are collected as non-fatal errors (the replay continues with
  * the engine's output) so callers can detect and log integrity issues without
  * crashing.
  */
-export async function reconstructState(gameId: string, seed: number): Promise<ReconstructResult> {
+export async function reconstructState(
+  gameId: string,
+  seed: number,
+  stateSnapshot?: GameState | null,
+): Promise<ReconstructResult> {
   const [players, actions] = await Promise.all([getGamePlayers(gameId), listActions(gameId)])
 
-  // Sort players by seat position so init gets them in the right order.
-  const sorted = [...players].sort((a, b) => a.seatPosition - b.seatPosition)
-  if (sorted.length < 2) {
-    throw new Error("Cannot reconstruct waiting game before second player joins")
-  }
-  const [p1, p2] = sorted as [(typeof sorted)[0], (typeof sorted)[0]]
+  let current: GameState
 
-  const state = initGame({
-    gameId,
-    seed,
-    players: [
-      { id: p1.userId, deckCards: p1.deckSnapshot as CardData[] },
-      { id: p2.userId, deckCards: p2.deckSnapshot as CardData[] },
-    ],
-  })
+  if (stateSnapshot) {
+    current = stateSnapshot
+  } else {
+    // Sort players by seat position so init gets them in the right order.
+    const sorted = [...players].sort((a, b) => a.seatPosition - b.seatPosition)
+    if (sorted.length < 2) {
+      throw new Error("Cannot reconstruct waiting game before second player joins")
+    }
+    const [p1, p2] = sorted as [(typeof sorted)[0], (typeof sorted)[0]]
+
+    current = initGame({
+      gameId,
+      seed,
+      players: [
+        { id: p1.userId, deckCards: p1.deckSnapshot as CardData[] },
+        { id: p2.userId, deckCards: p2.deckSnapshot as CardData[] },
+      ],
+    })
+  }
 
   const errors: ReconstructError[] = []
-  let current: GameState = state
 
   for (const action of actions) {
     const move = action.move as Move

@@ -249,6 +249,28 @@ export async function getGameState(gameId: string, identity: AuthIdentity): Prom
   })
 }
 
+// ─── Dev scenarios ────────────────────────────────────────────────────────────
+
+export interface DevScenarioInfo {
+  id: string
+  name: string
+  description: string
+}
+
+export async function listDevScenarios(): Promise<DevScenarioInfo[]> {
+  const res = await request<{ scenarios: DevScenarioInfo[] }>("/dev/scenarios")
+  return res.scenarios
+}
+
+export async function loadDevScenario(scenarioId: string): Promise<{
+  gameId: string
+  slug: string
+  p1UserId: string
+  p2UserId: string
+}> {
+  return request(`/dev/scenarios/${encodeURIComponent(scenarioId)}/load`, { method: "POST" })
+}
+
 export async function submitMove(
   gameId: string,
   identity: AuthIdentity,

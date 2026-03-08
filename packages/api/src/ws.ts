@@ -11,6 +11,7 @@ import {
   hashState,
 } from "@spell/db"
 import { applyMove, EngineError } from "@spell/engine"
+import type { GameState } from "@spell/engine"
 import { serializeGameState } from "./serialize.ts"
 import { authBypassEnabled, verifySupabaseAccessToken } from "./auth-verify.ts"
 
@@ -75,7 +76,11 @@ export async function processWsMove(
     return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
   }
 
-  const { state } = await reconstructState(gameId, game.seed)
+  const { state } = await reconstructState(
+    gameId,
+    game.seed,
+    (game.stateSnapshot as GameState | null) ?? null,
+  )
 
   let result
   try {
@@ -215,7 +220,11 @@ export const wsHandlers = {
           registry.get(gameId)!.set(userId, ws)
 
           // Send current state (serialized to the API shape the client expects)
-          const { state } = await reconstructState(gameId, game.seed)
+          const { state } = await reconstructState(
+            gameId,
+            game.seed,
+            (game.stateSnapshot as GameState | null) ?? null,
+          )
           send(ws, {
             type: "STATE_UPDATE",
             gameId,

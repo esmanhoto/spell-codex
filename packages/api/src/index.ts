@@ -6,6 +6,7 @@ import { gamesRouter } from "./routes/games.ts"
 import { movesRouter } from "./routes/moves.ts"
 import { cardsRouter } from "./routes/cards.ts"
 import { decksRouter } from "./routes/decks.ts"
+import { devRouter } from "./routes/dev.ts"
 import { wsHandlers } from "./ws.ts"
 
 const app = new Hono()
@@ -43,6 +44,7 @@ app.onError((err, c) => {
 app.get("/health", (c) => c.json({ ok: true }))
 app.route("/cards", cardsRouter)
 app.route("/decks", decksRouter)
+app.route("/dev", devRouter)
 
 // ─── WebSocket upgrade (handled in Bun.serve fetch, not Hono) ────────────────
 // The /ws path is intercepted before Hono in the default export below.

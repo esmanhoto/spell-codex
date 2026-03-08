@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:bypass": "VITE_AUTH_BYPASS=true vite",
     "typecheck": "tsc --noEmit",
     "typecheck:tools": "tsc --noEmit -p tsconfig.tools.json",
     "build": "vite build",

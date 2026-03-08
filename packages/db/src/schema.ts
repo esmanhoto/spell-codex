@@ -24,6 +24,13 @@ export const games = pgTable("games", {
   winnerId: uuid("winner_id"),
   /** Human-readable RPG-style slug for sharing, e.g. "cursed-dragon-spire". */
   slug: text("slug").unique(),
+  /**
+   * Dev-only: a full serialized GameState injected at game creation.
+   * When set, reconstructState uses this as the starting point instead of
+   * calling initGame(). Subsequent moves are replayed on top as usual.
+   * Always null for regular (lobby-created) games.
+   */
+  stateSnapshot: jsonb("state_snapshot"),
 })
 
 // ─── game_players ─────────────────────────────────────────────────────────────

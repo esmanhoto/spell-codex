@@ -1,10 +1,11 @@
 export { sql } from "./connection.ts"
 export { hashState } from "./hash.ts"
 
-export type { CreateGameInput } from "./games.ts"
+export type { CreateGameInput, CreateDevGameInput } from "./games.ts"
 export {
   createGame,
   addGamePlayer,
+  createDevGame,
   getGame,
   getGameBySlug,
   getGamePlayers,

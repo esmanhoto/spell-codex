@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "extract": "bun run --cwd packages/data extract",
+    "dev:bypass": "bun run --cwd packages/api dev:bypass & bun run --cwd packages/web dev:bypass & wait",
     "test": "bun test --cwd packages/engine",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",

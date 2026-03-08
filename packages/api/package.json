@@ -5,9 +5,10 @@
   "main": "./src/index.ts",
   "scripts": {
     "dev": "bun --env-file=../../.env --watch src/index.ts",
+    "dev:bypass": "AUTH_BYPASS=true bun --env-file=../../.env --watch src/index.ts",
     "start": "bun --env-file=../../.env src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun --env-file=../../.env test"
   },
   "dependencies": {
     "hono": "^4.7.4",
