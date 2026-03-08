@@ -22,6 +22,8 @@ export const games = pgTable("games", {
   /** Null until the first move is submitted. */
   turnDeadline: timestamp("turn_deadline", { withTimezone: true }),
   winnerId: uuid("winner_id"),
+  /** Human-readable RPG-style slug for sharing, e.g. "cursed-dragon-spire". */
+  slug: text("slug").unique(),
 })
 
 // ─── game_players ─────────────────────────────────────────────────────────────
