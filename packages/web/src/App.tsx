@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom"
 import { NewGame } from "./pages/NewGame.tsx"
 import { Game } from "./pages/Game.tsx"
 import { Login } from "./pages/Login.tsx"
+import { DevScenarios } from "./pages/DevScenarios.tsx"
 import { useAuth } from "./auth.tsx"
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
@@ -48,6 +49,7 @@ export function App() {
           </RequireAuth>
         }
       />
+      <Route path="/dev" element={<DevScenarios />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
