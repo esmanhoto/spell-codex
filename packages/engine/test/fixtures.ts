@@ -116,6 +116,20 @@ export const MAGICAL_ITEM_PLUS2_PLUS1: CardData = {
   effects: [],
 }
 
+export const MAGICAL_ITEM_SPELL_GRANT: CardData = {
+  setId: "1st",
+  cardNumber: 201,
+  name: "Tome of Magic",
+  typeId: 9,
+  worldId: 0,
+  isAvatar: false,
+  level: null,
+  description: "Bearer can use wizard spells.",
+  attributes: [],
+  supportIds: ["d19", "o19"],
+  effects: [],
+}
+
 export const ARTIFACT_FR: CardData = {
   setId: "1st",
   cardNumber: 300,

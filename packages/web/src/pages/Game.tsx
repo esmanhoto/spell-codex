@@ -312,7 +312,13 @@ export function Game() {
 
       const move = resolveSpellMove(game.legalMoves, spell.instanceId)
       const poolCasters = spellCastersInPool(spell, spellOwnerBoard)
-      const combatCaster = spellCasterInCombat(spell, game.board.combat, spellOwnerId)
+      const combatCaster = spellCasterInCombat(
+        spell,
+        game.board.combat,
+        spellOwnerId,
+        spellOwnerBoard,
+        game.board.players,
+      )
       const fallbackCasters = [
         ...new Map([...poolCasters, ...combatCaster].map((c) => [c.instanceId, c])).values(),
       ]

@@ -34,6 +34,7 @@ import {
   canPlayInCombat,
 } from "./legal-moves.ts"
 import { canChampionUseSpell, getCastPhases } from "./spell-gating.ts"
+import type { SpellCastContext } from "./spell-gating.ts"
 import {
   handleResolveMoveCard,
   handleResolveAttachCard,
@@ -115,6 +116,9 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "END_ATTACK":
       newState = handleEndAttack(state, playerId, events)
       break
+    case "INTERRUPT_COMBAT":
+      newState = handleInterruptCombat(state, playerId, events)
+      break
     case "PLAY_PHASE5_CARD":
       newState = handlePlaySpellCard(state, playerId, move, events)
       break
@@ -194,8 +198,9 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
   const isDefender = playerId === combat.defendingPlayer
   const isCombatParticipant = isAttacker || isDefender
 
-  // Events are always playable by any combat participant at any combat phase
+  // Events and interrupt are always playable by any combat participant at any combat phase
   if (isCombatParticipant && move.type === "PLAY_EVENT") return true
+  if (isCombatParticipant && move.type === "INTERRUPT_COMBAT") return true
 
   if (combat.roundPhase === "AWAITING_DEFENDER" && isDefender) {
     return move.type === "DECLARE_DEFENSE" || move.type === "DECLINE_DEFENSE"
@@ -616,7 +621,13 @@ function handlePlaySpellCard(
       throw new EngineError("WRONG_MOVE_TYPE", "Use PLAY_COMBAT_CARD for combat spells")
     }
 
-    if (!player.pool.some((entry) => canChampionUseSpell(card, entry.champion))) {
+    if (
+      !player.pool.some((entry) =>
+        canChampionUseSpell(card, entry.champion, {
+          attachments: entry.attachments.map((a) => a.card),
+        }),
+      )
+    ) {
       throw new EngineError("CHAMPION_CANNOT_CAST_SPELL")
     }
 
@@ -873,7 +884,25 @@ function handlePlayCombatCard(
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
   const activeChampion = isAttacker ? combat.attacker : combat.defender
-  if (!canPlayInCombat(card, activeChampion)) {
+
+  const activePoolEntry = activeChampion
+    ? player.pool.find((e) => e.champion.instanceId === activeChampion.instanceId)
+    : null
+  let spellContext: SpellCastContext = {
+    attachments: activePoolEntry?.attachments.map((a) => a.card) ?? [],
+  }
+  if (!isAttacker && activeChampion) {
+    const targetSlot =
+      state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
+    if (targetSlot) {
+      spellContext = {
+        ...spellContext,
+        defendingRealm: targetSlot.realm.card,
+        holdingsOnRealm: targetSlot.holdings.map((h) => h.card),
+      }
+    }
+  }
+  if (!canPlayInCombat(card, activeChampion, spellContext)) {
     throw new EngineError("INVALID_COMBAT_CARD", "Card cannot be played in combat")
   }
 
@@ -996,6 +1025,43 @@ function handleEndAttack(state: GameState, playerId: PlayerId, _events: GameEven
     throw new EngineError("NOT_ATTACKER")
   }
   return endBattle(state, combat.attackingPlayer, _events)
+}
+
+function handleInterruptCombat(
+  state: GameState,
+  playerId: PlayerId,
+  events: GameEvent[],
+): GameState {
+  const combat = state.combatState
+  if (!combat) {
+    throw new EngineError("NOT_IN_COMBAT", "INTERRUPT_COMBAT requires active combat")
+  }
+  const isParticipant = playerId === combat.attackingPlayer || playerId === combat.defendingPlayer
+  if (!isParticipant) {
+    throw new EngineError("INVALID_PLAYER", "Player is not a combat participant")
+  }
+
+  events.push({ type: "COMBAT_INTERRUPTED", playerId })
+
+  // Discard round cards (allies, spells played this round) for both sides
+  let s = state
+  if (combat.attackerCards.length > 0 || combat.defenderCards.length > 0) {
+    for (const card of combat.attackerCards) {
+      const ap = s.players[combat.attackingPlayer]!
+      s = updatePlayer(s, combat.attackingPlayer, {
+        discardPile: [...ap.discardPile, card],
+      })
+    }
+    for (const card of combat.defenderCards) {
+      const dp = s.players[combat.defendingPlayer]!
+      s = updatePlayer(s, combat.defendingPlayer, {
+        discardPile: [...dp.discardPile, card],
+      })
+    }
+  }
+
+  // Champions and their items/artifacts stay intact — just end the battle
+  return endBattle(s, combat.attackingPlayer, events)
 }
 
 function handleSetCombatLevel(

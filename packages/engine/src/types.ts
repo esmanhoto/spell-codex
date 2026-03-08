@@ -288,6 +288,7 @@ export type Move =
   | { type: "STOP_PLAYING" } // done playing combat cards
   | { type: "CONTINUE_ATTACK"; championId: CardInstanceId } // new round vs same realm
   | { type: "END_ATTACK" } // attacker stops voluntarily
+  | { type: "INTERRUPT_COMBAT" } // end combat with no winner — all champions return intact
 
   // Phase 5 — end phase
   | { type: "PLAY_PHASE5_CARD"; cardInstanceId: CardInstanceId }
@@ -403,6 +404,7 @@ export type GameEvent =
       to: "attacker_combat" | "defender_combat"
     }
   | { type: "COMBAT_LEVEL_SET"; playerId: PlayerId; level: number }
+  | { type: "COMBAT_INTERRUPTED"; playerId: PlayerId }
   | {
       type: "PHASE3_SPELL_CAST"
       playerId: PlayerId

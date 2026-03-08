@@ -6,9 +6,7 @@
 }
 
 .tooltip {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;
   z-index: var(--z-tooltip);
   background: #111827;
   border: 1px solid #3a5a8a;
@@ -32,13 +30,6 @@
 .item + .item {
   border-top: 1px solid rgba(122, 153, 199, 0.25);
   padding-top: 6px;
-}
-
-.above {
-  bottom: calc(100% + 6px);
-}
-.below {
-  top: calc(100% + 6px);
 }
 
 .icon {

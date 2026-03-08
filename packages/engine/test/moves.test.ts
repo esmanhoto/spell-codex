@@ -791,3 +791,138 @@ describe("events during combat", () => {
     expect(newState.resolutionContext!.initiatingPlayer).toBe("p2")
   })
 })
+
+// ─── INTERRUPT_COMBAT ─────────────────────────────────────────────────────────
+
+describe("INTERRUPT_COMBAT", () => {
+  /** Combat-ready state: p1 attacker (lvl 8), p2 defender (lvl 6), allies in both hands. */
+  function buildState() {
+    let s = initGame(DEFAULT_CONFIG)
+    const attacker: CardInstance = { instanceId: "att", card: CHAMPION_WIZARD_FR } // lvl 8
+    const defender: CardInstance = { instanceId: "def", card: CHAMPION_CLERIC_FR } // lvl 6
+    const allyAtt: CardInstance = { instanceId: "ally-att", card: ALLY_PLUS4 }
+    const allyDef: CardInstance = { instanceId: "ally-def", card: ALLY_PLUS4 }
+    const realmP2: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
+    s = {
+      ...s,
+      phase: Phase.Combat,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [{ champion: attacker, attachments: [] }],
+          hand: [allyAtt],
+        },
+        p2: {
+          ...s.players["p2"]!,
+          pool: [{ champion: defender, attachments: [] }],
+          hand: [allyDef],
+          formation: {
+            size: 6,
+            slots: { A: { realm: realmP2, isRazed: false, holdings: [] } },
+          },
+        },
+      },
+    }
+    return s
+  }
+
+  function afterAttackDeclared(s: GameState) {
+    const { newState } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    return newState // roundPhase: AWAITING_DEFENDER
+  }
+
+  function afterDefenseDeclared(s: GameState) {
+    const s1 = afterAttackDeclared(s)
+    const { newState } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
+    return newState // roundPhase: CARD_PLAY (p2 losing)
+  }
+
+  function afterRoundWon(s: GameState) {
+    const s2 = afterDefenseDeclared(s)
+    const { newState } = applyMove(s2, "p2", { type: "STOP_PLAYING" })
+    return newState // roundPhase: AWAITING_ATTACKER (p1 won)
+  }
+
+  // ─── Legal moves availability ──────────────────────────────────────────────
+
+  test("both players get INTERRUPT_COMBAT during AWAITING_DEFENDER", () => {
+    const s = afterAttackDeclared(buildState())
+    expect(s.combatState!.roundPhase).toBe("AWAITING_DEFENDER")
+    expect(getLegalMoves(s, "p1").some((m) => m.type === "INTERRUPT_COMBAT")).toBe(true)
+    expect(getLegalMoves(s, "p2").some((m) => m.type === "INTERRUPT_COMBAT")).toBe(true)
+  })
+
+  test("both players get INTERRUPT_COMBAT during AWAITING_ATTACKER", () => {
+    const s = afterRoundWon(buildState())
+    expect(s.combatState!.roundPhase).toBe("AWAITING_ATTACKER")
+    expect(getLegalMoves(s, "p1").some((m) => m.type === "INTERRUPT_COMBAT")).toBe(true)
+    expect(getLegalMoves(s, "p2").some((m) => m.type === "INTERRUPT_COMBAT")).toBe(true)
+  })
+
+  test("both players get INTERRUPT_COMBAT during CARD_PLAY", () => {
+    const s = afterDefenseDeclared(buildState())
+    expect(s.combatState!.roundPhase).toBe("CARD_PLAY")
+    expect(getLegalMoves(s, "p1").some((m) => m.type === "INTERRUPT_COMBAT")).toBe(true)
+    expect(getLegalMoves(s, "p2").some((m) => m.type === "INTERRUPT_COMBAT")).toBe(true)
+  })
+
+  // ─── Outcome ───────────────────────────────────────────────────────────────
+
+  test("clears combatState and returns control to attacker", () => {
+    const s = afterDefenseDeclared(buildState())
+    const { newState, events } = applyMove(s, "p1", { type: "INTERRUPT_COMBAT" })
+    expect(newState.combatState).toBeNull()
+    expect(newState.activePlayer).toBe("p1")
+    expect(events.some((e) => e.type === "COMBAT_INTERRUPTED")).toBe(true)
+  })
+
+  test("defending player can also trigger interrupt", () => {
+    const s = afterDefenseDeclared(buildState())
+    const { newState } = applyMove(s, "p2", { type: "INTERRUPT_COMBAT" })
+    expect(newState.combatState).toBeNull()
+  })
+
+  test("round cards (allies played) are discarded on interrupt", () => {
+    const s = afterDefenseDeclared(buildState())
+    // p2 is losing — play ally card first, then interrupt
+    const { newState: withAlly } = applyMove(s, "p2", {
+      type: "PLAY_COMBAT_CARD",
+      cardInstanceId: "ally-def",
+    })
+    expect(withAlly.combatState!.defenderCards).toHaveLength(1)
+
+    const { newState: interrupted } = applyMove(withAlly, "p1", { type: "INTERRUPT_COMBAT" })
+    expect(interrupted.combatState).toBeNull()
+    expect(interrupted.players["p2"]!.discardPile.some((c) => c.instanceId === "ally-def")).toBe(
+      true,
+    )
+  })
+
+  test("champions and their attachments are NOT discarded on interrupt", () => {
+    const s = afterDefenseDeclared(buildState())
+    const { newState } = applyMove(s, "p1", { type: "INTERRUPT_COMBAT" })
+    // Attacker and defender champions should still be in their pools
+    expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "att")).toBe(true)
+    expect(newState.players["p2"]!.pool.some((e) => e.champion.instanceId === "def")).toBe(true)
+  })
+
+  test("no realm is razed on interrupt", () => {
+    const s = afterDefenseDeclared(buildState())
+    const { newState } = applyMove(s, "p1", { type: "INTERRUPT_COMBAT" })
+    const realmSlot = newState.players["p2"]!.formation.slots["A"]
+    expect(realmSlot).toBeDefined()
+    expect(realmSlot!.isRazed).toBe(false)
+  })
+
+  test("no spoils are earned on interrupt", () => {
+    const s = afterDefenseDeclared(buildState())
+    const { events } = applyMove(s, "p1", { type: "INTERRUPT_COMBAT" })
+    expect(events.some((e) => e.type === "SPOILS_EARNED")).toBe(false)
+  })
+})

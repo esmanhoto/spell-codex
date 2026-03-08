@@ -3,7 +3,14 @@
 export { EngineError } from "./errors.ts"
 export { applyMove } from "./engine.ts"
 export { getLegalMoves, isUniqueInPlay, isAttackable, getLegalRealmSlots } from "./legal-moves.ts"
-export { getSpellDirection, getCastPhases, canChampionUseSpell } from "./spell-gating.ts"
+export {
+  getSpellDirection,
+  getCastPhases,
+  getEffectiveSupportIds,
+  canCastWithSupport,
+  canChampionUseSpell,
+} from "./spell-gating.ts"
+export type { SpellCastContext } from "./spell-gating.ts"
 export { initGame } from "./init.ts"
 export {
   calculateCombatLevel,
