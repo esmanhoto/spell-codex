@@ -250,6 +250,8 @@ export interface GameState {
   hasAttackedThisTurn: boolean
   /** True after PLAY_REALM or REBUILD_REALM — only one realm action allowed per Phase 2 */
   hasPlayedRealmThisTurn: boolean
+  /** Player who earned a spoil of combat and may optionally draw 1 card */
+  pendingSpoil: string | null
 }
 
 // ─── Moves ────────────────────────────────────────────────────────────────────
@@ -297,6 +299,8 @@ export type Move =
   // Any phase
   | { type: "PLAY_EVENT"; cardInstanceId: CardInstanceId }
   | { type: "PASS" }
+  /** Draw the 1-card spoil earned by winning combat (optional) */
+  | { type: "CLAIM_SPOIL" }
   /** Skip remaining phases and end the turn (only when hand ≤ maxEnd) */
   | { type: "END_TURN" }
 

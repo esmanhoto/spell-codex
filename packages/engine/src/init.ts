@@ -50,6 +50,7 @@ export function initGame(config: GameConfig): GameState {
     deckSize,
     hasAttackedThisTurn: false,
     hasPlayedRealmThisTurn: false,
+    pendingSpoil: null,
     resolutionContext: null,
   }
 }
