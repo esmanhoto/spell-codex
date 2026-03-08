@@ -6,10 +6,6 @@ import { listDecks, getDeck, createLobbyGame, joinLobbyGame, getLobbyStatus } fr
 import { useAuth } from "../auth.tsx"
 import styles from "./NewGame.module.css"
 
-function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
-}
-
 type LobbyMode = "create" | "join" | null
 
 export function NewGame() {
@@ -21,6 +17,7 @@ export function NewGame() {
   const [joinDeck, setJoinDeck] = useState("1st_edition_starter_deck_b-1")
   const [joinGameId, setJoinGameId] = useState("")
   const [waitingGameId, setWaitingGameId] = useState<string | null>(null)
+  const [waitingSlug, setWaitingSlug] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -51,12 +48,13 @@ export function NewGame() {
       if (!identity) throw new Error("You are not authenticated.")
       const { cards } = await getDeck(createDeck)
       const seed = Math.floor(Math.random() * 0x7fffffff)
-      const { gameId } = await createLobbyGame({
+      const { gameId, slug } = await createLobbyGame({
         identity,
         seed,
         deck: cards,
       })
       setWaitingGameId(gameId)
+      setWaitingSlug(slug)
       setMode(null)
       setInfo("Game created. Share this Game ID so your friend can join.")
     } catch (e) {
@@ -72,19 +70,19 @@ export function NewGame() {
     setLoading(true)
     try {
       if (!identity) throw new Error("You are not authenticated.")
-      const gameId = joinGameId.trim()
-      if (!isUuid(gameId)) throw new Error("Game ID must be a valid UUID.")
+      const gameIdentifier = joinGameId.trim()
+      if (!gameIdentifier) throw new Error("Please enter a Game ID.")
 
       const { cards } = await getDeck(joinDeck)
       const result = await joinLobbyGame({
         identity,
-        gameId,
+        gameId: gameIdentifier,
         deck: cards,
       })
       if (result.status !== "active") {
         throw new Error("Game is not ready yet.")
       }
-      navigate(`/game/${gameId}`)
+      navigate(`/game/${result.gameId}`)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to join game")
     } finally {
@@ -95,9 +93,10 @@ export function NewGame() {
   async function copyGameId() {
     setError(null)
     setInfo(null)
-    if (!waitingGameId) return
+    const shareValue = waitingSlug ?? waitingGameId
+    if (!shareValue) return
     try {
-      await navigator.clipboard.writeText(waitingGameId)
+      await navigator.clipboard.writeText(shareValue)
       setInfo("Game ID copied.")
     } catch {
       setInfo("Could not copy automatically. Copy Game ID manually.")
@@ -110,6 +109,7 @@ export function NewGame() {
     setMode(null)
     setJoinGameId("")
     setWaitingGameId(null)
+    setWaitingSlug(null)
   }
 
   function openMode(nextMode: Exclude<LobbyMode, null>) {
@@ -199,7 +199,7 @@ export function NewGame() {
                   <input
                     className={styles.input}
                     data-testid="created-game-id-input"
-                    value={waitingGameId}
+                    value={waitingSlug ?? waitingGameId ?? ""}
                     readOnly
                   />
                 </label>
@@ -289,7 +289,7 @@ export function NewGame() {
                     data-testid="join-game-id-input"
                     value={joinGameId}
                     onChange={(e) => setJoinGameId(e.target.value)}
-                    placeholder="Paste game UUID"
+                    placeholder="cursed-dragon-spire"
                   />
                 </label>
 

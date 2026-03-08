@@ -198,7 +198,7 @@ export async function createLobbyGame(opts: {
   identity: AuthIdentity
   seed: number
   deck: object[]
-}): Promise<{ gameId: string; status: "waiting" | "active" }> {
+}): Promise<{ gameId: string; slug: string | null; status: "waiting" | "active" }> {
   return request("/games/lobby", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders(opts.identity) },
