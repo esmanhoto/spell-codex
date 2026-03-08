@@ -128,6 +128,9 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "END_TURN":
       newState = handleEndTurn(state, playerId, events)
       break
+    case "CLAIM_SPOIL":
+      newState = handleClaimSpoil(state, playerId, events)
+      break
     case "PLAY_EVENT":
       newState = handlePlaySpellCard(state, playerId, move, events)
       break
@@ -278,6 +281,7 @@ function handlePass(state: GameState, playerId: PlayerId, events: GameEvent[]): 
         phase: Phase.StartOfTurn,
         hasAttackedThisTurn: false,
         hasPlayedRealmThisTurn: false,
+        pendingSpoil: null,
       }
       events.push({ type: "TURN_STARTED", playerId: nextId, turn: s.currentTurn })
       events.push({ type: "PHASE_CHANGED", phase: Phase.StartOfTurn })
@@ -318,6 +322,11 @@ function handlePlayRealm(
   move: Extract<Move, { type: "PLAY_REALM" }>,
   events: GameEvent[],
 ): GameState {
+  // Skip draw phase without drawing — player chose to play realm instead of drawing
+  if (state.phase === Phase.StartOfTurn) {
+    state = { ...state, phase: Phase.PlayRealm }
+    events.push({ type: "PHASE_CHANGED", phase: Phase.PlayRealm })
+  }
   assertPhase(state, Phase.PlayRealm)
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
@@ -1298,9 +1307,6 @@ function handleDefenderWins(state: GameState, combat: CombatState, events: GameE
     discardPile: [...defendingPlayer.discardPile, ...defenderDiscards],
   })
 
-  // Defender earns spoils
-  s = earnSpoils(s, combat.defendingPlayer, events)
-
   return endBattle(s, combat.attackingPlayer, events)
 }
 
@@ -1337,15 +1343,30 @@ function razeRealm(
 
 function earnSpoils(state: GameState, playerId: PlayerId, events: GameEvent[]): GameState {
   events.push({ type: "SPOILS_EARNED", playerId })
+  // Set pendingSpoil — player may optionally claim 1 card via CLAIM_SPOIL
+  return { ...state, pendingSpoil: playerId }
+}
 
+function handleClaimSpoil(
+  state: GameState,
+  playerId: PlayerId,
+  events: GameEvent[],
+): GameState {
+  if (state.pendingSpoil !== playerId) {
+    throw new EngineError("NO_PENDING_SPOIL", "No spoil available for this player")
+  }
   const player = state.players[playerId]!
-  if (player.drawPile.length === 0) return state
-
   const [drawn, remaining] = takeCards(player.drawPile, 1)
-  return updatePlayer(state, playerId, {
-    hand: [...player.hand, ...drawn],
-    drawPile: remaining,
-  })
+  if (drawn.length > 0) {
+    events.push({ type: "CARDS_DRAWN", playerId, count: drawn.length })
+  }
+  return {
+    ...updatePlayer(state, playerId, {
+      hand: [...player.hand, ...drawn],
+      drawPile: remaining,
+    }),
+    pendingSpoil: null,
+  }
 }
 
 function endBattle(state: GameState, nextActivePlayer: PlayerId, _events: GameEvent[]): GameState {

@@ -167,6 +167,15 @@ export function Formation({
         },
       })
       if (resolved) {
+        if (resolved.type === "PLAY_REALM" && phase === "START_OF_TURN") {
+          showWarning(
+            "You are in Phase 1 (drawing). Proceed to Phase 2 (Realm) without drawing first?",
+            undefined,
+            false,
+            () => onMove(resolved),
+          )
+          return
+        }
         onMove(resolved)
         return
       }

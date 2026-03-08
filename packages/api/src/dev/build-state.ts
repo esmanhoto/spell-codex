@@ -145,5 +145,6 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     deckSize: 55,
     hasAttackedThisTurn: !!combatState,
     hasPlayedRealmThisTurn: false,
+    pendingSpoil: null,
   }
 }

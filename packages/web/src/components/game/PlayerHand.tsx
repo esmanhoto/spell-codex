@@ -46,7 +46,7 @@ export function PlayerHand({
   return (
     <div className={styles.hand}>
       <div className={styles.piles}>
-        <DrawPile count={drawPileCount} disabled={isOpponent} />
+        <DrawPile count={drawPileCount} disabled={isOpponent} handCount={cards.length} />
       </div>
 
       <div className={`${styles.fan} ${isOpponent ? "" : styles.own}`}>

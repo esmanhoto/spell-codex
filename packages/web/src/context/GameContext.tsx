@@ -47,12 +47,14 @@ export interface GameContextType {
   warningMessage: string | null
   warningCode: WarningCode | null
   warningSuppressible: boolean
+  warningProceedLabel: string | undefined
   warningConfirmAction: (() => void) | null
   showWarning: (
     message: string,
     code?: WarningCode,
     suppressible?: boolean,
     confirmAction?: () => void,
+    proceedLabel?: string,
   ) => void
   suppressWarningCode: (code: WarningCode) => void
   clearWarning: () => void
@@ -90,6 +92,7 @@ export const GameContext = React.createContext<GameContextType>({
   warningMessage: null,
   warningCode: null,
   warningSuppressible: true,
+  warningProceedLabel: undefined,
   warningConfirmAction: null,
   showWarning: () => {},
   suppressWarningCode: () => {},

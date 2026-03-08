@@ -4,11 +4,13 @@ import styles from "./WarningModal.module.css"
 export function WarningModal({
   message,
   suppressible = true,
+  proceedLabel = "Proceed Anyway",
   onCancel,
   onProceed,
 }: {
   message: string
   suppressible?: boolean
+  proceedLabel?: string
   onCancel: (suppress: boolean) => void
   onProceed?: (suppress: boolean) => void
 }) {
@@ -53,7 +55,7 @@ export function WarningModal({
             data-testid={onProceed ? "warning-proceed" : "warning-ok"}
             onClick={() => (onProceed ? onProceed(suppress) : onCancel(suppress))}
           >
-            {onProceed ? "Proceed Anyway" : "OK"}
+            {onProceed ? proceedLabel : "OK"}
           </button>
         </div>
       </div>

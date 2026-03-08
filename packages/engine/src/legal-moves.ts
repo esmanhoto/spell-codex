@@ -57,6 +57,9 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
     return dedupeMoves(getCombatMoves(state, playerId))
   }
 
+  // Spoil may be claimed at any time outside combat/resolution (even when not active player)
+  const spoilMove: Move[] = state.pendingSpoil === playerId ? [{ type: "CLAIM_SPOIL" }] : []
+
   // 2. Out-of-combat: non-active player may only play events (at any non-bookkeeping phase)
   if (state.activePlayer !== playerId) {
     if (
@@ -64,26 +67,26 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
       state.phase !== Phase.Draw &&
       state.phase !== Phase.EndTurn
     ) {
-      return dedupeMoves(getEventMoves(state.players[playerId]!))
+      return dedupeMoves([...spoilMove, ...getEventMoves(state.players[playerId]!)])
     }
-    return []
+    return dedupeMoves(spoilMove)
   }
 
   switch (state.phase) {
     case Phase.StartOfTurn:
-      return dedupeMoves(getStartOfTurnMoves(state, playerId))
+      return dedupeMoves([...spoilMove, ...getStartOfTurnMoves(state, playerId)])
     case Phase.Draw:
-      return []
+      return dedupeMoves(spoilMove)
     case Phase.PlayRealm:
-      return dedupeMoves(getForwardPhaseMoves(state, playerId, Phase.PlayRealm))
+      return dedupeMoves([...spoilMove, ...getForwardPhaseMoves(state, playerId, Phase.PlayRealm)])
     case Phase.Pool:
-      return dedupeMoves(getForwardPhaseMoves(state, playerId, Phase.Pool))
+      return dedupeMoves([...spoilMove, ...getForwardPhaseMoves(state, playerId, Phase.Pool)])
     case Phase.Combat:
-      return dedupeMoves(getForwardPhaseMoves(state, playerId, Phase.Combat))
+      return dedupeMoves([...spoilMove, ...getForwardPhaseMoves(state, playerId, Phase.Combat)])
     case Phase.PhaseFive:
-      return dedupeMoves(getPhaseFiveMoves(state, playerId))
+      return dedupeMoves([...spoilMove, ...getPhaseFiveMoves(state, playerId)])
     case Phase.EndTurn:
-      return []
+      return dedupeMoves(spoilMove)
     default:
       return []
   }
@@ -256,6 +259,8 @@ function getStartOfTurnMoves(state: GameState, playerId: PlayerId): Move[] {
   }
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
+  // Allow realm/holding plays during draw phase — engine will auto-draw when applied
+  moves.push(...getRealmOnlyMoves(state, playerId))
 
   return moves
 }
