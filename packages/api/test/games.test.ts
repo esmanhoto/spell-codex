@@ -48,8 +48,8 @@ async function createGame() {
     }),
   })
   expect(res.status).toBe(201)
-  const body = (await res.json()) as { gameId: string }
-  return body.gameId
+  const body = (await res.json()) as { gameId: string; slug: string | null }
+  return body
 }
 
 async function createLobbyGame() {
@@ -63,8 +63,8 @@ async function createLobbyGame() {
     }),
   })
   expect(res.status).toBe(201)
-  const body = (await res.json()) as { gameId: string }
-  return body.gameId
+  const body = (await res.json()) as { gameId: string; slug: string | null }
+  return body
 }
 
 // ─── Health ───────────────────────────────────────────────────────────────────
@@ -89,10 +89,12 @@ describe("auth middleware", () => {
 // ─── Create game ──────────────────────────────────────────────────────────────
 
 describe("POST /games", () => {
-  it("creates a game and returns a gameId", async () => {
-    const gameId = await createGame()
+  it("creates a game and returns a UUID gameId and RPG slug", async () => {
+    const { gameId, slug } = await createGame()
     expect(gameId).toBeString()
     expect(gameId).toHaveLength(36) // UUID
+    expect(slug).toBeString()
+    expect(slug).toMatch(/^[a-z]+-[a-z]+-[a-z]+$/) // three-word RPG slug
   })
 
   it("rejects invalid body", async () => {
@@ -109,11 +111,14 @@ describe("POST /games", () => {
 
 describe("GET /games/:id", () => {
   let gameId: string
+  let gameSlug: string
   beforeAll(async () => {
-    gameId = await createGame()
+    const game = await createGame()
+    gameId = game.gameId
+    gameSlug = game.slug!
   })
 
-  it("returns game state for a participant", async () => {
+  it("returns game state for a participant (by UUID)", async () => {
     const res = await app.request(`/games/${gameId}`, {
       headers: headers(PLAYER_A),
     })
@@ -122,6 +127,15 @@ describe("GET /games/:id", () => {
     expect(body.gameId).toBe(gameId)
     expect(body.phase).toBeString()
     expect(Array.isArray(body.legalMoves)).toBe(true)
+  })
+
+  it("returns game state for a participant (by slug)", async () => {
+    const res = await app.request(`/games/${gameSlug}`, {
+      headers: headers(PLAYER_A),
+    })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body.gameId).toBe(gameId)
   })
 
   it("returns 403 for a non-participant", async () => {
@@ -140,7 +154,7 @@ describe("GET /games/:id", () => {
   })
 
   it("returns 409 while waiting for opponent", async () => {
-    const gameId = await createLobbyGame()
+    const { gameId } = await createLobbyGame()
     const res = await app.request(`/games/${gameId}`, {
       headers: headers(PLAYER_A),
     })
@@ -149,8 +163,9 @@ describe("GET /games/:id", () => {
 })
 
 describe("lobby flow", () => {
-  it("creates waiting lobby, joins by game id, then becomes active", async () => {
-    const gameId = await createLobbyGame()
+  it("creates waiting lobby with slug, joins by slug, then becomes active", async () => {
+    const { gameId, slug } = await createLobbyGame()
+    expect(slug).toMatch(/^[a-z]+-[a-z]+-[a-z]+$/)
 
     const lobbyRes = await app.request(`/games/${gameId}/lobby`, {
       headers: headers(PLAYER_A),
@@ -165,16 +180,23 @@ describe("lobby flow", () => {
     expect(lobby.playerCount).toBe(1)
     expect(lobby.isFull).toBe(false)
 
-    const joinRes = await app.request(`/games/${gameId}/join`, {
+    // Join by slug (the human-readable ID that gets shared)
+    const joinRes = await app.request(`/games/${slug}/join`, {
       method: "POST",
       headers: headers(PLAYER_B),
       body: JSON.stringify({ deckSnapshot: DECK }),
     })
     expect(joinRes.status).toBe(200)
-    const join = (await joinRes.json()) as { status: string; playerCount: number; joined: boolean }
+    const join = (await joinRes.json()) as {
+      gameId: string
+      status: string
+      playerCount: number
+      joined: boolean
+    }
     expect(join.joined).toBe(true)
     expect(join.status).toBe("active")
     expect(join.playerCount).toBe(2)
+    expect(join.gameId).toBe(gameId) // resolves slug → UUID
 
     const stateRes = await app.request(`/games/${gameId}`, {
       headers: headers(PLAYER_A),
@@ -183,7 +205,7 @@ describe("lobby flow", () => {
   })
 
   it("rejects third player when game is full", async () => {
-    const gameId = await createLobbyGame()
+    const { gameId } = await createLobbyGame()
     const joinB = await app.request(`/games/${gameId}/join`, {
       method: "POST",
       headers: headers(PLAYER_B),
@@ -205,7 +227,7 @@ describe("lobby flow", () => {
 describe("POST /games/:id/moves", () => {
   let gameId: string
   beforeAll(async () => {
-    gameId = await createGame()
+    gameId = (await createGame()).gameId
   })
 
   it("accepts a valid PASS move from the active player", async () => {

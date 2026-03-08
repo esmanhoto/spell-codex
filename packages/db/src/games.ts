@@ -4,6 +4,7 @@ import type { CardData } from "@spell/engine"
 import { sql } from "./connection.ts"
 import { games, gamePlayers } from "./schema.ts"
 import type { Game, GamePlayer } from "./schema.ts"
+import { generateGameSlug } from "./slug.ts"
 
 const db = drizzle(sql)
 
@@ -26,12 +27,23 @@ export interface AddGamePlayerInput {
   deckSnapshot: CardData[]
 }
 
+async function generateUniqueSlug(): Promise<string> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const slug = generateGameSlug()
+    const existing = await db.select({ id: games.id }).from(games).where(eq(games.slug, slug))
+    if (existing.length === 0) return slug
+  }
+  throw new Error("Could not generate a unique game slug after 10 attempts")
+}
+
 export async function createGame(input: CreateGameInput): Promise<Game> {
+  const slug = await generateUniqueSlug()
   const [game] = await db
     .insert(games)
     .values({
       formatId: input.formatId,
       seed: input.seed,
+      slug,
     })
     .returning()
   if (!game) throw new Error("Failed to insert game row")
@@ -67,6 +79,11 @@ export async function addGamePlayer(input: AddGamePlayerInput): Promise<GamePlay
 
 export async function getGame(gameId: string): Promise<Game | null> {
   const [row] = await db.select().from(games).where(eq(games.id, gameId))
+  return row ?? null
+}
+
+export async function getGameBySlug(slug: string): Promise<Game | null> {
+  const [row] = await db.select().from(games).where(eq(games.slug, slug))
   return row ?? null
 }
 

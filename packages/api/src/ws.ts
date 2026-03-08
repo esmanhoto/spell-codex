@@ -1,6 +1,7 @@
 import type { ServerWebSocket } from "bun"
 import {
   getGame,
+  getGameBySlug,
   getGamePlayers,
   reconstructState,
   lastSequence,
@@ -157,7 +158,7 @@ export const wsHandlers = {
           return
 
         case "JOIN_GAME": {
-          const { gameId } = msg
+          const idOrSlug = msg.gameId
           let userId: string | null = null
 
           if (typeof msg.token === "string" && msg.token.length > 0) {
@@ -178,12 +179,15 @@ export const wsHandlers = {
             return
           }
 
-          // Verify participant
-          const game = await getGame(gameId)
+          // Resolve slug or UUID → canonical game record
+          const game = /^[0-9a-f-]{36}$/i.test(idOrSlug)
+            ? await getGame(idOrSlug)
+            : await getGameBySlug(idOrSlug)
           if (!game) {
             send(ws, { type: "ERROR", code: "NOT_FOUND", message: "Game not found" })
             return
           }
+          const gameId = game.id
           const players = await getGamePlayers(gameId)
           if (!players.some((p) => p.userId === userId)) {
             send(ws, { type: "ERROR", code: "FORBIDDEN", message: "Not a participant" })
@@ -221,19 +225,13 @@ export const wsHandlers = {
         }
 
         case "SUBMIT_MOVE": {
-          const { gameId, move } = msg
+          const { move } = msg
           if (!ws.data.userId || !ws.data.gameId) {
             send(ws, { type: "ERROR", code: "NOT_JOINED", message: "Join a game first" })
             return
           }
-          if (ws.data.gameId !== gameId) {
-            send(ws, {
-              type: "ERROR",
-              code: "GAME_MISMATCH",
-              message: "Socket joined to a different game",
-            })
-            return
-          }
+          // Use the resolved UUID stored at JOIN_GAME time (msg.gameId may be a slug)
+          const gameId = ws.data.gameId
           const result = await processWsMove(gameId, ws.data.userId, move)
           if (!result.ok) {
             send(ws, { type: "ERROR", code: result.code, message: result.message })

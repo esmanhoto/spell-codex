@@ -6,6 +6,7 @@ export {
   createGame,
   addGamePlayer,
   getGame,
+  getGameBySlug,
   getGamePlayers,
   setGameStatus,
   touchGame,

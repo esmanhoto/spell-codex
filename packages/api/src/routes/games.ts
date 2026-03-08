@@ -5,6 +5,7 @@ import {
   createGame,
   addGamePlayer,
   getGame,
+  getGameBySlug,
   getGamePlayers,
   reconstructState,
   setGameStatus,
@@ -51,6 +52,16 @@ const JoinLobbySchema = z.object({
   deckSnapshot: z.array(CardDataSchema).min(55).max(110),
 })
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+/** Resolves a game by UUID or slug. */
+async function resolveGame(idOrSlug: string) {
+  if (UUID_RE.test(idOrSlug)) return getGame(idOrSlug)
+  return getGameBySlug(idOrSlug)
+}
+
 export const gamesRouter = new Hono<{ Variables: { userId: string } }>()
 
 // ─── POST /games ──────────────────────────────────────────────────────────────
@@ -76,7 +87,7 @@ gamesRouter.post("/", zValidator("json", CreateGameSchema), async (c) => {
   })
   await setGameStatus(game.id, "active")
 
-  return c.json({ gameId: game.id }, 201)
+  return c.json({ gameId: game.id, slug: game.slug }, 201)
 })
 
 // ─── POST /games/lobby (create waiting room) ─────────────────────────────────
@@ -97,20 +108,21 @@ gamesRouter.post("/lobby", zValidator("json", CreateLobbySchema), async (c) => {
     ],
   })
 
-  return c.json({ gameId: game.id, status: "waiting" as const }, 201)
+  return c.json({ gameId: game.id, slug: game.slug, status: "waiting" as const }, 201)
 })
 
 // ─── GET /games/:id/lobby (waiting room status) ─────────────────────────────
 
 gamesRouter.get("/:id/lobby", async (c) => {
-  const gameId = c.req.param("id")
+  const idOrSlug = c.req.param("id")
 
-  const game = await getGame(gameId)
+  const game = await resolveGame(idOrSlug)
   if (!game) return c.json({ error: "Game not found" }, 404)
 
-  const players = await getGamePlayers(gameId)
+  const players = await getGamePlayers(game.id)
   return c.json({
-    gameId,
+    gameId: game.id,
+    slug: game.slug,
     status: game.status,
     playerCount: players.length,
     isFull: players.length >= 2,
@@ -121,11 +133,12 @@ gamesRouter.get("/:id/lobby", async (c) => {
 
 gamesRouter.post("/:id/join", zValidator("json", JoinLobbySchema), async (c) => {
   const userId = c.get("userId")
-  const gameId = c.req.param("id")
+  const idOrSlug = c.req.param("id")
   const body = c.req.valid("json")
 
-  const game = await getGame(gameId)
+  const game = await resolveGame(idOrSlug)
   if (!game) return c.json({ error: "Game not found" }, 404)
+  const gameId = game.id
   if (game.status === "finished" || game.status === "abandoned") {
     return c.json({ error: "Game is not joinable" }, 409)
   }
@@ -170,10 +183,11 @@ gamesRouter.post("/:id/join", zValidator("json", JoinLobbySchema), async (c) => 
 
 gamesRouter.get("/:id", async (c) => {
   const userId = c.get("userId")
-  const gameId = c.req.param("id")
+  const idOrSlug = c.req.param("id")
 
-  const game = await getGame(gameId)
+  const game = await resolveGame(idOrSlug)
   if (!game) return c.json({ error: "Game not found" }, 404)
+  const gameId = game.id
 
   const players = await getGamePlayers(gameId)
   if (!players.some((p) => p.userId === userId)) {

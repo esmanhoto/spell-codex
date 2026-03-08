@@ -29,6 +29,13 @@
       "when": 1772605752621,
       "tag": "0003_superb_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1741305600000,
+      "tag": "0004_rpg_game_slug",
+      "breakpoints": true
     }
   ]
 }
