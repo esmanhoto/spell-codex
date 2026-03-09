@@ -944,7 +944,10 @@ describe("spoil of combat", () => {
         p1: { ...s.players["p1"]!, pool: [{ champion: champ, attachments: [] }] },
         p2: {
           ...s.players["p2"]!,
-          formation: { size: 6, slots: { A: { realm, isRazed: false, holdings: [], holdingRevealedToAll: false } } },
+          formation: {
+            size: 6,
+            slots: { A: { realm, isRazed: false, holdings: [], holdingRevealedToAll: false } },
+          },
         },
       },
     }
@@ -1024,7 +1027,10 @@ describe("spoil of combat", () => {
         p2: {
           ...s.players["p2"]!,
           pool: [{ champion: defender, attachments: [] }],
-          formation: { size: 6, slots: { A: { realm, isRazed: false, holdings: [], holdingRevealedToAll: false } } },
+          formation: {
+            size: 6,
+            slots: { A: { realm, isRazed: false, holdings: [], holdingRevealedToAll: false } },
+          },
         },
       },
     }
