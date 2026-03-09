@@ -83,6 +83,10 @@ export function CombatZone() {
         label: "Switch sides",
         move: { type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId },
       },
+      {
+        label: "Discard",
+        move: { type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId },
+      },
     ]
   }
 
