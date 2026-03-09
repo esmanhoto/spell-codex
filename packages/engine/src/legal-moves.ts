@@ -60,33 +60,81 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   // Spoil may be claimed at any time outside combat/resolution (even when not active player)
   const spoilMove: Move[] = state.pendingSpoil === playerId ? [{ type: "CLAIM_SPOIL" }] : []
 
-  // 2. Out-of-combat: non-active player may only play events (at any non-bookkeeping phase)
+  // 2. Out-of-combat: non-active player may play events at any phase
   if (state.activePlayer !== playerId) {
-    if (
-      state.phase !== Phase.StartOfTurn &&
-      state.phase !== Phase.Draw &&
-      state.phase !== Phase.EndTurn
-    ) {
-      return dedupeMoves([...spoilMove, ...getEventMoves(state.players[playerId]!)])
+    return dedupeMoves([...spoilMove, ...getEventMoves(state.players[playerId]!)])
+  }
+
+  // Active player may always return cards from any discard pile
+  const returnFromDiscardMoves: Move[] = []
+  for (const [ownerId, player] of Object.entries(state.players)) {
+    for (const card of player.discardPile) {
+      returnFromDiscardMoves.push({
+        type: "RETURN_FROM_DISCARD",
+        playerId: ownerId,
+        cardInstanceId: card.instanceId,
+        destination: "hand",
+      })
+      returnFromDiscardMoves.push({
+        type: "RETURN_FROM_DISCARD",
+        playerId: ownerId,
+        cardInstanceId: card.instanceId,
+        destination: "deck",
+      })
+      if (isChampionType(card.card.typeId)) {
+        returnFromDiscardMoves.push({
+          type: "RETURN_FROM_DISCARD",
+          playerId: ownerId,
+          cardInstanceId: card.instanceId,
+          destination: "pool",
+        })
+      }
     }
-    return dedupeMoves(spoilMove)
   }
 
   switch (state.phase) {
     case Phase.StartOfTurn:
-      return dedupeMoves([...spoilMove, ...getStartOfTurnMoves(state, playerId)])
+      return dedupeMoves([
+        ...spoilMove,
+        ...returnFromDiscardMoves,
+        ...getStartOfTurnMoves(state, playerId),
+      ])
     case Phase.Draw:
-      return dedupeMoves(spoilMove)
+      return dedupeMoves([
+        ...spoilMove,
+        ...returnFromDiscardMoves,
+        ...getEventMoves(state.players[playerId]!),
+      ])
     case Phase.PlayRealm:
-      return dedupeMoves([...spoilMove, ...getForwardPhaseMoves(state, playerId, Phase.PlayRealm)])
+      return dedupeMoves([
+        ...spoilMove,
+        ...returnFromDiscardMoves,
+        ...getForwardPhaseMoves(state, playerId, Phase.PlayRealm),
+      ])
     case Phase.Pool:
-      return dedupeMoves([...spoilMove, ...getForwardPhaseMoves(state, playerId, Phase.Pool)])
+      return dedupeMoves([
+        ...spoilMove,
+        ...returnFromDiscardMoves,
+        ...getForwardPhaseMoves(state, playerId, Phase.Pool),
+      ])
     case Phase.Combat:
-      return dedupeMoves([...spoilMove, ...getForwardPhaseMoves(state, playerId, Phase.Combat)])
+      return dedupeMoves([
+        ...spoilMove,
+        ...returnFromDiscardMoves,
+        ...getForwardPhaseMoves(state, playerId, Phase.Combat),
+      ])
     case Phase.PhaseFive:
-      return dedupeMoves([...spoilMove, ...getPhaseFiveMoves(state, playerId)])
+      return dedupeMoves([
+        ...spoilMove,
+        ...returnFromDiscardMoves,
+        ...getPhaseFiveMoves(state, playerId),
+      ])
     case Phase.EndTurn:
-      return dedupeMoves(spoilMove)
+      return dedupeMoves([
+        ...spoilMove,
+        ...returnFromDiscardMoves,
+        ...getEventMoves(state.players[playerId]!),
+      ])
     default:
       return []
   }
@@ -567,7 +615,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     moves.push({ type: "INTERRUPT_COMBAT" })
   }
 
-  // Either combat participant may set level or switch card sides during CARD_PLAY
+  // Either combat participant may set level, switch or discard card sides during CARD_PLAY
   if (isAttacker || isDefender) {
     moves.push({
       type: "SET_COMBAT_LEVEL",
@@ -576,9 +624,11 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     })
     for (const card of combat.attackerCards) {
       moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+      moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
     }
     for (const card of combat.defenderCards) {
       moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+      moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
     }
   }
 
