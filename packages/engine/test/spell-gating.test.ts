@@ -123,6 +123,7 @@ function withCombatCardPlayState(params: {
       attackerCards: [],
       defenderCards: [],
       championsUsedThisBattle: [params.attacker.instanceId, params.defender.instanceId],
+      attackerWins: 0,
       attackerManualLevel: null,
       defenderManualLevel: null,
     },

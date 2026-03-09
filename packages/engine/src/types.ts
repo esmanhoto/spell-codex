@@ -204,6 +204,8 @@ export interface CombatState {
   defenderCards: CardInstance[]
   /** Champion instanceIds used in any round — cannot reuse in later rounds */
   championsUsedThisBattle: CardInstanceId[]
+  /** Number of rounds won by the attacker this battle (2 = raze) */
+  attackerWins: number
   /**
    * Manual combat level override — null means use the auto-computed value.
    * Set via SET_COMBAT_LEVEL when a card effect changes the total.
@@ -309,6 +311,15 @@ export type Move =
   | { type: "SET_COMBAT_LEVEL"; playerId: PlayerId; level: number }
   /** Move a card from attacker's combat cards to defender's (or vice versa) */
   | { type: "SWITCH_COMBAT_SIDE"; cardInstanceId: CardInstanceId }
+  /** Discard a card from either side of the combat zone */
+  | { type: "DISCARD_COMBAT_CARD"; cardInstanceId: CardInstanceId }
+  /** Return a card from any player's discard pile to hand, deck, or pool */
+  | {
+      type: "RETURN_FROM_DISCARD"
+      playerId: PlayerId
+      cardInstanceId: CardInstanceId
+      destination: "hand" | "deck" | "pool"
+    }
 
   // Resolution moves — only legal when resolutionContext is active
   /** Move any in-play or in-zone card to a destination */
@@ -409,6 +420,13 @@ export type GameEvent =
     }
   | { type: "COMBAT_LEVEL_SET"; playerId: PlayerId; level: number }
   | { type: "COMBAT_INTERRUPTED"; playerId: PlayerId }
+  | { type: "COMBAT_CARD_DISCARDED"; playerId: PlayerId; instanceId: CardInstanceId }
+  | {
+      type: "RETURNED_FROM_DISCARD"
+      playerId: PlayerId
+      instanceId: CardInstanceId
+      destination: "hand" | "deck" | "pool"
+    }
   | {
       type: "PHASE3_SPELL_CAST"
       playerId: PlayerId
