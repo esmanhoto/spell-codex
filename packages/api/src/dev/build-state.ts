@@ -84,6 +84,7 @@ function buildCombatState(
       ...(attacker ? [attacker.instanceId] : []),
       ...(defender ? [defender.instanceId] : []),
     ],
+    attackerWins: 0,
     attackerManualLevel: null,
     defenderManualLevel: null,
   }

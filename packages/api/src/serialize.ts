@@ -99,6 +99,7 @@ export function serializeBoard(state: GameState, viewerPlayerId?: string) {
           pool: serializePool(p.pool),
           drawPileCount: p.drawPile.length,
           discardCount: p.discardPile.length,
+          discardPile: p.discardPile.map(card),
           lastingEffects: p.lastingEffects.map(card),
         },
       ]),

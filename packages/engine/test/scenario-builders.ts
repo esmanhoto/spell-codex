@@ -223,6 +223,7 @@ export function buildCombatCardPlayState(params: CombatCardPlayParams): GameStat
       attackerCards: [],
       defenderCards: [],
       championsUsedThisBattle: [attacker.instanceId, defender.instanceId],
+      attackerWins: 0,
       attackerManualLevel: null,
       defenderManualLevel: null,
     },

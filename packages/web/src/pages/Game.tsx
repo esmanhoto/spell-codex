@@ -13,6 +13,10 @@ import {
   SpellCastAnnouncementModal,
   type SpellCastAnnouncement,
 } from "../components/game/SpellCastAnnouncementModal.tsx"
+import {
+  ResolutionOutcomeModal,
+  type ResolutionOutcome,
+} from "../components/game/ResolutionOutcomeModal.tsx"
 import { usePhaseTracker } from "../hooks/usePhaseTracker.ts"
 import {
   isSpellCard,
@@ -81,6 +85,8 @@ export function Game() {
   } | null>(null)
   const [announcementQueue, setAnnouncementQueue] = useState<SpellCastAnnouncement[]>([])
   const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
+  const [resolutionOutcome, setResolutionOutcome] = useState<ResolutionOutcome | null>(null)
+  const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string } | null>(null)
   const spellTargetsRef = useRef<
     Record<
       string,
@@ -176,6 +182,48 @@ export function Game() {
             })
           }
         }
+        if (event.type === "RESOLUTION_COMPLETED" && event.playerId !== myPlayerId) {
+          const watched = resolutionWatchRef.current
+          if (watched && watched.playerId === event.playerId) {
+            const effectTypes = new Set([
+              "REALM_RAZED",
+              "CARDS_DRAWN",
+              "CARD_ZONE_MOVED",
+              "CHAMPION_DISCARDED",
+              "CHAMPION_TO_LIMBO",
+            ])
+            const effects: string[] = []
+            for (const e of newEvents) {
+              if (effectTypes.has(e.type)) {
+                switch (e.type) {
+                  case "REALM_RAZED":
+                    effects.push(`Realm slot ${e.slot as string} razed`)
+                    break
+                  case "CARDS_DRAWN":
+                    effects.push(
+                      `${e.playerId === myPlayerId ? "You" : "Opponent"} drew ${e.count as number} card(s)`,
+                    )
+                    break
+                  case "CARD_ZONE_MOVED":
+                    effects.push(`Card moved: ${e.fromZone as string} → ${e.toZone as string}`)
+                    break
+                  case "CHAMPION_DISCARDED":
+                    effects.push("Champion discarded")
+                    break
+                  case "CHAMPION_TO_LIMBO":
+                    effects.push("Champion sent to Limbo")
+                    break
+                }
+              }
+            }
+            setResolutionOutcome({
+              card: watched.card,
+              destination: event.destination as string,
+              effects,
+            })
+            resolutionWatchRef.current = null
+          }
+        }
       }
       if (announcements.length > 0) {
         setAnnouncementQueue((prev) => [...prev, ...announcements])
@@ -200,6 +248,13 @@ export function Game() {
     },
     [gameId, myPlayerId, processIncomingEvents, qc, showWarning],
   )
+
+  useEffect(() => {
+    const ctx = data?.resolutionContext
+    if (ctx && ctx.resolvingPlayer !== myPlayerId) {
+      resolutionWatchRef.current = { card: ctx.pendingCard, playerId: ctx.resolvingPlayer }
+    }
+  }, [data?.resolutionContext, myPlayerId])
 
   useEffect(() => {
     if (!gameId || !identity) return
@@ -486,6 +541,12 @@ export function Game() {
           canCounter={false}
           onCounter={() => {}}
           onClose={() => setActiveAnnouncement(null)}
+        />
+      )}
+      {resolutionOutcome && (
+        <ResolutionOutcomeModal
+          outcome={resolutionOutcome}
+          onClose={() => setResolutionOutcome(null)}
         />
       )}
     </GameContext.Provider>

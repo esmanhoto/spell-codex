@@ -140,6 +140,12 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "SWITCH_COMBAT_SIDE":
       newState = handleSwitchCombatSide(state, playerId, move, events)
       break
+    case "DISCARD_COMBAT_CARD":
+      newState = handleDiscardCombatCard(state, playerId, move, events)
+      break
+    case "RETURN_FROM_DISCARD":
+      newState = handleReturnFromDiscard(state, playerId, move, events)
+      break
     case "RESOLVE_MOVE_CARD":
       newState = handleResolveMoveCard(state, playerId, move, events)
       break
@@ -185,13 +191,9 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
     return move.type.startsWith("RESOLVE_")
   }
 
-  // Events are always playable by any player (out of combat, at non-bookkeeping phases)
+  // Events are always playable by any player out of combat
   if (move.type === "PLAY_EVENT" && !state.combatState) {
-    return (
-      state.phase !== Phase.StartOfTurn &&
-      state.phase !== Phase.Draw &&
-      state.phase !== Phase.EndTurn
-    )
+    return true
   }
 
   const combat = state.combatState
@@ -594,8 +596,6 @@ function handlePlaySpellCard(
     assertPhase(state, Phase.Pool)
   } else if (move.type === "PLAY_PHASE5_CARD") {
     assertPhase(state, Phase.PhaseFive)
-  } else if (move.type === "PLAY_EVENT" && state.phase === Phase.EndTurn) {
-    throw new EngineError("WRONG_PHASE", "Cannot play events in END_TURN")
   }
 
   const player = state.players[playerId]!
@@ -754,6 +754,7 @@ function handleDeclareAttack(
     attackerCards: [],
     defenderCards: [],
     championsUsedThisBattle: [move.championId],
+    attackerWins: 0,
     attackerManualLevel: null,
     defenderManualLevel: null,
   }
@@ -1169,6 +1170,93 @@ function handleSwitchCombatSide(
   return { ...state, combatState: newCombat }
 }
 
+function handleDiscardCombatCard(
+  state: GameState,
+  _playerId: PlayerId,
+  move: Extract<Move, { type: "DISCARD_COMBAT_CARD" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.combatState) {
+    throw new EngineError("NOT_IN_COMBAT", "DISCARD_COMBAT_CARD requires active combat")
+  }
+  const combat = state.combatState
+  const { cardInstanceId } = move
+
+  const inAttacker = combat.attackerCards.some((c) => c.instanceId === cardInstanceId)
+  const inDefender = combat.defenderCards.some((c) => c.instanceId === cardInstanceId)
+
+  if (!inAttacker && !inDefender) {
+    throw new EngineError("TARGET_NOT_FOUND", "Card is not in active combat")
+  }
+
+  const ownerId = inAttacker ? combat.attackingPlayer : combat.defendingPlayer
+  const card = (inAttacker ? combat.attackerCards : combat.defenderCards).find(
+    (c) => c.instanceId === cardInstanceId,
+  )!
+
+  events.push({ type: "COMBAT_CARD_DISCARDED", playerId: ownerId, instanceId: cardInstanceId })
+
+  const owner = state.players[ownerId]!
+  const newCombat: CombatState = inAttacker
+    ? {
+        ...combat,
+        attackerCards: combat.attackerCards.filter((c) => c.instanceId !== cardInstanceId),
+      }
+    : {
+        ...combat,
+        defenderCards: combat.defenderCards.filter((c) => c.instanceId !== cardInstanceId),
+      }
+
+  return {
+    ...updatePlayer(state, ownerId, { discardPile: [...owner.discardPile, card] }),
+    combatState: newCombat,
+  }
+}
+
+function handleReturnFromDiscard(
+  state: GameState,
+  _playerId: PlayerId,
+  move: Extract<Move, { type: "RETURN_FROM_DISCARD" }>,
+  events: GameEvent[],
+): GameState {
+  const player = state.players[move.playerId]
+  if (!player) throw new EngineError("PLAYER_NOT_FOUND")
+
+  const card = player.discardPile.find((c) => c.instanceId === move.cardInstanceId)
+  if (!card) throw new EngineError("CARD_NOT_FOUND", "Card not in discard pile")
+
+  if (move.destination === "pool" && !isChampionType(card.card.typeId)) {
+    throw new EngineError("NOT_A_CHAMPION", "Only champions can return to pool")
+  }
+
+  events.push({
+    type: "RETURNED_FROM_DISCARD",
+    playerId: move.playerId,
+    instanceId: move.cardInstanceId,
+    destination: move.destination,
+  })
+
+  const newDiscard = player.discardPile.filter((c) => c.instanceId !== move.cardInstanceId)
+
+  if (move.destination === "hand") {
+    return updatePlayer(state, move.playerId, {
+      discardPile: newDiscard,
+      hand: [...player.hand, card],
+    })
+  } else if (move.destination === "pool") {
+    return updatePlayer(state, move.playerId, {
+      discardPile: newDiscard,
+      pool: [...player.pool, { champion: card, attachments: [] }],
+    })
+  } else {
+    // deck — insert at random position
+    const deck = [...player.drawPile]
+    const pos = Math.floor(Math.random() * (deck.length + 1))
+    deck.splice(pos, 0, card)
+    return updatePlayer(state, move.playerId, { discardPile: newDiscard, drawPile: deck })
+  }
+}
+
 // ─── Combat Resolution Helpers ────────────────────────────────────────────────
 
 function handleAttackerWins(
@@ -1252,7 +1340,16 @@ function handleAttackerWins(
     discardPile: [...dp2.discardPile, ...defenderDiscardCards],
   })
 
-  // Transition to AWAITING_ATTACKER for potential next round
+  const newAttackerWins = combat.attackerWins + 1
+
+  // Second win — realm is razed
+  if (newAttackerWins >= 2) {
+    s = razeRealm(s, combat.defendingPlayer, combat.targetRealmSlot, events)
+    s = earnSpoils(s, combat.attackingPlayer, events)
+    return endBattle(s, combat.attackingPlayer, events)
+  }
+
+  // First win — attacker may continue with a different champion
   const newCombat: CombatState = {
     ...combat,
     roundPhase: "AWAITING_ATTACKER",
@@ -1261,6 +1358,7 @@ function handleAttackerWins(
     attackerCards: [],
     defenderCards: [],
     championsUsedThisBattle: [...combat.championsUsedThisBattle, combat.defender!.instanceId],
+    attackerWins: newAttackerWins,
   }
 
   return {
@@ -1347,11 +1445,7 @@ function earnSpoils(state: GameState, playerId: PlayerId, events: GameEvent[]): 
   return { ...state, pendingSpoil: playerId }
 }
 
-function handleClaimSpoil(
-  state: GameState,
-  playerId: PlayerId,
-  events: GameEvent[],
-): GameState {
+function handleClaimSpoil(state: GameState, playerId: PlayerId, events: GameEvent[]): GameState {
   if (state.pendingSpoil !== playerId) {
     throw new EngineError("NO_PENDING_SPOIL", "No spoil available for this player")
   }

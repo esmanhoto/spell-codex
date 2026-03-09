@@ -578,9 +578,9 @@ describe("non-active player events out-of-combat", () => {
     expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
   })
 
-  test("non-active player gets no moves at StartOfTurn", () => {
+  test("non-active player gets PLAY_EVENT at StartOfTurn", () => {
     const moves = getLegalMoves(buildStateWithP2Event(Phase.StartOfTurn), "p2")
-    expect(moves).toHaveLength(0)
+    expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
   })
 
   test("non-active player only gets events (no normal moves) out-of-combat", () => {

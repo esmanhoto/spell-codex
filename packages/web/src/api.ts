@@ -41,6 +41,7 @@ export interface PlayerBoard {
   pool: PoolEntry[]
   drawPileCount: number
   discardCount: number
+  discardPile: CardInfo[]
   lastingEffects: CardInfo[]
 }
 
@@ -137,6 +138,13 @@ export type Move =
   | { type: "DISCARD_CARD"; cardInstanceId: string }
   | { type: "SET_COMBAT_LEVEL"; playerId: string; level: number }
   | { type: "SWITCH_COMBAT_SIDE"; cardInstanceId: string }
+  | { type: "DISCARD_COMBAT_CARD"; cardInstanceId: string }
+  | {
+      type: "RETURN_FROM_DISCARD"
+      playerId: string
+      cardInstanceId: string
+      destination: "hand" | "deck" | "pool"
+    }
   | { type: "RESOLVE_DONE" }
   | { type: "RESOLVE_SET_CARD_DESTINATION"; destination: "discard" | "abyss" | "void" | "in_play" }
   | { type: "RESOLVE_RAZE_REALM"; playerId: string; slot: string }

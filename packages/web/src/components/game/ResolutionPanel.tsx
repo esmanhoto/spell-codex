@@ -1,5 +1,6 @@
 import { useState } from "react"
 import type { Move, ResolutionContextInfo, PlayerBoard } from "../../api.ts"
+import { cardImageUrl } from "../../utils/card-helpers.ts"
 import styles from "./ResolutionPanel.module.css"
 
 const DEST_LABELS: Record<string, string> = {
@@ -52,7 +53,15 @@ export function ResolutionPanel({
           <div className={styles.header}>
             <div className={styles.label}>Resolving Effect</div>
             <div className={styles.cardName}>{ctx.pendingCard.name}</div>
+            {ctx.pendingCard.description && (
+              <div className={styles.cardDesc}>{ctx.pendingCard.description}</div>
+            )}
           </div>
+          <img
+            src={cardImageUrl(ctx.pendingCard.setId, ctx.pendingCard.cardNumber)}
+            alt={ctx.pendingCard.name}
+            style={{ width: "100%", borderRadius: 4, objectFit: "contain" }}
+          />
           <div className={styles.sectionLabel}>Waiting for opponent to resolve…</div>
         </div>
       </div>
