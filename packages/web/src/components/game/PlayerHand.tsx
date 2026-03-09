@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useGame } from "../../context/GameContext.tsx"
 import type { CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
@@ -5,22 +6,28 @@ import type { ContextMenuAction } from "../../context/GameContext.tsx"
 import { buildHandContextActions } from "../../utils/manual-actions.ts"
 import { DrawPile } from "./DrawPile.tsx"
 import { DiscardPile } from "./DiscardPile.tsx"
+import { DiscardPileModal } from "./DiscardPileModal.tsx"
 import styles from "./PlayerHand.module.css"
 
 export function PlayerHand({
+  ownerId,
   cards,
   hiddenCount,
   drawPileCount,
   discardCount,
+  discardPile,
   isOpponent,
 }: {
+  ownerId: string
   cards: CardInfo[]
   hiddenCount?: number
   drawPileCount: number
   discardCount: number
+  discardPile: CardInfo[]
   isOpponent: boolean
 }) {
   const { selectedId, onSelect, openContextMenu, legalMoves, requestSpellCast } = useGame()
+  const [showDiscard, setShowDiscard] = useState(false)
   const total = isOpponent ? (hiddenCount ?? cards.length) : cards.length
 
   function fanTransform(index: number): React.CSSProperties {
@@ -108,8 +115,16 @@ export function PlayerHand({
       </div>
 
       <div className={styles.piles}>
-        <DiscardPile count={discardCount} />
+        <DiscardPile count={discardCount} onOpen={() => setShowDiscard(true)} />
       </div>
+
+      {showDiscard && (
+        <DiscardPileModal
+          ownerId={ownerId}
+          cards={discardPile}
+          onClose={() => setShowDiscard(false)}
+        />
+      )}
     </div>
   )
 }

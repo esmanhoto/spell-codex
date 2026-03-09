@@ -112,10 +112,12 @@ export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: s
         {boardB && (
           <div data-testid="hand-top">
             <PlayerHand
+              ownerId={playerB}
               cards={boardB.hand}
               hiddenCount={boardB.handCount}
               drawPileCount={boardB.drawPileCount}
               discardCount={boardB.discardCount}
+              discardPile={boardB.discardPile}
               isOpponent
             />
           </div>
@@ -148,9 +150,11 @@ export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: s
         {boardA && (
           <div data-testid="hand-bottom">
             <PlayerHand
+              ownerId={playerA}
               cards={boardA.hand}
               drawPileCount={boardA.drawPileCount}
               discardCount={boardA.discardCount}
+              discardPile={boardA.discardPile}
               isOpponent={false}
             />
           </div>
