@@ -547,6 +547,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
   const targetRealmSlot =
     state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
   const realmWorldId = targetRealmSlot?.realm.card.worldId ?? 0
+  const defenderIsRealm = targetRealmSlot?.realm.instanceId === combat.defender?.instanceId
 
   const attackerLevel =
     combat.attackerManualLevel ??
@@ -565,7 +566,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
       ? calculateCombatLevel(
           combat.defender,
           combat.defenderCards,
-          hasWorldMatch(combat.defender, realmWorldId),
+          !defenderIsRealm && hasWorldMatch(combat.defender, realmWorldId),
           "defensive",
         )
       : 0)

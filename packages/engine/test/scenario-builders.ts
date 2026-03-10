@@ -229,3 +229,58 @@ export function buildCombatCardPlayState(params: CombatCardPlayParams): GameStat
     },
   }
 }
+
+export interface RealmSelfDefenseParams {
+  /** Champion in the attacking player's pool. */
+  attacker: CardInstance
+  /** The realm being attacked — also acts as its own defender. */
+  targetRealm: CardInstance
+  attackingPlayer?: "p1" | "p2"
+}
+
+/**
+ * Builds a GameState in CARD_PLAY where the target realm is defending itself
+ * (no champion in the defending player's pool).
+ * The realm's instanceId is used as both the formation realm and the combatState defender.
+ */
+export function buildRealmSelfDefenseState(params: RealmSelfDefenseParams): GameState {
+  const base = initGame(DEFAULT_CONFIG)
+  const { attacker, targetRealm, attackingPlayer = "p1" } = params
+  const defendingPlayer: "p1" | "p2" = attackingPlayer === "p1" ? "p2" : "p1"
+
+  return {
+    ...base,
+    phase: Phase.Combat,
+    activePlayer: attackingPlayer,
+    players: {
+      ...base.players,
+      [attackingPlayer]: {
+        ...base.players[attackingPlayer]!,
+        pool: [{ champion: attacker, attachments: [] }],
+        formation: { size: 6, slots: {} },
+      },
+      [defendingPlayer]: {
+        ...base.players[defendingPlayer]!,
+        pool: [],
+        formation: {
+          size: 6,
+          slots: { A: { realm: targetRealm, isRazed: false, holdings: [] } },
+        },
+      },
+    },
+    combatState: {
+      attackingPlayer,
+      defendingPlayer,
+      targetRealmSlot: "A",
+      roundPhase: "CARD_PLAY",
+      attacker,
+      defender: targetRealm,
+      attackerCards: [],
+      defenderCards: [],
+      championsUsedThisBattle: [attacker.instanceId, targetRealm.instanceId],
+      attackerWins: 0,
+      attackerManualLevel: null,
+      defenderManualLevel: null,
+    },
+  }
+}

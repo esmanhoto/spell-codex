@@ -85,7 +85,13 @@ export function Login() {
             <h1 className={styles.title}>CODEX</h1>
             <p className={styles.subtitle}>Local auth bypass</p>
           </div>
-          <div className={styles.form}>
+          <form
+            className={styles.form}
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleBypassContinue()
+            }}
+          >
             <label className={styles.field}>
               <span className={styles.label}>User UUID</span>
               <input
@@ -98,7 +104,7 @@ export function Login() {
             <button
               className={styles.primaryBtn}
               data-testid="bypass-continue-btn"
-              onClick={handleBypassContinue}
+              type="submit"
             >
               Continue
             </button>
@@ -107,7 +113,7 @@ export function Login() {
                 {error}
               </p>
             )}
-          </div>
+          </form>
         </div>
       </div>
     )
@@ -133,7 +139,13 @@ export function Login() {
           </p>
         )}
 
-        <div className={styles.form}>
+        <form
+          className={styles.form}
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (canSubmit && !loading) handlePasswordSubmit()
+          }}
+        >
           <label className={styles.field}>
             <span className={styles.label}>Email</span>
             <input
@@ -223,7 +235,7 @@ export function Login() {
               {error}
             </p>
           )}
-        </div>
+        </form>
       </div>
     </div>
   )

@@ -244,6 +244,25 @@ export function Formation({
                       (m as { realmSlot: string }).realmSlot === slot,
                   )
                 : undefined
+              const realmDefenseMove =
+                s && !isOpponent
+                  ? legalMoves.find(
+                      (m) =>
+                        m.type === "DECLARE_DEFENSE" &&
+                        (m as { championId: string }).championId === s.realm.instanceId,
+                    )
+                  : undefined
+              const contextMenuItems: { label: string; move: (typeof legalMoves)[number] }[] = []
+              if (toggleHoldingMove)
+                contextMenuItems.push({
+                  label: s?.holdingRevealedToAll ? "Hide holding" : "Reveal holding",
+                  move: toggleHoldingMove,
+                })
+              if (realmDefenseMove)
+                contextMenuItems.push({
+                  label: `Defend with realm (level ${s!.realm.level ?? "?"})`,
+                  move: realmDefenseMove,
+                })
               const tooltipCards = s ? [s.realm, ...s.holdings] : []
               const showHoldingStack = !!(s && s.holdings.length > 0 && s.holdingRevealedToAll)
               const holdingForStack = showHoldingStack ? s.holdings[0] : null
@@ -269,15 +288,10 @@ export function Formation({
                   onDragLeave={() => setDragOverSlot(null)}
                   onDrop={(e) => handleSlotDrop(e, slot)}
                   onContextMenu={
-                    toggleHoldingMove
+                    contextMenuItems.length > 0
                       ? (e) => {
                           e.preventDefault()
-                          openContextMenu(e.clientX, e.clientY, [
-                            {
-                              label: s?.holdingRevealedToAll ? "Hide holding" : "Reveal holding",
-                              move: toggleHoldingMove,
-                            },
-                          ])
+                          openContextMenu(e.clientX, e.clientY, contextMenuItems)
                         }
                       : undefined
                   }

@@ -78,6 +78,39 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
     },
   },
 
+  // ── Realm self-defense (Jungles of Chult) ────────────────────────────────
+  // Jungles of Chult (1st #15, Realm, worldId=1, level=5) can defend itself.
+  // King Azoun IV (1st #42, FR Hero, level=7) is the attacker — same world as
+  // Chult, so he gets +3 world bonus (adjusted level 10). The realm does NOT
+  // get a world bonus for defending itself (adjusted level stays 5).
+  // Start at AWAITING_DEFENDER so p2 can choose to self-defend via right-click,
+  // then verify the levels: King Azoun IV adjusted 10 (7+3 world bonus) vs Chult 5 (no bonus).
+  "chult-self-defense": {
+    name: "Jungles of Chult — realm self-defense full flow",
+    description:
+      "King Azoun IV (FR, lv 7 → 10) attacks Chult. " +
+      "Round 1: right-click Chult to self-defend (lv 5, loses). " +
+      "Round 2: p1 sends Elminster (lv 9 → 12), p2 defends with Alias (lv 6, loses). " +
+      "Round 3: p2 has nothing left → Accept Defeat → realm razed.",
+    p1: {
+      pool: [
+        { card: { setId: "1st", cardNumber: 42 } }, // King Azoun IV, FR lv 7 (round 1)
+        { card: { setId: "1st", cardNumber: 44 } }, // Elminster the Mage, FR lv 9 (round 2)
+      ],
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 15 } }, // Jungles of Chult, lv 5
+      },
+      pool: [{ card: { setId: "1st", cardNumber: 41 } }], // Alias the Sell-Sword, lv 6
+    },
+    combat: {
+      attackingPlayer: "p1",
+      targetSlot: "A",
+      roundPhase: "AWAITING_DEFENDER",
+    },
+  },
+
   // ── Holding grants cleric spells ─────────────────────────────────────────
   // Arms of Iuz (1st #143, typeId 8 Holding) has supportIds ["d4","o4"],
   // granting the defender of the attached realm the ability to cast cleric spells.

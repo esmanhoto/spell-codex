@@ -61,11 +61,12 @@ function serializeCombat(state: GameState) {
         "offensive",
       )
     : 0
+  const defenderIsRealm = realmSlot?.realm.instanceId === c.defender?.instanceId
   const defenderLevel = c.defender
     ? calculateCombatLevel(
         c.defender,
         c.defenderCards,
-        hasWorldMatch(c.defender, realmWorldId),
+        !defenderIsRealm && hasWorldMatch(c.defender, realmWorldId),
         "defensive",
       )
     : 0
