@@ -69,7 +69,16 @@ function buildCombatState(
   const defenderState = combat.attackingPlayer === "p1" ? p2State : p1State
 
   const attacker = attackerState.pool[0]?.champion ?? null
-  const defender = defenderState.pool[0]?.champion ?? null
+
+  // Defender is only pre-set in CARD_PLAY (both players already committed).
+  // In AWAITING_DEFENDER it must be null — the player picks it in the UI.
+  const targetRealmSlot = defenderState.formation.slots[combat.targetSlot]
+  const poolDefender = defenderState.pool[0]?.champion ?? null
+  const defender =
+    combat.roundPhase === "CARD_PLAY"
+      ? (poolDefender ??
+          (targetRealmSlot?.realm.card.level != null ? targetRealmSlot.realm : null))
+      : null
 
   return {
     attackingPlayer: attackerState.id,
@@ -103,9 +112,14 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
 
   const combatState = scenario.combat ? buildCombatState(scenario.combat, p1State, p2State) : null
 
-  // During CARD_PLAY the active player is the losing side — compute it from levels.
+  // Active player depends on the combat phase.
   let activePlayer = DEV_P1_ID
-  if (
+  if (combatState?.roundPhase === "AWAITING_DEFENDER") {
+    // Defender picks their champion
+    activePlayer = combatState.defendingPlayer
+  } else if (combatState?.roundPhase === "AWAITING_ATTACKER") {
+    activePlayer = combatState.attackingPlayer
+  } else if (
     combatState &&
     combatState.roundPhase === "CARD_PLAY" &&
     combatState.attacker &&
@@ -120,10 +134,11 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
       hasWorldMatch(combatState.attacker, realmWorldId),
       "offensive",
     )
+    const defenderIsRealm = realmSlot?.realm.instanceId === combatState.defender.instanceId
     const defenderLevel = calculateCombatLevel(
       combatState.defender,
       [],
-      hasWorldMatch(combatState.defender, realmWorldId),
+      !defenderIsRealm && hasWorldMatch(combatState.defender, realmWorldId),
       "defensive",
     )
     activePlayer = getLosingPlayer(attackerLevel, defenderLevel, combatState)
