@@ -1,0 +1,37 @@
+.overlay {
+  position: fixed;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  height: 60vh;
+  pointer-events: none;
+  z-index: var(--z-modal);
+  overflow: hidden;
+}
+
+.emote {
+  position: absolute;
+  bottom: 0;
+  font-size: 48px;
+  line-height: 1;
+  animation: floatUp 3s ease-out forwards;
+  user-select: none;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  20% {
+    transform: translateY(-60px) scale(1.15);
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-55vh) scale(0.9);
+    opacity: 0;
+  }
+}
