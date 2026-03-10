@@ -92,20 +92,63 @@
   gap: 12px;
 }
 
-.onlineBadge {
+.displayName {
+  display: flex;
+  align-items: center;
+}
+
+.displayNameBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
-  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: hsl(var(--foreground));
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.875rem;
+  transition: background 0.14s;
 }
 
-.onlineDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: hsl(var(--realm-glow));
-  box-shadow: 0 0 10px hsl(var(--realm-glow) / 0.5);
+.displayNameBtn:hover {
+  background: hsl(var(--card) / 0.5);
+}
+
+.displayNameLabel {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.displayNameValue {
+  color: hsl(var(--gold-bright));
+  font-weight: 600;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editIcon {
+  width: 13px;
+  height: 13px;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.displayNameInput {
+  border: 1px solid hsl(var(--ring));
+  border-radius: 8px;
+  padding: 5px 10px;
+  background: hsl(var(--input));
+  color: hsl(var(--foreground));
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.875rem;
+  width: 180px;
+  box-shadow: 0 0 0 1px hsl(var(--ring) / 0.4);
+  outline: none;
 }
 
 .signOut {
