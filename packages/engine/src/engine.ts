@@ -844,10 +844,11 @@ function handleDeclareDefense(
     hasWorldMatch(combat.attacker!, realmWorldId),
     "offensive",
   )
+  const defenderIsRealm = realmSlot?.realm.instanceId === defenderChampion.instanceId
   const defenderLevel = calculateCombatLevel(
     defenderChampion,
     [],
-    hasWorldMatch(defenderChampion, realmWorldId),
+    !defenderIsRealm && hasWorldMatch(defenderChampion, realmWorldId),
     "defensive",
   )
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
@@ -929,6 +930,7 @@ function handlePlayCombatCard(
   // Respect manual overrides — same logic as getLegalMoves/getCardPlayMoves
   const realmSlot = s.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
   const realmWorldId = realmSlot?.realm.card.worldId ?? 0
+  const defenderIsRealm = realmSlot?.realm.instanceId === newCombat.defender?.instanceId
   const attackerLevel =
     newCombat.attackerManualLevel ??
     calculateCombatLevel(
@@ -942,7 +944,7 @@ function handlePlayCombatCard(
     calculateCombatLevel(
       newCombat.defender!,
       newCombat.defenderCards,
-      hasWorldMatch(newCombat.defender!, realmWorldId),
+      !defenderIsRealm && hasWorldMatch(newCombat.defender!, realmWorldId),
       "defensive",
     )
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
@@ -959,6 +961,7 @@ function handleStopPlaying(state: GameState, playerId: PlayerId, events: GameEve
 
   const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
   const realmWorldId = realmSlot?.realm.card.worldId ?? 0
+  const defenderIsRealm = realmSlot?.realm.instanceId === combat.defender?.instanceId
 
   // Use manual override if set, otherwise auto-compute
   const attackerLevel =
@@ -974,7 +977,7 @@ function handleStopPlaying(state: GameState, playerId: PlayerId, events: GameEve
     calculateCombatLevel(
       combat.defender!,
       combat.defenderCards,
-      hasWorldMatch(combat.defender!, realmWorldId),
+      !defenderIsRealm && hasWorldMatch(combat.defender!, realmWorldId),
       "defensive",
     )
 
@@ -1100,6 +1103,7 @@ function handleSetCombatLevel(
   // Recalculate who is losing after the level change and update active player
   const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
   const realmWorldId = realmSlot?.realm.card.worldId ?? 0
+  const defenderIsRealm = realmSlot?.realm.instanceId === newCombat.defender?.instanceId
   const newAttackerLevel =
     newCombat.attackerManualLevel ??
     calculateCombatLevel(
@@ -1113,7 +1117,7 @@ function handleSetCombatLevel(
     calculateCombatLevel(
       newCombat.defender!,
       newCombat.defenderCards,
-      hasWorldMatch(newCombat.defender!, realmWorldId),
+      !defenderIsRealm && hasWorldMatch(newCombat.defender!, realmWorldId),
       "defensive",
     )
   const losingPlayer = getLosingPlayer(newAttackerLevel, newDefenderLevel, newCombat)
@@ -1290,7 +1294,10 @@ function handleAttackerWins(
   })
 
   if (isRealmDefender) {
-    // Realm self-defended and lost — raze the realm, discard any combat cards, end battle
+    // Realm self-defended and lost — discard combat cards; realm stays in formation.
+    // The self-defense is already spent (realm.instanceId is in championsUsedThisBattle).
+    // Battle continues to AWAITING_ATTACKER; if the defender has no other champion
+    // available they will DECLINE_DEFENSE next round, which razes the realm then.
     const defenderCardDiscards = combat.defenderCards
     if (defenderCardDiscards.length > 0) {
       events.push({
@@ -1303,9 +1310,16 @@ function handleAttackerWins(
         discardPile: [...dp.discardPile, ...defenderCardDiscards],
       })
     }
-    s = razeRealm(s, combat.defendingPlayer, combat.targetRealmSlot, events)
-    s = earnSpoils(s, combat.attackingPlayer, events)
-    return endBattle(s, combat.attackingPlayer, events)
+    const newCombat: CombatState = {
+      ...combat,
+      roundPhase: "AWAITING_ATTACKER",
+      attacker: null,
+      defender: null,
+      attackerCards: [],
+      defenderCards: [],
+      attackerWins: combat.attackerWins + 1,
+    }
+    return { ...s, activePlayer: combat.attackingPlayer, combatState: newCombat }
   }
 
   // Discard defender champion + pool entry attachments + all combat cards
