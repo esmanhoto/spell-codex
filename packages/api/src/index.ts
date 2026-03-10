@@ -7,6 +7,7 @@ import { movesRouter } from "./routes/moves.ts"
 import { cardsRouter } from "./routes/cards.ts"
 import { decksRouter } from "./routes/decks.ts"
 import { devRouter } from "./routes/dev.ts"
+import { profileRouter } from "./routes/profile.ts"
 import { wsHandlers } from "./ws.ts"
 
 const app = new Hono()
@@ -54,6 +55,9 @@ app.route("/dev", devRouter)
 app.use("/games/*", auth)
 app.route("/games", gamesRouter)
 app.route("/games", movesRouter)
+app.use("/me", auth)
+app.use("/me/*", auth)
+app.route("/", profileRouter)
 
 // ─── Export app for tests ─────────────────────────────────────────────────────
 
