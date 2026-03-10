@@ -1,0 +1,241 @@
+.wrapper {
+  position: relative;
+}
+
+/* ── Pill (one unified container) ────────────────── */
+
+.pill {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid hsl(220 15% 20% / 0.75);
+  border-radius: 10px;
+  background: hsl(220 15% 14% / 0.45);
+  backdrop-filter: blur(8px);
+  /* No overflow:hidden — popup needs to escape; edge radii on children instead */
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pill:focus-within,
+.pillOpen {
+  border-color: hsl(45 70% 50% / 0.55);
+  box-shadow: 0 0 10px hsl(45 70% 50% / 0.12);
+}
+
+/* Round the outer corners of whichever element lands at the edge */
+.pill > *:first-child {
+  border-radius: 9px 0 0 9px;
+}
+.pill > *:last-child {
+  border-radius: 0 9px 9px 0;
+}
+/* Single child (no play/pause, no volume) */
+.pill > *:only-child {
+  border-radius: 9px;
+}
+
+.pillBtn {
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  background: none;
+  border: none;
+  border-right: 1px solid hsl(220 15% 20% / 0.5);
+  color: hsl(45 70% 50%);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.pillBtn:hover {
+  background: hsl(220 15% 20% / 0.4);
+  color: hsl(45 80% 65%);
+}
+
+.pillLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px 7px 12px;
+  background: none;
+  border: none;
+  color: hsl(45 20% 85%);
+  font-family: "Cinzel", serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
+}
+
+.pillLabel:hover {
+  background: hsl(220 15% 20% / 0.4);
+  color: hsl(45 80% 65%);
+}
+
+.caret {
+  font-size: 0.65rem;
+  opacity: 0.55;
+  margin-left: 2px;
+}
+
+.icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+/* ── Volume (inside the pill, last section) ──────── */
+
+.volumeWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid hsl(220 15% 20% / 0.5);
+}
+
+.volumeIcon {
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
+  color: hsl(45 20% 75% / 0.65);
+  transition: color 0.15s, background 0.15s;
+  cursor: default;
+}
+
+.volumeWrapper:hover .volumeIcon,
+.volumeWrapper:focus-within .volumeIcon {
+  color: hsl(45 70% 50%);
+  background: hsl(220 15% 20% / 0.4);
+}
+
+/* Popup opens to the RIGHT, flush with the icon — no gap = no hover loss */
+.volumePopup {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: 20px;
+  height: 70px;
+  background: hsl(220 18% 12%);
+  border: 1px solid hsl(220 15% 22%);
+  border-radius: 4px;
+  box-shadow: 4px 8px 20px hsl(220 30% 5% / 0.55);
+  z-index: 300;
+  overflow: visible;
+}
+
+.volumeWrapper:hover .volumePopup,
+.volumeWrapper:focus-within .volumePopup {
+  display: block;
+}
+
+/* Rotated horizontal slider — gives full width/height control unlike writing-mode */
+.volumeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  width: 64px;
+  height: 3px;
+  background: hsl(220 15% 28%);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  padding: 6px 2px;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: hsl(45 70% 50%);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.volumeSlider::-webkit-slider-thumb:hover {
+  background: hsl(45 80% 65%);
+}
+
+.volumeSlider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: hsl(45 70% 50%);
+  cursor: pointer;
+}
+
+/* ── Dropdown ─────────────────────────────────────── */
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 160px;
+  background: hsl(220 18% 12%);
+  border: 1px solid hsl(220 15% 20%);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px hsl(220 30% 5% / 0.6);
+  overflow: hidden;
+  z-index: 200;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  color: hsl(45 20% 75%);
+  font-family: "Cinzel", serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s, color 0.1s;
+}
+
+.option:hover {
+  background: hsl(220 15% 18%);
+  color: hsl(45 80% 65%);
+}
+
+.optionActive {
+  color: hsl(45 70% 50%);
+}
+
+.optionStop {
+  color: hsl(0 50% 65%);
+  border-bottom: 1px solid hsl(220 15% 20%);
+}
+
+.optionStop:hover {
+  color: hsl(0 60% 75%);
+}
+
+.optionIcon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.optionStopIcon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  font-style: normal;
+  font-size: 11px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
