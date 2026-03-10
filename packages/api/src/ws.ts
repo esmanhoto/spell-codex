@@ -13,29 +13,38 @@ import {
 import { applyMove, EngineError } from "@spell/engine"
 import type { GameState } from "@spell/engine"
 import { serializeGameState } from "./serialize.ts"
-import { authBypassEnabled, verifySupabaseAccessToken } from "./auth-verify.ts"
+import { authBypassEnabled, verifySupabaseAccessTokenFull } from "./auth-verify.ts"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ClientMessage =
   | { type: "JOIN_GAME"; gameId: string; token?: string; playerId?: string }
   | { type: "SUBMIT_MOVE"; gameId: string; move: { type: string; [key: string]: unknown } }
+  | { type: "CHAT_MSG"; text: string }
+  | { type: "CHAT_EMOTE"; emote: string }
   | { type: "PING" }
 
 export type ServerMessage =
   | { type: "STATE_UPDATE"; gameId: string; state: unknown }
   | { type: "GAME_OVER"; gameId: string; winner: string }
+  | { type: "CHAT_MSG"; gameId: string; playerId: string; displayName: string | null; text: string; ts: number }
+  | { type: "CHAT_EMOTE"; gameId: string; playerId: string; emote: string; ts: number }
   | { type: "PONG" }
   | { type: "ERROR"; code: string; message: string }
 
 // ─── Connection registry ──────────────────────────────────────────────────────
 
 // gameId → playerId → socket
-const registry = new Map<string, Map<string, ServerWebSocket<WsData>>>()
+export const registry = new Map<string, Map<string, ServerWebSocket<WsData>>>()
+
+const ALLOWED_EMOTES = new Set(["scream", "heart", "thumbsup", "hourglass"])
+const CHAT_RATE_MS = 200
 
 interface WsData {
   gameId: string | null
   userId: string | null
+  displayName: string | null
+  lastChatTs: number
 }
 
 // ─── Broadcast helpers ────────────────────────────────────────────────────────
@@ -144,7 +153,7 @@ export async function processWsMove(
 
 export const wsHandlers = {
   open(ws: ServerWebSocket<WsData>) {
-    ws.data = { gameId: null, userId: null }
+    ws.data = { gameId: null, userId: null, displayName: null, lastChatTs: 0 }
   },
 
   async message(ws: ServerWebSocket<WsData>, raw: string | Buffer) {
@@ -165,10 +174,13 @@ export const wsHandlers = {
         case "JOIN_GAME": {
           const idOrSlug = msg.gameId
           let userId: string | null = null
+          let displayName: string | null = null
 
           if (typeof msg.token === "string" && msg.token.length > 0) {
             try {
-              userId = await verifySupabaseAccessToken(msg.token)
+              const result = await verifySupabaseAccessTokenFull(msg.token)
+              userId = result.id
+              displayName = result.email ? result.email.split("@")[0]! : null
             } catch {
               send(ws, { type: "ERROR", code: "UNAUTHORIZED", message: "Invalid bearer token" })
               return
@@ -179,6 +191,7 @@ export const wsHandlers = {
             msg.playerId.length > 0
           ) {
             userId = msg.playerId
+            displayName = null
           } else {
             send(ws, { type: "ERROR", code: "UNAUTHORIZED", message: "Missing authentication" })
             return
@@ -215,7 +228,7 @@ export const wsHandlers = {
             }
           }
 
-          ws.data = { gameId, userId }
+          ws.data = { gameId, userId, displayName, lastChatTs: ws.data.lastChatTs }
           if (!registry.has(gameId)) registry.set(gameId, new Map())
           registry.get(gameId)!.set(userId, ws)
 
@@ -245,6 +258,55 @@ export const wsHandlers = {
           if (!result.ok) {
             send(ws, { type: "ERROR", code: result.code, message: result.message })
           }
+          return
+        }
+
+        case "CHAT_MSG": {
+          if (!ws.data.userId || !ws.data.gameId) {
+            send(ws, { type: "ERROR", code: "NOT_JOINED", message: "Join a game first" })
+            return
+          }
+          const now = Date.now()
+          if (now - ws.data.lastChatTs < CHAT_RATE_MS) {
+            send(ws, { type: "ERROR", code: "RATE_LIMITED", message: "Slow down" })
+            return
+          }
+          ws.data.lastChatTs = now
+          const text = msg.text.trim().slice(0, 500)
+          if (!text) return
+          broadcastToGame(ws.data.gameId, {
+            type: "CHAT_MSG",
+            gameId: ws.data.gameId,
+            playerId: ws.data.userId,
+            displayName: ws.data.displayName,
+            text,
+            ts: now,
+          })
+          return
+        }
+
+        case "CHAT_EMOTE": {
+          if (!ws.data.userId || !ws.data.gameId) {
+            send(ws, { type: "ERROR", code: "NOT_JOINED", message: "Join a game first" })
+            return
+          }
+          if (!ALLOWED_EMOTES.has(msg.emote)) {
+            send(ws, { type: "ERROR", code: "INVALID_EMOTE", message: "Unknown emote" })
+            return
+          }
+          const now = Date.now()
+          if (now - ws.data.lastChatTs < CHAT_RATE_MS) {
+            send(ws, { type: "ERROR", code: "RATE_LIMITED", message: "Slow down" })
+            return
+          }
+          ws.data.lastChatTs = now
+          broadcastToGame(ws.data.gameId, {
+            type: "CHAT_EMOTE",
+            gameId: ws.data.gameId,
+            playerId: ws.data.userId,
+            emote: msg.emote,
+            ts: now,
+          })
           return
         }
 
