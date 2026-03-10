@@ -19,6 +19,13 @@ export function authBypassEnabled(): boolean {
 }
 
 export async function verifySupabaseAccessToken(token: string): Promise<string> {
+  const { id } = await verifySupabaseAccessTokenFull(token)
+  return id
+}
+
+export async function verifySupabaseAccessTokenFull(
+  token: string,
+): Promise<{ id: string; email: string | null }> {
   const response = await fetch(`${getSupabaseUrl()}/auth/v1/user`, {
     method: "GET",
     headers: {
@@ -29,9 +36,10 @@ export async function verifySupabaseAccessToken(token: string): Promise<string> 
   if (!response.ok) {
     throw new Error("Invalid access token")
   }
-  const user = (await response.json()) as { id?: unknown }
+  const user = (await response.json()) as { id?: unknown; email?: unknown }
   if (typeof user.id !== "string" || user.id.length === 0) {
     throw new Error("Missing user id in token payload")
   }
-  return user.id
+  const email = typeof user.email === "string" && user.email.length > 0 ? user.email : null
+  return { id: user.id, email }
 }
