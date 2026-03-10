@@ -32,6 +32,7 @@ import {
   persistSuppressedWarnings,
 } from "../utils/warnings.ts"
 import type { WarningCode } from "../utils/warnings.ts"
+import { MusicPlayer } from "../components/MusicPlayer.tsx"
 import "../styles/game-vars.css"
 
 type Phase3SpellCastEvent = {
@@ -511,6 +512,9 @@ export function Game() {
       }}
     >
       <GameBoard events={eventLog} wsError={wsError} />
+      <div style={{ position: "fixed", top: 12, right: 14, zIndex: 500 }}>
+        <MusicPlayer />
+      </div>
       {data.resolutionContext && (
         <ResolutionPanel
           ctx={data.resolutionContext}
