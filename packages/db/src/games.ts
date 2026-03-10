@@ -16,6 +16,7 @@ export interface CreateGameInput {
   players: Array<{
     userId: string
     seatPosition: number
+    nickname?: string
     deckSnapshot: CardData[]
   }>
 }
@@ -24,6 +25,7 @@ export interface AddGamePlayerInput {
   gameId: string
   userId: string
   seatPosition: number
+  nickname?: string
   deckSnapshot: CardData[]
 }
 
@@ -53,6 +55,7 @@ export async function createGame(input: CreateGameInput): Promise<Game> {
       gameId: game.id,
       userId: p.userId,
       seatPosition: p.seatPosition,
+      nickname: p.nickname ?? "",
       deckSnapshot: p.deckSnapshot,
     })),
   )
@@ -67,6 +70,7 @@ export async function addGamePlayer(input: AddGamePlayerInput): Promise<GamePlay
       gameId: input.gameId,
       userId: input.userId,
       seatPosition: input.seatPosition,
+      nickname: input.nickname ?? "",
       deckSnapshot: input.deckSnapshot,
     })
     .returning()
