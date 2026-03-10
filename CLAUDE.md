@@ -61,15 +61,25 @@
 - run `bun run --cwd packages/db db:migrate`
 - NEVER hand-edit migration SQL files or `_journal.json`; missing snapshots cause future `drizzle-kit generate` runs to re-add already-existing columns
 
-4. Run checks:
+4. Run checks (see **Before committing** section).
 
+## Local Infra
+
+- DB via `docker-compose up -d` (Postgres on `localhost:5433`).
+- `.env` must set `DATABASE_URL`.
+
+## Before committing
+
+Run ALL of the following. No exceptions, no skipping, even if slow.
+
+**1. Typecheck + unit tests**
 - `bun run --cwd packages/engine typecheck && bun run --cwd packages/engine test`
 - `bun run --cwd packages/api typecheck && bun run --cwd packages/api test`
 - `bun run --cwd packages/db typecheck && bun run --cwd packages/db test`
 - `bun run --cwd packages/data typecheck`
 - `bun run --cwd packages/web build`
 
-## Local Infra
+**2. E2E tests** (requires API + DB running locally)
+- `bun run --cwd packages/web test:e2e`
 
-- DB via `docker-compose up -d` (Postgres on `localhost:5433`).
-- `.env` must set `DATABASE_URL`.
+If anything fails, fix it first. Never commit with a failing check.
