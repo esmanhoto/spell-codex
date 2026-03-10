@@ -129,6 +129,21 @@ describe("GET /games/:id", () => {
     expect(Array.isArray(body.legalMoves)).toBe(true)
   })
 
+  it("includes players array with nicknames", async () => {
+    const res = await app.request(`/games/${gameId}`, {
+      headers: headers(PLAYER_A),
+    })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as {
+      players?: Array<{ userId: string; seatPosition: number; nickname: string }>
+    }
+    expect(Array.isArray(body.players)).toBe(true)
+    expect(body.players).toHaveLength(2)
+    const playerA = body.players!.find((p) => p.userId === PLAYER_A)
+    expect(playerA).toBeDefined()
+    expect(typeof playerA!.nickname).toBe("string")
+  })
+
   it("returns game state for a participant (by slug)", async () => {
     const res = await app.request(`/games/${gameSlug}`, {
       headers: headers(PLAYER_A),
@@ -175,10 +190,14 @@ describe("lobby flow", () => {
       status: string
       playerCount: number
       isFull: boolean
+      players?: Array<{ userId: string; nickname: string }>
     }
     expect(lobby.status).toBe("waiting")
     expect(lobby.playerCount).toBe(1)
     expect(lobby.isFull).toBe(false)
+    expect(Array.isArray(lobby.players)).toBe(true)
+    expect(lobby.players).toHaveLength(1)
+    expect(lobby.players![0]!.userId).toBe(PLAYER_A)
 
     // Join by slug (the human-readable ID that gets shared)
     const joinRes = await app.request(`/games/${slug}/join`, {
@@ -202,6 +221,52 @@ describe("lobby flow", () => {
       headers: headers(PLAYER_A),
     })
     expect(stateRes.status).toBe(200)
+  })
+
+  it("lobby players list updates after opponent joins", async () => {
+    const { gameId } = await createLobbyGame()
+    await app.request(`/games/${gameId}/join`, {
+      method: "POST",
+      headers: headers(PLAYER_B),
+      body: JSON.stringify({ deckSnapshot: DECK }),
+    })
+    const lobbyRes = await app.request(`/games/${gameId}/lobby`, {
+      headers: headers(PLAYER_A),
+    })
+    const lobby = (await lobbyRes.json()) as {
+      players?: Array<{ userId: string; nickname: string }>
+    }
+    expect(lobby.players).toHaveLength(2)
+    const userIds = lobby.players!.map((p) => p.userId)
+    expect(userIds).toContain(PLAYER_A)
+    expect(userIds).toContain(PLAYER_B)
+  })
+
+  it("uses profile nickname in game players row", async () => {
+    const user = "00000000-0000-0000-0000-000000000042"
+    // set a profile nickname first
+    await app.request("/me/nickname", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "X-User-Id": user },
+      body: JSON.stringify({ nickname: "Merlin" }),
+    })
+    // create lobby game as that user
+    const lobbyRes = await app.request("/games/lobby", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-User-Id": user },
+      body: JSON.stringify({ formatId: "standard-55", seed: 1, deckSnapshot: DECK }),
+    })
+    expect(lobbyRes.status).toBe(201)
+    const { gameId } = (await lobbyRes.json()) as { gameId: string }
+
+    const statusRes = await app.request(`/games/${gameId}/lobby`, {
+      headers: { "X-User-Id": user },
+    })
+    const status = (await statusRes.json()) as {
+      players?: Array<{ userId: string; nickname: string }>
+    }
+    const player = status.players!.find((p) => p.userId === user)
+    expect(player?.nickname).toBe("Merlin")
   })
 
   it("rejects third player when game is full", async () => {
