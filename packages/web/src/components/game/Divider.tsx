@@ -5,6 +5,8 @@ import styles from "./Divider.module.css"
 export function Divider() {
   const {
     playerA,
+    playerAName,
+    playerBName,
     myPlayerId,
     phase,
     turnNumber,
@@ -15,7 +17,7 @@ export function Divider() {
     allBoards,
     handMaxSize,
   } = useGame()
-  const activeLabel = activePlayer === playerA ? "Player A" : "Player B"
+  const activeLabel = activePlayer === playerA ? playerAName : playerBName
   const isMyTurn = myPlayerId === activePlayer
 
   const endTurnMove = legalMoves.find((m) => m.type === "END_TURN")
@@ -24,14 +26,14 @@ export function Divider() {
 
   return (
     <div className={styles.divider}>
-      <span className={`${styles.playerLabel} ${styles.playerB}`}>Player B</span>
+      <span className={`${styles.playerLabel} ${styles.playerB}`}>{playerBName}</span>
       <div className={styles.center}>
         <div className={styles.turnInfo} data-testid="turn-info">
           Turn {turnNumber}
         </div>
         {winner ? (
           <div className={styles.winner} data-testid="winner-info">
-            {winner === playerA ? "Player A" : "Player B"} wins!
+            {winner === playerA ? playerAName : playerBName} wins!
           </div>
         ) : (
           <>
@@ -53,7 +55,7 @@ export function Divider() {
           </>
         )}
       </div>
-      <span className={`${styles.playerLabel} ${styles.playerA}`}>Player A</span>
+      <span className={`${styles.playerLabel} ${styles.playerA}`}>{playerAName}</span>
     </div>
   )
 }

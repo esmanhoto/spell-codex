@@ -4,7 +4,7 @@ import type { GameEvent } from "../../api.ts"
 import styles from "./EventLog.module.css"
 
 export function EventLog({ events }: { events: GameEvent[] }) {
-  const { playerA } = useGame()
+  const { playerA, playerAName, playerBName } = useGame()
   const logRef = useRef<HTMLDivElement>(null)
   const [collapsed, setCollapsed] = useState(true)
 
@@ -15,7 +15,7 @@ export function EventLog({ events }: { events: GameEvent[] }) {
   }, [events])
 
   function playerLabel(id: string): string {
-    return id === playerA ? "Player A" : "Player B"
+    return id === playerA ? playerAName : playerBName
   }
 
   function formatEvent(e: GameEvent): string {
