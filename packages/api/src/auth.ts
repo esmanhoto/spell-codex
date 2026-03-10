@@ -1,13 +1,15 @@
 import type { Context, Next } from "hono"
 import { createMiddleware } from "hono/factory"
-import { authBypassEnabled, verifySupabaseAccessToken } from "./auth-verify.ts"
+import { authBypassEnabled, verifySupabaseAccessTokenFull } from "./auth-verify.ts"
+
+export type AppVariables = { userId: string; email: string | null }
 
 /**
  * Auth middleware.
  *
  * Default mode:
  * - Requires `Authorization: Bearer <access_token>` (Supabase JWT)
- * - Verifies token with Supabase Auth API and derives userId
+ * - Verifies token with Supabase Auth API and derives userId + email
  *
  * Dev/test bypass (`AUTH_BYPASS=true`):
  * - Accepts `X-User-Id` when Authorization header is not present
@@ -15,16 +17,18 @@ import { authBypassEnabled, verifySupabaseAccessToken } from "./auth-verify.ts"
  * Usage:
  *   app.use(auth)
  *   const userId = c.get("userId")  // string, guaranteed present
+ *   const email = c.get("email")    // string | null
  */
-export const auth = createMiddleware<{ Variables: { userId: string } }>(
+export const auth = createMiddleware<{ Variables: AppVariables }>(
   async (c: Context, next: Next) => {
     const authHeader = c.req.header("Authorization")
     if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.slice("Bearer ".length).trim()
       if (!token) return c.json({ error: "Missing bearer token" }, 401)
       try {
-        const userId = await verifySupabaseAccessToken(token)
+        const { id: userId, email } = await verifySupabaseAccessTokenFull(token)
         c.set("userId", userId)
+        c.set("email", email)
         await next()
         return
       } catch {
@@ -36,6 +40,7 @@ export const auth = createMiddleware<{ Variables: { userId: string } }>(
       const userId = c.req.header("X-User-Id")
       if (!userId) return c.json({ error: "Missing X-User-Id header (AUTH_BYPASS=true)" }, 401)
       c.set("userId", userId)
+      c.set("email", null)
       await next()
       return
     }
