@@ -18,6 +18,8 @@ export interface GameContextType {
   // Core game state
   playerA: string
   playerB: string
+  playerAName: string
+  playerBName: string
   myPlayerId: string
   activePlayer: string
   phase: string
@@ -72,6 +74,8 @@ export interface GameContextType {
 export const GameContext = React.createContext<GameContextType>({
   playerA: "",
   playerB: "",
+  playerAName: "",
+  playerBName: "",
   myPlayerId: "",
   activePlayer: "",
   phase: "",
