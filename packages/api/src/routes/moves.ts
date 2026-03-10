@@ -12,6 +12,7 @@ import {
   hashState,
 } from "@spell/db"
 import { applyMove, EngineError } from "@spell/engine"
+import type { AppVariables } from "../auth.ts"
 
 // ─── Move schema ──────────────────────────────────────────────────────────────
 // We accept any JSON object with a `type` string — the engine validates the rest.
@@ -22,7 +23,7 @@ const MoveSchema = z
   })
   .passthrough()
 
-export const movesRouter = new Hono<{ Variables: { userId: string } }>()
+export const movesRouter = new Hono<{ Variables: AppVariables }>()
 
 // ─── POST /games/:id/moves ────────────────────────────────────────────────────
 

@@ -9,10 +9,20 @@ import {
   getGamePlayers,
   reconstructState,
   setGameStatus,
+  getProfile,
 } from "@spell/db"
 import type { GameState } from "@spell/engine"
 import type { CardData } from "@spell/engine"
 import { serializeGameState } from "../serialize.ts"
+import type { AppVariables } from "../auth.ts"
+import { formatEmailAsName } from "../utils.ts"
+
+async function resolveNickname(userId: string, email: string | null): Promise<string> {
+  const profile = await getProfile(userId)
+  if (profile?.nickname) return profile.nickname
+  if (email) return formatEmailAsName(email)
+  return ""
+}
 
 // ─── Validation schemas ───────────────────────────────────────────────────────
 
@@ -63,12 +73,13 @@ async function resolveGame(idOrSlug: string) {
   return getGameBySlug(idOrSlug)
 }
 
-export const gamesRouter = new Hono<{ Variables: { userId: string } }>()
+export const gamesRouter = new Hono<{ Variables: AppVariables }>()
 
 // ─── POST /games ──────────────────────────────────────────────────────────────
 
 gamesRouter.post("/", zValidator("json", CreateGameSchema), async (c) => {
   const userId = c.get("userId")
+  const email = c.get("email")
   const body = c.req.valid("json")
 
   // Requester must be one of the two players
@@ -77,12 +88,14 @@ gamesRouter.post("/", zValidator("json", CreateGameSchema), async (c) => {
     return c.json({ error: "You must be one of the two players" }, 400)
   }
 
+  const callerNickname = await resolveNickname(userId, email)
   const game = await createGame({
     formatId: body.formatId,
     seed: body.seed,
     players: body.players.map((p, i) => ({
       userId: p.userId,
       seatPosition: i,
+      nickname: p.userId === userId ? callerNickname : "",
       deckSnapshot: p.deckSnapshot,
     })),
   })
@@ -95,18 +108,14 @@ gamesRouter.post("/", zValidator("json", CreateGameSchema), async (c) => {
 
 gamesRouter.post("/lobby", zValidator("json", CreateLobbySchema), async (c) => {
   const userId = c.get("userId")
+  const email = c.get("email")
   const body = c.req.valid("json")
 
+  const nickname = await resolveNickname(userId, email)
   const game = await createGame({
     formatId: body.formatId,
     seed: body.seed,
-    players: [
-      {
-        userId,
-        seatPosition: 0,
-        deckSnapshot: body.deckSnapshot,
-      },
-    ],
+    players: [{ userId, seatPosition: 0, nickname, deckSnapshot: body.deckSnapshot }],
   })
 
   return c.json({ gameId: game.id, slug: game.slug, status: "waiting" as const }, 201)
@@ -127,6 +136,7 @@ gamesRouter.get("/:id/lobby", async (c) => {
     status: game.status,
     playerCount: players.length,
     isFull: players.length >= 2,
+    players: players.map((p) => ({ userId: p.userId, nickname: p.nickname })),
   })
 })
 
@@ -134,6 +144,7 @@ gamesRouter.get("/:id/lobby", async (c) => {
 
 gamesRouter.post("/:id/join", zValidator("json", JoinLobbySchema), async (c) => {
   const userId = c.get("userId")
+  const email = c.get("email")
   const idOrSlug = c.req.param("id")
   const body = c.req.valid("json")
 
@@ -158,10 +169,12 @@ gamesRouter.post("/:id/join", zValidator("json", JoinLobbySchema), async (c) => 
     return c.json({ error: "Game already has 2 players" }, 409)
   }
 
+  const nickname = await resolveNickname(userId, email)
   await addGamePlayer({
     gameId,
     userId,
     seatPosition: players.length,
+    nickname,
     deckSnapshot: body.deckSnapshot,
   })
 
@@ -206,6 +219,7 @@ gamesRouter.get("/:id", async (c) => {
 
   return c.json({
     ...serializeGameState(state, { status: game.status, turnDeadline: game.turnDeadline }, userId),
+    players: players.map((p) => ({ userId: p.userId, seatPosition: p.seatPosition, nickname: p.nickname })),
     integrityErrors: errors.length > 0 ? errors : undefined,
   })
 })
