@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { Plus, LogIn, Users, Swords } from "lucide-react"
 import { listDecks, getDeck, createLobbyGame, joinLobbyGame, getLobbyStatus } from "../api.ts"
 import { useAuth } from "../auth.tsx"
+import { MusicPlayer } from "../components/MusicPlayer.tsx"
 import styles from "./NewGame.module.css"
 
 type LobbyMode = "create" | "join" | null
@@ -129,6 +130,7 @@ export function NewGame() {
         </div>
 
         <div className={styles.topTools}>
+          <MusicPlayer />
           <div className={styles.onlineBadge}>
             <span className={styles.onlineDot} aria-hidden />
             <span>Online</span>
