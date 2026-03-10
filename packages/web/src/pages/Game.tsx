@@ -33,6 +33,10 @@ import {
 } from "../utils/warnings.ts"
 import type { WarningCode } from "../utils/warnings.ts"
 import { MusicPlayer } from "../components/MusicPlayer.tsx"
+import { ChatBar } from "../components/game/ChatBar.tsx"
+import { ChatPanel } from "../components/game/ChatPanel.tsx"
+import { EmoteOverlay } from "../components/game/EmoteOverlay.tsx"
+import { useChat } from "../hooks/useChat.ts"
 import "../styles/game-vars.css"
 
 type Phase3SpellCastEvent = {
@@ -87,6 +91,7 @@ export function Game() {
   const [announcementQueue, setAnnouncementQueue] = useState<SpellCastAnnouncement[]>([])
   const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
   const [resolutionOutcome, setResolutionOutcome] = useState<ResolutionOutcome | null>(null)
+  const [chatOpen, setChatOpen] = useState(false)
   const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string } | null>(null)
   const spellTargetsRef = useRef<
     Record<
@@ -101,6 +106,15 @@ export function Game() {
   const suppressedWarningsRef = useRef<Set<WarningCode>>(new Set())
   const processedEventsRef = useRef(0)
   const wsRef = useRef<ReturnType<typeof createWsClient> | null>(null)
+  const {
+    messages: chatMessages,
+    unreadCount,
+    floatingEmotes,
+    onWsMessage: onChatWsMessage,
+    sendMessage,
+    sendEmote,
+    resetUnread,
+  } = useChat(wsRef, chatOpen)
 
   const openContextMenu = useCallback(
     (x: number, y: number, actions: ContextMenuState["actions"]) => {
@@ -245,9 +259,11 @@ export function Game() {
           showWarning(msg.message, classifyWarningCode({ code: msg.code, message: msg.message }))
         }
         setTimeout(() => setWsError(null), 5000)
+      } else if (msg.type === "CHAT_MSG" || msg.type === "CHAT_EMOTE") {
+        onChatWsMessage(msg)
       }
     },
-    [gameId, myPlayerId, processIncomingEvents, qc, showWarning],
+    [gameId, myPlayerId, onChatWsMessage, processIncomingEvents, qc, showWarning],
   )
 
   useEffect(() => {
@@ -477,6 +493,13 @@ export function Game() {
     )
   }
 
+  function handleToggleChat() {
+    setChatOpen((prev) => {
+      if (!prev) resetUnread()
+      return !prev
+    })
+  }
+
   return (
     <GameContext.Provider
       value={{
@@ -515,6 +538,22 @@ export function Game() {
       <div style={{ position: "fixed", top: 12, right: 14, zIndex: 500 }}>
         <MusicPlayer />
       </div>
+      <EmoteOverlay emotes={floatingEmotes} />
+      <ChatBar
+        chatOpen={chatOpen}
+        unreadCount={unreadCount}
+        onToggleChat={handleToggleChat}
+        onEmote={sendEmote}
+      />
+      {chatOpen && (
+        <ChatPanel
+          messages={chatMessages}
+          myPlayerId={myPlayerId}
+          playerIds={playerIds}
+          onSend={sendMessage}
+          onClose={handleToggleChat}
+        />
+      )}
       {data.resolutionContext && (
         <ResolutionPanel
           ctx={data.resolutionContext}
