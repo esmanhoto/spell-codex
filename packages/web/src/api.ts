@@ -296,12 +296,16 @@ export async function submitMove(
 export type WsClientMessage =
   | { type: "STATE_UPDATE"; gameId: string; state: GameState }
   | { type: "GAME_OVER"; gameId: string; winner: string }
+  | { type: "CHAT_MSG"; gameId: string; playerId: string; displayName: string | null; text: string; ts: number }
+  | { type: "CHAT_EMOTE"; gameId: string; playerId: string; emote: string; ts: number }
   | { type: "PONG" }
   | { type: "ERROR"; code: string; message: string }
 
 export interface WsClient {
   /** Returns true if the move was sent, false if the socket was not open. */
   sendMove: (move: Move) => boolean
+  sendChat: (text: string) => boolean
+  sendEmote: (emote: string) => boolean
   close: () => void
 }
 
@@ -358,6 +362,20 @@ export function createWsClient(
     sendMove(move: Move): boolean {
       if (ws?.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "SUBMIT_MOVE", gameId, move }))
+        return true
+      }
+      return false
+    },
+    sendChat(text: string): boolean {
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "CHAT_MSG", text }))
+        return true
+      }
+      return false
+    },
+    sendEmote(emote: string): boolean {
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "CHAT_EMOTE", emote }))
         return true
       }
       return false
