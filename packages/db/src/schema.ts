@@ -45,6 +45,8 @@ export const gamePlayers = pgTable(
     userId: uuid("user_id").notNull(),
     /** 0 = first to act, 1 = second, etc. */
     seatPosition: integer("seat_position").notNull(),
+    /** Display name at the time the game was created/joined. */
+    nickname: text("nickname").notNull().default(""),
     /**
      * Immutable snapshot of the player's deck at game start.
      * Stored as CardData[] — prevents deck changes mid-game.
@@ -86,6 +88,14 @@ export const gameActions = pgTable(
   ],
 )
 
+// ─── profiles ─────────────────────────────────────────────────────────────────
+
+export const profiles = pgTable("profiles", {
+  userId: uuid("user_id").primaryKey(),
+  nickname: text("nickname").notNull().default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+})
+
 // ─── Inferred types ───────────────────────────────────────────────────────────
 
 export type Game = typeof games.$inferSelect
@@ -93,3 +103,4 @@ export type NewGame = typeof games.$inferInsert
 export type GamePlayer = typeof gamePlayers.$inferSelect
 export type GameAction = typeof gameActions.$inferSelect
 export type NewGameAction = typeof gameActions.$inferInsert
+export type Profile = typeof profiles.$inferSelect

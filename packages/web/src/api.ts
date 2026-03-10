@@ -91,6 +91,7 @@ export interface GameState {
     players: Record<string, PlayerBoard>
     combat: CombatInfo | null
   }
+  players?: Array<{ userId: string; seatPosition: number; nickname: string }>
   events?: GameEvent[]
   resolutionContext: ResolutionContextInfo | null
   integrityErrors?: unknown[]
@@ -227,6 +228,7 @@ export async function getLobbyStatus(
   status: "waiting" | "active" | "finished" | "abandoned"
   playerCount: number
   isFull: boolean
+  players?: Array<{ userId: string; nickname: string }>
 }> {
   return request(`/games/${gameId}/lobby`, {
     headers: authHeaders(identity),
@@ -254,6 +256,25 @@ export async function joinLobbyGame(opts: {
 export async function getGameState(gameId: string, identity: AuthIdentity): Promise<GameState> {
   return request(`/games/${gameId}`, {
     headers: authHeaders(identity),
+  })
+}
+
+// ─── Profile ──────────────────────────────────────────────────────────────────
+
+export async function getMyProfile(
+  identity: AuthIdentity,
+): Promise<{ userId: string; nickname: string; email: string | null }> {
+  return request("/me", { headers: authHeaders(identity) })
+}
+
+export async function updateNickname(
+  identity: AuthIdentity,
+  nickname: string,
+): Promise<{ userId: string; nickname: string }> {
+  return request("/me/nickname", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders(identity) },
+    body: JSON.stringify({ nickname }),
   })
 }
 

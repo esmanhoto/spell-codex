@@ -466,6 +466,8 @@ export function Game() {
 
   const playerIds = useMemo(() => Object.keys(data?.board.players ?? {}), [data?.board.players])
   const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? ""
+  const playerAName = data?.players?.find((p) => p.userId === myPlayerId)?.nickname || "You"
+  const playerBName = data?.players?.find((p) => p.userId === opponentPlayerId)?.nickname || "Opponent"
 
   const lingeringSpellsByPlayer = useMemo(
     () => buildLingeringSpellsByPlayer(playerIds, data?.board.players),
@@ -505,6 +507,8 @@ export function Game() {
       value={{
         playerA: myPlayerId,
         playerB: opponentPlayerId,
+        playerAName,
+        playerBName,
         myPlayerId,
         activePlayer: data.activePlayer,
         phase: data.phase,

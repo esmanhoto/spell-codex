@@ -15,7 +15,7 @@ async function passThroughTurn(page: Page): Promise<void> {
 test("start game navigates and renders board", async ({ page, request }) => {
   await startGame(page, request)
   await expect(page.getByTestId("turn-info")).toContainText("Turn 1")
-  await expect(page.getByTestId("active-player-label")).toContainText("Player A")
+  await expect(page.getByTestId("active-player-label")).toContainText("You")
 })
 
 test("ending turn hands control to Player B and increments turn", async ({ page, request }) => {
@@ -24,7 +24,7 @@ test("ending turn hands control to Player B and increments turn", async ({ page,
   await passThroughTurn(page)
 
   await expect(page.getByTestId("turn-info")).toContainText("Turn 2")
-  await expect(page.getByTestId("active-player-label")).toContainText("Player B")
+  await expect(page.getByTestId("active-player-label")).toContainText("Opponent")
 })
 
 test("manual move can be executed without breaking board", async ({ page, request }) => {

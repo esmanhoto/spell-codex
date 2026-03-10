@@ -1,17 +1,28 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, LogIn, Users, Swords } from "lucide-react"
-import { listDecks, getDeck, createLobbyGame, joinLobbyGame, getLobbyStatus } from "../api.ts"
+import {
+  listDecks,
+  getDeck,
+  createLobbyGame,
+  joinLobbyGame,
+  getLobbyStatus,
+  getMyProfile,
+  updateNickname,
+} from "../api.ts"
 import { useAuth } from "../auth.tsx"
 import { MusicPlayer } from "../components/MusicPlayer.tsx"
 import styles from "./NewGame.module.css"
+
+import { formatEmailAsName } from "../utils/display-name.ts"
 
 type LobbyMode = "create" | "join" | null
 
 export function NewGame() {
   const navigate = useNavigate()
   const { identity, signOut } = useAuth()
+  const qc = useQueryClient()
 
   const [mode, setMode] = useState<LobbyMode>(null)
   const [createDeck, setCreateDeck] = useState("1st_edition_starter_deck_a-1")
@@ -22,10 +33,29 @@ export function NewGame() {
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [nicknameInput, setNicknameInput] = useState("")
+  const [editingName, setEditingName] = useState(false)
 
   const { data: deckList } = useQuery({
     queryKey: ["decks"],
     queryFn: listDecks,
+  })
+
+  const { data: profileData } = useQuery({
+    queryKey: ["my-profile", identity?.userId],
+    queryFn: () => getMyProfile(identity!),
+    enabled: !!identity,
+  })
+
+  useEffect(() => {
+    if (profileData && !nicknameInput) {
+      setNicknameInput(profileData.nickname)
+    }
+  }, [profileData, nicknameInput])
+
+  const { mutate: saveNickname } = useMutation({
+    mutationFn: (n: string) => updateNickname(identity!, n),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-profile", identity?.userId] }),
   })
 
   const { data: lobbyStatus } = useQuery({
@@ -130,11 +160,52 @@ export function NewGame() {
         </div>
 
         <div className={styles.topTools}>
-          <MusicPlayer />
-          <div className={styles.onlineBadge}>
-            <span className={styles.onlineDot} aria-hidden />
-            <span>Online</span>
+          <div className={styles.displayName}>
+            {editingName ? (
+              <input
+                className={styles.displayNameInput}
+                type="text"
+                autoFocus
+                value={nicknameInput}
+                maxLength={30}
+                onChange={(e) => setNicknameInput(e.target.value)}
+                onBlur={() => {
+                  const trimmed = nicknameInput.trim()
+                  if (trimmed) saveNickname(trimmed)
+                  setEditingName(false)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") e.currentTarget.blur()
+                  if (e.key === "Escape") {
+                    setNicknameInput(profileData?.nickname ?? "")
+                    setEditingName(false)
+                  }
+                }}
+              />
+            ) : (
+              <button
+                type="button"
+                className={styles.displayNameBtn}
+                onClick={() => setEditingName(true)}
+              >
+                <span className={styles.displayNameLabel}>Your display name:</span>
+                <span className={styles.displayNameValue}>
+                  {nicknameInput || (profileData?.email ? formatEmailAsName(profileData.email) : "—")}
+                </span>
+                <svg
+                  className={styles.editIcon}
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  aria-hidden
+                >
+                  <path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H3v-2L11.5 2.5Z" />
+                </svg>
+              </button>
+            )}
           </div>
+          <MusicPlayer />
           <button className={styles.signOut} type="button" onClick={() => signOut()}>
             Sign Out
           </button>
@@ -219,6 +290,13 @@ export function NewGame() {
                 <p className={styles.waitingHint} data-testid="waiting-player-count">
                   Players in room: {lobbyStatus?.playerCount ?? 1}/2
                 </p>
+                {lobbyStatus?.players && lobbyStatus.players.length > 0 && (
+                  <ul className={styles.waitingHint} style={{ listStyle: "none", padding: 0 }}>
+                    {lobbyStatus.players.map((p) => (
+                      <li key={p.userId}>{p.nickname || p.userId.slice(0, 8)}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <button

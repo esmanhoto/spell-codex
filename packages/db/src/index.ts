@@ -20,5 +20,8 @@ export { saveAction, listActions, lastSequence } from "./actions.ts"
 export type { ReconstructError, ReconstructResult } from "./reconstruct.ts"
 export { reconstructState } from "./reconstruct.ts"
 
+export type { Profile } from "./schema.ts"
+export { getProfile, upsertNickname } from "./profiles.ts"
+
 // Re-export schema types for callers that need them.
 export type { Game, NewGame, GamePlayer, GameAction, NewGameAction } from "./schema.ts"

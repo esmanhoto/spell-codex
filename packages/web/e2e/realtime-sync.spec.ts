@@ -40,6 +40,6 @@ test("second player view updates after first player move", async ({ browser, pag
   await passThroughTurn(page)
 
   await expect(pageB.getByTestId("turn-info")).toContainText("Turn 2", { timeout: 8000 })
-  await expect(pageB.getByTestId("active-player-label")).toContainText("Player A")
+  await expect(pageB.getByTestId("active-player-label")).toContainText("You")
   await contextB.close()
 })
