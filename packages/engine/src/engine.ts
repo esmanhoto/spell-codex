@@ -451,7 +451,7 @@ function handlePlayHolding(
   if (!realmSlot) {
     throw new EngineError("INVALID_REALM", "No realm in that slot")
   }
-  const isRebuilder = card.card.attributes.includes("rebuilds_razed_realm")
+  const isRebuilder = card.card.effects.includes("rebuild_realm")
   if (realmSlot.isRazed && !isRebuilder) {
     throw new EngineError("INVALID_REALM", "Target realm must be in play and unrazed")
   }

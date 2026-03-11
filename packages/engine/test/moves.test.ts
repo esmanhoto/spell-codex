@@ -1228,12 +1228,12 @@ describe("REBUILD_REALM", () => {
 
 // ─── PLAY_HOLDING on razed realm (rebuilder) ─────────────────────────────────
 
-describe("PLAY_HOLDING with rebuilds_razed_realm attribute", () => {
+describe("PLAY_HOLDING with rebuild_realm effect", () => {
   const REBUILDER_HOLDING: typeof HOLDING_FR = {
     ...HOLDING_FR,
     cardNumber: 401,
     name: "Rebuilder Holding",
-    attributes: ["rebuilds_razed_realm"],
+    effects: ["rebuild_realm"],
   }
 
   function ci(instanceId: string, card: typeof REALM_GENERIC): CardInstance {

@@ -370,7 +370,7 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
     for (const card of player.hand) {
       if (card.card.typeId === CardTypeId.Holding) {
         if (!isUniqueInPlay(card.card, state)) continue
-        const isRebuilder = card.card.attributes.includes("rebuilds_razed_realm")
+        const isRebuilder = card.card.effects.includes("rebuild_realm")
         for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
           if (!realmSlot) continue
           if (realmSlot.isRazed && !isRebuilder) continue
