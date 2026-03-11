@@ -39,6 +39,7 @@ import {
   handleResolveMoveCard,
   handleResolveAttachCard,
   handleResolveRazeRealm,
+  handleResolveRebuildRealm,
   handleResolveDrawCards,
   handleResolveReturnToPool,
   handleResolveSetCardDestination,
@@ -154,6 +155,9 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
       break
     case "RESOLVE_RAZE_REALM":
       newState = handleResolveRazeRealm(state, playerId, move, events)
+      break
+    case "RESOLVE_REBUILD_REALM":
+      newState = handleResolveRebuildRealm(state, playerId, move, events)
       break
     case "RESOLVE_DRAW_CARDS":
       newState = handleResolveDrawCards(state, playerId, move, events)
@@ -394,13 +398,23 @@ function handleRebuildRealm(
     throw new EngineError("INSUFFICIENT_CARDS", "Rebuilding costs 3 cards from hand")
   }
 
-  const discarded = player.hand.slice(0, 3)
-  const discardedIds = discarded.map((c) => c.instanceId)
+  const ids = move.cardInstanceIds
+  const unique = new Set(ids)
+  if (unique.size !== 3) {
+    throw new EngineError("DUPLICATE_CARDS", "Must discard 3 distinct cards")
+  }
+  const discarded = ids.map((id) => {
+    const c = player.hand.find((h) => h.instanceId === id)
+    if (!c) throw new EngineError("CARD_NOT_IN_HAND", `Card ${id} is not in hand`)
+    return c
+  })
+  const discardedIds = ids
   events.push({ type: "REALM_REBUILT", playerId, slot: move.slot, discardedIds })
 
+  const discardSet = new Set(ids)
   let s = {
     ...updatePlayer(state, playerId, {
-      hand: player.hand.slice(3),
+      hand: player.hand.filter((c) => !discardSet.has(c.instanceId)),
       discardPile: [...player.discardPile, ...discarded],
       formation: {
         ...player.formation,
@@ -434,22 +448,36 @@ function handlePlayHolding(
   if (card.card.typeId !== CardTypeId.Holding) {
     throw new EngineError("NOT_A_HOLDING")
   }
-  if (!realmSlot || realmSlot.isRazed) {
+  if (!realmSlot) {
+    throw new EngineError("INVALID_REALM", "No realm in that slot")
+  }
+  const isRebuilder = card.card.attributes.includes("rebuilds_razed_realm")
+  if (realmSlot.isRazed && !isRebuilder) {
     throw new EngineError("INVALID_REALM", "Target realm must be in play and unrazed")
   }
-  if (realmSlot.holdings.length > 0) {
+  if (!realmSlot.isRazed && realmSlot.holdings.length > 0) {
     throw new EngineError("HOLDING_OCCUPIED", "Realm already has a holding")
   }
   if (!isUniqueInPlay(card.card, state)) {
     throw new EngineError("COSMOS_VIOLATION", `${card.card.name} is already in play`)
   }
 
+  if (isRebuilder && realmSlot.isRazed) {
+    events.push({ type: "REALM_REBUILT", playerId, slot: move.realmSlot, discardedIds: [] })
+  }
   events.push({
     type: "HOLDING_PLAYED",
     playerId,
     instanceId: card.instanceId,
     slot: move.realmSlot,
   })
+
+  const updatedSlot = {
+    ...realmSlot,
+    isRazed: isRebuilder && realmSlot.isRazed ? false : realmSlot.isRazed,
+    holdings: [...realmSlot.holdings, card],
+    holdingRevealedToAll: isRebuilder && realmSlot.isRazed ? true : false,
+  }
 
   let s = {
     ...updatePlayer(state, playerId, {
@@ -458,11 +486,7 @@ function handlePlayHolding(
         ...player.formation,
         slots: {
           ...player.formation.slots,
-          [move.realmSlot]: {
-            ...realmSlot,
-            holdings: [...realmSlot.holdings, card],
-            holdingRevealedToAll: false,
-          },
+          [move.realmSlot]: updatedSlot,
         },
       },
     }),
@@ -1434,7 +1458,7 @@ function razeRealm(
   const realmSlot = player.formation.slots[slot]
   if (!realmSlot) return state
 
-  events.push({ type: "REALM_RAZED", playerId: ownerId, slot })
+  events.push({ type: "REALM_RAZED", playerId: ownerId, slot, realmName: realmSlot.realm.card.name })
 
   // Holdings are discarded when realm is razed
   const discarded = realmSlot.holdings
