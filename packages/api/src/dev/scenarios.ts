@@ -219,24 +219,26 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
     },
   },
 
-  // ── Resolution: Airship destroys allies ──────────────────────────────────
-  // p1 has Airship (#90, Event) in hand. Both players have champions with allies.
-  // Play Airship → resolution opens → use dropdown to discard allies.
+  // ── Resolution: Airship destroys allies (in combat) ─────────────────────
+  // p2 attacks p1's Cormyr with King Azoun IV (lv 7) + War Band ally.
+  // p1 defends with Alias (lv 6) + War Party ally.
+  // p1 is losing → can play Airship event during CARD_PLAY.
+  // Airship opens resolution → select "Discard/Remove an Ally" → check allies → Apply.
   "resolution-destroy-allies": {
-    name: "Resolution — Airship destroys allies",
+    name: "Resolution — Airship destroys allies (combat)",
     description:
-      "p1 plays Airship (destroys any two allies). Both players have champions " +
-      "with allies attached. Use the resolution panel dropdown: select 'Discard/Remove an Ally', " +
-      "pick the target ally, choose Discard or Abyss.",
+      "Combat: King Azoun IV (lv 7) + Armies of Bloodstone + Iron Legion attacks Cormyr. " +
+      "Alias (lv 6) + War Party defends. p1 is losing and has Airship in hand. " +
+      "Play Airship → resolution → check allies to destroy → Apply Effect.",
     p1: {
       formation: {
-        A: { realm: { setId: "1st", cardNumber: 1 } }, // Waterdeep
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
       },
       pool: [
         {
-          card: { setId: "1st", cardNumber: 41 }, // Alias the Sell-Sword
+          card: { setId: "1st", cardNumber: 41 }, // Alias the Sell-Sword, lv 6
           attachments: [
-            { setId: "1st", cardNumber: 54 }, // War Party (ally)
+            { setId: "1st", cardNumber: 54 }, // War Party (ally, +4)
           ],
         },
       ],
@@ -244,17 +246,22 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
     },
     p2: {
       formation: {
-        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+        A: { realm: { setId: "1st", cardNumber: 1 } }, // Waterdeep
       },
       pool: [
         {
-          card: { setId: "1st", cardNumber: 42 }, // King Azoun IV
+          card: { setId: "1st", cardNumber: 42 }, // King Azoun IV, lv 7
           attachments: [
-            { setId: "1st", cardNumber: 55 }, // War Band (ally)
-            { setId: "1st", cardNumber: 56 }, // Scouts (ally)
+            { setId: "1st", cardNumber: 58 }, // Armies of Bloodstone (ally, +4)
+            { setId: "1st", cardNumber: 59 }, // The Iron Legion (ally, +3)
           ],
         },
       ],
+    },
+    combat: {
+      attackingPlayer: "p2",
+      targetSlot: "A",
+      roundPhase: "CARD_PLAY",
     },
   },
 
