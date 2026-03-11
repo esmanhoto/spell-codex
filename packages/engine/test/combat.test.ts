@@ -11,7 +11,7 @@ import {
   createInstance,
   _resetInstanceCounter,
 } from "../src/utils.ts"
-import type { CombatState } from "../src/types.ts"
+import type { CardData, CombatState } from "../src/types.ts"
 import {
   CHAMPION_CLERIC_FR,
   CHAMPION_WIZARD_FR,
@@ -19,6 +19,14 @@ import {
   ALLY_PLUS4,
   ALLY_SLASH,
   MAGICAL_ITEM_PLUS2_PLUS1,
+  MAGICAL_ITEM_OFF_ONLY,
+  MAGICAL_ITEM_SPELL_GRANT,
+  CLERIC_SPELL,
+  SPELL_NEGATIVE,
+  SPELL_NO_LEVEL,
+  WIZARD_SPELL,
+  ARTIFACT_FR,
+  ARTIFACT_SLASH,
 } from "./fixtures.ts"
 
 beforeEach(() => {
@@ -142,10 +150,110 @@ describe("calculateCombatLevel", () => {
     expect(calculateCombatLevel(champ, [item], false, "defensive")).toBe(9) // 8+1
   })
 
+  test("magical item with level bonus and desc-only Off tag adds correctly", () => {
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
+    const item = createInstance(MAGICAL_ITEM_OFF_ONLY, "test-item") // level "+3"
+    expect(calculateCombatLevel(champ, [item], false, "offensive")).toBe(11) // 8+3
+    expect(calculateCombatLevel(champ, [item], false, "defensive")).toBe(11) // 8+3 (single value)
+  })
+
+  test("wizard spell with level +3 adds 3", () => {
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
+    const spell = createInstance(WIZARD_SPELL, "test-spell") // level "+3"
+    expect(calculateCombatLevel(champ, [spell], false, "offensive")).toBe(11) // 8+3
+  })
+
+  test("cleric spell with level +5 adds 5", () => {
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6
+    const spell = createInstance(CLERIC_SPELL, "test-spell") // level "+5"
+    expect(calculateCombatLevel(champ, [spell], false, "offensive")).toBe(11) // 6+5
+  })
+
+  test("spell with negative level subtracts", () => {
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
+    const spell = createInstance(SPELL_NEGATIVE, "test-spell") // level "-3"
+    expect(calculateCombatLevel(champ, [spell], false, "offensive")).toBe(5) // 8-3
+  })
+
+  test("spell with null level adds 0", () => {
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
+    const spell = createInstance(SPELL_NO_LEVEL, "test-spell") // level null
+    expect(calculateCombatLevel(champ, [spell], false, "offensive")).toBe(8) // 8+0
+  })
+
+  test("artifact with +4 level adds 4", () => {
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
+    const artifact = createInstance(ARTIFACT_FR, "test-artifact") // level "+4"
+    expect(calculateCombatLevel(champ, [artifact], false, "offensive")).toBe(12) // 8+4
+  })
+
+  test("artifact with slash level +5/+2 applies by side", () => {
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6
+    const artifact = createInstance(ARTIFACT_SLASH, "test-artifact") // level "+5/+2"
+    expect(calculateCombatLevel(champ, [artifact], false, "offensive")).toBe(11) // 6+5
+    expect(calculateCombatLevel(champ, [artifact], false, "defensive")).toBe(8) // 6+2
+  })
+
+  test("magical item with no level adds 0", () => {
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
+    const item = createInstance(MAGICAL_ITEM_SPELL_GRANT, "test-item") // level null
+    expect(calculateCombatLevel(champ, [item], false, "offensive")).toBe(8) // 8+0
+  })
+
+  test("events do not add to level", () => {
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
+    const event: CardData = { ...WIZARD_SPELL, typeId: 6, level: "+5" } // fake event with level
+    const eventInstance = createInstance(event, "test-event")
+    expect(calculateCombatLevel(champ, [eventInstance], false, "offensive")).toBe(8) // events ignored
+  })
+
+  test("realms and holdings do not add to level", () => {
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6
+    const realm: CardData = { ...ALLY_PLUS4, typeId: 13 } // fake realm with level
+    const holding: CardData = { ...ALLY_PLUS4, typeId: 8 } // fake holding with level
+    const r = createInstance(realm, "test-realm")
+    const h = createInstance(holding, "test-holding")
+    expect(calculateCombatLevel(champ, [r, h], false, "offensive")).toBe(6) // nothing added
+  })
+
+  test("multiple card types stack: ally + spell + item + artifact", () => {
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6
+    const ally = createInstance(ALLY_PLUS4, "test-ally") // +4
+    const spell = createInstance(CLERIC_SPELL, "test-spell") // +5
+    const item = createInstance(MAGICAL_ITEM_OFF_ONLY, "test-item") // +3
+    const artifact = createInstance(ARTIFACT_FR, "test-artifact") // +4
+    // 6 + 4 + 5 + 3 + 4 = 22
+    expect(calculateCombatLevel(champ, [ally, spell, item, artifact], false, "offensive")).toBe(22)
+  })
+
+  test("pool attachments and combat cards both contribute", () => {
+    const champ = createInstance(CHAMPION_WIZARD_FR, "test-champ") // level 8
+    const poolItem = createInstance(MAGICAL_ITEM_OFF_ONLY, "test-pool-item") // +3 (attached)
+    const combatAlly = createInstance(ALLY_PLUS4, "test-combat-ally") // +4 (played in combat)
+    // 8 + 3 + 4 = 15
+    expect(calculateCombatLevel(champ, [combatAlly], false, "offensive", [poolItem])).toBe(15)
+  })
+
+  test("world bonus + multiple cards stack correctly", () => {
+    const champ = createInstance(CHAMPION_CLERIC_FR, "test-champ") // level 6, worldId=1
+    const ally = createInstance(ALLY_PLUS4, "test-ally") // +4
+    const spell = createInstance(WIZARD_SPELL, "test-spell") // +3
+    // 6 + 3 (world) + 4 (ally) + 3 (spell) = 16
+    expect(calculateCombatLevel(champ, [ally, spell], true, "offensive")).toBe(16)
+  })
+
   test("level never goes below 0", () => {
     const champ = createInstance(CHAMPION_HERO_GENERIC, "test-champ") // level 5
     // No negative case in standard rules but ensure the floor holds
     expect(calculateCombatLevel(champ, [], false, "offensive")).toBeGreaterThanOrEqual(0)
+  })
+
+  test("heavy negative cards floor at 0", () => {
+    const champ = createInstance(CHAMPION_HERO_GENERIC, "test-champ") // level 5
+    const neg1 = createInstance(SPELL_NEGATIVE, "test-neg1") // -3
+    const neg2 = createInstance(SPELL_NEGATIVE, "test-neg2") // -3
+    // 5 - 3 - 3 = -1 → clamped to 0
+    expect(calculateCombatLevel(champ, [neg1, neg2], false, "offensive")).toBe(0)
   })
 
   test("world bonus + ally stack correctly", () => {
