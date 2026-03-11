@@ -159,6 +159,16 @@ describe("legal moves during resolution", () => {
     // p2 has 2 unrazed realms (A, B)
     expect(razeMoves).toHaveLength(2)
   })
+
+  test("RESOLVE_REBUILD_REALM included for razed realms", () => {
+    let s = openResolution()
+    // Raze p2's realm A first
+    s = applyMove(s, "p1", { type: "RESOLVE_RAZE_REALM", playerId: "p2", slot: "A" }).newState
+    const moves = getLegalMoves(s, "p1")
+    const rebuildMoves = moves.filter((m) => m.type === "RESOLVE_REBUILD_REALM")
+    expect(rebuildMoves).toHaveLength(1)
+    expect((rebuildMoves[0] as { slot: string }).slot).toBe("A")
+  })
 })
 
 // ─── RESOLVE_SET_CARD_DESTINATION ─────────────────────────────────────────────
@@ -291,14 +301,16 @@ describe("RESOLVE_RAZE_REALM", () => {
     expect(newState.players["p2"]!.formation.slots["A"]!.isRazed).toBe(true)
   })
 
-  test("emits REALM_RAZED event", () => {
+  test("emits REALM_RAZED event with realmName", () => {
     const s = openWithP2Realms()
     const { events } = applyMove(s, "p1", {
       type: "RESOLVE_RAZE_REALM",
       playerId: "p2",
       slot: "A",
     })
-    expect(events.some((e) => e.type === "REALM_RAZED")).toBe(true)
+    const ev = events.find((e) => e.type === "REALM_RAZED")
+    expect(ev).toBeDefined()
+    expect(ev!.realmName).toBe(REALM_GENERIC.name)
   })
 
   test("throws when slot already razed", () => {
@@ -321,6 +333,57 @@ describe("RESOLVE_RAZE_REALM", () => {
       slot: "B",
     })
     expect(newState.players["p2"]!.pool).toHaveLength(0)
+  })
+})
+
+// ─── RESOLVE_REBUILD_REALM ────────────────────────────────────────────────────
+
+describe("RESOLVE_REBUILD_REALM", () => {
+  function openWithRazedRealm(): GameState {
+    const event = ci("ev-1", EVENT_CARD)
+    const s = buildPoolState({ handCard: event, p2Realms: true })
+    let state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
+    // Raze p2's realm A
+    state = applyMove(state, "p1", { type: "RESOLVE_RAZE_REALM", playerId: "p2", slot: "A" }).newState
+    return state
+  }
+
+  test("rebuilds a razed realm", () => {
+    const s = openWithRazedRealm()
+    expect(s.players["p2"]!.formation.slots["A"]!.isRazed).toBe(true)
+    const { newState } = applyMove(s, "p1", {
+      type: "RESOLVE_REBUILD_REALM",
+      playerId: "p2",
+      slot: "A",
+    })
+    expect(newState.players["p2"]!.formation.slots["A"]!.isRazed).toBe(false)
+  })
+
+  test("emits REALM_REBUILT event with empty discardedIds", () => {
+    const s = openWithRazedRealm()
+    const { events } = applyMove(s, "p1", {
+      type: "RESOLVE_REBUILD_REALM",
+      playerId: "p2",
+      slot: "A",
+    })
+    const ev = events.find((e) => e.type === "REALM_REBUILT")
+    expect(ev).toBeDefined()
+    expect((ev as { discardedIds: string[] }).discardedIds).toHaveLength(0)
+  })
+
+  test("throws when slot is not razed", () => {
+    const s = openWithRazedRealm()
+    // B is still unrazed
+    expect(() =>
+      applyMove(s, "p1", { type: "RESOLVE_REBUILD_REALM", playerId: "p2", slot: "B" }),
+    ).toThrow(EngineError)
+  })
+
+  test("throws without resolution context", () => {
+    const s = initGame(DEFAULT_CONFIG)
+    expect(() =>
+      applyMove(s, "p1", { type: "RESOLVE_REBUILD_REALM", playerId: "p2", slot: "A" }),
+    ).toThrow(EngineError)
   })
 })
 
@@ -416,14 +479,16 @@ describe("RESOLVE_MOVE_CARD", () => {
     expect(limboEntry!.returnsOnTurn).toBe(3)
   })
 
-  test("emits CARD_ZONE_MOVED event", () => {
+  test("emits CARD_ZONE_MOVED event with cardName", () => {
     const s = openResolutionWithPoolChampion()
     const { events } = applyMove(s, "p1", {
       type: "RESOLVE_MOVE_CARD",
       cardInstanceId: "wiz-1",
       destination: { zone: "discard", playerId: "p1" },
     })
-    expect(events.some((e) => e.type === "CARD_ZONE_MOVED")).toBe(true)
+    const ev = events.find((e) => e.type === "CARD_ZONE_MOVED")
+    expect(ev).toBeDefined()
+    expect(ev!.cardName).toBe(CHAMPION_WIZARD_FR.name)
   })
 
   test("throws when card not found", () => {
@@ -467,13 +532,15 @@ describe("RESOLVE_RETURN_TO_POOL", () => {
     expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "wiz-1")).toBe(true)
   })
 
-  test("emits CHAMPION_RETURNED_TO_POOL event", () => {
+  test("emits CHAMPION_RETURNED_TO_POOL event with cardName", () => {
     const s = openWithDiscardedChampion()
     const { events } = applyMove(s, "p1", {
       type: "RESOLVE_RETURN_TO_POOL",
       cardInstanceId: "wiz-1",
     })
-    expect(events.some((e) => e.type === "CHAMPION_RETURNED_TO_POOL")).toBe(true)
+    const ev = events.find((e) => e.type === "CHAMPION_RETURNED_TO_POOL")
+    expect(ev).toBeDefined()
+    expect(ev!.cardName).toBe(CHAMPION_WIZARD_FR.name)
   })
 
   test("throws when card is not a champion", () => {
