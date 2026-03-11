@@ -216,6 +216,7 @@ export function handleResolveMoveCard(
     type: "CARD_ZONE_MOVED",
     playerId: loc.playerId,
     instanceId: move.cardInstanceId,
+    cardName: loc.card.card.name,
     fromZone: loc.zone,
     toZone: move.destination.zone,
   })
@@ -274,7 +275,7 @@ export function handleResolveRazeRealm(
     throw new EngineError("NOT_RAZEABLE", `Slot ${move.slot} is not an unrazed realm`)
   }
 
-  events.push({ type: "REALM_RAZED", playerId: move.playerId, slot: move.slot })
+  events.push({ type: "REALM_RAZED", playerId: move.playerId, slot: move.slot, realmName: realmSlot.realm.card.name })
 
   const newSlot = { ...realmSlot, isRazed: true, holdings: [] }
   let s = updatePlayer(state, move.playerId, {
@@ -287,6 +288,32 @@ export function handleResolveRazeRealm(
 
   s = checkZeroRealm(s, events)
   return s
+}
+
+export function handleResolveRebuildRealm(
+  state: GameState,
+  _playerId: PlayerId,
+  move: Extract<Move, { type: "RESOLVE_REBUILD_REALM" }>,
+  events: GameEvent[],
+): GameState {
+  assertResolution(state)
+
+  const player = state.players[move.playerId]
+  if (!player) throw new EngineError("INVALID_PLAYER")
+
+  const realmSlot = player.formation.slots[move.slot]
+  if (!realmSlot || !realmSlot.isRazed) {
+    throw new EngineError("NOT_RAZED", `Slot ${move.slot} is not a razed realm`)
+  }
+
+  events.push({ type: "REALM_REBUILT", playerId: move.playerId, slot: move.slot, discardedIds: [] })
+
+  return updatePlayer(state, move.playerId, {
+    formation: {
+      ...player.formation,
+      slots: { ...player.formation.slots, [move.slot]: { ...realmSlot, isRazed: false } },
+    },
+  })
 }
 
 export function handleResolveDrawCards(
@@ -328,6 +355,7 @@ export function handleResolveReturnToPool(
         type: "CHAMPION_RETURNED_TO_POOL",
         playerId: ownerId,
         instanceId: card.instanceId,
+        cardName: card.card.name,
       })
       return updatePlayer(state, ownerId, {
         discardPile: player.discardPile.filter((c) => c.instanceId !== move.cardInstanceId),
