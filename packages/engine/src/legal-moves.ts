@@ -20,7 +20,7 @@ import {
   PROTECTED_BY,
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
-import { calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "./combat.ts"
+import { calculateCombatLevel, hasWorldMatch, getLosingPlayer, getPoolAttachments } from "./combat.ts"
 import {
   canChampionUseSpell,
   canCastWithSupport,
@@ -225,6 +225,51 @@ function getResolutionMoves(state: GameState, _playerId: PlayerId): Move[] {
       moves.push({
         type: "RESOLVE_MOVE_CARD",
         cardInstanceId: entry.champion.instanceId,
+        destination: { zone: "abyss", playerId: ownerId },
+      })
+
+      // Pool attachments (allies, items, artifacts) to discard / abyss
+      for (const att of entry.attachments) {
+        moves.push({
+          type: "RESOLVE_MOVE_CARD",
+          cardInstanceId: att.instanceId,
+          destination: { zone: "discard", playerId: ownerId },
+        })
+        moves.push({
+          type: "RESOLVE_MOVE_CARD",
+          cardInstanceId: att.instanceId,
+          destination: { zone: "abyss", playerId: ownerId },
+        })
+      }
+    }
+
+    // Formation holdings to discard / abyss
+    for (const realmSlot of Object.values(player.formation.slots)) {
+      if (!realmSlot) continue
+      for (const holding of realmSlot.holdings) {
+        moves.push({
+          type: "RESOLVE_MOVE_CARD",
+          cardInstanceId: holding.instanceId,
+          destination: { zone: "discard", playerId: ownerId },
+        })
+        moves.push({
+          type: "RESOLVE_MOVE_CARD",
+          cardInstanceId: holding.instanceId,
+          destination: { zone: "abyss", playerId: ownerId },
+        })
+      }
+    }
+
+    // Lasting effects to discard / abyss
+    for (const card of player.lastingEffects) {
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: card.instanceId,
+        destination: { zone: "discard", playerId: ownerId },
+      })
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: card.instanceId,
         destination: { zone: "abyss", playerId: ownerId },
       })
     }
@@ -578,6 +623,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
           combat.attackerCards,
           hasWorldMatch(combat.attacker, realmWorldId),
           "offensive",
+          getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId),
         )
       : 0)
 
@@ -589,6 +635,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
           combat.defenderCards,
           !defenderIsRealm && hasWorldMatch(combat.defender, realmWorldId),
           "defensive",
+          getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId),
         )
       : 0)
 

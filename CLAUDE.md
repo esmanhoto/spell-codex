@@ -34,6 +34,7 @@
 - Keep imports with `.ts`/`.tsx` extensions (repo pattern).
 - Prefer small pure helpers; explicit types over implicit any.
 - Add/adjust tests with behavior changes (`bun:test` used across engine/api/db).
+- After implementing a feature, assess what new tests can be written (unit tests for new logic, legal-moves coverage, handler edge cases) and add dev scenarios in `packages/api/src/dev/scenarios.ts` for manual verification using real cards.
 - Use existing package boundaries; avoid cross-package leakage.
 
 ## Git Workflow

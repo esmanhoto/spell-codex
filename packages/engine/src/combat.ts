@@ -1,25 +1,26 @@
-import type { CardInstance, CombatState, PlayerId } from "./types.ts"
+import type { CardInstance, CombatState, GameState, PlayerId } from "./types.ts"
 import { CardTypeId, WORLD_BONUS } from "./constants.ts"
 import { parseLevel, parseMagicalItemBonus } from "./utils.ts"
 
 /**
  * Calculates the adjusted combat level for a champion, applying:
  *   1. World bonus (+3 if champion's world matches target realm's world)
- *   2. Ally bonuses (type 1 cards)
- *   3. Magical item bonuses (type 9 cards)
+ *   2. Pool attachment bonuses (allies, items already on the champion)
+ *   3. Combat card bonuses (allies, items played from hand during combat)
  */
 export function calculateCombatLevel(
   champion: CardInstance,
   combatCards: CardInstance[],
   worldMatch: boolean,
   side: "offensive" | "defensive",
+  poolAttachments: CardInstance[] = [],
 ): number {
   let level = parseLevel(champion.card.level)
 
   // World bonus
   if (worldMatch) level += WORLD_BONUS
 
-  for (const card of combatCards) {
+  for (const card of [...poolAttachments, ...combatCards]) {
     if (card.card.typeId === CardTypeId.Ally) {
       level += parseLevel(card.card.level, side)
     } else if (card.card.typeId === CardTypeId.MagicalItem) {
@@ -63,4 +64,10 @@ export function resolveCombatRound(
  */
 export function hasWorldMatch(champion: CardInstance, realmWorldId: number): boolean {
   return champion.card.worldId !== 0 && realmWorldId !== 0 && champion.card.worldId === realmWorldId
+}
+
+/** Look up a champion's pool attachments from game state. */
+export function getPoolAttachments(state: GameState, playerId: PlayerId, championId: string): CardInstance[] {
+  const entry = state.players[playerId]?.pool.find((e) => e.champion.instanceId === championId)
+  return entry?.attachments ?? []
 }

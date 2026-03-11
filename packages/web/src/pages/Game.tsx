@@ -199,27 +199,31 @@ export function Game() {
           }
         }
         // Accumulate effects while watching an opponent resolve
-        if (resolutionWatchRef.current && event.playerId !== myPlayerId) {
+        if (resolutionWatchRef.current) {
           const watched = resolutionWatchRef.current
           switch (event.type) {
             case "REALM_RAZED":
-              watched.effects.push(`Razed realm "${event.realmName as string}"`)
+              watched.effects.push(`Razed ${event.realmName as string}`)
+              break
+            case "REALM_REBUILT":
+              watched.effects.push(`Rebuilt ${event.realmName as string}`)
               break
             case "CARDS_DRAWN":
               watched.effects.push(
-                `${event.playerId === myPlayerId ? "You" : "Opponent"} drew ${event.count as number} card(s)`,
+                `${event.playerId === myPlayerId ? "You drew" : "Opponent drew"} ${event.count as number} card(s)`,
               )
               break
             case "CARD_ZONE_MOVED": {
               const cardName = event.cardName as string
-              const from = event.fromZone as string
               const to = event.toZone as string
-              if (from.startsWith("pool") && to === "discard") {
+              if (to === "discard") {
                 watched.effects.push(`Discarded ${cardName}`)
-              } else if (from.startsWith("pool") && to === "limbo") {
+              } else if (to === "abyss" || to === "void") {
+                watched.effects.push(`Sent ${cardName} to the Abyss`)
+              } else if (to === "limbo") {
                 watched.effects.push(`Sent ${cardName} to limbo`)
               } else {
-                watched.effects.push(`Moved ${cardName}: ${from} → ${to}`)
+                watched.effects.push(`Moved ${cardName} to ${to}`)
               }
               break
             }
@@ -284,12 +288,52 @@ export function Game() {
   }, [gameId, identity, handleWsMessage])
 
   const sendMove = useCallback(
-    (m: Move) => {
+    (m: Move | Move[]) => {
       if (!identity) return
+      const moves = Array.isArray(m) ? m : [m]
+      if (moves.length === 0) return
       setSelectedId(null)
-      setLastMoveType(m.type)
-      if (wsRef.current?.sendMove(m)) return
-      submitMove(gameId!, identity, m)
+      setLastMoveType(moves[moves.length - 1]!.type)
+
+      // Single move: prefer WS for low latency
+      if (moves.length === 1) {
+        if (wsRef.current?.sendMove(moves[0]!)) return
+        submitMove(gameId!, identity, moves[0]!)
+          .then(() => refetch())
+          .catch((err: unknown) => {
+            const raw = err instanceof Error ? err.message : String(err)
+            const detail = raw.replace(/^\d+:\s*/, "")
+            try {
+              const parsed = JSON.parse(detail) as { error?: string; code?: string }
+              const message = parsed.error ?? raw
+              showWarning(
+                message,
+                classifyWarningCode({
+                  message,
+                  ...(parsed.code !== undefined ? { code: parsed.code } : {}),
+                }),
+              )
+            } catch {
+              showWarning(raw, classifyWarningCode(raw))
+            }
+            console.error(err)
+          })
+        return
+      }
+
+      // Multiple moves: send via WS if open (ordered per connection),
+      // otherwise chain HTTP calls sequentially
+      if (wsRef.current) {
+        for (const move of moves) {
+          wsRef.current.sendMove(move)
+        }
+        return
+      }
+      let chain = Promise.resolve()
+      for (const move of moves) {
+        chain = chain.then(() => submitMove(gameId!, identity, move) as Promise<void>)
+      }
+      chain
         .then(() => refetch())
         .catch((err: unknown) => {
           const raw = err instanceof Error ? err.message : String(err)

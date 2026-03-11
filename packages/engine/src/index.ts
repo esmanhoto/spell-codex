@@ -17,6 +17,7 @@ export {
   hasWorldMatch,
   resolveCombatRound,
   getLosingPlayer,
+  getPoolAttachments,
 } from "./combat.ts"
 
 export {

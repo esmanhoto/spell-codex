@@ -3,8 +3,8 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: center;
   padding: 16px;
   z-index: var(--z-modal);
   pointer-events: none;
@@ -175,6 +175,103 @@
   border-radius: 4px;
   padding: 4px 6px;
   font-size: 12px;
+}
+
+.categorySelect {
+  width: 100%;
+  background: #1e1a17;
+  border: 1px solid #4a3a32;
+  color: #eadfcb;
+  border-radius: 5px;
+  padding: 7px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.categorySelect:focus {
+  outline: 1px solid #7b9c5a;
+  border-color: #7b9c5a;
+}
+
+.backLink {
+  background: none;
+  border: none;
+  color: #7b9c5a;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 0;
+  text-align: left;
+}
+
+.backLink:hover {
+  color: #b0d488;
+}
+
+.subStep {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 2px solid #4a3a32;
+  padding-left: 10px;
+}
+
+.playerGroupLabel {
+  color: #7b9c5a;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  margin-top: 6px;
+}
+
+.cardContext {
+  color: #888;
+  font-size: 11px;
+}
+
+.checkboxRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #c9b99a;
+  font-size: 12px;
+}
+
+.checkboxRow:hover {
+  background: #2a211f;
+}
+
+.checkboxRow input[type="checkbox"] {
+  accent-color: #7b9c5a;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.applyBtn {
+  border: 1px solid #7b9c5a;
+  background: #233020;
+  color: #b0d488;
+  border-radius: 5px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.applyBtn:hover:not(:disabled) {
+  background: #2e4028;
+}
+
+.applyBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .doneBtn {

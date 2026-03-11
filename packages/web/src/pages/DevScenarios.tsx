@@ -36,40 +36,42 @@ export function DevScenarios() {
   }
 
   return (
-    <div className="page" style={{ maxWidth: 700, margin: "0 auto", padding: "2rem 1rem" }}>
+    <div className="page" style={{ maxWidth: 900, margin: "0 auto", padding: "2rem 1rem" }}>
       <h1 style={{ marginBottom: "0.25rem" }}>Dev Scenarios</h1>
-      <p style={{ color: "#888", marginBottom: "2rem", fontSize: "0.9rem" }}>
-        Load a pre-built game state with real cards to explore a specific rule in the UI. Only
-        available when AUTH_BYPASS=true.
+      <p style={{ color: "#888", marginBottom: "1.5rem", fontSize: "0.9rem" }}>
+        Load a pre-built game state to test a specific rule.
       </p>
 
       {loading && <p>Loading scenarios…</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: "0.75rem",
+        }}
+      >
         {scenarios.map((s) => (
-          <div
+          <button
             key={s.id}
+            onClick={() => handleLoad(s.id)}
+            disabled={loadingScenario === s.id}
             style={{
               border: "1px solid #333",
               borderRadius: 6,
-              padding: "1rem 1.25rem",
-              background: "#111",
+              padding: "0.75rem 1rem",
+              background: loadingScenario === s.id ? "#1a1a1a" : "#111",
+              color: "#ddd",
+              cursor: loadingScenario === s.id ? "wait" : "pointer",
+              textAlign: "left",
+              fontSize: "0.85rem",
+              fontWeight: 500,
+              lineHeight: 1.3,
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: "0.3rem" }}>{s.name}</div>
-            <div style={{ color: "#aaa", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-              {s.description}
-            </div>
-
-            <button
-              onClick={() => handleLoad(s.id)}
-              disabled={loadingScenario === s.id}
-              style={{ padding: "0.4rem 1rem", cursor: "pointer" }}
-            >
-              {loadingScenario === s.id ? "Loading…" : "Load"}
-            </button>
-          </div>
+            {loadingScenario === s.id ? "Loading…" : s.name}
+          </button>
         ))}
       </div>
     </div>

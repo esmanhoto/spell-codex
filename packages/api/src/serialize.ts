@@ -1,4 +1,4 @@
-import { getLegalMoves, calculateCombatLevel, hasWorldMatch, HAND_SIZES } from "@spell/engine"
+import { getLegalMoves, calculateCombatLevel, hasWorldMatch, getPoolAttachments, HAND_SIZES } from "@spell/engine"
 import type { CardInstance, Formation, GameState, PoolEntry } from "@spell/engine"
 
 // ─── Card / Formation serialisers ────────────────────────────────────────────
@@ -59,6 +59,7 @@ function serializeCombat(state: GameState) {
         c.attackerCards,
         hasWorldMatch(c.attacker, realmWorldId),
         "offensive",
+        getPoolAttachments(state, c.attackingPlayer, c.attacker.instanceId),
       )
     : 0
   const defenderIsRealm = realmSlot?.realm.instanceId === c.defender?.instanceId
@@ -68,6 +69,7 @@ function serializeCombat(state: GameState) {
         c.defenderCards,
         !defenderIsRealm && hasWorldMatch(c.defender, realmWorldId),
         "defensive",
+        getPoolAttachments(state, c.defendingPlayer, c.defender.instanceId),
       )
     : 0
 

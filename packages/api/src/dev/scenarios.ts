@@ -218,4 +218,96 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
       },
     },
   },
+
+  // ── Resolution: Airship destroys allies (in combat) ─────────────────────
+  // p2 attacks p1's Cormyr with King Azoun IV (lv 7) + War Band ally.
+  // p1 defends with Alias (lv 6) + War Party ally.
+  // p1 is losing → can play Airship event during CARD_PLAY.
+  // Airship opens resolution → select "Discard/Remove an Ally" → check allies → Apply.
+  "resolution-destroy-allies": {
+    name: "Resolution — Airship destroys allies (combat)",
+    description:
+      "Combat: King Azoun IV (lv 7) + Armies of Bloodstone + Iron Legion attacks Cormyr. " +
+      "Alias (lv 6) + War Party defends. p1 is losing and has Airship in hand. " +
+      "Play Airship → resolution → check allies to destroy → Apply Effect.",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 41 }, // Alias the Sell-Sword, lv 6
+          attachments: [
+            { setId: "1st", cardNumber: 54 }, // War Party (ally, +4)
+          ],
+        },
+      ],
+      hand: [{ setId: "1st", cardNumber: 90 }], // Airship (event)
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 1 } }, // Waterdeep
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 42 }, // King Azoun IV, lv 7
+          attachments: [
+            { setId: "1st", cardNumber: 58 }, // Armies of Bloodstone (ally, +4)
+            { setId: "1st", cardNumber: 59 }, // The Iron Legion (ally, +3)
+          ],
+        },
+      ],
+    },
+    combat: {
+      attackingPlayer: "p2",
+      targetSlot: "A",
+      roundPhase: "CARD_PLAY",
+    },
+  },
+
+  // ── Resolution: Fast Talking! discards items + holdings visible ────────
+  // p1 has Fast Talking! (#210, Event). Both players have items on champions
+  // and holdings on realms. Play event → resolution → discard items via
+  // "Discard/Remove Magical Item" and holdings via "Discard/Remove a Holding".
+  "resolution-discard-items-holdings": {
+    name: "Resolution — Fast Talking! + items & holdings",
+    description:
+      "p1 plays Fast Talking! (discard all magical items and artifacts). " +
+      "Both players have items on champions and holdings on realms. " +
+      "Verify all action categories in the dropdown: items, holdings, realms, champions.",
+    p1: {
+      formation: {
+        A: {
+          realm: { setId: "1st", cardNumber: 1 }, // Waterdeep
+          holdings: [{ setId: "1st", cardNumber: 143 }], // Arms of Iuz (holding)
+        },
+        B: { realm: { setId: "1st", cardNumber: 2 } }, // Menzoberranzan
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 44 }, // Elminster the Mage
+          attachments: [
+            { setId: "1st", cardNumber: 93 }, // Rod of Shapechange (artifact)
+          ],
+        },
+      ],
+      hand: [{ setId: "1st", cardNumber: 210 }], // Fast Talking! (event)
+    },
+    p2: {
+      formation: {
+        A: {
+          realm: { setId: "1st", cardNumber: 5 }, // Cormyr
+          holdings: [{ setId: "1st", cardNumber: 144 }], // Arms of Furyondy (holding)
+        },
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 42 }, // King Azoun IV
+          attachments: [
+            { setId: "1st", cardNumber: 94 }, // Dwarven Hammer (magical item)
+          ],
+        },
+      ],
+    },
+  },
 }

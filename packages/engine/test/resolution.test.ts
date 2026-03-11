@@ -12,6 +12,9 @@ import {
   CHAMPION_CLERIC_FR,
   REALM_GENERIC,
   EVENT_CARD,
+  ALLY_PLUS4,
+  MAGICAL_ITEM_PLUS2_PLUS1,
+  HOLDING_FR,
 } from "./fixtures.ts"
 
 // A Phase-3 offensive wizard spell (castable in Pool phase)
@@ -563,6 +566,174 @@ describe("RESOLVE_RETURN_TO_POOL", () => {
     expect(() =>
       applyMove(s2, "p1", { type: "RESOLVE_RETURN_TO_POOL", cardInstanceId: "ev-2" }),
     ).toThrow(EngineError)
+  })
+})
+
+// ─── Resolution legal moves for attachments, holdings, lasting effects ──────
+
+describe("resolution legal moves for pool attachments", () => {
+  function openWithAttachments(): GameState {
+    const event = ci("ev-1", EVENT_CARD)
+    const s = initGame(DEFAULT_CONFIG)
+    const ally = ci("ally-1", ALLY_PLUS4)
+    const item = ci("item-1", MAGICAL_ITEM_PLUS2_PLUS1)
+    const wizard = ci("wiz-1", CHAMPION_WIZARD_FR)
+    const state: GameState = {
+      ...s,
+      phase: Phase.Pool,
+      activePlayer: "p1",
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [event],
+          pool: [{ champion: wizard, attachments: [ally, item] }],
+        },
+      },
+    }
+    return applyMove(state, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
+  }
+
+  test("RESOLVE_MOVE_CARD includes ally attachments", () => {
+    const s = openWithAttachments()
+    const moves = getLegalMoves(s, "p1")
+    const moveMoves = moves.filter(
+      (m) => m.type === "RESOLVE_MOVE_CARD" && (m as { cardInstanceId: string }).cardInstanceId === "ally-1",
+    )
+    const zones = moveMoves.map((m) => (m as { destination: { zone: string } }).destination.zone)
+    expect(zones).toContain("discard")
+    expect(zones).toContain("abyss")
+  })
+
+  test("RESOLVE_MOVE_CARD includes magical item attachments", () => {
+    const s = openWithAttachments()
+    const moves = getLegalMoves(s, "p1")
+    const moveMoves = moves.filter(
+      (m) => m.type === "RESOLVE_MOVE_CARD" && (m as { cardInstanceId: string }).cardInstanceId === "item-1",
+    )
+    const zones = moveMoves.map((m) => (m as { destination: { zone: string } }).destination.zone)
+    expect(zones).toContain("discard")
+    expect(zones).toContain("abyss")
+  })
+
+  test("moving an ally attachment to discard works", () => {
+    const s = openWithAttachments()
+    const { newState } = applyMove(s, "p1", {
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: "ally-1",
+      destination: { zone: "discard", playerId: "p1" },
+    })
+    const poolEntry = newState.players["p1"]!.pool[0]!
+    expect(poolEntry.attachments.some((a) => a.instanceId === "ally-1")).toBe(false)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "ally-1")).toBe(true)
+  })
+
+  test("moving a magical item attachment to abyss works", () => {
+    const s = openWithAttachments()
+    const { newState } = applyMove(s, "p1", {
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: "item-1",
+      destination: { zone: "abyss", playerId: "p1" },
+    })
+    const poolEntry = newState.players["p1"]!.pool[0]!
+    expect(poolEntry.attachments.some((a) => a.instanceId === "item-1")).toBe(false)
+    expect(newState.players["p1"]!.abyss.some((c) => c.instanceId === "item-1")).toBe(true)
+  })
+})
+
+describe("resolution legal moves for formation holdings", () => {
+  function openWithHoldings(): GameState {
+    const event = ci("ev-1", EVENT_CARD)
+    const s = initGame(DEFAULT_CONFIG)
+    const holding = ci("hold-1", HOLDING_FR)
+    const realm = ci("realm-1", REALM_GENERIC)
+    const wizard = ci("wiz-1", CHAMPION_WIZARD_FR)
+    const state: GameState = {
+      ...s,
+      phase: Phase.Pool,
+      activePlayer: "p1",
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [event],
+          pool: [{ champion: wizard, attachments: [] }],
+          formation: {
+            size: 6,
+            slots: { A: { realm, isRazed: false, holdings: [holding] } },
+          },
+        },
+      },
+    }
+    return applyMove(state, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
+  }
+
+  test("RESOLVE_MOVE_CARD includes holdings on realms", () => {
+    const s = openWithHoldings()
+    const moves = getLegalMoves(s, "p1")
+    const holdingMoves = moves.filter(
+      (m) => m.type === "RESOLVE_MOVE_CARD" && (m as { cardInstanceId: string }).cardInstanceId === "hold-1",
+    )
+    const zones = holdingMoves.map((m) => (m as { destination: { zone: string } }).destination.zone)
+    expect(zones).toContain("discard")
+    expect(zones).toContain("abyss")
+  })
+
+  test("moving a holding to discard removes it from formation", () => {
+    const s = openWithHoldings()
+    const { newState } = applyMove(s, "p1", {
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: "hold-1",
+      destination: { zone: "discard", playerId: "p1" },
+    })
+    expect(newState.players["p1"]!.formation.slots["A"]!.holdings).toHaveLength(0)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "hold-1")).toBe(true)
+  })
+})
+
+describe("resolution legal moves for lasting effects", () => {
+  function openWithLastingEffect(): GameState {
+    const event = ci("ev-1", EVENT_CARD)
+    const lasting = ci("lasting-1", PHASE3_SPELL)
+    const s = initGame(DEFAULT_CONFIG)
+    const wizard = ci("wiz-1", CHAMPION_WIZARD_FR)
+    const state: GameState = {
+      ...s,
+      phase: Phase.Pool,
+      activePlayer: "p1",
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [event],
+          pool: [{ champion: wizard, attachments: [] }],
+          lastingEffects: [lasting],
+        },
+      },
+    }
+    return applyMove(state, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
+  }
+
+  test("RESOLVE_MOVE_CARD includes lasting effects", () => {
+    const s = openWithLastingEffect()
+    const moves = getLegalMoves(s, "p1")
+    const lastingMoves = moves.filter(
+      (m) => m.type === "RESOLVE_MOVE_CARD" && (m as { cardInstanceId: string }).cardInstanceId === "lasting-1",
+    )
+    const zones = lastingMoves.map((m) => (m as { destination: { zone: string } }).destination.zone)
+    expect(zones).toContain("discard")
+    expect(zones).toContain("abyss")
+  })
+
+  test("moving a lasting effect to abyss removes it from lastingEffects", () => {
+    const s = openWithLastingEffect()
+    const { newState } = applyMove(s, "p1", {
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: "lasting-1",
+      destination: { zone: "abyss", playerId: "p1" },
+    })
+    expect(newState.players["p1"]!.lastingEffects).toHaveLength(0)
+    expect(newState.players["p1"]!.abyss.some((c) => c.instanceId === "lasting-1")).toBe(true)
   })
 })
 

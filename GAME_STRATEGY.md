@@ -60,6 +60,11 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
     - auth-mock profile (`test:e2e:auth`)
 - Scope intentionally unchanged:
   - CI main gate remains local Postgres service (no Supabase dependency).
+- RLS (Row Level Security):
+  - Enabled on all tables (`games`, `game_players`, `game_actions`) with **no policies** (deny-all default).
+  - App connects via `postgres` role (Drizzle + direct driver), which bypasses RLS — no impact on app queries.
+  - Purpose: block unauthorized access through Supabase's auto-exposed PostgREST endpoints (anon key is public).
+  - Do NOT add policies unless the app starts using PostgREST or supabase-js for DB queries (it shouldn't).
 
 ## Future Implementation
 

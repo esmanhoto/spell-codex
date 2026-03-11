@@ -25,6 +25,7 @@ import {
   hasWorldMatch,
   resolveCombatRound,
   getLosingPlayer,
+  getPoolAttachments,
 } from "./combat.ts"
 import {
   getLegalMoves,
@@ -409,7 +410,7 @@ function handleRebuildRealm(
     return c
   })
   const discardedIds = ids
-  events.push({ type: "REALM_REBUILT", playerId, slot: move.slot, discardedIds })
+  events.push({ type: "REALM_REBUILT", playerId, slot: move.slot, realmName: realmSlot.realm.card.name, discardedIds })
 
   const discardSet = new Set(ids)
   let s = {
@@ -463,7 +464,7 @@ function handlePlayHolding(
   }
 
   if (isRebuilder && realmSlot.isRazed) {
-    events.push({ type: "REALM_REBUILT", playerId, slot: move.realmSlot, discardedIds: [] })
+    events.push({ type: "REALM_REBUILT", playerId, slot: move.realmSlot, realmName: realmSlot.realm.card.name, discardedIds: [] })
   }
   events.push({
     type: "HOLDING_PLAYED",
@@ -864,9 +865,10 @@ function handleDeclareDefense(
   const realmWorldId = realmSlot?.realm.card.worldId ?? 0
   const attackerLevel = calculateCombatLevel(
     combat.attacker!,
-    [],
+    combat.attackerCards,
     hasWorldMatch(combat.attacker!, realmWorldId),
     "offensive",
+    getPoolAttachments(s, combat.attackingPlayer, combat.attacker!.instanceId),
   )
   const defenderIsRealm = realmSlot?.realm.instanceId === defenderChampion.instanceId
   const defenderLevel = calculateCombatLevel(
@@ -874,6 +876,7 @@ function handleDeclareDefense(
     [],
     !defenderIsRealm && hasWorldMatch(defenderChampion, realmWorldId),
     "defensive",
+    getPoolAttachments(s, combat.defendingPlayer, defenderChampion.instanceId),
   )
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
 
@@ -962,6 +965,7 @@ function handlePlayCombatCard(
       newCombat.attackerCards,
       hasWorldMatch(newCombat.attacker!, realmWorldId),
       "offensive",
+      getPoolAttachments(s, combat.attackingPlayer, newCombat.attacker!.instanceId),
     )
   const defenderLevel =
     newCombat.defenderManualLevel ??
@@ -970,6 +974,7 @@ function handlePlayCombatCard(
       newCombat.defenderCards,
       !defenderIsRealm && hasWorldMatch(newCombat.defender!, realmWorldId),
       "defensive",
+      getPoolAttachments(s, combat.defendingPlayer, newCombat.defender!.instanceId),
     )
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
 
@@ -995,6 +1000,7 @@ function handleStopPlaying(state: GameState, playerId: PlayerId, events: GameEve
       combat.attackerCards,
       hasWorldMatch(combat.attacker!, realmWorldId),
       "offensive",
+      getPoolAttachments(state, combat.attackingPlayer, combat.attacker!.instanceId),
     )
   const defenderLevel =
     combat.defenderManualLevel ??
@@ -1003,6 +1009,7 @@ function handleStopPlaying(state: GameState, playerId: PlayerId, events: GameEve
       combat.defenderCards,
       !defenderIsRealm && hasWorldMatch(combat.defender!, realmWorldId),
       "defensive",
+      getPoolAttachments(state, combat.defendingPlayer, combat.defender!.instanceId),
     )
 
   const outcome = resolveCombatRound(attackerLevel, defenderLevel)
@@ -1135,6 +1142,7 @@ function handleSetCombatLevel(
       newCombat.attackerCards,
       hasWorldMatch(newCombat.attacker!, realmWorldId),
       "offensive",
+      getPoolAttachments(state, combat.attackingPlayer, newCombat.attacker!.instanceId),
     )
   const newDefenderLevel =
     newCombat.defenderManualLevel ??
@@ -1143,6 +1151,7 @@ function handleSetCombatLevel(
       newCombat.defenderCards,
       !defenderIsRealm && hasWorldMatch(newCombat.defender!, realmWorldId),
       "defensive",
+      getPoolAttachments(state, combat.defendingPlayer, newCombat.defender!.instanceId),
     )
   const losingPlayer = getLosingPlayer(newAttackerLevel, newDefenderLevel, newCombat)
 
