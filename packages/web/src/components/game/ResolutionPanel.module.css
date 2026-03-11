@@ -177,6 +177,57 @@
   font-size: 12px;
 }
 
+.categorySelect {
+  width: 100%;
+  background: #1e1a17;
+  border: 1px solid #4a3a32;
+  color: #eadfcb;
+  border-radius: 5px;
+  padding: 7px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.categorySelect:focus {
+  outline: 1px solid #7b9c5a;
+  border-color: #7b9c5a;
+}
+
+.backLink {
+  background: none;
+  border: none;
+  color: #7b9c5a;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 0;
+  text-align: left;
+}
+
+.backLink:hover {
+  color: #b0d488;
+}
+
+.subStep {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 2px solid #4a3a32;
+  padding-left: 10px;
+}
+
+.playerGroupLabel {
+  color: #7b9c5a;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  margin-top: 6px;
+}
+
+.cardContext {
+  color: #888;
+  font-size: 11px;
+}
+
 .doneBtn {
   border: 1px solid #7b9c5a;
   background: #233020;
