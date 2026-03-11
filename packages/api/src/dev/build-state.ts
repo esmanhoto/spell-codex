@@ -128,18 +128,27 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     const defenderState = p1State.id === combatState.defendingPlayer ? p1State : p2State
     const realmSlot = defenderState.formation.slots[combatState.targetRealmSlot]
     const realmWorldId = realmSlot?.realm.card.worldId ?? 0
+    const attackerState2 = p1State.id === combatState.attackingPlayer ? p1State : p2State
+    const attackerPool = attackerState2.pool.find(
+      (e) => e.champion.instanceId === combatState.attacker!.instanceId,
+    )
+    const defenderPool = defenderState.pool.find(
+      (e) => e.champion.instanceId === combatState.defender!.instanceId,
+    )
     const attackerLevel = calculateCombatLevel(
       combatState.attacker,
-      [],
+      combatState.attackerCards,
       hasWorldMatch(combatState.attacker, realmWorldId),
       "offensive",
+      attackerPool?.attachments ?? [],
     )
     const defenderIsRealm = realmSlot?.realm.instanceId === combatState.defender.instanceId
     const defenderLevel = calculateCombatLevel(
       combatState.defender,
-      [],
+      combatState.defenderCards,
       !defenderIsRealm && hasWorldMatch(combatState.defender, realmWorldId),
       "defensive",
+      defenderPool?.attachments ?? [],
     )
     activePlayer = getLosingPlayer(attackerLevel, defenderLevel, combatState)
   }
