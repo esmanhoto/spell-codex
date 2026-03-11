@@ -45,7 +45,6 @@ export function ResolutionOutcomeModal({
             ))}
           </div>
         )}
-        <div className={styles.status}>Card destination: {outcome.destination}</div>
         <div className={styles.actions}>
           <button className={styles.button} onClick={onClose}>
             Acknowledge
