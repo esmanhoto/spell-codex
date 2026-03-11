@@ -306,7 +306,7 @@ export function handleResolveRebuildRealm(
     throw new EngineError("NOT_RAZED", `Slot ${move.slot} is not a razed realm`)
   }
 
-  events.push({ type: "REALM_REBUILT", playerId: move.playerId, slot: move.slot, discardedIds: [] })
+  events.push({ type: "REALM_REBUILT", playerId: move.playerId, slot: move.slot, realmName: realmSlot.realm.card.name, discardedIds: [] })
 
   return updatePlayer(state, move.playerId, {
     formation: {

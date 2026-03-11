@@ -371,6 +371,7 @@ export type GameEvent =
       type: "REALM_REBUILT"
       playerId: PlayerId
       slot: FormationSlot
+      realmName: string
       discardedIds: CardInstanceId[]
     }
   | { type: "REALM_RAZED"; playerId: PlayerId; slot: FormationSlot; realmName: string }

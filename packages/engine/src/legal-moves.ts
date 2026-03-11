@@ -20,7 +20,7 @@ import {
   PROTECTED_BY,
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
-import { calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "./combat.ts"
+import { calculateCombatLevel, hasWorldMatch, getLosingPlayer, getPoolAttachments } from "./combat.ts"
 import {
   canChampionUseSpell,
   canCastWithSupport,
@@ -623,6 +623,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
           combat.attackerCards,
           hasWorldMatch(combat.attacker, realmWorldId),
           "offensive",
+          getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId),
         )
       : 0)
 
@@ -634,6 +635,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
           combat.defenderCards,
           !defenderIsRealm && hasWorldMatch(combat.defender, realmWorldId),
           "defensive",
+          getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId),
         )
       : 0)
 
