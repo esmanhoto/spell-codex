@@ -109,8 +109,64 @@ export const MAGICAL_ITEM_PLUS2_PLUS1: CardData = {
   typeId: 9,
   worldId: 0,
   isAvatar: false,
-  level: null,
+  level: "+2/+1",
   description: "Adds +2/+1 to bearer's level in combat.",
+  attributes: [],
+  supportIds: [],
+  effects: [],
+}
+
+export const MAGICAL_ITEM_OFF_ONLY: CardData = {
+  setId: "1st",
+  cardNumber: 202,
+  name: "Dwarven Hammer",
+  typeId: 9,
+  worldId: 0,
+  isAvatar: false,
+  level: "+3",
+  description: "(Off)",
+  attributes: [],
+  supportIds: [],
+  effects: [],
+}
+
+export const CLERIC_SPELL: CardData = {
+  setId: "1st",
+  cardNumber: 501,
+  name: "Healing Word",
+  typeId: 4,
+  worldId: 0,
+  isAvatar: false,
+  level: "+5",
+  description: "Adds +5 to champion's level.",
+  attributes: [],
+  supportIds: [],
+  effects: [],
+}
+
+export const SPELL_NEGATIVE: CardData = {
+  setId: "1st",
+  cardNumber: 502,
+  name: "Weakness",
+  typeId: 19,
+  worldId: 0,
+  isAvatar: false,
+  level: "-3",
+  description: "Subtracts 3 from opposing champion's level.",
+  attributes: [],
+  supportIds: [],
+  effects: [],
+}
+
+export const SPELL_NO_LEVEL: CardData = {
+  setId: "1st",
+  cardNumber: 503,
+  name: "Dispel Magic",
+  typeId: 19,
+  worldId: 0,
+  isAvatar: false,
+  level: null,
+  description: "Discard one spell in play.",
   attributes: [],
   supportIds: [],
   effects: [],
@@ -137,8 +193,22 @@ export const ARTIFACT_FR: CardData = {
   typeId: 2, // Artifact — subject to Rule of Cosmos
   worldId: 1,
   isAvatar: false,
-  level: null,
+  level: "+4",
   description: "Grants the bearer +4 levels in combat.",
+  attributes: [],
+  supportIds: [],
+  effects: [],
+}
+
+export const ARTIFACT_SLASH: CardData = {
+  setId: "1st",
+  cardNumber: 301,
+  name: "Eye and Hand of Vecna",
+  typeId: 2,
+  worldId: 2,
+  isAvatar: false,
+  level: "+5/+2",
+  description: "The attached champion gains 5 levels when attacking, 2 when defending.",
   attributes: [],
   supportIds: [],
   effects: [],
