@@ -265,6 +265,64 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
     },
   },
 
+  // ── Combat bonuses — all card types ─────────────────────────────────────
+  // p2 attacks with a stacked champion (Fejyelsae lv 10 + multiple allies ≈ 30).
+  // p1 defends with The Harpers (lv 6, supports everything) and a big hand:
+  // magical items (Off + Def), allies, wizard/cleric spells (Off + Def), artifact.
+  // Verifies that spells, items, and artifacts all contribute via parseLevel.
+  "combat-bonus-all-types": {
+    name: "Combat bonuses — spells, items, artifacts",
+    description:
+      "Fejyelsae (lv 10) + 4 allies (≈30 adjusted) attacks Waterdeep. " +
+      "The Harpers (lv 6, supports all) defends. Hand has Off/Def items, spells, allies, artifact. " +
+      "Play cards and verify each type's bonus adds to combat level.",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 1 } }, // Waterdeep
+      },
+      pool: [{ card: { setId: "1st", cardNumber: 51 } }], // The Harpers, lv 6
+      hand: [
+        // Magical items
+        { setId: "1st", cardNumber: 94 },  // Dwarven Hammer (+3, Off)
+        { setId: "1st", cardNumber: 197 }, // Magical Barding (+2, Def)
+        { setId: "1st", cardNumber: 105 }, // Staff of Conjuring (+5, Off)
+        { setId: "1st", cardNumber: 313 }, // Shield of Destruction (+1, Def)
+        // Allies
+        { setId: "1st", cardNumber: 54 },  // War Party (+4)
+        { setId: "1st", cardNumber: 154 }, // Hordes of Castle Greyhawk (+5)
+        // Wizard spells
+        { setId: "1st", cardNumber: 96 },  // Horrors of the Abyss (+5, Off)
+        { setId: "1st", cardNumber: 342 }, // Shield (+2, Def)
+        // Cleric spells
+        { setId: "1st", cardNumber: 351 }, // Sticks to Snakes (+4, Off)
+        { setId: "1st", cardNumber: 349 }, // Cure Light Wounds (+1, Def)
+        // Artifact
+        { setId: "1st", cardNumber: 156 }, // Eye and Hand of Vecna (+5/+2)
+      ],
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 447 }, // Fejyelsae, lv 10
+          attachments: [
+            { setId: "1st", cardNumber: 58 },  // Armies of Bloodstone (+4)
+            { setId: "1st", cardNumber: 59 },  // The Iron Legion (+3)
+            { setId: "1st", cardNumber: 61 },  // Myrmidons (+4)
+            { setId: "1st", cardNumber: 154 }, // Hordes of Castle Greyhawk (+5)
+          ],
+        },
+      ],
+    },
+    combat: {
+      attackingPlayer: "p2",
+      targetSlot: "A",
+      roundPhase: "CARD_PLAY",
+    },
+  },
+
   // ── Resolution: Fast Talking! discards items + holdings visible ────────
   // p1 has Fast Talking! (#210, Event). Both players have items on champions
   // and holdings on realms. Play event → resolution → discard items via
