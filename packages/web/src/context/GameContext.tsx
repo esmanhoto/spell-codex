@@ -61,6 +61,11 @@ export interface GameContextType {
   suppressWarningCode: (code: WarningCode) => void
   clearWarning: () => void
 
+  // Rebuild realm UX
+  rebuildTarget: string | null
+  setRebuildTarget: (slot: string | null) => void
+  submitRebuild: (cardInstanceIds: [string, string, string]) => void
+
   // Spell casting UX
   requestSpellCast: (
     spellInstanceId: string,
@@ -101,6 +106,9 @@ export const GameContext = React.createContext<GameContextType>({
   showWarning: () => {},
   suppressWarningCode: () => {},
   clearWarning: () => {},
+  rebuildTarget: null,
+  setRebuildTarget: () => {},
+  submitRebuild: () => {},
   requestSpellCast: () => {},
 })
 

@@ -74,6 +74,7 @@ export function Game() {
   const [eventLog, setEventLog] = useState<GameEvent[]>([])
   const [wsError, setWsError] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
+  const [rebuildTarget, setRebuildTarget] = useState<string | null>(null)
   const [lastMoveType, setLastMoveType] = useState<string | null>(null)
   const [warningState, setWarningState] = useState<{
     message: string
@@ -92,7 +93,7 @@ export function Game() {
   const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
   const [resolutionOutcome, setResolutionOutcome] = useState<ResolutionOutcome | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
-  const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string } | null>(null)
+  const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string; effects: string[] } | null>(null)
   const spellTargetsRef = useRef<
     Record<
       string,
@@ -197,44 +198,43 @@ export function Game() {
             })
           }
         }
+        // Accumulate effects while watching an opponent resolve
+        if (resolutionWatchRef.current && event.playerId !== myPlayerId) {
+          const watched = resolutionWatchRef.current
+          switch (event.type) {
+            case "REALM_RAZED":
+              watched.effects.push(`Razed realm "${event.realmName as string}"`)
+              break
+            case "CARDS_DRAWN":
+              watched.effects.push(
+                `${event.playerId === myPlayerId ? "You" : "Opponent"} drew ${event.count as number} card(s)`,
+              )
+              break
+            case "CARD_ZONE_MOVED": {
+              const cardName = event.cardName as string
+              const from = event.fromZone as string
+              const to = event.toZone as string
+              if (from.startsWith("pool") && to === "discard") {
+                watched.effects.push(`Discarded ${cardName}`)
+              } else if (from.startsWith("pool") && to === "limbo") {
+                watched.effects.push(`Sent ${cardName} to limbo`)
+              } else {
+                watched.effects.push(`Moved ${cardName}: ${from} → ${to}`)
+              }
+              break
+            }
+            case "CHAMPION_RETURNED_TO_POOL":
+              watched.effects.push(`Returned ${event.cardName as string} to pool`)
+              break
+          }
+        }
         if (event.type === "RESOLUTION_COMPLETED" && event.playerId !== myPlayerId) {
           const watched = resolutionWatchRef.current
           if (watched && watched.playerId === event.playerId) {
-            const effectTypes = new Set([
-              "REALM_RAZED",
-              "CARDS_DRAWN",
-              "CARD_ZONE_MOVED",
-              "CHAMPION_DISCARDED",
-              "CHAMPION_TO_LIMBO",
-            ])
-            const effects: string[] = []
-            for (const e of newEvents) {
-              if (effectTypes.has(e.type)) {
-                switch (e.type) {
-                  case "REALM_RAZED":
-                    effects.push(`Realm slot ${e.slot as string} razed`)
-                    break
-                  case "CARDS_DRAWN":
-                    effects.push(
-                      `${e.playerId === myPlayerId ? "You" : "Opponent"} drew ${e.count as number} card(s)`,
-                    )
-                    break
-                  case "CARD_ZONE_MOVED":
-                    effects.push(`Card moved: ${e.fromZone as string} → ${e.toZone as string}`)
-                    break
-                  case "CHAMPION_DISCARDED":
-                    effects.push("Champion discarded")
-                    break
-                  case "CHAMPION_TO_LIMBO":
-                    effects.push("Champion sent to Limbo")
-                    break
-                }
-              }
-            }
             setResolutionOutcome({
               card: watched.card,
               destination: event.destination as string,
-              effects,
+              effects: watched.effects,
             })
             resolutionWatchRef.current = null
           }
@@ -269,7 +269,7 @@ export function Game() {
   useEffect(() => {
     const ctx = data?.resolutionContext
     if (ctx && ctx.resolvingPlayer !== myPlayerId) {
-      resolutionWatchRef.current = { card: ctx.pendingCard, playerId: ctx.resolvingPlayer }
+      resolutionWatchRef.current = { card: ctx.pendingCard, playerId: ctx.resolvingPlayer, effects: [] }
     }
   }, [data?.resolutionContext, myPlayerId])
 
@@ -311,6 +311,15 @@ export function Game() {
         })
     },
     [gameId, identity, refetch, showWarning],
+  )
+
+  const submitRebuild = useCallback(
+    (cardInstanceIds: [string, string, string]) => {
+      if (!rebuildTarget) return
+      sendMove({ type: "REBUILD_REALM", slot: rebuildTarget, cardInstanceIds })
+      setRebuildTarget(null)
+    },
+    [rebuildTarget, sendMove],
   )
 
   useEffect(() => {
@@ -535,6 +544,9 @@ export function Game() {
         showWarning,
         suppressWarningCode,
         clearWarning,
+        rebuildTarget,
+        setRebuildTarget,
+        submitRebuild,
         requestSpellCast,
       }}
     >
