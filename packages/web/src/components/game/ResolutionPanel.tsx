@@ -36,7 +36,6 @@ const CHAMPION_TYPE_IDS = new Set([5, 7, 10, 12, 14, 16, 20])
 const ALLY_TYPE_ID = 1
 const MAGICAL_ITEM_TYPE_ID = 9
 const ARTIFACT_TYPE_ID = 2
-const HOLDING_TYPE_ID = 8
 
 interface TargetCard {
   instanceId: string
@@ -45,7 +44,7 @@ interface TargetCard {
   context: string // e.g. "attached to Elminster", "on Waterdeep"
 }
 
-function collectTargets(allBoards: Record<string, PlayerBoard>, myPlayerId: string) {
+function collectTargets(allBoards: Record<string, PlayerBoard>) {
   const unrazedRealms: { playerId: string; slot: string; realmName: string }[] = []
   const razedRealms: { playerId: string; slot: string; realmName: string }[] = []
   const champions: TargetCard[] = []
@@ -188,7 +187,7 @@ export function ResolutionPanel({
     )
   }
 
-  const targets = collectTargets(allBoards, myPlayerId)
+  const targets = collectTargets(allBoards)
   const availableCategories = getAvailableCategories(targets)
 
   // Auto-select if only one category
