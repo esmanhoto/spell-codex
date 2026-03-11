@@ -5,6 +5,7 @@ import type {
   FormationSlot,
   CardInstance,
   CardData,
+  CardInstanceId,
   PoolEntry,
   PlayerState,
   CombatState,
@@ -168,6 +169,19 @@ function getResolutionMoves(state: GameState, _playerId: PlayerId): Move[] {
       if (realmSlot && !realmSlot.isRazed) {
         moves.push({
           type: "RESOLVE_RAZE_REALM",
+          playerId: ownerId,
+          slot: slot as FormationSlot,
+        })
+      }
+    }
+  }
+
+  // Rebuild any razed realm
+  for (const [ownerId, player] of Object.entries(state.players)) {
+    for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+      if (realmSlot && realmSlot.isRazed) {
+        moves.push({
+          type: "RESOLVE_REBUILD_REALM",
           playerId: ownerId,
           slot: slot as FormationSlot,
         })
@@ -341,9 +355,14 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
     }
 
     if (player.hand.length >= 3) {
+      const defaultIds = player.hand.slice(0, 3).map((c) => c.instanceId) as [
+        CardInstanceId,
+        CardInstanceId,
+        CardInstanceId,
+      ]
       for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
         if (realmSlot?.isRazed) {
-          moves.push({ type: "REBUILD_REALM", slot: slot as FormationSlot })
+          moves.push({ type: "REBUILD_REALM", slot: slot as FormationSlot, cardInstanceIds: defaultIds })
         }
       }
     }
@@ -351,9 +370,11 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
     for (const card of player.hand) {
       if (card.card.typeId === CardTypeId.Holding) {
         if (!isUniqueInPlay(card.card, state)) continue
+        const isRebuilder = card.card.effects.includes("rebuild_realm")
         for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
-          if (!realmSlot || realmSlot.isRazed) continue
-          if (realmSlot.holdings.length > 0) continue
+          if (!realmSlot) continue
+          if (realmSlot.isRazed && !isRebuilder) continue
+          if (!realmSlot.isRazed && realmSlot.holdings.length > 0) continue
           if (!worldCompatible(card.card, realmSlot.realm.card)) continue
           moves.push({
             type: "PLAY_HOLDING",

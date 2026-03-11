@@ -48,6 +48,14 @@
   border-radius: 5px;
 }
 
+/* Rebuild discard selection — red glow */
+.cardSlot.rebuildSelected .cardWrap {
+  box-shadow:
+    0 0 8px rgba(220, 40, 40, 0.7),
+    0 0 0 2px #cc3333;
+  border-radius: 5px;
+}
+
 .cardWrap {
   width: var(--card-hand-w);
   height: var(--card-hand-h);
@@ -73,6 +81,44 @@
   border-radius: 5px;
   background: url("/api/cards/cardback.jpg") center/cover no-repeat;
   border: 1px solid rgba(80, 120, 80, 0.3);
+}
+
+/* Rebuild card selection bar */
+.rebuildBar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  background: rgba(30, 50, 30, 0.92);
+  border: 1px solid var(--gold-dim);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text);
+  z-index: var(--z-modal);
+  white-space: nowrap;
+}
+
+.rebuildBar button {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--gold-dim);
+  background: rgba(40, 70, 40, 0.8);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.rebuildBar button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rebuildBar button:not(:disabled):hover {
+  background: rgba(60, 100, 60, 0.9);
 }
 
 /* Piles on either side */

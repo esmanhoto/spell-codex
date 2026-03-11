@@ -14,6 +14,7 @@ import {
   ALLY_PLUS4,
   HOLDING_FR,
   EVENT_CARD,
+  CHAMPION_HERO_GENERIC,
 } from "./fixtures.ts"
 
 beforeEach(() => {
@@ -1105,5 +1106,211 @@ describe("PLAY_REALM from START_OF_TURN (skip draw confirmation)", () => {
     expect(slot).toBeDefined()
     expect(slot!.realm.instanceId).toBe("realm-inst")
     expect(slot!.isRazed).toBe(false)
+  })
+})
+
+// ─── REBUILD_REALM ────────────────────────────────────────────────────────────
+
+describe("REBUILD_REALM", () => {
+  function ci(instanceId: string, card: typeof REALM_GENERIC): CardInstance {
+    return { instanceId, card }
+  }
+
+  function buildRebuildState(): GameState {
+    const s = initGame(DEFAULT_CONFIG)
+    const filler1 = ci("f1", CHAMPION_HERO_GENERIC)
+    const filler2 = ci("f2", CHAMPION_HERO_GENERIC)
+    const filler3 = ci("f3", CHAMPION_HERO_GENERIC)
+    const filler4 = ci("f4", CHAMPION_HERO_GENERIC)
+    return {
+      ...s,
+      phase: Phase.PlayRealm,
+      activePlayer: "p1",
+      hasPlayedRealmThisTurn: false,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [filler1, filler2, filler3, filler4],
+          formation: {
+            size: 6,
+            slots: {
+              A: { realm: ci("realm-a", REALM_GENERIC), isRazed: true, holdings: [] },
+              B: { realm: ci("realm-b", REALM_GENERIC), isRazed: false, holdings: [] },
+            },
+          },
+        },
+      },
+    }
+  }
+
+  test("discards chosen 3 cards and rebuilds the razed realm", () => {
+    const s = buildRebuildState()
+    const { newState } = applyMove(s, "p1", {
+      type: "REBUILD_REALM",
+      slot: "A",
+      cardInstanceIds: ["f1", "f2", "f3"],
+    })
+    expect(newState.players["p1"]!.formation.slots["A"]!.isRazed).toBe(false)
+    expect(newState.players["p1"]!.hand).toHaveLength(1)
+    expect(newState.players["p1"]!.hand[0]!.instanceId).toBe("f4")
+    expect(newState.players["p1"]!.discardPile.map((c) => c.instanceId)).toEqual(
+      expect.arrayContaining(["f1", "f2", "f3"]),
+    )
+  })
+
+  test("allows choosing non-consecutive cards from hand", () => {
+    const s = buildRebuildState()
+    const { newState } = applyMove(s, "p1", {
+      type: "REBUILD_REALM",
+      slot: "A",
+      cardInstanceIds: ["f1", "f3", "f4"],
+    })
+    expect(newState.players["p1"]!.formation.slots["A"]!.isRazed).toBe(false)
+    expect(newState.players["p1"]!.hand).toHaveLength(1)
+    expect(newState.players["p1"]!.hand[0]!.instanceId).toBe("f2")
+  })
+
+  test("throws when a cardInstanceId is not in hand", () => {
+    const s = buildRebuildState()
+    expect(() =>
+      applyMove(s, "p1", {
+        type: "REBUILD_REALM",
+        slot: "A",
+        cardInstanceIds: ["f1", "f2", "nonexistent"],
+      }),
+    ).toThrow(EngineError)
+  })
+
+  test("throws when duplicate cardInstanceIds", () => {
+    const s = buildRebuildState()
+    expect(() =>
+      applyMove(s, "p1", {
+        type: "REBUILD_REALM",
+        slot: "A",
+        cardInstanceIds: ["f1", "f1", "f2"],
+      }),
+    ).toThrow(EngineError)
+  })
+
+  test("throws when slot is not razed", () => {
+    const s = buildRebuildState()
+    expect(() =>
+      applyMove(s, "p1", {
+        type: "REBUILD_REALM",
+        slot: "B",
+        cardInstanceIds: ["f1", "f2", "f3"],
+      }),
+    ).toThrow(EngineError)
+  })
+
+  test("legal moves include REBUILD_REALM when hand >= 3 and realm is razed", () => {
+    const s = buildRebuildState()
+    const moves = getLegalMoves(s, "p1")
+    const rebuildMoves = moves.filter((m) => m.type === "REBUILD_REALM")
+    expect(rebuildMoves).toHaveLength(1)
+    expect((rebuildMoves[0] as { slot: string }).slot).toBe("A")
+  })
+
+  test("no REBUILD_REALM in legal moves when hand < 3", () => {
+    const s = buildRebuildState()
+    const twoCards = {
+      ...s,
+      players: {
+        ...s.players,
+        p1: { ...s.players["p1"]!, hand: s.players["p1"]!.hand.slice(0, 2) },
+      },
+    }
+    const moves = getLegalMoves(twoCards, "p1")
+    expect(moves.some((m) => m.type === "REBUILD_REALM")).toBe(false)
+  })
+})
+
+// ─── PLAY_HOLDING on razed realm (rebuilder) ─────────────────────────────────
+
+describe("PLAY_HOLDING with rebuild_realm effect", () => {
+  const REBUILDER_HOLDING: typeof HOLDING_FR = {
+    ...HOLDING_FR,
+    cardNumber: 401,
+    name: "Rebuilder Holding",
+    effects: ["rebuild_realm"],
+  }
+
+  function ci(instanceId: string, card: typeof REALM_GENERIC): CardInstance {
+    return { instanceId, card }
+  }
+
+  function buildHoldingRebuildState(): GameState {
+    const s = initGame(DEFAULT_CONFIG)
+    return {
+      ...s,
+      phase: Phase.PlayRealm,
+      activePlayer: "p1",
+      hasPlayedRealmThisTurn: false,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [ci("holding-1", REBUILDER_HOLDING)],
+          formation: {
+            size: 6,
+            slots: {
+              A: { realm: ci("realm-a", REALM_GENERIC), isRazed: true, holdings: [] },
+            },
+          },
+        },
+      },
+    }
+  }
+
+  test("rebuilder holding on razed realm unrazes it and attaches", () => {
+    const s = buildHoldingRebuildState()
+    const { newState, events } = applyMove(s, "p1", {
+      type: "PLAY_HOLDING",
+      cardInstanceId: "holding-1",
+      realmSlot: "A",
+    })
+    expect(newState.players["p1"]!.formation.slots["A"]!.isRazed).toBe(false)
+    expect(newState.players["p1"]!.formation.slots["A"]!.holdings).toHaveLength(1)
+    expect(newState.players["p1"]!.formation.slots["A"]!.holdingRevealedToAll).toBe(true)
+    expect(events.some((e) => e.type === "REALM_REBUILT")).toBe(true)
+  })
+
+  test("normal holding on razed realm still throws", () => {
+    const s = initGame(DEFAULT_CONFIG)
+    const state: GameState = {
+      ...s,
+      phase: Phase.PlayRealm,
+      activePlayer: "p1",
+      hasPlayedRealmThisTurn: false,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [ci("holding-1", HOLDING_FR)],
+          formation: {
+            size: 6,
+            slots: {
+              A: { realm: ci("realm-a", REALM_GENERIC), isRazed: true, holdings: [] },
+            },
+          },
+        },
+      },
+    }
+    expect(() =>
+      applyMove(state, "p1", {
+        type: "PLAY_HOLDING",
+        cardInstanceId: "holding-1",
+        realmSlot: "A",
+      }),
+    ).toThrow(EngineError)
+  })
+
+  test("rebuilder holding appears in legal moves for razed realm", () => {
+    const s = buildHoldingRebuildState()
+    const moves = getLegalMoves(s, "p1")
+    const holdingMoves = moves.filter((m) => m.type === "PLAY_HOLDING")
+    expect(holdingMoves).toHaveLength(1)
+    expect((holdingMoves[0] as { realmSlot: string }).realmSlot).toBe("A")
   })
 })

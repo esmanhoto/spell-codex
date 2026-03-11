@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { Move, ResolutionContextInfo, PlayerBoard } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import styles from "./ResolutionPanel.module.css"
@@ -22,7 +22,13 @@ export function ResolutionPanel({
   onMove: (m: Move) => void
 }) {
   const [drawCount, setDrawCount] = useState(1)
+  const [waitingDismissed, setWaitingDismissed] = useState(false)
   const isMyResolution = ctx.resolvingPlayer === myPlayerId
+
+  // Reset dismissed state when a new resolution starts
+  useEffect(() => {
+    setWaitingDismissed(false)
+  }, [ctx.cardInstanceId])
 
   // Collect all unrazed realms for "Raze realm" section
   const unrazedRealms: { playerId: string; slot: string; realmName: string }[] = []
@@ -30,6 +36,16 @@ export function ResolutionPanel({
     for (const [slot, slotState] of Object.entries(board.formation)) {
       if (slotState && !slotState.isRazed) {
         unrazedRealms.push({ playerId, slot, realmName: slotState.realm.name })
+      }
+    }
+  }
+
+  // Collect all razed realms for "Rebuild realm" section
+  const razedRealms: { playerId: string; slot: string; realmName: string }[] = []
+  for (const [playerId, board] of Object.entries(allBoards)) {
+    for (const [slot, slotState] of Object.entries(board.formation)) {
+      if (slotState && slotState.isRazed) {
+        razedRealms.push({ playerId, slot, realmName: slotState.realm.name })
       }
     }
   }
@@ -47,9 +63,10 @@ export function ResolutionPanel({
   }
 
   if (!isMyResolution) {
+    if (waitingDismissed) return null
     return (
-      <div className={styles.overlay}>
-        <div className={styles.panel}>
+      <div className={styles.overlayModal}>
+        <div className={styles.panelModal}>
           <div className={styles.header}>
             <div className={styles.label}>Resolving Effect</div>
             <div className={styles.cardName}>{ctx.pendingCard.name}</div>
@@ -60,9 +77,12 @@ export function ResolutionPanel({
           <img
             src={cardImageUrl(ctx.pendingCard.setId, ctx.pendingCard.cardNumber)}
             alt={ctx.pendingCard.name}
-            style={{ width: "100%", borderRadius: 4, objectFit: "contain" }}
+            className={styles.cardImgSmall}
           />
           <div className={styles.sectionLabel}>Waiting for opponent to resolve…</div>
+          <button className={styles.okBtn} onClick={() => setWaitingDismissed(true)}>
+            Ok
+          </button>
         </div>
       </div>
     )
@@ -106,6 +126,24 @@ export function ResolutionPanel({
                   key={`${playerId}-${slot}`}
                   className={styles.actionBtn}
                   onClick={() => onMove({ type: "RESOLVE_RAZE_REALM", playerId, slot })}
+                >
+                  {realmName} (slot {slot})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Rebuild realm */}
+        {razedRealms.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionLabel}>Rebuild a realm:</div>
+            <div className={styles.actionGrid}>
+              {razedRealms.map(({ playerId, slot, realmName }) => (
+                <button
+                  key={`rebuild-${playerId}-${slot}`}
+                  className={styles.actionBtn}
+                  onClick={() => onMove({ type: "RESOLVE_REBUILD_REALM", playerId, slot })}
                 >
                   {realmName} (slot {slot})
                 </button>

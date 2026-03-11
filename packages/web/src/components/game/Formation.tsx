@@ -34,6 +34,7 @@ export function Formation({
     activePlayer,
     turnNumber,
     requestSpellCast,
+    setRebuildTarget,
   } = useGame()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
 
@@ -252,7 +253,20 @@ export function Formation({
                         (m as { championId: string }).championId === s.realm.instanceId,
                     )
                   : undefined
-              const contextMenuItems: { label: string; move: (typeof legalMoves)[number] }[] = []
+              const rebuildMove =
+                s?.isRazed && !isOpponent
+                  ? legalMoves.find(
+                      (m) =>
+                        m.type === "REBUILD_REALM" &&
+                        (m as { slot: string }).slot === slot,
+                    )
+                  : undefined
+              const contextMenuItems: { label: string; move?: (typeof legalMoves)[number]; action?: () => void }[] = []
+              if (rebuildMove)
+                contextMenuItems.push({
+                  label: "Rebuild Realm (discard 3)",
+                  action: () => setRebuildTarget(slot),
+                })
               if (toggleHoldingMove)
                 contextMenuItems.push({
                   label: s?.holdingRevealedToAll ? "Hide holding" : "Reveal holding",

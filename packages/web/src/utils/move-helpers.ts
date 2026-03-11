@@ -37,7 +37,7 @@ export function labelMove(m: Move, nameOf: (id: string) => string): string {
     case "PLAY_REALM":
       return `Play ${nameOf(a.cardInstanceId)} \u2192 slot ${a.slot}`
     case "REBUILD_REALM":
-      return `Rebuild slot ${a.slot}`
+      return `Rebuild slot ${a.slot} (discard 3)`
     case "PLAY_HOLDING":
       return `Play ${nameOf(a.cardInstanceId)} \u2192 slot ${a.realmSlot}`
     case "TOGGLE_HOLDING_REVEAL":
@@ -82,6 +82,8 @@ export function labelMove(m: Move, nameOf: (id: string) => string): string {
       return `Set destination: ${a.destination}`
     case "RESOLVE_RAZE_REALM":
       return `Raze slot ${a.slot}`
+    case "RESOLVE_REBUILD_REALM":
+      return `Rebuild slot ${a.slot}`
     case "RESOLVE_DRAW_CARDS":
       return `Draw ${a.count} card(s)`
     case "RESOLVE_RETURN_TO_POOL":

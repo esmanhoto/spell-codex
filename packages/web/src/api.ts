@@ -112,7 +112,7 @@ export type Move =
   | { type: "PASS" }
   | { type: "END_TURN" }
   | { type: "PLAY_REALM"; cardInstanceId: string; slot: string }
-  | { type: "REBUILD_REALM"; slot: string }
+  | { type: "REBUILD_REALM"; slot: string; cardInstanceIds: [string, string, string] }
   | { type: "PLAY_HOLDING"; cardInstanceId: string; realmSlot: string }
   | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: string }
   | { type: "PLACE_CHAMPION"; cardInstanceId: string }
@@ -149,6 +149,7 @@ export type Move =
   | { type: "RESOLVE_DONE" }
   | { type: "RESOLVE_SET_CARD_DESTINATION"; destination: "discard" | "abyss" | "void" | "in_play" }
   | { type: "RESOLVE_RAZE_REALM"; playerId: string; slot: string }
+  | { type: "RESOLVE_REBUILD_REALM"; playerId: string; slot: string }
   | { type: "RESOLVE_DRAW_CARDS"; playerId: string; count: number }
   | { type: "RESOLVE_RETURN_TO_POOL"; cardInstanceId: string }
   | {

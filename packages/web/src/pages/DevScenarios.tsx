@@ -26,7 +26,7 @@ export function DevScenarios() {
     try {
       const result = await loadDevScenario(scenarioId)
       const slug = result.slug ?? result.gameId
-      setBypassUserId(result.p2UserId)
+      setBypassUserId(result.p1UserId)
       navigate(`/game/${slug}`)
     } catch (e) {
       setError(String(e))

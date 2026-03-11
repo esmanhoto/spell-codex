@@ -26,8 +26,10 @@ export function PlayerHand({
   discardPile: CardInfo[]
   isOpponent: boolean
 }) {
-  const { selectedId, onSelect, openContextMenu, legalMoves, requestSpellCast } = useGame()
+  const { selectedId, onSelect, openContextMenu, legalMoves, requestSpellCast, rebuildTarget, setRebuildTarget, submitRebuild } = useGame()
   const [showDiscard, setShowDiscard] = useState(false)
+  const [rebuildSelected, setRebuildSelected] = useState<string[]>([])
+  const isRebuildMode = rebuildTarget !== null && !isOpponent
   const total = isOpponent ? (hiddenCount ?? cards.length) : cards.length
 
   function fanTransform(index: number): React.CSSProperties {
@@ -73,22 +75,37 @@ export function PlayerHand({
             }
             const card = item as CardInfo
 
-            const isSelected = selectedId === card.instanceId
-            const contextActions = buildContextActions(card)
+            const isRebuildPicked = isRebuildMode && rebuildSelected.includes(card.instanceId)
+            const isSelected = !isRebuildMode && selectedId === card.instanceId
+            const contextActions = isRebuildMode ? [] : buildContextActions(card)
+
+            const handleClick = () => {
+              if (isRebuildMode) {
+                setRebuildSelected((prev) =>
+                  prev.includes(card.instanceId)
+                    ? prev.filter((id) => id !== card.instanceId)
+                    : prev.length < 3
+                      ? [...prev, card.instanceId]
+                      : prev,
+                )
+                return
+              }
+              onSelect(isSelected ? null : card.instanceId)
+            }
 
             return (
               <div
                 key={card.instanceId}
                 data-testid={`hand-card-${card.instanceId}`}
-                className={`${styles.cardSlot} ${isSelected ? styles.selected : ""}`}
+                className={`${styles.cardSlot} ${isSelected ? styles.selected : ""} ${isRebuildPicked ? styles.rebuildSelected : ""}`}
                 style={fanTransform(i)}
-                draggable
-                onDragStart={(e) => {
+                draggable={!isRebuildMode}
+                onDragStart={isRebuildMode ? undefined : (e) => {
                   e.dataTransfer.setData("drag-id", card.instanceId)
                   e.dataTransfer.setData("drag-source", "hand")
                   e.dataTransfer.effectAllowed = "move"
                 }}
-                onClick={() => onSelect(isSelected ? null : card.instanceId)}
+                onClick={handleClick}
                 onContextMenu={
                   contextActions.length
                     ? (e) => {
@@ -117,6 +134,29 @@ export function PlayerHand({
       <div className={styles.piles}>
         <DiscardPile count={discardCount} onOpen={() => setShowDiscard(true)} />
       </div>
+
+      {isRebuildMode && (
+        <div className={styles.rebuildBar}>
+          <span>Select 3 cards to discard ({rebuildSelected.length}/3)</span>
+          <button
+            disabled={rebuildSelected.length !== 3}
+            onClick={() => {
+              submitRebuild(rebuildSelected as [string, string, string])
+              setRebuildSelected([])
+            }}
+          >
+            Confirm Rebuild
+          </button>
+          <button
+            onClick={() => {
+              setRebuildTarget(null)
+              setRebuildSelected([])
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
       {showDiscard && (
         <DiscardPileModal

@@ -264,7 +264,11 @@ export type Move =
 
   // Phase 2 — realm and holding
   | { type: "PLAY_REALM"; cardInstanceId: CardInstanceId; slot: FormationSlot }
-  | { type: "REBUILD_REALM"; slot: FormationSlot } // costs 3 cards from hand
+  | {
+      type: "REBUILD_REALM"
+      slot: FormationSlot
+      cardInstanceIds: [CardInstanceId, CardInstanceId, CardInstanceId]
+    }
   | { type: "PLAY_HOLDING"; cardInstanceId: CardInstanceId; realmSlot: FormationSlot }
   | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: FormationSlot }
 
@@ -332,6 +336,8 @@ export type Move =
     }
   /** Raze any unrazed realm */
   | { type: "RESOLVE_RAZE_REALM"; playerId: PlayerId; slot: FormationSlot }
+  /** Rebuild a razed realm (no card cost — used by spell/event effects) */
+  | { type: "RESOLVE_REBUILD_REALM"; playerId: PlayerId; slot: FormationSlot }
   /** Draw N cards for any player */
   | { type: "RESOLVE_DRAW_CARDS"; playerId: PlayerId; count: number }
   /** Return a champion from any discard pile to their owner's pool */
@@ -367,7 +373,7 @@ export type GameEvent =
       slot: FormationSlot
       discardedIds: CardInstanceId[]
     }
-  | { type: "REALM_RAZED"; playerId: PlayerId; slot: FormationSlot }
+  | { type: "REALM_RAZED"; playerId: PlayerId; slot: FormationSlot; realmName: string }
   | { type: "HOLDING_PLAYED"; playerId: PlayerId; instanceId: CardInstanceId; slot: FormationSlot }
   | {
       type: "HOLDING_REVEAL_TOGGLED"
@@ -390,7 +396,7 @@ export type GameEvent =
       returnsOnTurn: number
     }
   | { type: "CHAMPION_FROM_LIMBO"; playerId: PlayerId; instanceId: CardInstanceId }
-  | { type: "CHAMPION_RETURNED_TO_POOL"; playerId: PlayerId; instanceId: CardInstanceId }
+  | { type: "CHAMPION_RETURNED_TO_POOL"; playerId: PlayerId; instanceId: CardInstanceId; cardName: string }
   | { type: "CARDS_DISCARDED"; playerId: PlayerId; instanceIds: CardInstanceId[] }
   | { type: "CARD_TO_ABYSS"; playerId: PlayerId; instanceId: CardInstanceId }
   | {
@@ -443,6 +449,7 @@ export type GameEvent =
       type: "CARD_ZONE_MOVED"
       playerId: PlayerId
       instanceId: CardInstanceId
+      cardName: string
       fromZone: string
       toZone: string
     }
