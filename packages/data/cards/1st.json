@@ -1816,7 +1816,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": ["rebuild_realm"]
   },
   {
     "setId": "1st",
@@ -1833,7 +1833,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": ["rebuild_realm"]
   },
   {
     "setId": "1st",
@@ -3669,7 +3669,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": ["rebuild_realm"]
   },
   {
     "setId": "1st",
@@ -4893,7 +4893,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": ["rebuild_realm"]
   },
   {
     "setId": "1st",
