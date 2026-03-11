@@ -1,12 +1,12 @@
 import type { CardInstance, CombatState, GameState, PlayerId } from "./types.ts"
-import { CardTypeId, WORLD_BONUS } from "./constants.ts"
-import { parseLevel, parseMagicalItemBonus } from "./utils.ts"
+import { CardTypeId, SPELL_TYPE_IDS, WORLD_BONUS } from "./constants.ts"
+import { parseLevel } from "./utils.ts"
 
 /**
  * Calculates the adjusted combat level for a champion, applying:
  *   1. World bonus (+3 if champion's world matches target realm's world)
  *   2. Pool attachment bonuses (allies, items already on the champion)
- *   3. Combat card bonuses (allies, items played from hand during combat)
+ *   3. Combat card bonuses (allies, items, spells played during combat)
  */
 export function calculateCombatLevel(
   champion: CardInstance,
@@ -21,11 +21,14 @@ export function calculateCombatLevel(
   if (worldMatch) level += WORLD_BONUS
 
   for (const card of [...poolAttachments, ...combatCards]) {
-    if (card.card.typeId === CardTypeId.Ally) {
+    const t = card.card.typeId
+    if (
+      t === CardTypeId.Ally ||
+      t === CardTypeId.MagicalItem ||
+      t === CardTypeId.Artifact ||
+      SPELL_TYPE_IDS.has(t)
+    ) {
       level += parseLevel(card.card.level, side)
-    } else if (card.card.typeId === CardTypeId.MagicalItem) {
-      const bonus = parseMagicalItemBonus(card.card.description)
-      level += side === "offensive" ? bonus.offensive : bonus.defensive
     }
   }
 
