@@ -218,4 +218,89 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
       },
     },
   },
+
+  // ── Resolution: Airship destroys allies ──────────────────────────────────
+  // p1 has Airship (#90, Event) in hand. Both players have champions with allies.
+  // Play Airship → resolution opens → use dropdown to discard allies.
+  "resolution-destroy-allies": {
+    name: "Resolution — Airship destroys allies",
+    description:
+      "p1 plays Airship (destroys any two allies). Both players have champions " +
+      "with allies attached. Use the resolution panel dropdown: select 'Discard/Remove an Ally', " +
+      "pick the target ally, choose Discard or Abyss.",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 1 } }, // Waterdeep
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 41 }, // Alias the Sell-Sword
+          attachments: [
+            { setId: "1st", cardNumber: 54 }, // War Party (ally)
+          ],
+        },
+      ],
+      hand: [{ setId: "1st", cardNumber: 90 }], // Airship (event)
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 42 }, // King Azoun IV
+          attachments: [
+            { setId: "1st", cardNumber: 55 }, // War Band (ally)
+            { setId: "1st", cardNumber: 56 }, // Scouts (ally)
+          ],
+        },
+      ],
+    },
+  },
+
+  // ── Resolution: Fast Talking! discards items + holdings visible ────────
+  // p1 has Fast Talking! (#210, Event). Both players have items on champions
+  // and holdings on realms. Play event → resolution → discard items via
+  // "Discard/Remove Magical Item" and holdings via "Discard/Remove a Holding".
+  "resolution-discard-items-holdings": {
+    name: "Resolution — Fast Talking! + items & holdings",
+    description:
+      "p1 plays Fast Talking! (discard all magical items and artifacts). " +
+      "Both players have items on champions and holdings on realms. " +
+      "Verify all action categories in the dropdown: items, holdings, realms, champions.",
+    p1: {
+      formation: {
+        A: {
+          realm: { setId: "1st", cardNumber: 1 }, // Waterdeep
+          holdings: [{ setId: "1st", cardNumber: 143 }], // Arms of Iuz (holding)
+        },
+        B: { realm: { setId: "1st", cardNumber: 2 } }, // Menzoberranzan
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 44 }, // Elminster the Mage
+          attachments: [
+            { setId: "1st", cardNumber: 93 }, // Rod of Shapechange (artifact)
+          ],
+        },
+      ],
+      hand: [{ setId: "1st", cardNumber: 210 }], // Fast Talking! (event)
+    },
+    p2: {
+      formation: {
+        A: {
+          realm: { setId: "1st", cardNumber: 5 }, // Cormyr
+          holdings: [{ setId: "1st", cardNumber: 144 }], // Arms of Furyondy (holding)
+        },
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 42 }, // King Azoun IV
+          attachments: [
+            { setId: "1st", cardNumber: 94 }, // Dwarven Hammer (magical item)
+          ],
+        },
+      ],
+    },
+  },
 }
