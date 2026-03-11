@@ -34,7 +34,7 @@ export interface GameContextType {
   // Moves
   legalMoves: Move[]
   legalMovesPerPlayer?: Record<string, Move[]>
-  onMove: (m: Move) => void
+  onMove: (m: Move | Move[]) => void
 
   // Selection
   selectedId: string | null
