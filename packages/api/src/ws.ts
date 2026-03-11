@@ -40,6 +40,23 @@ export const registry = new Map<string, Map<string, ServerWebSocket<WsData>>>()
 const ALLOWED_EMOTES = new Set(["scream", "heart", "thumbsup", "hourglass"])
 const CHAT_RATE_MS = 200
 
+// Per-game move queue to prevent concurrent move processing.
+// Bun's async WS message handler does NOT serialize awaits — two messages
+// from the same connection can race if both call processWsMove concurrently,
+// leading to duplicate sequence numbers and DB constraint violations.
+const moveQueues = new Map<string, Promise<void>>()
+
+function enqueueMove(gameId: string, fn: () => Promise<void>): Promise<void> {
+  const prev = moveQueues.get(gameId) ?? Promise.resolve()
+  const next = prev.then(fn, fn)
+  moveQueues.set(gameId, next)
+  // Clean up reference when the queue drains
+  next.then(() => {
+    if (moveQueues.get(gameId) === next) moveQueues.delete(gameId)
+  })
+  return next
+}
+
 interface WsData {
   gameId: string | null
   userId: string | null
@@ -254,10 +271,14 @@ export const wsHandlers = {
           }
           // Use the resolved UUID stored at JOIN_GAME time (msg.gameId may be a slug)
           const gameId = ws.data.gameId
-          const result = await processWsMove(gameId, ws.data.userId, move)
-          if (!result.ok) {
-            send(ws, { type: "ERROR", code: result.code, message: result.message })
-          }
+          const userId = ws.data.userId
+          // Enqueue to prevent concurrent move processing for the same game
+          await enqueueMove(gameId, async () => {
+            const result = await processWsMove(gameId, userId, move)
+            if (!result.ok) {
+              send(ws, { type: "ERROR", code: result.code, message: result.message })
+            }
+          })
           return
         }
 
@@ -314,6 +335,7 @@ export const wsHandlers = {
           send(ws, { type: "ERROR", code: "UNKNOWN_MSG", message: "Unknown message type" })
       }
     } catch (err) {
+      console.error("[ws] Unhandled error in message handler:", err)
       const message = err instanceof Error ? err.message : String(err)
       if (message.includes("ECONNREFUSED")) {
         send(ws, {
