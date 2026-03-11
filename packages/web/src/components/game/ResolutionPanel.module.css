@@ -3,8 +3,8 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: center;
   padding: 16px;
   z-index: var(--z-modal);
   pointer-events: none;
@@ -226,6 +226,52 @@
 .cardContext {
   color: #888;
   font-size: 11px;
+}
+
+.checkboxRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #c9b99a;
+  font-size: 12px;
+}
+
+.checkboxRow:hover {
+  background: #2a211f;
+}
+
+.checkboxRow input[type="checkbox"] {
+  accent-color: #7b9c5a;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.applyBtn {
+  border: 1px solid #7b9c5a;
+  background: #233020;
+  color: #b0d488;
+  border-radius: 5px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.applyBtn:hover:not(:disabled) {
+  background: #2e4028;
+}
+
+.applyBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .doneBtn {

@@ -23,10 +23,10 @@ type ActionCategory =
 const CATEGORY_LABELS: Record<ActionCategory, string> = {
   raze_realm: "Raze a Realm",
   rebuild_realm: "Rebuild a Realm",
-  discard_champion: "Discard/Remove a Champion",
-  discard_ally: "Discard/Remove an Ally",
-  discard_item: "Discard/Remove Magical Item",
-  discard_holding: "Discard/Remove a Holding",
+  discard_champion: "Discard/Remove Champion",
+  discard_ally: "Discard/Remove Ally",
+  discard_item: "Discard/Remove Item or Artifact",
+  discard_holding: "Discard/Remove Holding",
   draw_cards: "Draw Cards",
   return_to_play: "Return Champion to Pool",
 }
@@ -41,12 +41,18 @@ interface TargetCard {
   instanceId: string
   name: string
   playerId: string
-  context: string // e.g. "attached to Elminster", "on Waterdeep"
+  context: string
+}
+
+interface RealmTarget {
+  playerId: string
+  slot: string
+  realmName: string
 }
 
 function collectTargets(allBoards: Record<string, PlayerBoard>) {
-  const unrazedRealms: { playerId: string; slot: string; realmName: string }[] = []
-  const razedRealms: { playerId: string; slot: string; realmName: string }[] = []
+  const unrazedRealms: RealmTarget[] = []
+  const razedRealms: RealmTarget[] = []
   const champions: TargetCard[] = []
   const allies: TargetCard[] = []
   const items: TargetCard[] = []
@@ -54,7 +60,6 @@ function collectTargets(allBoards: Record<string, PlayerBoard>) {
   const discardChampions: TargetCard[] = []
 
   for (const [playerId, board] of Object.entries(allBoards)) {
-    // Formation
     for (const [slot, slotState] of Object.entries(board.formation)) {
       if (!slotState) continue
       if (slotState.isRazed) {
@@ -72,7 +77,6 @@ function collectTargets(allBoards: Record<string, PlayerBoard>) {
       }
     }
 
-    // Pool
     for (const entry of board.pool) {
       champions.push({
         instanceId: entry.champion.instanceId,
@@ -86,7 +90,7 @@ function collectTargets(allBoards: Record<string, PlayerBoard>) {
             ? allies
             : att.typeId === MAGICAL_ITEM_TYPE_ID || att.typeId === ARTIFACT_TYPE_ID
               ? items
-              : items // fallback to items for unknown attachment types
+              : items
         target.push({
           instanceId: att.instanceId,
           name: att.name,
@@ -96,7 +100,6 @@ function collectTargets(allBoards: Record<string, PlayerBoard>) {
       }
     }
 
-    // Discard pile champions
     for (const card of board.discardPile) {
       if (CHAMPION_TYPE_IDS.has(card.typeId)) {
         discardChampions.push({
@@ -122,12 +125,12 @@ function getAvailableCategories(
   if (targets.allies.length > 0) cats.push("discard_ally")
   if (targets.items.length > 0) cats.push("discard_item")
   if (targets.holdings.length > 0) cats.push("discard_holding")
-  cats.push("draw_cards") // always available
+  cats.push("draw_cards")
   if (targets.discardChampions.length > 0) cats.push("return_to_play")
   return cats
 }
 
-function groupByOwner(cards: TargetCard[], myPlayerId: string) {
+function groupByOwner<T extends { playerId: string }>(cards: T[], myPlayerId: string) {
   const mine = cards.filter((c) => c.playerId === myPlayerId)
   const theirs = cards.filter((c) => c.playerId !== myPlayerId)
   return { mine, theirs }
@@ -142,22 +145,25 @@ export function ResolutionPanel({
   ctx: ResolutionContextInfo
   allBoards: Record<string, PlayerBoard>
   myPlayerId: string
-  onMove: (m: Move) => void
+  onMove: (m: Move | Move[]) => void
 }) {
   const [selectedCategory, setSelectedCategory] = useState<ActionCategory | null>(null)
-  const [selectedCard, setSelectedCard] = useState<string | null>(null)
-  const [selectedCardOwner, setSelectedCardOwner] = useState<string | null>(null)
+  const [checkedCards, setCheckedCards] = useState<Set<string>>(new Set())
+  const [checkedRealms, setCheckedRealms] = useState<Set<string>>(new Set())
   const [drawCount, setDrawCount] = useState(1)
   const [waitingDismissed, setWaitingDismissed] = useState(false)
+  const [pendingDone, setPendingDone] = useState(false)
+  const [localDestination, setLocalDestination] = useState<string | null>(null)
   const isMyResolution = ctx.resolvingPlayer === myPlayerId
 
-  // Reset state when resolution context changes
   useEffect(() => {
     setSelectedCategory(null)
-    setSelectedCard(null)
-    setSelectedCardOwner(null)
+    setCheckedCards(new Set())
+    setCheckedRealms(new Set())
     setDrawCount(1)
     setWaitingDismissed(false)
+    setPendingDone(false)
+    setLocalDestination(null)
   }, [ctx.cardInstanceId])
 
   // Waiting view for non-resolving player
@@ -187,110 +193,218 @@ export function ResolutionPanel({
     )
   }
 
+  // ── Post-Done: card destination picker ──────────────────────────────────
+  if (pendingDone) {
+    return (
+      <div className={styles.overlay}>
+        <div className={styles.panel}>
+          <div className={styles.header}>
+            <div className={styles.label}>Card Destination</div>
+            <div className={styles.cardName}>{ctx.pendingCard.name}</div>
+            <div className={styles.cardDesc}>
+              Where should the card you played go?
+            </div>
+          </div>
+          <div className={styles.destRow}>
+            {(["discard", "abyss", "void", "in_play"] as const).map((dest) => (
+              <button
+                key={dest}
+                className={
+                  (localDestination ?? ctx.cardDestination) === dest
+                    ? styles.destBtnActive
+                    : styles.destBtn
+                }
+                onClick={() => setLocalDestination(dest)}
+              >
+                {DEST_LABELS[dest]}
+              </button>
+            ))}
+          </div>
+          <button
+            className={styles.doneBtn}
+            onClick={() => {
+              const dest = localDestination ?? ctx.cardDestination
+              const moves: Move[] = []
+              if (dest !== ctx.cardDestination) {
+                moves.push({ type: "RESOLVE_SET_CARD_DESTINATION", destination: dest })
+              }
+              moves.push({ type: "RESOLVE_DONE" })
+              onMove(moves.length === 1 ? moves[0]! : moves)
+            }}
+          >
+            Confirm
+          </button>
+          <button
+            className={styles.backLink}
+            onClick={() => setPendingDone(false)}
+          >
+            &larr; Back to actions
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Main resolution panel ───────────────────────────────────────────────
   const targets = collectTargets(allBoards)
   const availableCategories = getAvailableCategories(targets)
 
-  // Auto-select if only one category
   const effectiveCategory =
     selectedCategory ?? (availableCategories.length === 1 ? availableCategories[0]! : null)
 
   function handleCategoryChange(value: string) {
     setSelectedCategory(value === "" ? null : (value as ActionCategory))
-    setSelectedCard(null)
-    setSelectedCardOwner(null)
+    setCheckedCards(new Set())
+    setCheckedRealms(new Set())
   }
 
-  function selectCard(instanceId: string, playerId: string) {
-    setSelectedCard(instanceId)
-    setSelectedCardOwner(playerId)
+  function toggleCard(instanceId: string) {
+    setCheckedCards((prev) => {
+      const next = new Set(prev)
+      if (next.has(instanceId)) next.delete(instanceId)
+      else next.add(instanceId)
+      return next
+    })
   }
 
-  function goBack() {
-    setSelectedCard(null)
-    setSelectedCardOwner(null)
+  function toggleRealm(key: string) {
+    setCheckedRealms((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
   }
 
-  function fireMoveCard(destination: "discard" | "abyss" | "limbo") {
-    if (!selectedCard || !selectedCardOwner) return
-    const dest =
-      destination === "limbo"
-        ? { zone: "limbo" as const, playerId: selectedCardOwner, returnsOnTurn: 0 }
-        : { zone: destination, playerId: selectedCardOwner }
-    onMove({ type: "RESOLVE_MOVE_CARD", cardInstanceId: selectedCard, destination: dest })
-    setSelectedCard(null)
-    setSelectedCardOwner(null)
+  // ── Apply handlers ──────────────────────────────────────────────────────
+
+  function applyMoveCards(cards: TargetCard[]) {
+    const moves: Move[] = cards
+      .filter((c) => checkedCards.has(c.instanceId))
+      .map((c) => ({
+        type: "RESOLVE_MOVE_CARD" as const,
+        cardInstanceId: c.instanceId,
+        destination: { zone: "discard", playerId: c.playerId },
+      }))
+    if (moves.length > 0) onMove(moves)
+    setCheckedCards(new Set())
   }
 
-  // Render target list grouped by owner, with optional "step 2" dest picker
-  function renderCardTargets(cards: TargetCard[], showLimbo: boolean) {
-    if (selectedCard) {
-      const card = cards.find((c) => c.instanceId === selectedCard)
-      if (!card) return null
-      return (
-        <div className={styles.subStep}>
-          <div className={styles.sectionLabel}>
-            {card.name} {card.context && <span className={styles.cardContext}>{card.context}</span>}
-          </div>
-          <div className={styles.destRow}>
-            <button className={styles.actionBtn} onClick={() => fireMoveCard("discard")}>
-              Discard
-            </button>
-            <button className={styles.actionBtn} onClick={() => fireMoveCard("abyss")}>
-              Abyss
-            </button>
-            {showLimbo && (
-              <button className={styles.actionBtn} onClick={() => fireMoveCard("limbo")}>
-                Limbo
-              </button>
-            )}
-          </div>
-          <button className={styles.backLink} onClick={goBack}>
-            &larr; Back
-          </button>
-        </div>
-      )
-    }
+  function applyRaze() {
+    const moves: Move[] = targets.unrazedRealms
+      .filter((r) => checkedRealms.has(`${r.playerId}-${r.slot}`))
+      .map((r) => ({ type: "RESOLVE_RAZE_REALM" as const, playerId: r.playerId, slot: r.slot }))
+    if (moves.length > 0) onMove(moves)
+    setCheckedRealms(new Set())
+  }
 
+  function applyRebuild() {
+    const moves: Move[] = targets.razedRealms
+      .filter((r) => checkedRealms.has(`${r.playerId}-${r.slot}`))
+      .map((r) => ({ type: "RESOLVE_REBUILD_REALM" as const, playerId: r.playerId, slot: r.slot }))
+    if (moves.length > 0) onMove(moves)
+    setCheckedRealms(new Set())
+  }
+
+  function applyReturnToPool() {
+    const moves: Move[] = targets.discardChampions
+      .filter((c) => checkedCards.has(c.instanceId))
+      .map((c) => ({ type: "RESOLVE_RETURN_TO_POOL" as const, cardInstanceId: c.instanceId }))
+    if (moves.length > 0) onMove(moves)
+    setCheckedCards(new Set())
+  }
+
+  // ── Checkbox list renderer ──────────────────────────────────────────────
+
+  function renderCheckboxList(cards: TargetCard[]) {
     const { mine, theirs } = groupByOwner(cards, myPlayerId)
     return (
       <>
         {mine.length > 0 && (
           <div>
             <div className={styles.playerGroupLabel}>Your cards</div>
-            <div className={styles.actionGrid}>
-              {mine.map((c) => (
-                <button
-                  key={c.instanceId}
-                  className={styles.actionBtn}
-                  onClick={() => selectCard(c.instanceId, c.playerId)}
-                >
+            {mine.map((c) => (
+              <label key={c.instanceId} className={styles.checkboxRow}>
+                <input
+                  type="checkbox"
+                  checked={checkedCards.has(c.instanceId)}
+                  onChange={() => toggleCard(c.instanceId)}
+                />
+                <span>
                   {c.name}
                   {c.context && <span className={styles.cardContext}> {c.context}</span>}
-                </button>
-              ))}
-            </div>
+                </span>
+              </label>
+            ))}
           </div>
         )}
         {theirs.length > 0 && (
           <div>
             <div className={styles.playerGroupLabel}>Opponent's cards</div>
-            <div className={styles.actionGrid}>
-              {theirs.map((c) => (
-                <button
-                  key={c.instanceId}
-                  className={styles.actionBtn}
-                  onClick={() => selectCard(c.instanceId, c.playerId)}
-                >
+            {theirs.map((c) => (
+              <label key={c.instanceId} className={styles.checkboxRow}>
+                <input
+                  type="checkbox"
+                  checked={checkedCards.has(c.instanceId)}
+                  onChange={() => toggleCard(c.instanceId)}
+                />
+                <span>
                   {c.name}
                   {c.context && <span className={styles.cardContext}> {c.context}</span>}
-                </button>
-              ))}
-            </div>
+                </span>
+              </label>
+            ))}
           </div>
         )}
       </>
     )
   }
+
+  function renderRealmCheckboxList(realms: RealmTarget[]) {
+    const { mine, theirs } = groupByOwner(realms, myPlayerId)
+    return (
+      <>
+        {mine.length > 0 && (
+          <div>
+            <div className={styles.playerGroupLabel}>Your realms</div>
+            {mine.map((r) => {
+              const key = `${r.playerId}-${r.slot}`
+              return (
+                <label key={key} className={styles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={checkedRealms.has(key)}
+                    onChange={() => toggleRealm(key)}
+                  />
+                  <span>{r.realmName} (slot {r.slot})</span>
+                </label>
+              )
+            })}
+          </div>
+        )}
+        {theirs.length > 0 && (
+          <div>
+            <div className={styles.playerGroupLabel}>Opponent's realms</div>
+            {theirs.map((r) => {
+              const key = `${r.playerId}-${r.slot}`
+              return (
+                <label key={key} className={styles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={checkedRealms.has(key)}
+                    onChange={() => toggleRealm(key)}
+                  />
+                  <span>{r.realmName} (slot {r.slot})</span>
+                </label>
+              )
+            })}
+          </div>
+        )}
+      </>
+    )
+  }
+
+  // ── Category content ────────────────────────────────────────────────────
 
   function renderCategoryContent() {
     if (!effectiveCategory) return null
@@ -298,45 +412,87 @@ export function ResolutionPanel({
     switch (effectiveCategory) {
       case "raze_realm":
         return (
-          <div className={styles.actionGrid}>
-            {targets.unrazedRealms.map(({ playerId, slot, realmName }) => (
-              <button
-                key={`${playerId}-${slot}`}
-                className={styles.actionBtn}
-                onClick={() => onMove({ type: "RESOLVE_RAZE_REALM", playerId, slot })}
-              >
-                {realmName} (slot {slot})
-              </button>
-            ))}
-          </div>
+          <>
+            {renderRealmCheckboxList(targets.unrazedRealms)}
+            <button
+              className={styles.applyBtn}
+              disabled={checkedRealms.size === 0}
+              onClick={applyRaze}
+            >
+              Apply Effect
+            </button>
+          </>
         )
 
       case "rebuild_realm":
         return (
-          <div className={styles.actionGrid}>
-            {targets.razedRealms.map(({ playerId, slot, realmName }) => (
-              <button
-                key={`${playerId}-${slot}`}
-                className={styles.actionBtn}
-                onClick={() => onMove({ type: "RESOLVE_REBUILD_REALM", playerId, slot })}
-              >
-                {realmName} (slot {slot})
-              </button>
-            ))}
-          </div>
+          <>
+            {renderRealmCheckboxList(targets.razedRealms)}
+            <button
+              className={styles.applyBtn}
+              disabled={checkedRealms.size === 0}
+              onClick={applyRebuild}
+            >
+              Apply Effect
+            </button>
+          </>
         )
 
       case "discard_champion":
-        return renderCardTargets(targets.champions, true)
+        return (
+          <>
+            {renderCheckboxList(targets.champions)}
+            <button
+              className={styles.applyBtn}
+              disabled={checkedCards.size === 0}
+              onClick={() => applyMoveCards(targets.champions)}
+            >
+              Apply Effect
+            </button>
+          </>
+        )
 
       case "discard_ally":
-        return renderCardTargets(targets.allies, false)
+        return (
+          <>
+            {renderCheckboxList(targets.allies)}
+            <button
+              className={styles.applyBtn}
+              disabled={checkedCards.size === 0}
+              onClick={() => applyMoveCards(targets.allies)}
+            >
+              Apply Effect
+            </button>
+          </>
+        )
 
       case "discard_item":
-        return renderCardTargets(targets.items, false)
+        return (
+          <>
+            {renderCheckboxList(targets.items)}
+            <button
+              className={styles.applyBtn}
+              disabled={checkedCards.size === 0}
+              onClick={() => applyMoveCards(targets.items)}
+            >
+              Apply Effect
+            </button>
+          </>
+        )
 
       case "discard_holding":
-        return renderCardTargets(targets.holdings, false)
+        return (
+          <>
+            {renderCheckboxList(targets.holdings)}
+            <button
+              className={styles.applyBtn}
+              disabled={checkedCards.size === 0}
+              onClick={() => applyMoveCards(targets.holdings)}
+            >
+              Apply Effect
+            </button>
+          </>
+        )
 
       case "draw_cards":
         return (
@@ -368,19 +524,16 @@ export function ResolutionPanel({
 
       case "return_to_play":
         return (
-          <div className={styles.actionGrid}>
-            {targets.discardChampions.map((c) => (
-              <button
-                key={c.instanceId}
-                className={styles.actionBtn}
-                onClick={() =>
-                  onMove({ type: "RESOLVE_RETURN_TO_POOL", cardInstanceId: c.instanceId })
-                }
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
+          <>
+            {renderCheckboxList(targets.discardChampions)}
+            <button
+              className={styles.applyBtn}
+              disabled={checkedCards.size === 0}
+              onClick={applyReturnToPool}
+            >
+              Apply Effect
+            </button>
+          </>
         )
     }
   }
@@ -395,24 +548,6 @@ export function ResolutionPanel({
           {ctx.pendingCard.description && (
             <div className={styles.cardDesc}>{ctx.pendingCard.description}</div>
           )}
-        </div>
-
-        {/* Destination choice */}
-        <div className={styles.section}>
-          <div className={styles.sectionLabel}>Card destination:</div>
-          <div className={styles.destRow}>
-            {(["discard", "abyss", "void", "in_play"] as const).map((dest) => (
-              <button
-                key={dest}
-                className={dest === ctx.cardDestination ? styles.destBtnActive : styles.destBtn}
-                onClick={() =>
-                  onMove({ type: "RESOLVE_SET_CARD_DESTINATION", destination: dest })
-                }
-              >
-                {DEST_LABELS[dest]}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Action category selector */}
@@ -439,8 +574,8 @@ export function ResolutionPanel({
           <div className={styles.section}>{renderCategoryContent()}</div>
         )}
 
-        {/* Done */}
-        <button className={styles.doneBtn} onClick={() => onMove({ type: "RESOLVE_DONE" })}>
+        {/* Done → goes to card destination step */}
+        <button className={styles.doneBtn} onClick={() => setPendingDone(true)}>
           Done Resolving
         </button>
       </div>
