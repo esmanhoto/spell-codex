@@ -29,7 +29,7 @@ export function ResolutionOutcomeModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.title}>Event Resolved</div>
         <div className={styles.message}>
-          Opponent resolved <strong>{outcome.card.name}</strong>.
+          Opponent resolved <strong>{outcome.card.name}</strong>{/[.!?]$/.test(outcome.card.name) ? "" : "."}
         </div>
         <div className={styles.imageWrap}>
           <img
