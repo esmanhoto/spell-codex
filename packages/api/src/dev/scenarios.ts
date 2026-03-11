@@ -15,6 +15,7 @@ export interface PoolEntryDef {
 export interface RealmSlotDef {
   realm: CardRef
   holdings?: CardRef[]
+  isRazed?: boolean
 }
 
 export interface PlayerDef {
@@ -41,6 +42,8 @@ export interface ScenarioDef {
   p2: PlayerDef
   /** If provided, the game starts in an active combat at the given phase. */
   combat?: CombatDef
+  /** Override the starting phase (default: Pool, or Combat if combat is set). */
+  phase?: "START_OF_TURN" | "DRAW" | "PLAY_REALM" | "POOL" | "COMBAT" | "PHASE_FIVE" | "END_TURN"
 }
 
 // ─── Scenario registry ────────────────────────────────────────────────────────
@@ -62,17 +65,17 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
       "Alias (Hero, no spell support, lv 6) defends Iuz realm against Pereghost (lv 7). " +
       "The realm grants wizard spell access — can Alias cast Horrors of the Abyss?",
     p1: {
-      pool: [{ card: { setId: "1st", cardNumber: 48 } }], // The Pereghost, lv 7
-    },
-    p2: {
       formation: {
         A: { realm: { setId: "1st", cardNumber: 112 } }, // The Lands of Iuz
       },
       pool: [{ card: { setId: "1st", cardNumber: 41 } }], // Alias the Sell-Sword, lv 6
       hand: [{ setId: "1st", cardNumber: 96 }], // Horrors of the Abyss (Off/4)
     },
+    p2: {
+      pool: [{ card: { setId: "1st", cardNumber: 48 } }], // The Pereghost, lv 7
+    },
     combat: {
-      attackingPlayer: "p1",
+      attackingPlayer: "p2",
       targetSlot: "A",
       roundPhase: "CARD_PLAY",
     },
@@ -90,22 +93,22 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
     description:
       "King Azoun IV (FR, lv 7 → 10) attacks Chult. " +
       "Round 1: right-click Chult to self-defend (lv 5, loses). " +
-      "Round 2: p1 sends Elminster (lv 9 → 12), p2 defends with Alias (lv 6, loses). " +
-      "Round 3: p2 has nothing left → Accept Defeat → realm razed.",
+      "Round 2: p2 sends Elminster (lv 9 → 12), p1 defends with Alias (lv 6, loses). " +
+      "Round 3: p1 has nothing left → Accept Defeat → realm razed.",
     p1: {
-      pool: [
-        { card: { setId: "1st", cardNumber: 42 } }, // King Azoun IV, FR lv 7 (round 1)
-        { card: { setId: "1st", cardNumber: 44 } }, // Elminster the Mage, FR lv 9 (round 2)
-      ],
-    },
-    p2: {
       formation: {
         A: { realm: { setId: "1st", cardNumber: 15 } }, // Jungles of Chult, lv 5
       },
       pool: [{ card: { setId: "1st", cardNumber: 41 } }], // Alias the Sell-Sword, lv 6
     },
+    p2: {
+      pool: [
+        { card: { setId: "1st", cardNumber: 42 } }, // King Azoun IV, FR lv 7 (round 1)
+        { card: { setId: "1st", cardNumber: 44 } }, // Elminster the Mage, FR lv 9 (round 2)
+      ],
+    },
     combat: {
-      attackingPlayer: "p1",
+      attackingPlayer: "p2",
       targetSlot: "A",
       roundPhase: "AWAITING_DEFENDER",
     },
@@ -122,9 +125,6 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
       "Alias (Hero, no spell support, lv 6) defends Cormyr + Arms of Iuz holding against Pereghost (lv 7). " +
       "The holding grants cleric access — can Alias cast Cure Light Wounds?",
     p1: {
-      pool: [{ card: { setId: "1st", cardNumber: 48 } }], // The Pereghost, lv 7
-    },
-    p2: {
       formation: {
         A: {
           realm: { setId: "1st", cardNumber: 5 }, // Cormyr (generic realm)
@@ -134,10 +134,88 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
       pool: [{ card: { setId: "1st", cardNumber: 41 } }], // Alias the Sell-Sword, lv 6
       hand: [{ setId: "1st", cardNumber: 349 }], // Cure Light Wounds (Def/4)
     },
+    p2: {
+      pool: [{ card: { setId: "1st", cardNumber: 48 } }], // The Pereghost, lv 7
+    },
     combat: {
-      attackingPlayer: "p1",
+      attackingPlayer: "p2",
       targetSlot: "A",
       roundPhase: "CARD_PLAY",
+    },
+  },
+
+  // ── Rebuild realm — discard 3 cards ──────────────────────────────────────
+  // p1 has a razed realm in slot A and 4 cards in hand.
+  // Right-click the razed realm → "Rebuild Realm (discard 3)" → pick 3 cards → confirm.
+  "rebuild-realm-discard": {
+    name: "Rebuild realm — discard 3 cards",
+    description:
+      "p1 has a razed Waterdeep in slot A and 4 cards in hand. " +
+      "Right-click the razed realm, choose Rebuild Realm, select 3 cards to discard, confirm.",
+    phase: "PLAY_REALM",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 1 }, isRazed: true }, // Waterdeep (razed)
+        B: { realm: { setId: "1st", cardNumber: 2 } }, // Menzoberranzan
+      },
+      hand: [
+        { setId: "1st", cardNumber: 41 }, // Alias the Sell-Sword
+        { setId: "1st", cardNumber: 48 }, // The Pereghost
+        { setId: "1st", cardNumber: 42 }, // King Azoun IV
+        { setId: "1st", cardNumber: 44 }, // Elminster the Mage
+      ],
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+      },
+    },
+  },
+
+  // ── Rebuild realm — Safe Harbor! event ──────────────────────────────────
+  // p1 has Safe Harbor! in hand and both players have a razed realm.
+  // Play the event → resolution opens → use RESOLVE_REBUILD_REALM on any razed realm.
+  "rebuild-realm-event": {
+    name: "Rebuild realm — Safe Harbor! event",
+    description:
+      "p1 plays Safe Harbor! (every player can rebuild one razed realm). " +
+      "Both players have a razed realm. Use the resolution panel to rebuild them.",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 1 }, isRazed: true }, // Waterdeep (razed)
+        B: { realm: { setId: "1st", cardNumber: 2 } }, // Menzoberranzan
+      },
+      pool: [{ card: { setId: "1st", cardNumber: 41 } }], // Alias (needed for Pool phase)
+      hand: [{ setId: "1st", cardNumber: 107 }], // Safe Harbor!
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 111 }, isRazed: true }, // Free City of Greyhawk (razed)
+        B: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+      },
+    },
+  },
+
+  // ── Rebuild realm — Arms of the Shield Lands holding ───────────────────
+  // p1 has Arms of the Shield Lands in hand and a razed Greyhawk realm.
+  // Play the holding on the razed realm → it attaches AND rebuilds the realm.
+  "rebuild-realm-holding": {
+    name: "Rebuild realm — Arms of the Shield Lands",
+    description:
+      "p1 has Arms of the Shield Lands (rebuilds_razed_realm holding, GH worldId=2) " +
+      "and a razed Free City of Greyhawk. Play the holding on the razed realm to rebuild it.",
+    phase: "PLAY_REALM",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 111 }, isRazed: true }, // Free City of Greyhawk (razed)
+        B: { realm: { setId: "1st", cardNumber: 2 } }, // Menzoberranzan
+      },
+      hand: [{ setId: "1st", cardNumber: 216 }], // Arms of the Shield Lands
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+      },
     },
   },
 }

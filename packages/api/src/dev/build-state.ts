@@ -39,7 +39,7 @@ function buildPlayerState(def: ScenarioDef["p1"], prefix: string, userId: string
     if (!slotDef) continue
     slots[slotKey as FormationSlot] = {
       realm: resolve(slotDef.realm, `${prefix}-realm-${slotKey}`),
-      isRazed: false,
+      isRazed: slotDef.isRazed ?? false,
       holdings: (slotDef.holdings ?? []).map((ref, i) =>
         resolve(ref, `${prefix}-holding-${slotKey}-${i}`),
       ),
@@ -153,7 +153,11 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     currentTurn: 5,
     activePlayer,
     playerOrder: [DEV_P1_ID, DEV_P2_ID],
-    phase: combatState ? Phase.Combat : Phase.Pool,
+    phase: combatState
+      ? Phase.Combat
+      : scenario.phase
+        ? (scenario.phase as Phase)
+        : Phase.Pool,
     combatState,
     resolutionContext: null,
     winner: null,
