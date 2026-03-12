@@ -34,7 +34,7 @@ export function PhaseTracker({
   return (
     <div className={styles.container} data-testid="phase-tracker">
       {/* Turn number */}
-      <div className={styles.turnNumber}>Turn {turnNumber}</div>
+      <div className={styles.turnNumber} data-testid="turn-info">Turn {turnNumber}</div>
 
       {/* Active player indicator */}
       <div className={styles.activePlayer}>
