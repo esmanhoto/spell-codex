@@ -47,15 +47,9 @@
   position: relative;
   z-index: 1;
   background: #0d1f14;
-  padding: 0 12px;
-}
-
-.turnInfo {
-  font-size: 11px;
-  color: var(--gold);
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 4px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(80, 120, 80, 0.35);
 }
 
 .winner {
@@ -64,33 +58,3 @@
   font-weight: bold;
 }
 
-.activeLabel {
-  font-size: 10px;
-  color: #7ec8e3;
-  text-align: center;
-  margin-top: 2px;
-}
-
-.passBtn {
-  display: block;
-  margin: 4px auto 0;
-  padding: 2px 10px;
-  font-size: 10px;
-  color: var(--gold);
-  background: transparent;
-  border: 1px solid var(--gold-dim);
-  border-radius: 3px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.passBtn:hover:not(:disabled) {
-  background: rgba(200, 160, 60, 0.12);
-  border-color: var(--gold);
-}
-
-.passBtn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}

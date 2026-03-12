@@ -1,35 +1,166 @@
-.tracker {
+.container {
   display: flex;
-  gap: 2px;
+  flex-direction: column;
   align-items: center;
+  gap: 10px;
 }
 
-.pill {
-  font-size: 10px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  color: var(--text-dim);
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(80, 120, 80, 0.2);
-  transition: all 0.2s;
+/* Turn number */
+.turnNumber {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: bold;
   font-family: monospace;
-  letter-spacing: 0.03em;
+  text-align: center;
 }
 
-.pill.active {
-  color: #111;
+/* Active player */
+.activePlayer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulseDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--gold); }
+  50% { opacity: 0.4; box-shadow: none; }
+}
+
+.activePlayerName {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  font-weight: 600;
+  font-family: monospace;
+}
+
+/* Phase track */
+.track {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.lineBase {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: rgba(80, 120, 80, 0.35);
+  z-index: 0;
+}
+
+.lineProgress {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold) 0%, #e8c86a 100%);
+  box-shadow: 0 0 6px rgba(201, 168, 76, 0.5);
+  z-index: 0;
+  transition: width 0.4s ease;
+}
+
+.phaseItem {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(80, 120, 80, 0.3);
+  background: rgba(15, 20, 15, 0.85);
+  color: #555;
+  transition: all 0.25s ease;
+}
+
+.circleActive {
   background: var(--gold);
   border-color: var(--gold);
+  color: #111;
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.55);
+  animation: scalePulse 2s ease-in-out infinite;
+}
+
+@keyframes scalePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.circlePast {
+  border-color: rgba(201, 168, 76, 0.35);
+  color: rgba(201, 168, 76, 0.7);
+  background: rgba(15, 20, 15, 0.85);
+}
+
+.phaseLabel {
+  font-size: 8px;
+  margin-top: 4px;
+  font-family: monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #555;
+  transition: color 0.25s;
+}
+
+.phaseLabelActive {
+  color: var(--gold);
   font-weight: bold;
 }
 
-.pill.past {
-  color: var(--text-muted);
-  border-color: rgba(80, 120, 80, 0.4);
+.phaseLabelPast {
+  color: rgba(201, 168, 76, 0.55);
 }
 
-.arrow {
-  color: var(--text-dim);
+/* End Turn button */
+.endTurnBtn {
+  margin-top: 2px;
+  padding: 6px 20px;
   font-size: 10px;
-  margin: 0 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-family: monospace;
+  font-weight: 600;
+  color: #111;
+  background: linear-gradient(90deg, #b8922e 0%, #e8c86a 50%, #b8922e 100%);
+  border: 1px solid rgba(201, 168, 76, 0.6);
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(201, 168, 76, 0.2);
+  transition: box-shadow 0.25s, transform 0.12s;
+}
+
+.endTurnBtn:hover:not(:disabled) {
+  box-shadow: 0 0 18px rgba(201, 168, 76, 0.45);
+  transform: scale(1.04);
+}
+
+.endTurnBtn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.endTurnBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
 }
