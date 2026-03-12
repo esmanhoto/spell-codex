@@ -28,31 +28,20 @@ export function Divider() {
     <div className={styles.divider}>
       <span className={`${styles.playerLabel} ${styles.playerB}`}>{playerBName}</span>
       <div className={styles.center}>
-        <div className={styles.turnInfo} data-testid="turn-info">
-          Turn {turnNumber}
-        </div>
         {winner ? (
           <div className={styles.winner} data-testid="winner-info">
             {winner === playerA ? playerAName : playerBName} wins!
           </div>
         ) : (
-          <>
-            <PhaseTracker phase={phase} />
-            <div className={styles.activeLabel} data-testid="active-player-label">
-              Active: {activeLabel}
-            </div>
-            {isMyTurn && (
-              <button
-                className={styles.passBtn}
-                data-testid="pass-btn"
-                data-move-type="END_TURN"
-                disabled={!canEndTurn || !endTurnMove}
-                onClick={() => endTurnMove && onMove(endTurnMove)}
-              >
-                End Turn
-              </button>
-            )}
-          </>
+          <PhaseTracker
+            phase={phase}
+            turnNumber={turnNumber}
+            activePlayerName={activeLabel}
+            isMyTurn={isMyTurn}
+            endTurnMove={endTurnMove}
+            onMove={onMove}
+            canEndTurn={canEndTurn}
+          />
         )}
       </div>
       <span className={`${styles.playerLabel} ${styles.playerA}`}>{playerAName}</span>
