@@ -89,17 +89,19 @@ export default {
       return app.fetch(new Request(stripped.toString(), req))
     }
 
-    // /* → serve SPA static files (production only; dist/ won't exist in local dev)
-    const WEB_DIST =
-      process.env["WEB_DIST_PATH"] ??
-      join(import.meta.dir, "..", "..", "web", "dist")
-    const filePath = join(WEB_DIST, url.pathname)
-    const file = Bun.file(filePath)
-    return file.exists().then((exists) =>
-      exists
-        ? new Response(file)
-        : new Response(Bun.file(join(WEB_DIST, "index.html"))),
-    )
+    // /* → serve SPA static files only when WEB_DIST_PATH is explicitly set (production)
+    const WEB_DIST = process.env["WEB_DIST_PATH"]
+    if (WEB_DIST) {
+      const filePath = join(WEB_DIST, url.pathname)
+      const file = Bun.file(filePath)
+      return file.exists().then((exists) =>
+        exists
+          ? new Response(file)
+          : new Response(Bun.file(join(WEB_DIST, "index.html"))),
+      )
+    }
+
+    return app.fetch(req)
   },
   websocket: wsHandlers,
 }
