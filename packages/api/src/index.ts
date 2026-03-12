@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { logger } from "hono/logger"
 import { cors } from "hono/cors"
+import { join } from "path"
 import { auth } from "./auth.ts"
 import { gamesRouter } from "./routes/games.ts"
 import { movesRouter } from "./routes/moves.ts"
@@ -72,13 +73,34 @@ export default {
   port,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fetch(req: Request, server: any) {
-    // Intercept WebSocket upgrade requests before passing to Hono
     const url = new URL(req.url)
+
+    // /ws → WebSocket upgrade
     if (url.pathname === "/ws") {
       const upgraded = server.upgrade(req)
       if (upgraded) return undefined as unknown as Response
       return new Response("WebSocket upgrade required", { status: 426 })
     }
+
+    // /api/* → strip prefix, pass to Hono
+    if (url.pathname.startsWith("/api")) {
+      const stripped = new URL(req.url)
+      stripped.pathname = url.pathname.slice(4) || "/"
+      return app.fetch(new Request(stripped.toString(), req))
+    }
+
+    // /* → serve SPA static files only when WEB_DIST_PATH is explicitly set (production)
+    const WEB_DIST = process.env["WEB_DIST_PATH"]
+    if (WEB_DIST) {
+      const filePath = join(WEB_DIST, url.pathname)
+      const file = Bun.file(filePath)
+      return file.exists().then((exists) =>
+        exists
+          ? new Response(file)
+          : new Response(Bun.file(join(WEB_DIST, "index.html"))),
+      )
+    }
+
     return app.fetch(req)
   },
   websocket: wsHandlers,
