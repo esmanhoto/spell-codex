@@ -1,27 +1,27 @@
 .panel {
   position: fixed;
-  bottom: 58px; /* sits above ChatBar */
-  right: 20px;
-  width: 520px;
-  max-width: calc(100vw - 40px);
+  bottom: 20px;
+  right: 66px; /* 16px edge + 42px chatbar + 8px gap */
+  width: 340px;
+  max-width: calc(100vw - 100px);
   height: 400px;
   max-height: 65vh;
   background: rgba(10, 18, 12, 0.97);
   border: 1px solid var(--bg-panel-border);
-  border-radius: 10px 10px 0 0;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   z-index: var(--z-overlay);
-  animation: slideUp 0.2s ease;
+  animation: slideFromRight 0.2s ease;
 }
 
-@keyframes slideUp {
+@keyframes slideFromRight {
   from {
-    transform: translateY(20px);
+    transform: translateX(20px);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: translateX(0);
     opacity: 1;
   }
 }

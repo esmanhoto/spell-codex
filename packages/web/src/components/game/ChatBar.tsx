@@ -1,3 +1,4 @@
+import { MessageCircle, X } from "lucide-react"
 import styles from "./ChatBar.module.css"
 
 export const EMOTES = [
@@ -24,9 +25,13 @@ export function ChatBar({ chatOpen, unreadCount, onToggleChat, onEmote }: ChatBa
           </button>
         ))}
       </div>
-      <button className={`${styles.chatBtn} ${chatOpen ? styles.open : ""}`} onClick={onToggleChat}>
-        <span className={styles.chatIcon}>💬</span>
-        {chatOpen ? "CLOSE" : "CHAT"}
+      <div className={styles.divider} />
+      <button
+        className={`${styles.chatBtn} ${chatOpen ? styles.open : ""}`}
+        onClick={onToggleChat}
+        title={chatOpen ? "Close chat" : "Open chat"}
+      >
+        {chatOpen ? <X size={20} /> : <MessageCircle size={20} />}
         {!chatOpen && unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
       </button>
     </div>
