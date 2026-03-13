@@ -165,27 +165,46 @@ This is good practice regardless of infrastructure — even with co-located DB, 
 
 ## Phase 3 Results — Koyeb Benchmarks
 
-**Phase 0 baseline** (69 moves) vs **Phase 3+3.4** (86 moves):
+**Phase 0 baseline** (69 moves) vs **Phase 3.1–3.3** (86 moves) vs **Phase 3.4** (63 moves):
 
-| Metric | Phase 0 | Phase 3 | Change |
-|--------|---------|---------|--------|
-| total_ms avg | 562 | 332 | **-41%** |
-| total_ms p50 | 473 | 295 | **-38%** |
-| total_ms p95 | 973 | 504 | **-48%** |
-| total_ms max | 1712 | 628 | **-63%** |
-| reconstruct_ms p95 | 701 | 379 | **-46%** |
-| reconstruct_ms max | 1018 | 397 | **-61%** |
-| apply_move_ms avg | 2.35 | 0.39 | **-83%** |
+| Metric | Phase 0 | Phase 3.3 | Phase 3.4 | vs Phase 0 |
+|--------|---------|-----------|-----------|------------|
+| total_ms avg | 562 | 332 | **127** | **-77%** |
+| total_ms p50 | 473 | 295 | **109** | **-77%** |
+| total_ms p95 | 973 | 504 | **214** | **-78%** |
+| total_ms max | 1712 | 628 | **366** | **-79%** |
+| reconstruct_ms avg | 388 | 202 | **0.04** | **-99.99%** |
+| reconstruct_ms p95 | 701 | 379 | **0.05** | **-99.99%** |
+| apply_move_ms avg | 2.35 | 0.39 | 0.48 | -80% |
 
-Key insight: Phase 0 performance **degrades linearly** with game length (every move replays the full history). Phase 3 performance is **flat** — move 74 is as fast as move 0.
+Key insight: Phase 0 performance **degrades linearly** with game length (every move replays the full history). Phase 3.4 is **flat** — move 62 is as fast as move 0 — and reconstruction overhead is effectively zero.
 
-Note: benchmarks above reflect 3.1–3.3 only. 3.4 (metadata cache) was not yet deployed — next Koyeb run should show `reconstruct_ms` near 0 on cache hit.
+**Remaining ~100ms floor** is DB *write* latency: `saveAction` (INSERT) runs sequentially before the broadcast, then `setGameStatus`+`touchGame` run in parallel after. With Koyeb's hosted Postgres each roundtrip costs ~50ms. This is addressed in Phase 4.1.
 
 ---
 
-## Phase 4 — Engine Refactoring
+## Phase 4 — API & Engine Optimizations
 
-### 4.1 Skip hash verification on read
+### 4.1 Fire-and-forget non-critical DB writes
+
+Currently every move `await`s both `saveAction` (required) and then `setGameStatus`+`touchGame` (metadata). The metadata writes add ~50ms to every move response even though the client doesn't need them to have completed — the new state is already broadcast.
+
+**Change:** only `await setGameStatus`+`touchGame` when the game is ending (winner set). For all other moves, fire them off without awaiting:
+
+```typescript
+if (result.newState.winner) {
+  await Promise.all([setGameStatus(...), touchGame(...)])
+} else {
+  // non-blocking — client already has new state via WS broadcast
+  void Promise.all([setGameStatus(...), touchGame(...)])
+}
+```
+
+**Safety:** `saveAction` (the integrity-critical write) is still awaited. `touchGame` and mid-game `setGameStatus` are eventual-consistency metadata — the lobby can tolerate 100ms staleness. If the process crashes between broadcast and write completing, the DB status would be stale until the next move corrects it.
+
+**Expected impact:** total_ms drops from ~109ms p50 to ~60ms p50 on Koyeb.
+
+### 4.2 Skip hash verification on read
 
 Currently, reconstruction replays every action AND verifies the SHA-256 hash at each intermediate step. This means `JSON.stringify(fullGameState)` + SHA-256 on every intermediate state.
 
@@ -199,15 +218,11 @@ The events array grows every turn and gets included in the JSON used for hashing
 
 Hash only the "board state" portion: players, formations, pools, hands, combat, phase, turn. This prevents hash cost from growing linearly with game length.
 
-### 4.4 Delta state updates over WebSocket
+### 4.4 Delta state updates over WebSocket ⏩ Deferred to Phase 6
 
-Instead of sending the full serialized state (15-60KB) on every move:
+Blocked on Phase 6 (client-side engine). Without 6.1/6.3, the client can't reconstruct state from a delta — the server would have to send the full state as a fallback anyway, making this a no-op. Implement alongside 6.3.
 
-- Send the move + resulting events only (~200-500 bytes)
-- Client applies the move locally using its own engine copy (see Phase 6)
-- Fall back to full state sync if client gets out of sync
-
-Critical for 4-6 player scaling: current approach would send 60KB × 6 players = 360KB per move.
+See Phase 6.3 for the full description.
 
 ---
 
@@ -266,9 +281,9 @@ Instead of server computing `getLegalMoves()` and including it in every STATE_UP
 
 This also reduces STATE_UPDATE payload by ~30-50%.
 
-### 6.3 Client applies moves locally
+### 6.3 Client applies moves locally + delta updates (4.4)
 
-Combined with delta updates (4.4) and optimistic UI (Phase 5):
+Combined with optimistic UI (Phase 5):
 
 1. Player makes a move → client applies via engine instantly
 2. Move sent to server → server validates → broadcasts move (not full state)
@@ -276,6 +291,8 @@ Combined with delta updates (4.4) and optimistic UI (Phase 5):
 4. Both clients now have the new state without receiving 60KB
 
 Server becomes the authority and validator, not the renderer. Classic multiplayer game architecture (client-side prediction with server reconciliation).
+
+**Includes 4.4 (delta state updates):** server broadcasts move + resulting events (~200-500 bytes) instead of full serialized state (15-60KB). Fall back to full state sync if client gets out of sync. Critical for 4-6 player scaling: current approach would send 60KB × 6 players = 360KB per move.
 
 ### 6.4 Hash reconciliation
 
@@ -375,10 +392,10 @@ The `sequence` number makes this safe: server rejects any move with an unexpecte
 - ~~Phase 1 must be completed first~~ ✅ Done
 - After each phase, re-run benchmarks and compare against baselines. Update the benchmark thresholds to lock in gains
 - ~~Phases 2-3 are pure improvements with no architectural risk~~ ✅ Done (Phase 2 partial, Phase 3 complete)
-- Phase 4 is next: reduce DB queries (biggest current bottleneck), then hash/engine optimizations
+- ~~Phase 4.1 is next: fire-and-forget metadata writes to break the ~100ms DB-write floor~~ ✅ Done (Phase 4 complete: 4.1 fire-and-forget, 4.2 skip hash on read, 4.3 exclude events from hash; 4.4 deferred to Phase 6)
 - Phases 5-6 are the biggest UX transformation — implement together since optimistic UI benefits enormously from having the engine on the client
 - Phase 7 is infrastructure only, no code changes beyond Dockerfile/deploy config
-- All phases benefit the future 4-6 player mode; especially delta updates (4.4) and client-side engine (6.x)
+- All phases benefit the future 4-6 player mode; especially delta updates (4.4, now part of 6.3) and client-side engine (6.x)
 - Error handling items should be implemented alongside their relevant phases, not as a separate effort
 
 ### Lessons learned from Phase 2-3

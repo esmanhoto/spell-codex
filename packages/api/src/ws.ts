@@ -177,10 +177,15 @@ export async function processWsMove(
 
   const newStatus = result.newState.winner ? "finished" : "active"
   const turnDeadline = result.newState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
-  await Promise.all([
+  const metaWrites = Promise.all([
     setGameStatus(gameId, newStatus, result.newState.winner ?? undefined),
     touchGame(gameId, turnDeadline),
   ])
+  if (result.newState.winner) {
+    await metaWrites
+  } else {
+    void metaWrites
+  }
 
   // Broadcast updated state to all players in the game (player-specific visibility)
   const newTurnDeadline = result.newState.winner
