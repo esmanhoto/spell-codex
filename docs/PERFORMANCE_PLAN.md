@@ -311,6 +311,33 @@ Server includes `stateHash` in every `MOVE_APPLIED`. Client computes `hashEngine
 
 ---
 
+## Phase 6 Results — Koyeb Benchmarks
+
+**Phase 0 baseline** (69 moves, no cache) vs **Phase 6** (Koyeb, with cache + delta updates):
+
+| Metric              | Phase 0 | Phase 6  | Improvement  |
+| ------------------- | ------- | -------- | ------------ |
+| total_ms avg        | 562     | **53**   | **−10.6x**   |
+| total_ms p50        | 473     | **49**   | **−9.7x**    |
+| total_ms p95        | 973     | **93**   | **−10.5x**   |
+| reconstruct_ms avg  | 295.72  | 0.02     | **−14,786x** |
+| serialize_ms avg    | 1.57    | **0.09** | **−17x**     |
+| broadcast_bytes avg | 32,459  | **723**  | **−44x**     |
+
+Key wins: Phase 3–4 eliminated O(N²) replay and per-move DB reads (`reconstruct_ms` ~296ms → 0.02ms). Phase 6 switched from full per-player `STATE_UPDATE` to a tiny `MOVE_APPLIED` delta — `broadcast_bytes` 32KB → 723 bytes (44x). Server no longer serializes full state per move, dropping `serialize_ms` from 1.57ms to 0.09ms.
+
+**Local engine (perf tests):**
+
+| Metric               | Phase 0  | Phase 5  | Phase 6      |
+| -------------------- | -------- | -------- | ------------ |
+| applyMove avg/move   | 0.017 ms | 0.044 ms | 0.022 ms     |
+| serialize_playerA_ms | 0.050 ms | —        | **0.226 ms** |
+| hashState_10moves_ms | 0.134 ms | 0.163 ms | 0.092 ms     |
+
+Phase 5/6 `applyMove` variation is measurement noise — all are well under 0.05ms/move. The new Phase 6 cost is `serialize_playerA` at 0.226ms per move on the client (the `serializeEngineStateForClient` call after each `MOVE_APPLIED`), which is the correct trade-off: tiny WS payload + fast local serialization instead of a large server payload.
+
+---
+
 ## Phase 7 — Infrastructure (Oracle Cloud)
 
 Last phase — by this point the app should already be fast. This is about headroom and reliability.

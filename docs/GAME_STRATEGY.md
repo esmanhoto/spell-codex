@@ -18,7 +18,6 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
 
 - Pure engine move flow with deterministic `applyMove` and legal move generation.
 - Event-log persistence/replay architecture in backend flow.
-- Real-time WebSocket gameplay loop wired in API/web.
 - Manual board-control moves for own cards and opponent-affect actions.
 - Manual combat-level adjustment and combat-side switching controls.
 - CI baseline with lint, typecheck, tests, and build checks.
@@ -40,6 +39,19 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
   - auth e2e (non-bypass/mock Supabase profile)
 - Runtime DB error text cleanup to neutral guidance (`Verify DATABASE_URL and DB availability.`).
 - Single play mode: `full_manual` concept removed; engine has one unified code path. `games.play_mode` column remains in schema but is not active.
+
+### Performance (Phases 1–6 complete — see `PERFORMANCE_PLAN.md`)
+
+- Server-side perf instrumentation: structured JSON timing logs on every move (`reconstruct_ms`, `apply_move_ms`, `serialize_ms`, `broadcast_bytes`, `total_ms`). Parseable from Koyeb dashboard logs via `scripts/parse-server-perf.ts`.
+- In-memory game state cache (`packages/api/src/state-cache.ts`): eliminates DB reads and full replay on every move. Cache includes state, sequence, playerIds — zero DB reads on cache hit before applying a move.
+- Fire-and-forget non-critical DB writes: only `saveAction` (integrity-critical) is awaited; `touchGame` / `setGameStatus` are non-blocking except on game end.
+- State hash excludes `events` array (Phase 4.3): hash cost is flat regardless of game length.
+- **Optimistic UI** (`packages/web/src/utils/optimistic-state.ts`): instant visual feedback for PLAY_REALM, PLACE_CHAMPION, ATTACH_ITEM, PLAY_HOLDING, DISCARD_CARD, and pass-family moves. Rolls back to `lastConfirmedStateRef` on WS ERROR or HTTP error.
+- **`@spell/engine` bundled in web client**: client applies moves locally via `applyMove` after each `MOVE_APPLIED` delta.
+- **`MOVE_APPLIED` WS delta** replaces per-player `STATE_UPDATE` on every move: ~723 bytes vs ~32KB — 44x reduction in WS bandwidth. Server no longer serializes full state per move.
+- **Client-side legal moves**: `getLegalMoves` runs locally in the browser; server omits it from broadcast path.
+- **Hash reconciliation**: client computes SHA-256 (Web Crypto API) after each local `applyMove` and compares to server `stateHash`. Mismatch triggers `SYNC_REQUEST` → server resends full `STATE_UPDATE` with `rawEngineState`.
+- **Koyeb results** (Phase 0 → Phase 6): `total_ms` avg 562ms → 53ms (−10.6x), `broadcast_bytes` avg 32,459 → 723 (−44x).
 
 ## Supabase Runtime/Auth Milestone Status
 
