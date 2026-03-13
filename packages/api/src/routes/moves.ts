@@ -12,7 +12,9 @@ import {
   hashState,
 } from "@spell/db"
 import { applyMove, EngineError } from "@spell/engine"
+import type { GameState } from "@spell/engine"
 import type { AppVariables } from "../auth.ts"
+import { getCachedState, setCachedState, evictCachedState } from "../state-cache.ts"
 
 // ─── Move schema ──────────────────────────────────────────────────────────────
 // We accept any JSON object with a `type` string — the engine validates the rest.
@@ -43,8 +45,17 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const isPlayer = players.some((p) => p.userId === userId)
   if (!isPlayer) return c.json({ error: "Forbidden" }, 403)
 
-  // 3. Reconstruct current state
-  const { state } = await reconstructState(gameId, game.seed)
+  // 3. Reconstruct current state (use in-memory cache when available)
+  const seq0 = await lastSequence(gameId)
+  const cached = getCachedState(gameId, seq0)
+  let state: GameState
+  if (cached) {
+    state = cached
+  } else {
+    const { state: reconstructed } = await reconstructState(gameId, game.seed)
+    state = reconstructed
+    setCachedState(gameId, state, seq0)
+  }
   const t1 = performance.now()
 
   // 4. Apply the move through the engine (throws EngineError on invalid moves)
@@ -62,7 +73,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const t2 = performance.now()
 
   // 6. Persist the human move
-  let seq = await lastSequence(gameId)
+  let seq = seq0
   const actionsReplayed = seq + 1
 
   const tHashStart = performance.now()
@@ -80,6 +91,10 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
 
   const currentState = result.newState
 
+  // Update in-memory cache with the newly applied state
+  setCachedState(gameId, currentState, seq)
+  if (currentState.winner) evictCachedState(gameId)
+
   // 8. Update game metadata + set the next turn deadline (24 h from now)
   const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
   const newStatus = currentState.winner ? "finished" : "active"
@@ -96,6 +111,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
       game: gameId,
       seq,
       move_type: move.type,
+      cache_hit: cached !== null,
       actions_replayed: actionsReplayed,
       reconstruct_ms: +(t1 - t0).toFixed(2),
       apply_move_ms: +(t2 - t1).toFixed(2),
