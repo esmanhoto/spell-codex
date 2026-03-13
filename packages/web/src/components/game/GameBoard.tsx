@@ -91,7 +91,54 @@ function AttackLine() {
   )
 }
 
+function useDragScroll() {
+  useEffect(() => {
+    const ZONE = 160
+    const MAX_SPEED = 18
+    let speed = 0
+    let dragging = false
+    let frameId = 0
+
+    function scroll() {
+      if (speed !== 0) window.scrollBy(0, speed)
+      if (dragging) frameId = requestAnimationFrame(scroll)
+    }
+
+    function onDragStart() {
+      dragging = true
+      frameId = requestAnimationFrame(scroll)
+    }
+
+    function onDragOver(e: DragEvent) {
+      const y = e.clientY
+      const h = window.innerHeight
+      if (y < ZONE) speed = -MAX_SPEED * (1 - y / ZONE)
+      else if (y > h - ZONE) speed = MAX_SPEED * (1 - (h - y) / ZONE)
+      else speed = 0
+    }
+
+    function onDragEnd() {
+      dragging = false
+      speed = 0
+      cancelAnimationFrame(frameId)
+    }
+
+    document.addEventListener("dragstart", onDragStart)
+    document.addEventListener("dragover", onDragOver)
+    document.addEventListener("dragend", onDragEnd)
+    document.addEventListener("drop", onDragEnd)
+    return () => {
+      document.removeEventListener("dragstart", onDragStart)
+      document.removeEventListener("dragover", onDragOver)
+      document.removeEventListener("dragend", onDragEnd)
+      document.removeEventListener("drop", onDragEnd)
+      cancelAnimationFrame(frameId)
+    }
+  }, [])
+}
+
 export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: string | null }) {
+  useDragScroll()
   const { playerA, playerB, allBoards } = useBoard()
   const { combat } = useCombat()
   const { onMove } = useMoves()
