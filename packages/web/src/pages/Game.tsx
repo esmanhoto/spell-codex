@@ -58,22 +58,13 @@ function isPhase3SpellCastEvent(event: GameEvent): event is GameEvent & Phase3Sp
   return event.type === "PHASE3_SPELL_CAST"
 }
 
-function collectCardImageUrls(boards: Record<string, PlayerBoard>): string[] {
+function collectCardImageUrls(deckCardImages?: Array<[string, number]>): string[] {
   const urls = new Set<string>()
   urls.add(CARD_BACK_URL)
-  for (const board of Object.values(boards)) {
-    for (const c of board.hand) urls.add(cardImageUrl(c.setId, c.cardNumber))
-    for (const slot of Object.values(board.formation)) {
-      if (slot) {
-        urls.add(cardImageUrl(slot.realm.setId, slot.realm.cardNumber))
-        for (const h of slot.holdings) urls.add(cardImageUrl(h.setId, h.cardNumber))
-      }
+  if (deckCardImages) {
+    for (const [setId, cardNumber] of deckCardImages) {
+      urls.add(cardImageUrl(setId, cardNumber))
     }
-    for (const entry of board.pool) {
-      urls.add(cardImageUrl(entry.champion.setId, entry.champion.cardNumber))
-      for (const a of entry.attachments) urls.add(cardImageUrl(a.setId, a.cardNumber))
-    }
-    for (const c of board.lastingEffects) urls.add(cardImageUrl(c.setId, c.cardNumber))
   }
   return [...urls]
 }
@@ -212,7 +203,7 @@ export function Game() {
   useEffect(() => {
     if (!data || preCacheStartedRef.current) return
     preCacheStartedRef.current = true
-    const urls = collectCardImageUrls(data.board.players)
+    const urls = collectCardImageUrls(data.deckCardImages)
     if (urls.length === 0) {
       setImagesReady(true)
       return

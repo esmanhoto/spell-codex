@@ -91,6 +91,7 @@ export interface GameState {
     players: Record<string, PlayerBoard>
     combat: CombatInfo | null
   }
+  deckCardImages?: Array<[string, number]>
   players?: Array<{ userId: string; seatPosition: number; nickname: string }>
   events?: GameEvent[]
   resolutionContext: ResolutionContextInfo | null
