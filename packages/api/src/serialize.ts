@@ -117,6 +117,23 @@ export function serializeBoard(state: GameState, viewerPlayerId?: string) {
   }
 }
 
+/** Collects unique [setId, cardNumber] for every card in both players' decks.
+ *  At game start drawPile + hand = full 55-card deck (initGame draws the opening hand). */
+function collectDeckCardImages(state: GameState): Array<[string, number]> {
+  const seen = new Set<string>()
+  const result: Array<[string, number]> = []
+  for (const p of Object.values(state.players)) {
+    for (const inst of [...p.hand, ...p.drawPile]) {
+      const key = `${inst.card.setId}:${inst.card.cardNumber}`
+      if (!seen.has(key)) {
+        seen.add(key)
+        result.push([inst.card.setId, inst.card.cardNumber])
+      }
+    }
+  }
+  return result
+}
+
 /**
  * Produces the API-shaped game state that the web client expects.
  * Includes legalMoves (always for the active player), serialized board, etc.
@@ -126,6 +143,7 @@ export function serializeGameState(
   extra?: {
     status?: string
     turnDeadline?: Date | string | null
+    includeDeckImages?: boolean
   },
   viewerPlayerId?: string,
 ) {
@@ -150,6 +168,7 @@ export function serializeGameState(
     legalMoves: getLegalMoves(state, viewerPlayerId ?? state.activePlayer),
     legalMovesPerPlayer,
     board: serializeBoard(state, viewerPlayerId),
+    ...(extra?.includeDeckImages ? { deckCardImages: collectDeckCardImages(state) } : {}),
     events: state.events,
     resolutionContext: state.resolutionContext
       ? {
