@@ -153,6 +153,8 @@ export function ResolutionPanel({
   const [pendingDone, setPendingDone] = useState(false)
   const [localDestination, setLocalDestination] = useState<string | null>(null)
   const isMyResolution = ctx.resolvingPlayer === myPlayerId
+  const targets = useMemo(() => collectTargets(allBoards), [allBoards])
+  const availableCategories = getAvailableCategories(targets)
 
   useEffect(() => {
     setSelectedCategory(null)
@@ -239,9 +241,6 @@ export function ResolutionPanel({
   }
 
   // ── Main resolution panel ───────────────────────────────────────────────
-  const targets = useMemo(() => collectTargets(allBoards), [allBoards])
-  const availableCategories = getAvailableCategories(targets)
-
   const effectiveCategory =
     selectedCategory ?? (availableCategories.length === 1 ? availableCategories[0]! : null)
 
