@@ -60,7 +60,6 @@ export const CardComponent = memo(function CardComponent({
             src={cardImageUrl(card.setId, card.cardNumber)}
             alt={card.name}
             className={styles.img}
-            loading="lazy"
             onError={(e) => {
               ;(e.target as HTMLImageElement).style.display = "none"
             }}

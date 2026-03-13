@@ -134,7 +134,6 @@ export function PlayerHand({
                     src={cardImageUrl(card.setId, card.cardNumber)}
                     alt={card.name}
                     className={styles.cardImg}
-                    loading="lazy"
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = "none"
                     }}

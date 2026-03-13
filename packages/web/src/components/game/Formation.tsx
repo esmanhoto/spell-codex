@@ -329,7 +329,6 @@ export function Formation({
                                   )}
                                   alt={holdingForStack.name}
                                   className={styles.holdingPeekImg}
-                                  loading="lazy"
                                   onError={(e) => {
                                     ;(e.target as HTMLImageElement).style.display = "none"
                                   }}
