@@ -37,5 +37,4 @@ const evictTimer = setInterval(
   },
   5 * 60 * 1000,
 )
-// @ts-expect-error — Bun's Timer has unref()
-evictTimer.unref?.()
+evictTimer.unref()
