@@ -35,7 +35,9 @@ export function getGameCache(gameId: string): GameCacheHit | null {
 }
 
 /** Returns seed + stateSnapshot from cache (for reconstruction on sequence mismatch). */
-export function getCachedMeta(gameId: string): { seed: number; stateSnapshot: GameState | null } | null {
+export function getCachedMeta(
+  gameId: string,
+): { seed: number; stateSnapshot: GameState | null } | null {
   const entry = cache.get(gameId)
   if (!entry) return null
   return { seed: entry.seed, stateSnapshot: entry.stateSnapshot }
