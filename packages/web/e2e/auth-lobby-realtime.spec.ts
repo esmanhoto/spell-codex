@@ -33,7 +33,7 @@ test("two authenticated users can create/join and receive realtime updates", asy
     await page.getByTestId("pass-btn").click() // End Turn (skips draw and all phases)
 
     await expect(pageB.getByTestId("turn-info")).toContainText("Turn 2", { timeout: 8_000 })
-    await expect(pageB.getByTestId("active-player-label")).toContainText("You")
+    await expect(pageB.getByTestId("active-player-label")).toContainText("'s Turn")
   } finally {
     await contextB.close()
   }
