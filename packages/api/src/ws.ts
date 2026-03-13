@@ -14,6 +14,7 @@ import { applyMove, EngineError } from "@spell/engine"
 import type { GameState } from "@spell/engine"
 import { serializeGameState } from "./serialize.ts"
 import { authBypassEnabled, verifySupabaseAccessTokenFull } from "./auth-verify.ts"
+import { getCachedState, setCachedState, evictCachedState } from "./state-cache.ts"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,11 +112,22 @@ export async function processWsMove(
     return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
   }
 
-  const { state } = await reconstructState(
-    gameId,
-    game.seed,
-    (game.stateSnapshot as GameState | null) ?? null,
-  )
+  let seq = await lastSequence(gameId)
+  const actionsReplayed = seq + 1 // seq=-1 means 0 prior actions
+
+  const cached = getCachedState(gameId, seq)
+  let state: GameState
+  if (cached) {
+    state = cached
+  } else {
+    const { state: reconstructed } = await reconstructState(
+      gameId,
+      game.seed,
+      (game.stateSnapshot as GameState | null) ?? null,
+    )
+    state = reconstructed
+    setCachedState(gameId, state, seq)
+  }
   const t1 = performance.now()
 
   let result
@@ -131,9 +143,6 @@ export async function processWsMove(
   }
   const t2 = performance.now()
 
-  let seq = await lastSequence(gameId)
-  const actionsReplayed = seq + 1 // seq=-1 means 0 prior actions
-
   const tHashStart = performance.now()
   const stateHash = hashState(result.newState)
   const tHashEnd = performance.now()
@@ -146,6 +155,10 @@ export async function processWsMove(
     stateHash,
   })
   seq = action.sequence
+
+  // Update in-memory cache with the newly applied state
+  setCachedState(gameId, result.newState, seq)
+  if (result.newState.winner) evictCachedState(gameId)
 
   const newStatus = result.newState.winner ? "finished" : "active"
   const turnDeadline = result.newState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
@@ -197,6 +210,7 @@ export async function processWsMove(
       game: gameId,
       seq,
       move_type: move.type,
+      cache_hit: cached !== null,
       actions_replayed: actionsReplayed,
       reconstruct_ms: +(t1 - t0).toFixed(2),
       apply_move_ms: +(t2 - t1).toFixed(2),
@@ -294,15 +308,24 @@ export const wsHandlers = {
           registry.get(gameId)!.set(userId, ws)
 
           // Send current state (serialized to the API shape the client expects)
-          const { state } = await reconstructState(
-            gameId,
-            game.seed,
-            (game.stateSnapshot as GameState | null) ?? null,
-          )
+          const joinSeq = await lastSequence(gameId)
+          const joinCached = getCachedState(gameId, joinSeq)
+          let joinState: GameState
+          if (joinCached) {
+            joinState = joinCached
+          } else {
+            const { state: reconstructed } = await reconstructState(
+              gameId,
+              game.seed,
+              (game.stateSnapshot as GameState | null) ?? null,
+            )
+            joinState = reconstructed
+            setCachedState(gameId, joinState, joinSeq)
+          }
           send(ws, {
             type: "STATE_UPDATE",
             gameId,
-            state: serializeGameState(state, undefined, userId),
+            state: serializeGameState(joinState, undefined, userId),
           })
           return
         }

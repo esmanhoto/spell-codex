@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { getGameState, submitMove, createWsClient } from "../api.ts"
-import type { GameState, Move, GameEvent, WsClientMessage, CardInfo } from "../api.ts"
+import type { GameState, Move, GameEvent, WsClientMessage, CardInfo, PlayerBoard } from "../api.ts"
+import { cardImageUrl, CARD_BACK_URL } from "../utils/card-helpers.ts"
 import { BoardContext } from "../context/BoardContext.tsx"
 import { CombatContext } from "../context/CombatContext.tsx"
 import { MovesContext } from "../context/MovesContext.tsx"
@@ -57,6 +58,26 @@ function isPhase3SpellCastEvent(event: GameEvent): event is GameEvent & Phase3Sp
   return event.type === "PHASE3_SPELL_CAST"
 }
 
+function collectCardImageUrls(boards: Record<string, PlayerBoard>): string[] {
+  const urls = new Set<string>()
+  urls.add(CARD_BACK_URL)
+  for (const board of Object.values(boards)) {
+    for (const c of board.hand) urls.add(cardImageUrl(c.setId, c.cardNumber))
+    for (const slot of Object.values(board.formation)) {
+      if (slot) {
+        urls.add(cardImageUrl(slot.realm.setId, slot.realm.cardNumber))
+        for (const h of slot.holdings) urls.add(cardImageUrl(h.setId, h.cardNumber))
+      }
+    }
+    for (const entry of board.pool) {
+      urls.add(cardImageUrl(entry.champion.setId, entry.champion.cardNumber))
+      for (const a of entry.attachments) urls.add(cardImageUrl(a.setId, a.cardNumber))
+    }
+    for (const c of board.lastingEffects) urls.add(cardImageUrl(c.setId, c.cardNumber))
+  }
+  return [...urls]
+}
+
 function buildLingeringSpellsByPlayer(
   playerIds: string[],
   boards: Record<string, import("../api.ts").PlayerBoard> | undefined,
@@ -96,6 +117,9 @@ export function Game() {
   const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
   const [resolutionOutcome, setResolutionOutcome] = useState<ResolutionOutcome | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
+  const [imagesReady, setImagesReady] = useState(false)
+  const [imageProgress, setImageProgress] = useState({ loaded: 0, total: 0 })
+  const preCacheStartedRef = useRef(false)
   const moveCountRef = useRef(0)
   const lastMoveSentAtRef = useRef<number | null>(null)
   const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string; effects: string[] } | null>(
@@ -183,6 +207,28 @@ export function Game() {
     // Keep eventual consistency even if WS reconnect/proxy has issues.
     refetchInterval: (query) => (query.state.data?.winner ? false : 2000),
   })
+
+  // Pre-cache all card images on first load before showing the game board
+  useEffect(() => {
+    if (!data || preCacheStartedRef.current) return
+    preCacheStartedRef.current = true
+    const urls = collectCardImageUrls(data.board.players)
+    if (urls.length === 0) {
+      setImagesReady(true)
+      return
+    }
+    setImageProgress({ loaded: 0, total: urls.length })
+    let loaded = 0
+    for (const url of urls) {
+      const img = new Image()
+      img.onload = img.onerror = () => {
+        loaded++
+        setImageProgress({ loaded, total: urls.length })
+        if (loaded === urls.length) setImagesReady(true)
+      }
+      img.src = url
+    }
+  }, [data])
 
   const processIncomingEvents = useCallback(
     (events: GameEvent[]) => {
@@ -646,10 +692,32 @@ export function Game() {
     ],
   )
 
-  if (isLoading)
+  if (isLoading || (data && !imagesReady))
     return (
-      <div className="page">
-        <p>Loading...</p>
+      <div
+        className="page"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 16,
+        }}
+      >
+        {isLoading ? (
+          <p>Loading game state…</p>
+        ) : (
+          <>
+            <p>
+              Loading images… {imageProgress.loaded} / {imageProgress.total}
+            </p>
+            <progress
+              value={imageProgress.loaded}
+              max={imageProgress.total}
+              style={{ width: 240 }}
+            />
+          </>
+        )}
       </div>
     )
   if (error)

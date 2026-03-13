@@ -11,7 +11,10 @@ cardsRouter.get("/cardback.jpg", async (c) => {
   const file = Bun.file(filePath)
   if (!(await file.exists())) return c.notFound()
   return new Response(file, {
-    headers: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=86400" },
+    headers: {
+      "Content-Type": "image/jpeg",
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
   })
 })
 
@@ -28,7 +31,7 @@ cardsRouter.get("/:setId/:filename", async (c) => {
   return new Response(file, {
     headers: {
       "Content-Type": "image/jpeg",
-      "Cache-Control": "public, max-age=86400",
+      "Cache-Control": "public, max-age=31536000, immutable",
     },
   })
 })

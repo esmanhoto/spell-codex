@@ -254,7 +254,7 @@ describe("perf: end-to-end move via HTTP", () => {
     gameId = body.gameId
   })
 
-  it("submits a PASS move and measures total handler time", async () => {
+  it("move 1 — cold cache (full reconstruction)", async () => {
     const t0 = performance.now()
     const res = await app.request(`/games/${gameId}/moves`, {
       method: "POST",
@@ -265,9 +265,34 @@ describe("perf: end-to-end move via HTTP", () => {
 
     record("end_to_end_http_move_ms", elapsed)
     record("end_to_end_http_move_status", res.status)
-    console.log(`[perf] end-to-end HTTP move: ${elapsed.toFixed(2)}ms (status ${res.status})`)
+    console.log(
+      `[perf] end-to-end HTTP move (cold): ${elapsed.toFixed(2)}ms (status ${res.status})`,
+    )
 
-    // PASS may be invalid at game start depending on phase, so allow 422 too
+    expect([201, 422]).toContain(res.status)
+    expect(elapsed).toBeLessThan(5000)
+  })
+
+  it("move 2 — warm cache (no reconstruction)", async () => {
+    // Determine whose turn it is after move 1
+    const stateRes = await app.request(`/games/${gameId}`, { headers: headers(PLAYER_A) })
+    const stateBody = (await stateRes.json()) as { activePlayer: string }
+    const activePlayer = stateBody.activePlayer ?? PLAYER_A
+    const playerHeader = activePlayer === PLAYER_B ? PLAYER_B : PLAYER_A
+
+    const t0 = performance.now()
+    const res = await app.request(`/games/${gameId}/moves`, {
+      method: "POST",
+      headers: headers(playerHeader),
+      body: JSON.stringify({ type: "PASS" }),
+    })
+    const elapsed = performance.now() - t0
+
+    record("end_to_end_http_move_cached_ms", elapsed)
+    console.log(
+      `[perf] end-to-end HTTP move (warm cache): ${elapsed.toFixed(2)}ms (status ${res.status})`,
+    )
+
     expect([201, 422]).toContain(res.status)
     expect(elapsed).toBeLessThan(5000)
   })
