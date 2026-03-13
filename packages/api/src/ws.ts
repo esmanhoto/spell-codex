@@ -325,7 +325,7 @@ export const wsHandlers = {
           send(ws, {
             type: "STATE_UPDATE",
             gameId,
-            state: serializeGameState(joinState, undefined, userId),
+            state: serializeGameState(joinState, { includeDeckImages: true }, userId),
           })
           return
         }

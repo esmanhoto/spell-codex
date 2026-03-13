@@ -218,7 +218,7 @@ gamesRouter.get("/:id", async (c) => {
   )
 
   return c.json({
-    ...serializeGameState(state, { status: game.status, turnDeadline: game.turnDeadline }, userId),
+    ...serializeGameState(state, { status: game.status, turnDeadline: game.turnDeadline, includeDeckImages: true }, userId),
     players: players.map((p) => ({
       userId: p.userId,
       seatPosition: p.seatPosition,
