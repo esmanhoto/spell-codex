@@ -25,11 +25,11 @@
 }
 
 .playerLabel {
+  flex: 1;
   font-size: 10px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  background: #0d1f14;
   padding: 0 8px;
   position: relative;
   z-index: 1;
@@ -37,10 +37,12 @@
 
 .playerB {
   align-self: flex-start;
+  text-align: left;
 }
 
 .playerA {
   align-self: flex-end;
+  text-align: right;
 }
 
 .center {

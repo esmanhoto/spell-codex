@@ -138,6 +138,9 @@ export function Game() {
   const lastConfirmedStateRef = useRef<GameState | null>(null)
   // Ref to current data so sendMove can read it without a stale closure
   const currentDataRef = useRef<GameState | undefined>(undefined)
+  // Stable players ref — only updated when we have actual player data, never reset to undefined
+  const stablePlayersRef = useRef<GameState["players"]>(undefined)
+  const stableOpponentIdRef = useRef<string>("")
   // Client-side engine state for local move application (Phase 6)
   const localEngineStateRef = useRef<EngineGameState | null>(null)
   const {
@@ -212,6 +215,8 @@ export function Game() {
   })
   // Keep ref in sync so sendMove can access current state without a stale closure
   currentDataRef.current = data
+  // Only update stable players when we actually have player data
+  if (data?.players) stablePlayersRef.current = data.players
 
   // Pre-cache all card images on first load before showing the game board
   useEffect(() => {
@@ -696,10 +701,12 @@ export function Game() {
   }, [data?.legalMoves, showWarning, sendMove])
 
   const playerIds = useMemo(() => Object.keys(data?.board.players ?? {}), [data?.board.players])
-  const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? ""
-  const playerAName = data?.players?.find((p) => p.userId === myPlayerId)?.nickname || "You"
+  const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? stableOpponentIdRef.current
+  if (opponentPlayerId) stableOpponentIdRef.current = opponentPlayerId
+  const playerAName =
+    stablePlayersRef.current?.find((p) => p.userId === myPlayerId)?.nickname ?? ""
   const playerBName =
-    data?.players?.find((p) => p.userId === opponentPlayerId)?.nickname || "Opponent"
+    stablePlayersRef.current?.find((p) => p.userId === opponentPlayerId)?.nickname ?? ""
 
   const lingeringSpellsByPlayer = useMemo(
     () => buildLingeringSpellsByPlayer(playerIds, data?.board.players),
