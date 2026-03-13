@@ -36,6 +36,7 @@ import {
   persistSuppressedWarnings,
 } from "../utils/warnings.ts"
 import type { WarningCode } from "../utils/warnings.ts"
+import { applyOptimisticMove } from "../utils/optimistic-state.ts"
 import { MusicPlayer } from "../components/MusicPlayer.tsx"
 import { ChatBar } from "../components/game/ChatBar.tsx"
 import { ChatPanel } from "../components/game/ChatPanel.tsx"
@@ -129,6 +130,10 @@ export function Game() {
   const suppressedWarningsRef = useRef<Set<WarningCode>>(new Set())
   const processedEventsRef = useRef(0)
   const wsRef = useRef<ReturnType<typeof createWsClient> | null>(null)
+  // Optimistic UI: snapshot of last server-confirmed state for rollback on error
+  const lastConfirmedStateRef = useRef<GameState | null>(null)
+  // Ref to current data so sendMove can read it without a stale closure
+  const currentDataRef = useRef<GameState | undefined>(undefined)
   const {
     messages: chatMessages,
     unreadCount,
@@ -198,6 +203,8 @@ export function Game() {
     // Keep eventual consistency even if WS reconnect/proxy has issues.
     refetchInterval: (query) => (query.state.data?.winner ? false : 2000),
   })
+  // Keep ref in sync so sendMove can access current state without a stale closure
+  currentDataRef.current = data
 
   // Pre-cache all card images on first load before showing the game board
   useEffect(() => {
@@ -307,6 +314,8 @@ export function Game() {
           )
           lastMoveSentAtRef.current = null
         }
+        // Server confirmed — clear rollback snapshot
+        lastConfirmedStateRef.current = null
         const state = msg.state as GameState
         qc.setQueryData(["game", gameId, myPlayerId], state)
         if (state.events?.length) processIncomingEvents(state.events)
@@ -318,6 +327,12 @@ export function Game() {
           })
         }
       } else if (msg.type === "ERROR") {
+        // Rollback optimistic state if we have a confirmed snapshot
+        const confirmed = lastConfirmedStateRef.current
+        if (confirmed) {
+          qc.setQueryData(["game", gameId, myPlayerId], confirmed)
+          lastConfirmedStateRef.current = null
+        }
         setWsError(`${msg.code}: ${msg.message}`)
         if (msg.message) {
           showWarning(msg.message, classifyWarningCode({ code: msg.code, message: msg.message }))
@@ -359,6 +374,18 @@ export function Game() {
       setSelectedId(null)
       setLastMoveType(moves[moves.length - 1]!.type)
 
+      // Single move: apply optimistic state before sending
+      if (moves.length === 1) {
+        const currentState = currentDataRef.current
+        if (currentState) {
+          const optimistic = applyOptimisticMove(currentState, myPlayerId, moves[0]!)
+          if (optimistic) {
+            lastConfirmedStateRef.current = currentState
+            qc.setQueryData(["game", gameId, myPlayerId], optimistic)
+          }
+        }
+      }
+
       // Single move: prefer WS for low latency
       if (moves.length === 1) {
         if (wsRef.current?.sendMove(moves[0]!)) {
@@ -367,8 +394,17 @@ export function Game() {
           return
         }
         submitMove(gameId!, identity, moves[0]!)
-          .then(() => refetch())
+          .then(() => {
+            lastConfirmedStateRef.current = null
+            return refetch()
+          })
           .catch((err: unknown) => {
+            // Rollback optimistic state on HTTP error
+            const confirmed = lastConfirmedStateRef.current
+            if (confirmed) {
+              qc.setQueryData(["game", gameId, myPlayerId], confirmed)
+              lastConfirmedStateRef.current = null
+            }
             const raw = err instanceof Error ? err.message : String(err)
             const detail = raw.replace(/^\d+:\s*/, "")
             try {
@@ -422,7 +458,7 @@ export function Game() {
           console.error(err)
         })
     },
-    [gameId, identity, refetch, showWarning],
+    [gameId, identity, myPlayerId, qc, refetch, showWarning],
   )
 
   const submitRebuild = useCallback(
