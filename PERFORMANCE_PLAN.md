@@ -265,44 +265,49 @@ All other moves (DECLARE*ATTACK, combat, spells, RESOLVE*\*) return `null` → n
 
 ---
 
-## Phase 6 — Client-Side Engine
+## Phase 6 — Client-Side Engine ✅ DONE
 
-### 6.1 Bundle @spell/engine in the web client
+### 6.1 Bundle @spell/engine in the web client ✅
 
-The engine is pure TypeScript with zero dependencies — it can run in the browser as-is. Vite will bundle it automatically since it's a workspace package.
+Added `"@spell/engine": "workspace:*"` to `packages/web/package.json`. Vite bundles it automatically. Engine adds ~15-25KB minified to the browser bundle.
 
-This enables:
+### 6.2 Client-side legal moves ✅
 
-- Client-side legal moves calculation (remove from server payload)
-- Client-side move application (for optimistic UI and delta updates)
-- Client-side state validation (detect desyncs)
+Server no longer calls `getLegalMoves` in the move broadcast path (broadcast switched to `MOVE_APPLIED` — see 6.3). Client calls `getLegalMoves` locally via bundled engine after every move.
 
-### 6.2 Client-side legal moves
+### 6.3 Client applies moves locally + delta updates (4.4) ✅
 
-Instead of server computing `getLegalMoves()` and including it in every STATE_UPDATE payload:
+Server broadcasts `MOVE_APPLIED` delta instead of per-player `STATE_UPDATE`:
 
-- Client computes legal moves locally using its own engine copy
-- Server no longer serializes legal moves (saves CPU + bandwidth)
-- Legal moves are available instantly after state change (no round-trip)
+```json
+{
+  "type": "MOVE_APPLIED",
+  "gameId": "...",
+  "playerId": "...",
+  "move": { "type": "PLAY_REALM", ... },
+  "stateHash": "abc123...",
+  "sequence": 42,
+  "turnDeadline": "...",
+  "status": "active",
+  "winner": null
+}
+```
 
-This also reduces STATE_UPDATE payload by ~30-50%.
+- ~300-800 bytes vs 15-60KB previously — **50-200x reduction in WS bandwidth**
+- Client applies `applyMove(localEngineState, msg.playerId, msg.move)` locally
+- Client derives the full API-shaped `GameState` via `client-serialize.ts`
+- On server restart / reconnect: server sends `STATE_UPDATE` with `rawEngineState` on JOIN_GAME
 
-### 6.3 Client applies moves locally + delta updates (4.4)
+**`SYNC_REQUEST`**: client sends when it has no local engine state or receives an engine error. Server responds with full `STATE_UPDATE` (including `rawEngineState`) from cache.
 
-Combined with optimistic UI (Phase 5):
+New files:
 
-1. Player makes a move → client applies via engine instantly
-2. Move sent to server → server validates → broadcasts move (not full state)
-3. Other player's client receives move → applies via engine locally
-4. Both clients now have the new state without receiving 60KB
+- `packages/web/src/utils/client-serialize.ts` — port of `api/src/serialize.ts` using bundled engine
+- `packages/web/src/utils/state-hash.ts` — Web Crypto API SHA-256 hash
 
-Server becomes the authority and validator, not the renderer. Classic multiplayer game architecture (client-side prediction with server reconciliation).
+### 6.4 Hash reconciliation ✅
 
-**Includes 4.4 (delta state updates):** server broadcasts move + resulting events (~200-500 bytes) instead of full serialized state (15-60KB). Fall back to full state sync if client gets out of sync. Critical for 4-6 player scaling: current approach would send 60KB × 6 players = 360KB per move.
-
-### 6.4 Hash reconciliation
-
-Client computes state hash after applying a move. Server includes authoritative hash in its response. If hashes match → all good. If mismatch → client requests full state sync. In practice, mismatches should never happen since the engine is deterministic.
+Server includes `stateHash` in every `MOVE_APPLIED`. Client computes `hashEngineState(newState)` (async, Web Crypto). On mismatch → `SYNC_REQUEST` to re-initialize from authoritative server state. Hash parity between server (Node.js `crypto.createHash`) and client (Web Crypto `crypto.subtle.digest`) verified by unit test.
 
 ---
 
@@ -400,7 +405,7 @@ The `sequence` number makes this safe: server rejects any move with an unexpecte
 - ~~Phases 2-3 are pure improvements with no architectural risk~~ ✅ Done (Phase 2 partial, Phase 3 complete)
 - ~~Phase 4.1 is next: fire-and-forget metadata writes to break the ~100ms DB-write floor~~ ✅ Done (Phase 4 complete: 4.1 fire-and-forget, 4.2 skip hash on read, 4.3 exclude events from hash; 4.4 deferred to Phase 6)
 - ~~Phase 5~~ ✅ Done (optimistic UI: instant feedback for PLAY_REALM, PLACE_CHAMPION, ATTACH_ITEM, PLAY_HOLDING, DISCARD_CARD, pass-family moves; rollback on error)
-- Phase 6 is the next big UX transformation — client-side engine enables delta updates and removes server serialization cost
+- ~~Phase 6~~ ✅ Done (client-side engine: delta `MOVE_APPLIED` broadcast, client-side legal moves, hash reconciliation via Web Crypto)
 - Phase 7 is infrastructure only, no code changes beyond Dockerfile/deploy config
 - All phases benefit the future 4-6 player mode; especially delta updates (4.4, now part of 6.3) and client-side engine (6.x)
 - Error handling items should be implemented alongside their relevant phases, not as a separate effort
