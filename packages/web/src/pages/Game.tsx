@@ -687,7 +687,7 @@ export function Game() {
         "generic_warning",
         false,
         () => sendMove({ type: "CLAIM_SPOIL" }),
-        "Draw a spoil",
+        "Draw a well earned spoil",
       )
     }
     if (!hasSpoil) {
