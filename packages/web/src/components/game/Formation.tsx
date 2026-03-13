@@ -224,7 +224,6 @@ export function Formation({
 
   return (
     <div className={styles.formation}>
-      <span className={styles.label}>Formation</span>
       <div className={styles.pyramid}>
         {displayRows.map((row, ri) => (
           <div key={ri} className={styles.row}>
