@@ -194,7 +194,14 @@ describe("perf: initGame cost", () => {
 
 describe("perf: write results", () => {
   it("writes benchmark results to benchmarks/ directory", () => {
-    const label = process.env["PERF_LABEL"] ?? "local"
+    const label = process.env["PERF_LABEL"]
+    expect(Object.keys(results).length).toBeGreaterThan(0)
+
+    if (!label) {
+      console.log("[perf] skipping file write (PERF_LABEL not set)")
+      return
+    }
+
     const date = new Date().toISOString().slice(0, 10)
     const benchDir = resolve(import.meta.dir, "../../../benchmarks")
     const filePath = resolve(benchDir, `${date}_${label}.json`)
@@ -222,6 +229,5 @@ describe("perf: write results", () => {
 
     writeFileSync(filePath, JSON.stringify(output, null, 2))
     console.log(`[perf] results written to ${filePath}`)
-    expect(Object.keys(results).length).toBeGreaterThan(0)
   })
 })
