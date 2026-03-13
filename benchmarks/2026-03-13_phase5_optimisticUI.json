@@ -1,0 +1,22 @@
+{
+  "label": "phase5_local",
+  "date": "2026-03-13",
+  "engine": {
+    "applyMove_moves_played": 100,
+    "applyMove_total_ms": 4.449,
+    "applyMove_per_move_avg_ms": 0.044,
+    "getLegalMoves_initial_ms": 0.015,
+    "getLegalMoves_initial_count": 3,
+    "getLegalMoves_20moves_ms": 0.006,
+    "getLegalMoves_20moves_count": 12,
+    "getLegalMoves_60moves_ms": 0.007,
+    "getLegalMoves_60moves_count": 14,
+    "hashState_10moves_events": 19,
+    "hashState_10moves_ms": 0.163,
+    "hashState_50moves_events": 78,
+    "hashState_50moves_ms": 0.075,
+    "hashState_100moves_events": 147,
+    "hashState_100moves_ms": 0.069,
+    "initGame_ms": 0.01
+  }
+}
