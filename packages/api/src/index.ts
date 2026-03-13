@@ -94,11 +94,11 @@ export default {
     if (WEB_DIST) {
       const filePath = join(WEB_DIST, url.pathname)
       const file = Bun.file(filePath)
-      return file.exists().then((exists) =>
-        exists
-          ? new Response(file)
-          : new Response(Bun.file(join(WEB_DIST, "index.html"))),
-      )
+      return file
+        .exists()
+        .then((exists) =>
+          exists ? new Response(file) : new Response(Bun.file(join(WEB_DIST, "index.html"))),
+        )
     }
 
     return app.fetch(req)

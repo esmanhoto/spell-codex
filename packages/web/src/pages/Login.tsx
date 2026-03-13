@@ -101,11 +101,7 @@ export function Login() {
                 onChange={(e) => setBypassUserIdInput(e.target.value)}
               />
             </label>
-            <button
-              className={styles.primaryBtn}
-              data-testid="bypass-continue-btn"
-              type="submit"
-            >
+            <button className={styles.primaryBtn} data-testid="bypass-continue-btn" type="submit">
               Continue
             </button>
             {error && (

@@ -34,7 +34,9 @@ export function PhaseTracker({
   return (
     <div className={styles.container} data-testid="phase-tracker">
       {/* Turn number */}
-      <div className={styles.turnNumber} data-testid="turn-info">Turn {turnNumber}</div>
+      <div className={styles.turnNumber} data-testid="turn-info">
+        Turn {turnNumber}
+      </div>
 
       {/* Active player indicator */}
       <div className={styles.activePlayer}>
@@ -53,9 +55,7 @@ export function PhaseTracker({
           className={styles.lineProgress}
           style={{
             width:
-              currentIdx > 0
-                ? `calc(${(currentIdx / (PHASES.length - 1)) * 100}% - 32px)`
-                : "0px",
+              currentIdx > 0 ? `calc(${(currentIdx / (PHASES.length - 1)) * 100}% - 32px)` : "0px",
           }}
         />
 

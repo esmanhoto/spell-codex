@@ -76,8 +76,7 @@ function buildCombatState(
   const poolDefender = defenderState.pool[0]?.champion ?? null
   const defender =
     combat.roundPhase === "CARD_PLAY"
-      ? (poolDefender ??
-          (targetRealmSlot?.realm.card.level != null ? targetRealmSlot.realm : null))
+      ? (poolDefender ?? (targetRealmSlot?.realm.card.level != null ? targetRealmSlot.realm : null))
       : null
 
   return {
@@ -162,11 +161,7 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     currentTurn: 5,
     activePlayer,
     playerOrder: [DEV_P1_ID, DEV_P2_ID],
-    phase: combatState
-      ? Phase.Combat
-      : scenario.phase
-        ? (scenario.phase as Phase)
-        : Phase.Pool,
+    phase: combatState ? Phase.Combat : scenario.phase ? (scenario.phase as Phase) : Phase.Pool,
     combatState,
     resolutionContext: null,
     winner: null,

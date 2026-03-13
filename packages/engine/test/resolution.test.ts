@@ -347,7 +347,11 @@ describe("RESOLVE_REBUILD_REALM", () => {
     const s = buildPoolState({ handCard: event, p2Realms: true })
     let state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
     // Raze p2's realm A
-    state = applyMove(state, "p1", { type: "RESOLVE_RAZE_REALM", playerId: "p2", slot: "A" }).newState
+    state = applyMove(state, "p1", {
+      type: "RESOLVE_RAZE_REALM",
+      playerId: "p2",
+      slot: "A",
+    }).newState
     return state
   }
 
@@ -598,7 +602,9 @@ describe("resolution legal moves for pool attachments", () => {
     const s = openWithAttachments()
     const moves = getLegalMoves(s, "p1")
     const moveMoves = moves.filter(
-      (m) => m.type === "RESOLVE_MOVE_CARD" && (m as { cardInstanceId: string }).cardInstanceId === "ally-1",
+      (m) =>
+        m.type === "RESOLVE_MOVE_CARD" &&
+        (m as { cardInstanceId: string }).cardInstanceId === "ally-1",
     )
     const zones = moveMoves.map((m) => (m as { destination: { zone: string } }).destination.zone)
     expect(zones).toContain("discard")
@@ -609,7 +615,9 @@ describe("resolution legal moves for pool attachments", () => {
     const s = openWithAttachments()
     const moves = getLegalMoves(s, "p1")
     const moveMoves = moves.filter(
-      (m) => m.type === "RESOLVE_MOVE_CARD" && (m as { cardInstanceId: string }).cardInstanceId === "item-1",
+      (m) =>
+        m.type === "RESOLVE_MOVE_CARD" &&
+        (m as { cardInstanceId: string }).cardInstanceId === "item-1",
     )
     const zones = moveMoves.map((m) => (m as { destination: { zone: string } }).destination.zone)
     expect(zones).toContain("discard")
@@ -672,7 +680,9 @@ describe("resolution legal moves for formation holdings", () => {
     const s = openWithHoldings()
     const moves = getLegalMoves(s, "p1")
     const holdingMoves = moves.filter(
-      (m) => m.type === "RESOLVE_MOVE_CARD" && (m as { cardInstanceId: string }).cardInstanceId === "hold-1",
+      (m) =>
+        m.type === "RESOLVE_MOVE_CARD" &&
+        (m as { cardInstanceId: string }).cardInstanceId === "hold-1",
     )
     const zones = holdingMoves.map((m) => (m as { destination: { zone: string } }).destination.zone)
     expect(zones).toContain("discard")
@@ -718,7 +728,9 @@ describe("resolution legal moves for lasting effects", () => {
     const s = openWithLastingEffect()
     const moves = getLegalMoves(s, "p1")
     const lastingMoves = moves.filter(
-      (m) => m.type === "RESOLVE_MOVE_CARD" && (m as { cardInstanceId: string }).cardInstanceId === "lasting-1",
+      (m) =>
+        m.type === "RESOLVE_MOVE_CARD" &&
+        (m as { cardInstanceId: string }).cardInstanceId === "lasting-1",
     )
     const zones = lastingMoves.map((m) => (m as { destination: { zone: string } }).destination.zone)
     expect(zones).toContain("discard")

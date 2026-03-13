@@ -20,7 +20,12 @@ import {
   PROTECTED_BY,
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
-import { calculateCombatLevel, hasWorldMatch, getLosingPlayer, getPoolAttachments } from "./combat.ts"
+import {
+  calculateCombatLevel,
+  hasWorldMatch,
+  getLosingPlayer,
+  getPoolAttachments,
+} from "./combat.ts"
 import {
   canChampionUseSpell,
   canCastWithSupport,
@@ -407,7 +412,11 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
       ]
       for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
         if (realmSlot?.isRazed) {
-          moves.push({ type: "REBUILD_REALM", slot: slot as FormationSlot, cardInstanceIds: defaultIds })
+          moves.push({
+            type: "REBUILD_REALM",
+            slot: slot as FormationSlot,
+            cardInstanceIds: defaultIds,
+          })
         }
       }
     }

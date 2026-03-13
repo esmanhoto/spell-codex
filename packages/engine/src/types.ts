@@ -397,7 +397,12 @@ export type GameEvent =
       returnsOnTurn: number
     }
   | { type: "CHAMPION_FROM_LIMBO"; playerId: PlayerId; instanceId: CardInstanceId }
-  | { type: "CHAMPION_RETURNED_TO_POOL"; playerId: PlayerId; instanceId: CardInstanceId; cardName: string }
+  | {
+      type: "CHAMPION_RETURNED_TO_POOL"
+      playerId: PlayerId
+      instanceId: CardInstanceId
+      cardName: string
+    }
   | { type: "CARDS_DISCARDED"; playerId: PlayerId; instanceIds: CardInstanceId[] }
   | { type: "CARD_TO_ABYSS"; playerId: PlayerId; instanceId: CardInstanceId }
   | {

@@ -10,11 +10,7 @@ export function EmoteOverlay({ emotes }: EmoteOverlayProps) {
   return (
     <div className={styles.overlay}>
       {emotes.map((e) => (
-        <span
-          key={e.id}
-          className={styles.emote}
-          style={{ left: `${e.x}%` }}
-        >
+        <span key={e.id} className={styles.emote} style={{ left: `${e.x}%` }}>
           {e.emoji}
         </span>
       ))}

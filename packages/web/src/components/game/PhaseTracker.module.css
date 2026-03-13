@@ -30,8 +30,15 @@
 }
 
 @keyframes dotPulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--gold); }
-  50% { opacity: 0.4; box-shadow: none; }
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 4px var(--gold);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: none;
+  }
 }
 
 .activePlayerName {
@@ -103,8 +110,13 @@
 }
 
 @keyframes scalePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
 }
 
 .circlePast {
@@ -147,7 +159,9 @@
   border-radius: 4px;
   cursor: pointer;
   box-shadow: 0 0 10px rgba(201, 168, 76, 0.2);
-  transition: box-shadow 0.25s, transform 0.12s;
+  transition:
+    box-shadow 0.25s,
+    transform 0.12s;
 }
 
 .endTurnBtn:hover:not(:disabled) {
