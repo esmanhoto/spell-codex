@@ -20,19 +20,13 @@ const mockServer = { upgrade: () => false }
 
 describe("/api prefix routing", () => {
   it("GET /api/health strips prefix and returns ok", async () => {
-    const res = await serverConfig.fetch(
-      new Request("http://localhost/api/health"),
-      mockServer,
-    )
+    const res = await serverConfig.fetch(new Request("http://localhost/api/health"), mockServer)
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ ok: true })
   })
 
   it("GET /api/ (trailing slash only) routes to Hono root without 5xx", async () => {
-    const res = await serverConfig.fetch(
-      new Request("http://localhost/api/"),
-      mockServer,
-    )
+    const res = await serverConfig.fetch(new Request("http://localhost/api/"), mockServer)
     expect(res.status).toBeLessThan(500)
   })
 
@@ -49,10 +43,7 @@ describe("/api prefix routing", () => {
 
 describe("/ws routing", () => {
   it("GET /ws without WebSocket upgrade returns 426", async () => {
-    const res = await serverConfig.fetch(
-      new Request("http://localhost/ws"),
-      mockServer,
-    )
+    const res = await serverConfig.fetch(new Request("http://localhost/ws"), mockServer)
     expect(res.status).toBe(426)
   })
 })
@@ -76,10 +67,7 @@ describe("static file serving", () => {
   })
 
   it("serves an existing static asset", async () => {
-    const res = await serverConfig.fetch(
-      new Request("http://localhost/assets/app.js"),
-      mockServer,
-    )
+    const res = await serverConfig.fetch(new Request("http://localhost/assets/app.js"), mockServer)
     expect(res.status).toBe(200)
     expect(await res.text()).toContain("console.log")
   })
@@ -94,20 +82,14 @@ describe("static file serving", () => {
   })
 
   it("serves index.html for root path /", async () => {
-    const res = await serverConfig.fetch(
-      new Request("http://localhost/"),
-      mockServer,
-    )
+    const res = await serverConfig.fetch(new Request("http://localhost/"), mockServer)
     expect(res.status).toBe(200)
     expect(await res.text()).toContain("SPA")
   })
 
   it("/api/* is not intercepted by static serving", async () => {
     // Even with WEB_DIST_PATH set, /api/* must still route to Hono
-    const res = await serverConfig.fetch(
-      new Request("http://localhost/api/health"),
-      mockServer,
-    )
+    const res = await serverConfig.fetch(new Request("http://localhost/api/health"), mockServer)
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ ok: true })
   })

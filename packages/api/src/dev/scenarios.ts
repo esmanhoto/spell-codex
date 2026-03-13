@@ -283,15 +283,15 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
       pool: [{ card: { setId: "1st", cardNumber: 51 } }], // The Harpers, lv 6
       hand: [
         // Magical items
-        { setId: "1st", cardNumber: 94 },  // Dwarven Hammer (+3, Off)
+        { setId: "1st", cardNumber: 94 }, // Dwarven Hammer (+3, Off)
         { setId: "1st", cardNumber: 197 }, // Magical Barding (+2, Def)
         { setId: "1st", cardNumber: 105 }, // Staff of Conjuring (+5, Off)
         { setId: "1st", cardNumber: 313 }, // Shield of Destruction (+1, Def)
         // Allies
-        { setId: "1st", cardNumber: 54 },  // War Party (+4)
+        { setId: "1st", cardNumber: 54 }, // War Party (+4)
         { setId: "1st", cardNumber: 154 }, // Hordes of Castle Greyhawk (+5)
         // Wizard spells
-        { setId: "1st", cardNumber: 96 },  // Horrors of the Abyss (+5, Off)
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss (+5, Off)
         { setId: "1st", cardNumber: 342 }, // Shield (+2, Def)
         // Cleric spells
         { setId: "1st", cardNumber: 351 }, // Sticks to Snakes (+4, Off)
@@ -308,9 +308,9 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
         {
           card: { setId: "1st", cardNumber: 447 }, // Fejyelsae, lv 10
           attachments: [
-            { setId: "1st", cardNumber: 58 },  // Armies of Bloodstone (+4)
-            { setId: "1st", cardNumber: 59 },  // The Iron Legion (+3)
-            { setId: "1st", cardNumber: 61 },  // Myrmidons (+4)
+            { setId: "1st", cardNumber: 58 }, // Armies of Bloodstone (+4)
+            { setId: "1st", cardNumber: 59 }, // The Iron Legion (+3)
+            { setId: "1st", cardNumber: 61 }, // Myrmidons (+4)
             { setId: "1st", cardNumber: 154 }, // Hordes of Castle Greyhawk (+5)
           ],
         },

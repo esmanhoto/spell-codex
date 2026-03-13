@@ -41,12 +41,16 @@ function shouldTag(desc: string): boolean {
   if (NEGATION_PATTERN.test(lower)) return false
 
   // Exclude trigger-only — cards that react to being rebuilt, not cause rebuilds
-  if (TRIGGER_PATTERN.test(lower) && !REALM_OR_RAZED.test(lower.replace(/\b(when|if)\b.*?\brebuilt\b/, ""))) {
+  if (
+    TRIGGER_PATTERN.test(lower) &&
+    !REALM_OR_RAZED.test(lower.replace(/\b(when|if)\b.*?\brebuilt\b/, ""))
+  ) {
     return false
   }
 
   // Match: description mentions rebuild + (razed or realm or "it" as pronoun)
-  if (REBUILD_PATTERN.test(lower) && (REALM_OR_RAZED.test(lower) || /\brebuild it\b/i.test(lower))) return true
+  if (REBUILD_PATTERN.test(lower) && (REALM_OR_RAZED.test(lower) || /\brebuild it\b/i.test(lower)))
+    return true
 
   // Match: "restores one razed realm" style wording
   if (RESTORE_RAZED.test(lower)) return true
@@ -77,17 +81,18 @@ function processFile(filePath: string): number {
     // We find each card's block by searching for its unique cardNumber + name combo,
     // then replace the effects line within that block.
     for (const card of cards) {
-      if (!card.description || card.effects.includes(EFFECT) || !shouldTag(card.description)) continue
+      if (!card.description || card.effects.includes(EFFECT) || !shouldTag(card.description))
+        continue
 
       // Match the "effects": [] line that follows this card's name line
       const nameEscaped = card.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      const pattern = new RegExp(
-        `("name":\\s*"${nameEscaped}"[\\s\\S]*?"effects":\\s*)\\[\\]`,
-      )
+      const pattern = new RegExp(`("name":\\s*"${nameEscaped}"[\\s\\S]*?"effects":\\s*)\\[\\]`)
       const replacement = `$1["${EFFECT}"]`
       const newText = text.replace(pattern, replacement)
       if (newText === text) {
-        console.log(`  [!] Could not patch #${card.cardNumber} ${card.name} — effects may already be non-empty`)
+        console.log(
+          `  [!] Could not patch #${card.cardNumber} ${card.name} — effects may already be non-empty`,
+        )
       }
       text = newText
     }
@@ -104,8 +109,7 @@ function processFile(filePath: string): number {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2)
-const files =
-  args.length > 0 ? args : [join(import.meta.dir, "..", "cards", "1st.json")]
+const files = args.length > 0 ? args : [join(import.meta.dir, "..", "cards", "1st.json")]
 
 console.log(`Scanning for "${EFFECT}" effect...\n`)
 

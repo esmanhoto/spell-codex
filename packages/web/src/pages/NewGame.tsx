@@ -190,7 +190,8 @@ export function NewGame() {
               >
                 <span className={styles.displayNameLabel}>Your display name:</span>
                 <span className={styles.displayNameValue}>
-                  {nicknameInput || (profileData?.email ? formatEmailAsName(profileData.email) : "—")}
+                  {nicknameInput ||
+                    (profileData?.email ? formatEmailAsName(profileData.email) : "—")}
                 </span>
                 <svg
                   className={styles.editIcon}

@@ -67,12 +67,12 @@ export function ChatPanel({ messages, myPlayerId, playerIds, onSend, onClose }: 
           const showName = !prevEntry || prevEntry.playerId !== entry.playerId
 
           return (
-            <div key={entry.id} className={`${styles.msgRow} ${isSelf ? styles.self : styles.other}`}>
+            <div
+              key={entry.id}
+              className={`${styles.msgRow} ${isSelf ? styles.self : styles.other}`}
+            >
               {showName && (
-                <span
-                  className={styles.playerLabel}
-                  style={{ color: playerColor(entry.playerId) }}
-                >
+                <span className={styles.playerLabel} style={{ color: playerColor(entry.playerId) }}>
                   {isSelf ? "You" : playerLabel(entry, playerIds)}
                 </span>
               )}

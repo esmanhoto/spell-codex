@@ -410,7 +410,13 @@ function handleRebuildRealm(
     return c
   })
   const discardedIds = ids
-  events.push({ type: "REALM_REBUILT", playerId, slot: move.slot, realmName: realmSlot.realm.card.name, discardedIds })
+  events.push({
+    type: "REALM_REBUILT",
+    playerId,
+    slot: move.slot,
+    realmName: realmSlot.realm.card.name,
+    discardedIds,
+  })
 
   const discardSet = new Set(ids)
   let s = {
@@ -464,7 +470,13 @@ function handlePlayHolding(
   }
 
   if (isRebuilder && realmSlot.isRazed) {
-    events.push({ type: "REALM_REBUILT", playerId, slot: move.realmSlot, realmName: realmSlot.realm.card.name, discardedIds: [] })
+    events.push({
+      type: "REALM_REBUILT",
+      playerId,
+      slot: move.realmSlot,
+      realmName: realmSlot.realm.card.name,
+      discardedIds: [],
+    })
   }
   events.push({
     type: "HOLDING_PLAYED",
@@ -1467,7 +1479,12 @@ function razeRealm(
   const realmSlot = player.formation.slots[slot]
   if (!realmSlot) return state
 
-  events.push({ type: "REALM_RAZED", playerId: ownerId, slot, realmName: realmSlot.realm.card.name })
+  events.push({
+    type: "REALM_RAZED",
+    playerId: ownerId,
+    slot,
+    realmName: realmSlot.realm.card.name,
+  })
 
   // Holdings are discarded when realm is razed
   const discarded = realmSlot.holdings

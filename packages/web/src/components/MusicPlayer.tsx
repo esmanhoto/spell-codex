@@ -37,8 +37,16 @@ interface YTPlayer {
 }
 
 const PLAYLISTS = [
-  { id: "heavy-metal" as const, label: "Heavy Metal", playlistId: "PLidIjcybOMhxU8YWXMgZnH7a2jJZoyBGD" },
-  { id: "power-metal" as const, label: "Power Metal", playlistId: "PLyNluqYn9ZuiK_HyJeUa1hSOT0t4oIbC0" },
+  {
+    id: "heavy-metal" as const,
+    label: "Heavy Metal",
+    playlistId: "PLidIjcybOMhxU8YWXMgZnH7a2jJZoyBGD",
+  },
+  {
+    id: "power-metal" as const,
+    label: "Power Metal",
+    playlistId: "PLyNluqYn9ZuiK_HyJeUa1hSOT0t4oIbC0",
+  },
 ]
 
 type PlaylistId = "heavy-metal" | "power-metal"
@@ -222,7 +230,11 @@ export function MusicPlayer() {
 
       {open && (
         <div className={styles.dropdown}>
-          <button type="button" className={`${styles.option} ${styles.optionStop}`} onClick={clearMusic}>
+          <button
+            type="button"
+            className={`${styles.option} ${styles.optionStop}`}
+            onClick={clearMusic}
+          >
             <span className={styles.optionStopIcon}>✕</span>
             <span>No Music</span>
           </button>

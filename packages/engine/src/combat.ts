@@ -70,7 +70,11 @@ export function hasWorldMatch(champion: CardInstance, realmWorldId: number): boo
 }
 
 /** Look up a champion's pool attachments from game state. */
-export function getPoolAttachments(state: GameState, playerId: PlayerId, championId: string): CardInstance[] {
+export function getPoolAttachments(
+  state: GameState,
+  playerId: PlayerId,
+  championId: string,
+): CardInstance[] {
   const entry = state.players[playerId]?.pool.find((e) => e.champion.instanceId === championId)
   return entry?.attachments ?? []
 }

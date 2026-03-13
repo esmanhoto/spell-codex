@@ -52,7 +52,13 @@ export function useChat(wsRef: React.RefObject<WsClient | null>, isOpen: boolean
   const onWsMessage = useCallback(
     (msg: WsClientMessage) => {
       if (msg.type === "CHAT_MSG") {
-        addMessage({ type: "message", playerId: msg.playerId, displayName: msg.displayName, text: msg.text, ts: msg.ts })
+        addMessage({
+          type: "message",
+          playerId: msg.playerId,
+          displayName: msg.displayName,
+          text: msg.text,
+          ts: msg.ts,
+        })
       } else if (msg.type === "CHAT_EMOTE") {
         spawnFloatingEmote(msg.emote)
       }
