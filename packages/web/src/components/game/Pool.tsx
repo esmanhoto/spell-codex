@@ -1,5 +1,7 @@
 import { useState } from "react"
-import { useGame } from "../../context/GameContext.tsx"
+import { useBoard } from "../../context/BoardContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
+import { useGameUI } from "../../context/UIContext.tsx"
 import type { PoolEntry as PoolEntryType, CardInfo } from "../../api.ts"
 import { resolveHandDropMove } from "../../utils/manual-actions.ts"
 import { PoolEntry } from "./PoolEntry.tsx"
@@ -17,7 +19,9 @@ export function Pool({
   lingeringSpells?: CardInfo[]
   ownerId?: string
 }) {
-  const { legalMoves, onMove, allBoards, phase, showWarning } = useGame()
+  const { allBoards } = useBoard()
+  const { legalMoves, onMove, phase } = useMoves()
+  const { showWarning } = useGameUI()
   const [dragOver, setDragOver] = useState(false)
 
   function findDraggedHandCard(instanceId: string) {

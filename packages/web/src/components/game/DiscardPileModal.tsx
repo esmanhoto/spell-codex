@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import type { CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
-import { useGame } from "../../context/GameContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
 import styles from "./DiscardPileModal.module.css"
 
 const CHAMPION_TYPE_IDS = new Set([5, 7, 10, 12, 14, 16, 20])
@@ -19,7 +19,7 @@ export function DiscardPileModal({
   cards: CardInfo[]
   onClose: () => void
 }) {
-  const { onMove } = useGame()
+  const { onMove } = useMoves()
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {

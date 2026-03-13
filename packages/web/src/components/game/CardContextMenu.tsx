@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react"
 import type { Move } from "../../api.ts"
-import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import type { ContextMenuAction } from "../../context/types.ts"
 import styles from "./CardContextMenu.module.css"
 
 export function CardContextMenu({

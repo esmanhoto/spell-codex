@@ -1,5 +1,5 @@
 import type { PlayerBoard } from "../../api.ts"
-import { useGame } from "../../context/GameContext.tsx"
+import { useBoard } from "../../context/BoardContext.tsx"
 import { Formation } from "./Formation.tsx"
 import { Pool } from "./Pool.tsx"
 import styles from "./PlayerArea.module.css"
@@ -15,7 +15,7 @@ export function PlayerArea({
   isOpponent: boolean
   attackedSlot?: string
 }) {
-  const { lingeringSpellsByPlayer } = useGame()
+  const { lingeringSpellsByPlayer } = useBoard()
   const lingering = lingeringSpellsByPlayer[playerId] ?? []
 
   // For opponent (top), formation is first (closer to divider), then pool

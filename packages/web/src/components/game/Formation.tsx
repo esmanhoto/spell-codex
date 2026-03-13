@@ -1,5 +1,7 @@
-import { useState } from "react"
-import { useGame } from "../../context/GameContext.tsx"
+import { useState, useCallback } from "react"
+import { useBoard } from "../../context/BoardContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
+import { useGameUI } from "../../context/UIContext.tsx"
 import type { CardInfo, SlotState } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
@@ -21,21 +23,10 @@ export function Formation({
   isOpponent: boolean
   attackedSlot?: string
 }) {
-  const {
-    legalMoves,
-    onMove,
-    selectedId,
-    onSelect,
-    openContextMenu,
-    allBoards,
-    phase,
-    showWarning,
-    myPlayerId,
-    activePlayer,
-    turnNumber,
-    requestSpellCast,
-    setRebuildTarget,
-  } = useGame()
+  const { allBoards, myPlayerId } = useBoard()
+  const { legalMoves, onMove, phase, activePlayer, turnNumber } = useMoves()
+  const { selectedId, onSelect, openContextMenu, showWarning, requestSpellCast, setRebuildTarget } =
+    useGameUI()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
 
   function findDraggedHandCard(instanceId: string): CardInfo | undefined {
@@ -46,23 +37,26 @@ export function Formation({
     return undefined
   }
 
-  function isCardAlreadyInPlay(card: CardInfo): boolean {
-    return Object.values(allBoards).some((board) => {
-      const inFormation = Object.values(board.formation).some(
-        (slotState) =>
-          !!slotState &&
-          ((slotState.realm.name === card.name && slotState.realm.typeId === card.typeId) ||
-            slotState.holdings.some((h) => h.name === card.name && h.typeId === card.typeId)),
-      )
-      if (inFormation) return true
+  const isCardAlreadyInPlay = useCallback(
+    (card: CardInfo): boolean => {
+      return Object.values(allBoards).some((board) => {
+        const inFormation = Object.values(board.formation).some(
+          (slotState) =>
+            !!slotState &&
+            ((slotState.realm.name === card.name && slotState.realm.typeId === card.typeId) ||
+              slotState.holdings.some((h) => h.name === card.name && h.typeId === card.typeId)),
+        )
+        if (inFormation) return true
 
-      return board.pool.some(
-        (entry) =>
-          (entry.champion.name === card.name && entry.champion.typeId === card.typeId) ||
-          entry.attachments.some((a) => a.name === card.name && a.typeId === card.typeId),
-      )
-    })
-  }
+        return board.pool.some(
+          (entry) =>
+            (entry.champion.name === card.name && entry.champion.typeId === card.typeId) ||
+            entry.attachments.some((a) => a.name === card.name && a.typeId === card.typeId),
+        )
+      })
+    },
+    [allBoards],
+  )
 
   function findDraggedPoolChampion(instanceId: string): CardInfo | undefined {
     for (const board of Object.values(allBoards)) {
@@ -256,12 +250,14 @@ export function Formation({
               const rebuildMove =
                 s?.isRazed && !isOpponent
                   ? legalMoves.find(
-                      (m) =>
-                        m.type === "REBUILD_REALM" &&
-                        (m as { slot: string }).slot === slot,
+                      (m) => m.type === "REBUILD_REALM" && (m as { slot: string }).slot === slot,
                     )
                   : undefined
-              const contextMenuItems: { label: string; move?: (typeof legalMoves)[number]; action?: () => void }[] = []
+              const contextMenuItems: {
+                label: string
+                move?: (typeof legalMoves)[number]
+                action?: () => void
+              }[] = []
               if (rebuildMove)
                 contextMenuItems.push({
                   label: "Rebuild Realm (discard 3)",
@@ -333,6 +329,7 @@ export function Formation({
                                   )}
                                   alt={holdingForStack.name}
                                   className={styles.holdingPeekImg}
+                                  loading="lazy"
                                   onError={(e) => {
                                     ;(e.target as HTMLImageElement).style.display = "none"
                                   }}
@@ -344,6 +341,7 @@ export function Formation({
                                 src={cardImageUrl(s.realm.setId, s.realm.cardNumber)}
                                 alt={s.realm.name}
                                 className={styles.realmImg}
+                                loading="lazy"
                                 onError={(e) => {
                                   ;(e.target as HTMLImageElement).style.display = "none"
                                 }}

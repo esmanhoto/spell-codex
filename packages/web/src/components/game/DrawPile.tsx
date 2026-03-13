@@ -1,4 +1,6 @@
-import { useGame } from "../../context/GameContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
+import { useBoard } from "../../context/BoardContext.tsx"
+import { useGameUI } from "../../context/UIContext.tsx"
 import styles from "./DrawPile.module.css"
 
 export function DrawPile({
@@ -10,7 +12,9 @@ export function DrawPile({
   disabled?: boolean
   handCount: number
 }) {
-  const { legalMoves, onMove, handMaxSize, openContextMenu } = useGame()
+  const { legalMoves, onMove } = useMoves()
+  const { handMaxSize } = useBoard()
+  const { openContextMenu } = useGameUI()
 
   function handleClick() {
     if (disabled) return

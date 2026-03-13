@@ -1,11 +1,12 @@
-import { useGame } from "../../context/GameContext.tsx"
+import React, { memo } from "react"
+import { useGameUI } from "../../context/UIContext.tsx"
 import type { CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
-import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import type { ContextMenuAction } from "../../context/types.ts"
 import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./CardComponent.module.css"
 
-export function CardComponent({
+export const CardComponent = memo(function CardComponent({
   card,
   selected,
   onClick,
@@ -26,7 +27,7 @@ export function CardComponent({
   className?: string
   style?: React.CSSProperties
 }) {
-  const { openContextMenu } = useGame()
+  const { openContextMenu } = useGameUI()
 
   return (
     <CardTooltip card={card}>
@@ -59,6 +60,7 @@ export function CardComponent({
             src={cardImageUrl(card.setId, card.cardNumber)}
             alt={card.name}
             className={styles.img}
+            loading="lazy"
             onError={(e) => {
               ;(e.target as HTMLImageElement).style.display = "none"
             }}
@@ -71,4 +73,4 @@ export function CardComponent({
       </div>
     </CardTooltip>
   )
-}
+})

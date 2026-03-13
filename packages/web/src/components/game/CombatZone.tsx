@@ -1,23 +1,20 @@
 import { useState } from "react"
-import { useGame } from "../../context/GameContext.tsx"
+import { useBoard } from "../../context/BoardContext.tsx"
+import { useCombat } from "../../context/CombatContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
+import { useGameUI } from "../../context/UIContext.tsx"
 import { cardImageUrl, nameOfCard } from "../../utils/card-helpers.ts"
 import type { CardInfo } from "../../api.ts"
-import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import type { ContextMenuAction } from "../../context/types.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
 import { CombatTooltip } from "./CombatTooltip.tsx"
 import styles from "./CombatZone.module.css"
 
 export function CombatZone() {
-  const {
-    combat,
-    playerA,
-    playerB,
-    legalMoves,
-    onMove,
-    openContextMenu,
-    allBoards,
-    requestSpellCast,
-  } = useGame()
+  const { playerA, playerB, allBoards } = useBoard()
+  const { combat } = useCombat()
+  const { legalMoves, onMove } = useMoves()
+  const { openContextMenu, requestSpellCast } = useGameUI()
   const [inputA, setInputA] = useState("")
   const [inputB, setInputB] = useState("")
   const [editingA, setEditingA] = useState(false)

@@ -1,5 +1,5 @@
 import type { CardInfo, Move, SlotState } from "../api.ts"
-import type { ContextMenuAction } from "../context/GameContext.tsx"
+import type { ContextMenuAction } from "../context/types.ts"
 import { isSpellCard } from "./spell-casting.ts"
 
 function findCardMove(legalMoves: Move[], type: Move["type"], cardInstanceId: string): Move | null {

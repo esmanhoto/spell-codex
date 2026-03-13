@@ -1,10 +1,10 @@
-import { useRef, useEffect, useState } from "react"
-import { useGame } from "../../context/GameContext.tsx"
+import { useRef, useEffect, useState, memo } from "react"
+import { useBoard } from "../../context/BoardContext.tsx"
 import type { GameEvent } from "../../api.ts"
 import styles from "./EventLog.module.css"
 
-export function EventLog({ events }: { events: GameEvent[] }) {
-  const { playerA, playerAName, playerBName } = useGame()
+export const EventLog = memo(function EventLog({ events }: { events: GameEvent[] }) {
+  const { playerA, playerAName, playerBName } = useBoard()
   const logRef = useRef<HTMLDivElement>(null)
   const [collapsed, setCollapsed] = useState(true)
 
@@ -115,4 +115,4 @@ export function EventLog({ events }: { events: GameEvent[] }) {
       </div>
     </>
   )
-}
+})
