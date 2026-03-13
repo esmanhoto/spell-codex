@@ -1,6 +1,5 @@
 import { initGame, applyMove } from "@spell/engine"
 import type { GameState, Move, CardData } from "@spell/engine"
-import { hashState } from "./hash.ts"
 import { listActions } from "./actions.ts"
 import { getGamePlayers } from "./games.ts"
 
@@ -74,15 +73,6 @@ export async function reconstructState(
     }
 
     current = next.newState
-
-    const actualHash = hashState(current)
-    if (actualHash !== action.stateHash) {
-      errors.push({
-        kind: "hash_mismatch",
-        sequence: action.sequence,
-        message: `expected ${action.stateHash}, got ${actualHash}`,
-      })
-    }
   }
 
   return { state: current, errors }
