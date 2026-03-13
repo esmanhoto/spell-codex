@@ -317,7 +317,25 @@ export async function submitMove(
 // ─── WebSocket client ─────────────────────────────────────────────────────────
 
 export type WsClientMessage =
-  | { type: "STATE_UPDATE"; gameId: string; state: GameState }
+  | {
+      type: "STATE_UPDATE"
+      gameId: string
+      state: GameState
+      /** Full engine GameState for client-side engine init */
+      rawEngineState?: unknown
+      sequence?: number
+    }
+  | {
+      type: "MOVE_APPLIED"
+      gameId: string
+      playerId: string
+      move: { type: string; [key: string]: unknown }
+      stateHash: string
+      sequence: number
+      turnDeadline: string | null
+      status: string
+      winner: string | null
+    }
   | { type: "GAME_OVER"; gameId: string; winner: string }
   | {
       type: "CHAT_MSG"
@@ -336,6 +354,8 @@ export interface WsClient {
   sendMove: (move: Move) => boolean
   sendChat: (text: string) => boolean
   sendEmote: (emote: string) => boolean
+  /** Request a full state sync (e.g. after hash mismatch or engine error). */
+  sendSyncRequest: (gameId: string) => boolean
   close: () => void
 }
 
@@ -406,6 +426,13 @@ export function createWsClient(
     sendEmote(emote: string): boolean {
       if (ws?.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "CHAT_EMOTE", emote }))
+        return true
+      }
+      return false
+    },
+    sendSyncRequest(gId: string): boolean {
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "SYNC_REQUEST", gameId: gId }))
         return true
       }
       return false

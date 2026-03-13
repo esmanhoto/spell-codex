@@ -1,0 +1,37 @@
+{
+  "label": "phase6_clientengine",
+  "date": "2026-03-13",
+  "api": {
+    "reconstruct_50_actions_ms": 1.744,
+    "reconstruct_50_actions_events": 67,
+    "reconstruct_100_actions_ms": 2.115,
+    "reconstruct_100_actions_events": 117,
+    "reconstruct_200_actions_ms": 2.341,
+    "reconstruct_200_actions_events": 217,
+    "serialize_playerA_ms": 0.226,
+    "serialize_payload_bytes_playerA": 9350,
+    "serialize_playerB_ms": 0.021,
+    "serialize_payload_bytes_playerB": 8328,
+    "end_to_end_http_move_ms": 5.412,
+    "end_to_end_http_move_status": 201,
+    "end_to_end_http_move_cached_ms": 0.954
+  },
+  "engine": {
+    "applyMove_moves_played": 100,
+    "applyMove_total_ms": 2.242,
+    "applyMove_per_move_avg_ms": 0.022,
+    "getLegalMoves_initial_ms": 0.009,
+    "getLegalMoves_initial_count": 3,
+    "getLegalMoves_20moves_ms": 0.009,
+    "getLegalMoves_20moves_count": 12,
+    "getLegalMoves_60moves_ms": 0.008,
+    "getLegalMoves_60moves_count": 14,
+    "hashState_10moves_events": 19,
+    "hashState_10moves_ms": 0.092,
+    "hashState_50moves_events": 78,
+    "hashState_50moves_ms": 0.063,
+    "hashState_100moves_events": 147,
+    "hashState_100moves_ms": 0.063,
+    "initGame_ms": 0.017
+  }
+}

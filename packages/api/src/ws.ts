@@ -21,12 +21,33 @@ import { getGameCache, setCachedState, evictCachedState } from "./state-cache.ts
 export type ClientMessage =
   | { type: "JOIN_GAME"; gameId: string; token?: string; playerId?: string }
   | { type: "SUBMIT_MOVE"; gameId: string; move: { type: string; [key: string]: unknown } }
+  | { type: "SYNC_REQUEST"; gameId: string }
   | { type: "CHAT_MSG"; text: string }
   | { type: "CHAT_EMOTE"; emote: string }
   | { type: "PING" }
 
 export type ServerMessage =
-  | { type: "STATE_UPDATE"; gameId: string; state: unknown }
+  | {
+      type: "STATE_UPDATE"
+      gameId: string
+      state: unknown
+      /** Full engine GameState — sent on JOIN_GAME and SYNC_REQUEST for client-side engine init */
+      rawEngineState?: GameState
+      sequence?: number
+    }
+  | {
+      /** Delta update — replaces STATE_UPDATE in the move broadcast path */
+      type: "MOVE_APPLIED"
+      gameId: string
+      /** Player who submitted the move */
+      playerId: string
+      move: { type: string; [key: string]: unknown }
+      stateHash: string
+      sequence: number
+      turnDeadline: string | null
+      status: string
+      winner: string | null
+    }
   | { type: "GAME_OVER"; gameId: string; winner: string }
   | {
       type: "CHAT_MSG"
@@ -187,7 +208,7 @@ export async function processWsMove(
     void metaWrites
   }
 
-  // Broadcast updated state to all players in the game (player-specific visibility)
+  // Broadcast delta update to all players — client applies via local engine
   const newTurnDeadline = result.newState.winner
     ? null
     : new Date(Date.now() + TURN_DEADLINE_MS).toISOString()
@@ -195,21 +216,20 @@ export async function processWsMove(
   let broadcastBytes = 0
   const tSerializeStart = performance.now()
   if (sockets) {
-    for (const [viewerPlayerId, socket] of sockets.entries()) {
-      const msg: ServerMessage = {
-        type: "STATE_UPDATE",
-        gameId,
-        state: serializeGameState(
-          result.newState,
-          {
-            status: result.newState.winner ? "finished" : "active",
-            turnDeadline: newTurnDeadline,
-          },
-          viewerPlayerId,
-        ),
-      }
-      const encoded = JSON.stringify(msg)
-      broadcastBytes += encoded.length
+    const msg: ServerMessage = {
+      type: "MOVE_APPLIED",
+      gameId,
+      playerId: userId,
+      move,
+      stateHash,
+      sequence: seq,
+      turnDeadline: newTurnDeadline,
+      status: result.newState.winner ? "finished" : "active",
+      winner: result.newState.winner ?? null,
+    }
+    const encoded = JSON.stringify(msg)
+    broadcastBytes = encoded.length * sockets.size
+    for (const socket of sockets.values()) {
       try {
         socket.send(encoded)
       } catch {
@@ -330,10 +350,12 @@ export const wsHandlers = {
           // Send current state (serialized to the API shape the client expects)
           const joinHit = getGameCache(gameId)
           let joinState: GameState
+          let joinSeq: number
           if (joinHit) {
             joinState = joinHit.state
+            joinSeq = joinHit.sequence
           } else {
-            const joinSeq = await lastSequence(gameId)
+            joinSeq = await lastSequence(gameId)
             const { state: reconstructed } = await reconstructState(
               gameId,
               game.seed,
@@ -351,6 +373,37 @@ export const wsHandlers = {
             type: "STATE_UPDATE",
             gameId,
             state: serializeGameState(joinState, { includeDeckImages: true }, userId),
+            rawEngineState: joinState,
+            sequence: joinSeq,
+          })
+          return
+        }
+
+        case "SYNC_REQUEST": {
+          const { gameId: syncGameId } = msg
+          if (!ws.data.userId) {
+            send(ws, { type: "ERROR", code: "NOT_JOINED", message: "Join a game first" })
+            return
+          }
+          const syncHit = getGameCache(syncGameId)
+          if (!syncHit) {
+            send(ws, { type: "ERROR", code: "NOT_FOUND", message: "Game state unavailable" })
+            return
+          }
+          if (!syncHit.playerIds.includes(ws.data.userId)) {
+            send(ws, { type: "ERROR", code: "FORBIDDEN", message: "Not a participant" })
+            return
+          }
+          send(ws, {
+            type: "STATE_UPDATE",
+            gameId: syncGameId,
+            state: serializeGameState(
+              syncHit.state,
+              { status: syncHit.state.winner ? "finished" : "active" },
+              ws.data.userId,
+            ),
+            rawEngineState: syncHit.state,
+            sequence: syncHit.sequence,
           })
           return
         }
