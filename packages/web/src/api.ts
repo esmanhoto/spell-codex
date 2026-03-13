@@ -318,7 +318,14 @@ export async function submitMove(
 export type WsClientMessage =
   | { type: "STATE_UPDATE"; gameId: string; state: GameState }
   | { type: "GAME_OVER"; gameId: string; winner: string }
-  | { type: "CHAT_MSG"; gameId: string; playerId: string; displayName: string | null; text: string; ts: number }
+  | {
+      type: "CHAT_MSG"
+      gameId: string
+      playerId: string
+      displayName: string | null
+      text: string
+      ts: number
+    }
   | { type: "CHAT_EMOTE"; gameId: string; playerId: string; emote: string; ts: number }
   | { type: "PONG" }
   | { type: "ERROR"; code: string; message: string }

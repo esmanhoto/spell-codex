@@ -93,7 +93,11 @@ export function Game() {
   const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
   const [resolutionOutcome, setResolutionOutcome] = useState<ResolutionOutcome | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
-  const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string; effects: string[] } | null>(null)
+  const moveCountRef = useRef(0)
+  const lastMoveSentAtRef = useRef<number | null>(null)
+  const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string; effects: string[] } | null>(
+    null,
+  )
   const spellTargetsRef = useRef<
     Record<
       string,
@@ -254,9 +258,25 @@ export function Game() {
   const handleWsMessage = useCallback(
     (msg: WsClientMessage) => {
       if (msg.type === "STATE_UPDATE") {
+        const wsReceiveAt = performance.now()
+        const sentAt = lastMoveSentAtRef.current
+        if (sentAt !== null) {
+          const moveNum = moveCountRef.current
+          console.log(
+            `[perf] move_submit_to_ws_ack_ms: ${(wsReceiveAt - sentAt).toFixed(2)} (move ${moveNum})`,
+          )
+          lastMoveSentAtRef.current = null
+        }
         const state = msg.state as GameState
         qc.setQueryData(["game", gameId, myPlayerId], state)
         if (state.events?.length) processIncomingEvents(state.events)
+        if (!document.hidden) {
+          requestAnimationFrame(() => {
+            console.log(
+              `[perf] ws_message_to_render_ms: ${(performance.now() - wsReceiveAt).toFixed(2)}`,
+            )
+          })
+        }
       } else if (msg.type === "ERROR") {
         setWsError(`${msg.code}: ${msg.message}`)
         if (msg.message) {
@@ -273,7 +293,11 @@ export function Game() {
   useEffect(() => {
     const ctx = data?.resolutionContext
     if (ctx && ctx.resolvingPlayer !== myPlayerId) {
-      resolutionWatchRef.current = { card: ctx.pendingCard, playerId: ctx.resolvingPlayer, effects: [] }
+      resolutionWatchRef.current = {
+        card: ctx.pendingCard,
+        playerId: ctx.resolvingPlayer,
+        effects: [],
+      }
     }
   }, [data?.resolutionContext, myPlayerId])
 
@@ -297,7 +321,11 @@ export function Game() {
 
       // Single move: prefer WS for low latency
       if (moves.length === 1) {
-        if (wsRef.current?.sendMove(moves[0]!)) return
+        if (wsRef.current?.sendMove(moves[0]!)) {
+          moveCountRef.current++
+          lastMoveSentAtRef.current = performance.now()
+          return
+        }
         submitMove(gameId!, identity, moves[0]!)
           .then(() => refetch())
           .catch((err: unknown) => {
@@ -520,7 +548,8 @@ export function Game() {
   const playerIds = useMemo(() => Object.keys(data?.board.players ?? {}), [data?.board.players])
   const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? ""
   const playerAName = data?.players?.find((p) => p.userId === myPlayerId)?.nickname || "You"
-  const playerBName = data?.players?.find((p) => p.userId === opponentPlayerId)?.nickname || "Opponent"
+  const playerBName =
+    data?.players?.find((p) => p.userId === opponentPlayerId)?.nickname || "Opponent"
 
   const lingeringSpellsByPlayer = useMemo(
     () => buildLingeringSpellsByPlayer(playerIds, data?.board.players),
