@@ -14,7 +14,7 @@ import {
 import { applyMove, EngineError } from "@spell/engine"
 import type { GameState } from "@spell/engine"
 import type { AppVariables } from "../auth.ts"
-import { getCachedState, setCachedState, evictCachedState } from "../state-cache.ts"
+import { getGameCache, setCachedState, evictCachedState } from "../state-cache.ts"
 
 // ─── Move schema ──────────────────────────────────────────────────────────────
 // We accept any JSON object with a `type` string — the engine validates the rest.
@@ -35,26 +35,40 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const gameId = c.req.param("id")
   const move = c.req.valid("json") as { type: string }
 
-  // 1. Load game row
-  const game = await getGame(gameId)
-  if (!game) return c.json({ error: "Game not found" }, 404)
-  if (game.status !== "active") return c.json({ error: "Game is not active" }, 409)
-
-  // 2. Verify the requester is a participant
-  const players = await getGamePlayers(gameId)
-  const isPlayer = players.some((p) => p.userId === userId)
-  if (!isPlayer) return c.json({ error: "Forbidden" }, 403)
-
-  // 3. Reconstruct current state (use in-memory cache when available)
-  const seq0 = await lastSequence(gameId)
-  const cached = getCachedState(gameId, seq0)
+  // Try cache first — on hit, skip all DB reads
+  const hit = getGameCache(gameId)
   let state: GameState
-  if (cached) {
-    state = cached
+  let seq0: number
+  let cacheHit: boolean
+
+  if (hit) {
+    if (!hit.playerIds.includes(userId)) {
+      return c.json({ error: "Forbidden" }, 403)
+    }
+    state = hit.state
+    seq0 = hit.sequence
+    cacheHit = true
   } else {
+    // Cache miss — fall back to DB
+    const game = await getGame(gameId)
+    if (!game) return c.json({ error: "Game not found" }, 404)
+    if (game.status !== "active") return c.json({ error: "Game is not active" }, 409)
+
+    const players = await getGamePlayers(gameId)
+    if (!players.some((p) => p.userId === userId)) {
+      return c.json({ error: "Forbidden" }, 403)
+    }
+
+    seq0 = await lastSequence(gameId)
     const { state: reconstructed } = await reconstructState(gameId, game.seed)
     state = reconstructed
-    setCachedState(gameId, state, seq0)
+    const playerIds = players.map((p) => p.userId)
+    setCachedState(gameId, state, seq0, {
+      playerIds,
+      seed: game.seed,
+      stateSnapshot: null,
+    })
+    cacheHit = false
   }
   const t1 = performance.now()
 
@@ -111,7 +125,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
       game: gameId,
       seq,
       move_type: move.type,
-      cache_hit: cached !== null,
+      cache_hit: cacheHit,
       actions_replayed: actionsReplayed,
       reconstruct_ms: +(t1 - t0).toFixed(2),
       apply_move_ms: +(t2 - t1).toFixed(2),

@@ -14,7 +14,7 @@ import { applyMove, EngineError } from "@spell/engine"
 import type { GameState } from "@spell/engine"
 import { serializeGameState } from "./serialize.ts"
 import { authBypassEnabled, verifySupabaseAccessTokenFull } from "./auth-verify.ts"
-import { getCachedState, setCachedState, evictCachedState } from "./state-cache.ts"
+import { getGameCache, setCachedState, evictCachedState } from "./state-cache.ts"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -101,33 +101,48 @@ export async function processWsMove(
 ): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
   const t0 = performance.now()
 
-  const game = await getGame(gameId)
-  if (!game) return { ok: false, code: "NOT_FOUND", message: "Game not found" }
-  if (game.status !== "active") {
-    return { ok: false, code: "GAME_ENDED", message: "Game is not active" }
-  }
-
-  const players = await getGamePlayers(gameId)
-  if (!players.some((p) => p.userId === userId)) {
-    return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
-  }
-
-  let seq = await lastSequence(gameId)
-  const actionsReplayed = seq + 1 // seq=-1 means 0 prior actions
-
-  const cached = getCachedState(gameId, seq)
+  // Try cache first — on hit, skip all DB reads
+  const hit = getGameCache(gameId)
   let state: GameState
-  if (cached) {
-    state = cached
+  let seq: number
+  let cacheHit: boolean
+
+  if (hit) {
+    if (!hit.playerIds.includes(userId)) {
+      return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
+    }
+    state = hit.state
+    seq = hit.sequence
+    cacheHit = true
   } else {
+    // Cache miss — fall back to DB
+    const game = await getGame(gameId)
+    if (!game) return { ok: false, code: "NOT_FOUND", message: "Game not found" }
+    if (game.status !== "active") {
+      return { ok: false, code: "GAME_ENDED", message: "Game is not active" }
+    }
+
+    const players = await getGamePlayers(gameId)
+    if (!players.some((p) => p.userId === userId)) {
+      return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
+    }
+
+    seq = await lastSequence(gameId)
     const { state: reconstructed } = await reconstructState(
       gameId,
       game.seed,
       (game.stateSnapshot as GameState | null) ?? null,
     )
     state = reconstructed
-    setCachedState(gameId, state, seq)
+    const playerIds = players.map((p) => p.userId)
+    setCachedState(gameId, state, seq, {
+      playerIds,
+      seed: game.seed,
+      stateSnapshot: (game.stateSnapshot as GameState | null) ?? null,
+    })
+    cacheHit = false
   }
+  const actionsReplayed = seq + 1
   const t1 = performance.now()
 
   let result
@@ -210,7 +225,7 @@ export async function processWsMove(
       game: gameId,
       seq,
       move_type: move.type,
-      cache_hit: cached !== null,
+      cache_hit: cacheHit,
       actions_replayed: actionsReplayed,
       reconstruct_ms: +(t1 - t0).toFixed(2),
       apply_move_ms: +(t2 - t1).toFixed(2),
@@ -308,19 +323,24 @@ export const wsHandlers = {
           registry.get(gameId)!.set(userId, ws)
 
           // Send current state (serialized to the API shape the client expects)
-          const joinSeq = await lastSequence(gameId)
-          const joinCached = getCachedState(gameId, joinSeq)
+          const joinHit = getGameCache(gameId)
           let joinState: GameState
-          if (joinCached) {
-            joinState = joinCached
+          if (joinHit) {
+            joinState = joinHit.state
           } else {
+            const joinSeq = await lastSequence(gameId)
             const { state: reconstructed } = await reconstructState(
               gameId,
               game.seed,
               (game.stateSnapshot as GameState | null) ?? null,
             )
             joinState = reconstructed
-            setCachedState(gameId, joinState, joinSeq)
+            const playerIds = players.map((p) => p.userId)
+            setCachedState(gameId, joinState, joinSeq, {
+              playerIds,
+              seed: game.seed,
+              stateSnapshot: (game.stateSnapshot as GameState | null) ?? null,
+            })
           }
           send(ws, {
             type: "STATE_UPDATE",
