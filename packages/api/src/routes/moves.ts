@@ -28,6 +28,7 @@ export const movesRouter = new Hono<{ Variables: AppVariables }>()
 // ─── POST /games/:id/moves ────────────────────────────────────────────────────
 
 movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
+  const t0 = performance.now()
   const userId = c.get("userId")
   const gameId = c.req.param("id")
   const move = c.req.valid("json") as { type: string }
@@ -44,6 +45,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
 
   // 3. Reconstruct current state
   const { state } = await reconstructState(gameId, game.seed)
+  const t1 = performance.now()
 
   // 4. Apply the move through the engine (throws EngineError on invalid moves)
   let result
@@ -57,15 +59,22 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
     const message = err instanceof Error ? err.message : "Invalid move"
     return c.json({ error: message, code: "INVALID_MOVE" }, 422)
   }
+  const t2 = performance.now()
 
   // 6. Persist the human move
   let seq = await lastSequence(gameId)
+  const actionsReplayed = seq + 1
+
+  const tHashStart = performance.now()
+  const stateHash = hashState(result.newState)
+  const tHashEnd = performance.now()
+
   const action = await saveAction({
     gameId,
     sequence: seq + 1,
     playerId: userId,
     move: move as Parameters<typeof saveAction>[0]["move"],
-    stateHash: hashState(result.newState),
+    stateHash,
   })
   seq = action.sequence
 
@@ -79,6 +88,21 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
     setGameStatus(gameId, newStatus, currentState.winner ?? undefined),
     touchGame(gameId, turnDeadline),
   ])
+
+  const total = performance.now()
+  console.log(
+    JSON.stringify({
+      perf: "move_http",
+      game: gameId,
+      seq,
+      move_type: move.type,
+      actions_replayed: actionsReplayed,
+      reconstruct_ms: +(t1 - t0).toFixed(2),
+      apply_move_ms: +(t2 - t1).toFixed(2),
+      hash_ms: +(tHashEnd - tHashStart).toFixed(2),
+      total_ms: +(total - t0).toFixed(2),
+    }),
+  )
 
   return c.json(
     {

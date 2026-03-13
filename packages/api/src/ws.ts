@@ -27,7 +27,14 @@ export type ClientMessage =
 export type ServerMessage =
   | { type: "STATE_UPDATE"; gameId: string; state: unknown }
   | { type: "GAME_OVER"; gameId: string; winner: string }
-  | { type: "CHAT_MSG"; gameId: string; playerId: string; displayName: string | null; text: string; ts: number }
+  | {
+      type: "CHAT_MSG"
+      gameId: string
+      playerId: string
+      displayName: string | null
+      text: string
+      ts: number
+    }
   | { type: "CHAT_EMOTE"; gameId: string; playerId: string; emote: string; ts: number }
   | { type: "PONG" }
   | { type: "ERROR"; code: string; message: string }
@@ -91,6 +98,8 @@ export async function processWsMove(
   userId: string,
   move: { type: string; [key: string]: unknown },
 ): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
+  const t0 = performance.now()
+
   const game = await getGame(gameId)
   if (!game) return { ok: false, code: "NOT_FOUND", message: "Game not found" }
   if (game.status !== "active") {
@@ -107,6 +116,7 @@ export async function processWsMove(
     game.seed,
     (game.stateSnapshot as GameState | null) ?? null,
   )
+  const t1 = performance.now()
 
   let result
   try {
@@ -119,14 +129,21 @@ export async function processWsMove(
     const message = err instanceof Error ? err.message : "Invalid move"
     return { ok: false, code: "INVALID_MOVE", message }
   }
+  const t2 = performance.now()
 
   let seq = await lastSequence(gameId)
+  const actionsReplayed = seq + 1 // seq=-1 means 0 prior actions
+
+  const tHashStart = performance.now()
+  const stateHash = hashState(result.newState)
+  const tHashEnd = performance.now()
+
   const action = await saveAction({
     gameId,
     sequence: seq + 1,
     playerId: userId,
     move: move as Parameters<typeof saveAction>[0]["move"],
-    stateHash: hashState(result.newState),
+    stateHash,
   })
   seq = action.sequence
 
@@ -142,9 +159,11 @@ export async function processWsMove(
     ? null
     : new Date(Date.now() + TURN_DEADLINE_MS).toISOString()
   const sockets = registry.get(gameId)
+  let broadcastBytes = 0
+  const tSerializeStart = performance.now()
   if (sockets) {
     for (const [viewerPlayerId, socket] of sockets.entries()) {
-      send(socket, {
+      const msg: ServerMessage = {
         type: "STATE_UPDATE",
         gameId,
         state: serializeGameState(
@@ -155,13 +174,38 @@ export async function processWsMove(
           },
           viewerPlayerId,
         ),
-      })
+      }
+      const encoded = JSON.stringify(msg)
+      broadcastBytes += encoded.length
+      try {
+        socket.send(encoded)
+      } catch {
+        // Socket may have closed between check and send — ignore
+      }
     }
   }
+  const tSerializeEnd = performance.now()
 
   if (result.newState.winner) {
     broadcastToGame(gameId, { type: "GAME_OVER", gameId, winner: result.newState.winner })
   }
+
+  const total = performance.now()
+  console.log(
+    JSON.stringify({
+      perf: "move",
+      game: gameId,
+      seq,
+      move_type: move.type,
+      actions_replayed: actionsReplayed,
+      reconstruct_ms: +(t1 - t0).toFixed(2),
+      apply_move_ms: +(t2 - t1).toFixed(2),
+      hash_ms: +(tHashEnd - tHashStart).toFixed(2),
+      serialize_ms: +(tSerializeEnd - tSerializeStart).toFixed(2),
+      broadcast_bytes: broadcastBytes,
+      total_ms: +(total - t0).toFixed(2),
+    }),
+  )
 
   return { ok: true }
 }
