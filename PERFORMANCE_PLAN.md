@@ -1,12 +1,12 @@
 # Performance Optimization Plan
 
-Current bottlenecks: full state replay on every move (O(N²) server), zero frontend memoization, no optimistic UI, full state broadcast over WS, no image caching.
+Current bottlenecks: ~~full state replay on every move (O(N²) server)~~, partial frontend memoization (context split done, component memo incomplete), no optimistic UI, full state broadcast over WS, ~~no image caching~~.
 
 Goal: make the game feel snappy even on a low-performance free-tier server, and scale to 4-6 players.
 
 ---
 
-## Phase 1 — Instrumentation & Baselines
+## Phase 1 — Instrumentation & Baselines ✅ DONE
 
 Before changing anything, measure everything. Establish baselines locally and on Koyeb so every subsequent phase has concrete before/after numbers.
 
@@ -14,236 +14,178 @@ Koyeb streams `stdout`/`stderr` to its dashboard log viewer in real-time — no 
 
 Local measurements show relative improvements; Koyeb measurements show the real-world impact. On 0.1 vCPU, a 200ms local reconstruction might be 2-3 seconds — the bottlenecks are amplified, which is exactly why remote numbers matter most.
 
-### 1.1 Server-side timing logs
+### 1.1 Server-side timing logs ✅
 
-Add `performance.now()` instrumentation to the WS move handler and HTTP move endpoint. Log a structured JSON line on every move:
+Added `performance.now()` instrumentation to the WS move handler and HTTP move endpoint. Log a structured JSON line on every move:
 
 ```json
 {
   "perf": "move",
   "game": "abc-123",
   "seq": 42,
+  "move_type": "PLAY_REALM",
+  "cache_hit": true,
   "actions_replayed": 41,
-  "reconstruct_ms": 312,
-  "apply_move_ms": 4,
-  "hash_ms": 18,
-  "serialize_ms": 12,
+  "reconstruct_ms": 182,
+  "apply_move_ms": 0.4,
+  "hash_ms": 0.4,
+  "serialize_ms": 0.8,
   "broadcast_bytes": 24310,
-  "total_ms": 358
+  "total_ms": 290
 }
 ```
 
 Fields:
 
-- `reconstruct_ms` — time to replay all actions from DB (should drop to ~0 after in-memory cache in Phase 4)
+- `reconstruct_ms` — time for DB queries + reconstruction (with cache: just DB queries; without: full replay)
 - `apply_move_ms` — engine `applyMove()` execution time
 - `hash_ms` — time to compute state hash (`JSON.stringify` + SHA-256)
 - `serialize_ms` — time to serialize state for WS broadcast (per-player visibility filtering + `getLegalMoves()`)
 - `broadcast_bytes` — size of STATE_UPDATE JSON payload sent over WS
+- `cache_hit` — whether the in-memory state cache was used (true = no reconstruction)
 - `actions_replayed` — number of actions replayed during reconstruction (tracks linear growth)
 - `total_ms` — full request lifecycle
 
 These logs appear in Koyeb dashboard. Filter by `"perf":"move"` to extract them.
 
-### 1.2 Client-side performance marks
+### 1.2 Client-side performance marks ✅
 
-Add `performance.mark()` / `performance.measure()` in the WS message handler and move submission flow:
+Added `performance.mark()` / `performance.measure()` in the WS message handler:
 
-- `move_submit_to_ws_ack_ms` — time from user action (button click / drag drop) to receiving the confirming STATE_UPDATE via WS. This is the latency the player **feels**
-- `ws_message_to_render_ms` — time from WS `onmessage` to React commit (use `requestAnimationFrame` callback after `setQueryData` to detect paint)
-- `image_load_complete_ms` — time from state update to all newly-visible card images loaded
+- `ws_message_to_render_ms` — time from WS `onmessage` to React commit
 
-Log to `console.log` in dev. In production, optionally batch and POST to a `/perf` endpoint on the server (lightweight — just append to Koyeb logs).
+Log to `console.log` with `[perf]` prefix.
 
-### 1.3 Performance benchmark tests
+### 1.3 Performance benchmark tests ✅
 
-Add to `packages/engine/src/__tests__/perf.test.ts` and `packages/api/src/__tests__/perf.test.ts`. Run with `bun test` like everything else. Tag with `describe("perf:` so they can be filtered.
+Added to `packages/engine/src/__tests__/perf.test.ts` and `packages/api/src/__tests__/perf.test.ts`. Run with `bun test` like everything else. Tag with `describe("perf:` so they can be filtered.
 
-**Engine benchmarks (`packages/engine`):**
+### 1.4 Benchmark export ✅
 
-- `perf: applyMove throughput` — play a full synthetic game (100+ moves using legal moves from `getLegalMoves`), measure total time. Establishes engine-only baseline
-- `perf: getLegalMoves scaling` — measure `getLegalMoves()` on empty board, mid-game board (3 realms, 2 champions, hand of 8), full board. Tracks how board complexity affects legal-move computation
-- `perf: hashState scaling` — measure `hashState()` on states with 10, 50, 200 accumulated events. Quantifies the event-log growth cost
-
-**API benchmarks (`packages/api`):**
-
-- `perf: reconstruction scaling` — create a synthetic game with 50, 100, 200 moves in DB. Measure `reconstructState()` wall time for each. Assert thresholds (e.g., <200ms for 50 moves locally)
-- `perf: serialization size` — serialize a mid-game state for both players, assert payload stays under 30KB per player for 2-player games
-- `perf: end-to-end move` — submit a move via the handler, measure total time including DB read/write. Closest to real-world server cost
-
-These are benchmarks, not correctness tests. They log timing numbers and fail only if a hard threshold is exceeded (regression guard). Update thresholds as phases improve performance.
-
-### 1.4 Benchmark export
-
-Benchmarks write results to `benchmarks/` at the project root. One JSON file per run, named `{date}_{label}.json`:
-
-```
-benchmarks/
-  2026-03-12_baseline.json
-  2026-03-18_phase2-frontend.json
-  2026-03-22_phase3-caching.json
-```
-
-Each file has the same structure so any two can be diffed:
-
-```json
-{
-  "label": "baseline",
-  "date": "2026-03-12",
-  "engine": {
-    "applyMove_100_moves_ms": 45,
-    "applyMove_per_move_avg_ms": 0.45,
-    "getLegalMoves_empty_ms": 0.2,
-    "getLegalMoves_midgame_ms": 1.8,
-    "getLegalMoves_fullboard_ms": 4.1,
-    "hashState_10_events_ms": 2,
-    "hashState_50_events_ms": 8,
-    "hashState_200_events_ms": 31
-  },
-  "api": {
-    "reconstruct_50_moves_ms": 120,
-    "reconstruct_100_moves_ms": 380,
-    "reconstruct_200_moves_ms": 1420,
-    "serialize_payload_bytes_playerA": 18200,
-    "serialize_payload_bytes_playerB": 15800,
-    "end_to_end_move_ms": 95
-  }
-}
-```
-
-The test runner writes this file automatically at the end of the benchmark suite. Pass the label via env var:
+Benchmarks write results to `benchmarks/` at the project root. Also includes `scripts/parse-server-perf.ts` to parse Koyeb server logs into structured JSON.
 
 ```bash
+# Local benchmarks
 PERF_LABEL=baseline bun test --filter perf
+
+# Parse Koyeb logs
+bun run perf:parse benchmarks/phase3-koyeb-server.txt --out benchmarks/phase3-koyeb-server.json
 ```
-
-Defaults to `unlabeled` if not set. Commit the JSON files to git — they're small and the diff history is the whole point.
-
-To compare two runs quickly:
-
-```bash
-diff benchmarks/2026-03-12_baseline.json benchmarks/2026-03-18_phase2-frontend.json
-```
-
-Or read them side by side in any JSON viewer.
 
 ### 1.5 Client render profiling (manual, dev-only)
 
-Not automated — use React DevTools Profiler during a real game session:
-
-- Record a sequence of 10 moves
-- Note: total render time per state update, number of components that re-rendered, which components are most expensive
-- Save the profiler trace as baseline. Compare after Phase 2 (frontend optimizations)
+Not automated — use React DevTools Profiler during a real game session. Not yet done.
 
 ---
 
-## Phase 2 — Frontend Optimizations
+## Phase 2 — Frontend Optimizations ✅ PARTIALLY DONE
 
-React renders the entire component tree on every state update. No memoization anywhere.
+### 2.1 Split GameContext ✅
 
-### 2.1 Split GameContext
+Split into 4 contexts: **BoardContext**, **CombatContext**, **MovesContext**, **UIContext**. All context values memoized with `useMemo`. Components subscribe only to what they need.
 
-GameContext carries 37 values in a single context. Any change to any value re-renders every consumer.
+### 2.2 React.memo on heavy components ⚠️ PARTIAL
 
-Split into smaller contexts by domain:
+Only `CardComponent` and `EventLog` wrapped with `memo()`. No custom comparison functions — memo is ineffective when parent components pass inline-created functions/objects as props (which they do).
 
-- **BoardContext** — playerA/B boards, formation, pool, hands, lingeringSpells
-- **CombatContext** — combat state, resolutionContext
-- **MovesContext** — legalMoves, legalMovesPerPlayer, activePlayer, phase, turnNumber
-- **UIContext** — selectedId, onSelect, contextMenu, warnings, rebuildTarget, spellCast
+**Remaining:** Formation, PlayerHand, CombatZone, PoolEntry still not memoized. The memo on CardComponent needs either custom comparator or memoized parent props to be effective.
 
-Components only subscribe to what they need. A warning modal change no longer re-renders the formation.
+### 2.3 useMemo / useCallback for derived data ⚠️ PARTIAL
 
-### 2.2 React.memo on heavy components
+Done:
+- `collectTargets()` in ResolutionPanel — memoized
+- `isCardAlreadyInPlay()` in Formation — wrapped in useCallback
+- `processIncomingEvents()` — wrapped in useCallback
+- Context value objects memoized
 
-Wrap these with `React.memo` + proper comparison:
+Not done:
+- `fanTransform()` in PlayerHand — still inline per card per render
+- Parent components (Formation, PlayerHand, Pool) still create inline functions passed to CardComponent, defeating its memo
 
-- `Formation` — 6 slots × holdings, re-renders on every parent update
-- `PlayerHand` — fan layout with transforms for every card
-- `CombatZone` — card stacks with peek positioning math
-- `PoolEntry` — stacked image layout per champion
-- `EventLog` — growing list of all game events
-- `CardComponent` — individual card render (many instances)
+### 2.4 Image lazy loading ❌ REVERTED
 
-### 2.3 useMemo / useCallback for derived data
-
-- `collectTargets()` in ResolutionPanel — loops all boards every render, not memoized
-- `isCardAlreadyInPlay()` in Formation — O(n²) drag/drop validation on every drag event
-- `fanTransform()` in PlayerHand — calculated inline per card per render
-- `processIncomingEvents()` — iterates all new events on every STATE_UPDATE
-- Memoize the context value objects themselves to prevent cascading re-renders
-
-### 2.4 Image lazy loading
-
-- Add `loading="lazy"` to all card `<img>` tags not in the initial viewport
-- Opponent's hand is hidden, so those images don't need loading at all
-- Pool/formation cards below the fold can load lazily
+`loading="lazy"` was added but **contradicts the pre-cache** — lazy loading adds intersection observer delay even when images are already in browser cache. Removed in favor of the pre-cache strategy (Phase 3.2). Cards that appear suddenly (drawing 3 cards) need instant display from cache, not lazy-load delay.
 
 ### 2.5 AttackLine RAF optimization
 
-AttackLine runs a continuous `requestAnimationFrame` loop querying the DOM every frame, even when nothing changes. Gate the RAF behind a "combat active" check and cache DOM positions.
+Not yet implemented.
 
 ---
 
-## Phase 3 — Caching
+## Phase 3 — Caching ✅ DONE
 
-### 3.1 HTTP Cache-Control on card images
-
-Card images are static — they never change. Add response headers:
+### 3.1 HTTP Cache-Control on card images ✅
 
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
 
-First load is slow, every subsequent load is instant from browser disk cache. One-line change in the static file serving middleware.
+First load is slow, every subsequent load is instant from browser disk cache.
 
-### 3.2 Game loading screen with pre-caching
+### 3.2 Game loading screen with full deck pre-caching ✅
 
-Add a loading screen when entering a game. Use this time to front-load all expensive work:
+Loading screen blocks game board until all card images are cached.
 
-**Image pre-caching:**
+**Implementation:**
+- Server includes `deckCardImages: Array<[setId, cardNumber]>` in the initial game state response (HTTP GET and WS JOIN_GAME only — not on move broadcasts)
+- `deckCardImages` contains all unique cards from both players' full decks (`hand + drawPile` = 55 cards each, ~110 unique images)
+- Client creates `new Image()` for each URL, shows progress bar
+- Game board renders only after all images loaded
 
-- Fetch both players' deck lists from game data
-- Pre-load all card images (`new Image().src = url` for each card)
-- ~55 cards/deck × 2 players = ~110 images, 1-5MB total
-- Show progress bar; transition to game board when all loaded
+This ensures every card image that could appear during the game is already in browser cache. No lag when drawing cards, playing realms, or entering combat.
 
-**Engine warm-up (after Phase 6):**
+### 3.3 In-memory game state cache (server) ✅
 
-- Initialize engine state client-side
-- Compute initial legal moves
-- Pre-build card lookup maps
+`Map<gameId, { state, sequence, playerIds, seed, stateSnapshot }>` in the API process (`packages/api/src/state-cache.ts`).
 
-**Any future per-game setup:**
+- First move: cache miss → reconstruct from DB → populate full cache (state + metadata) → apply move → update cache
+- Subsequent moves: cache hit → **zero DB reads** before move application
+- Evict on game end or after 30min inactivity (timer with `.unref()`)
+- Used in both WS move handler and HTTP move endpoint
+- JOIN_GAME also populates full cache on first connect
 
-- The loading screen is a natural place to add new pre-computation without affecting in-game performance
-- Service Worker registration for offline card cache (optional, later)
+**Koyeb results (86-move game):**
+- `cache_hit: true` on every move after first
+- Phase 0 at move 67: reconstruct was 1017ms. Phase 3 at move 74: 179ms (still DB overhead). **~6x improvement in late game.**
 
-This eliminates the need for a CDN — at this scale (2-6 players, ~200 unique cards per game), browser cache is sufficient.
+### 3.4 Cache game metadata to eliminate per-move DB reads ✅
 
-### 3.3 In-memory game state cache (server)
+After 3.3, `reconstruct_ms` was still ~180ms on every cache hit — 3 DB queries (`getGame`, `getGamePlayers`, `lastSequence`) running unconditionally. These are now stored in the cache entry alongside the game state.
 
-Keep a `Map<gameId, { state: GameState, sequence: number }>` in the API process. After the first reconstruction, cache the result. Subsequent moves apply directly to the cached state — no reconstruction at all.
+**Implementation:**
+- `getGameCache(gameId)` returns `{ state, sequence, playerIds }` — enough to validate auth and apply move with zero DB reads
+- On cache hit: only DB operation is the `saveAction` write + `setGameStatus`/`touchGame` post-move
+- On cache miss: falls back to full DB path, populates complete cache entry
 
-- Evict on game end or after 30min inactivity
-- Memory: ~50-100KB per active game, negligible
-- On server restart: reconstruction happens once per active game, then cache takes over
-- This is the single biggest server-side win
+**Expected impact:** `reconstruct_ms` drops from ~180ms to ~0ms on cache hit. Total per-move time should drop from ~290ms to ~100-150ms on Koyeb.
+
+This is good practice regardless of infrastructure — even with co-located DB, eliminating unnecessary reads reduces load and latency. It applies equally well on Oracle VM.
+
+---
+
+## Phase 3 Results — Koyeb Benchmarks
+
+**Phase 0 baseline** (69 moves) vs **Phase 3+3.4** (86 moves):
+
+| Metric | Phase 0 | Phase 3 | Change |
+|--------|---------|---------|--------|
+| total_ms avg | 562 | 332 | **-41%** |
+| total_ms p50 | 473 | 295 | **-38%** |
+| total_ms p95 | 973 | 504 | **-48%** |
+| total_ms max | 1712 | 628 | **-63%** |
+| reconstruct_ms p95 | 701 | 379 | **-46%** |
+| reconstruct_ms max | 1018 | 397 | **-61%** |
+| apply_move_ms avg | 2.35 | 0.39 | **-83%** |
+
+Key insight: Phase 0 performance **degrades linearly** with game length (every move replays the full history). Phase 3 performance is **flat** — move 74 is as fast as move 0.
+
+Note: benchmarks above reflect 3.1–3.3 only. 3.4 (metadata cache) was not yet deployed — next Koyeb run should show `reconstruct_ms` near 0 on cache hit.
 
 ---
 
 ## Phase 4 — Engine Refactoring
 
-### 4.1 In-memory state cache (server-side, from 3.3)
-
-This eliminates reconstruction for active games entirely. Every move after the first becomes O(1): read cached state → applyMove → update cache → persist action.
-
-Reconstruction only happens on:
-
-- Server restart (cold start)
-- Cache miss (game inactive for 30+ min)
-
-### 4.2 Skip hash verification on read
+### 4.1 Skip hash verification on read
 
 Currently, reconstruction replays every action AND verifies the SHA-256 hash at each intermediate step. This means `JSON.stringify(fullGameState)` + SHA-256 on every intermediate state.
 
@@ -430,11 +372,18 @@ The `sequence` number makes this safe: server rejects any move with an unexpecte
 
 ## Implementation Notes
 
-- Phase 1 must be completed first — all subsequent phases measure against its baselines
+- ~~Phase 1 must be completed first~~ ✅ Done
 - After each phase, re-run benchmarks and compare against baselines. Update the benchmark thresholds to lock in gains
-- Phases 2-3 are pure improvements with no architectural risk
-- Phase 4 changes the core server loop — rely on existing tests heavily
+- ~~Phases 2-3 are pure improvements with no architectural risk~~ ✅ Done (Phase 2 partial, Phase 3 complete)
+- Phase 4 is next: reduce DB queries (biggest current bottleneck), then hash/engine optimizations
 - Phases 5-6 are the biggest UX transformation — implement together since optimistic UI benefits enormously from having the engine on the client
 - Phase 7 is infrastructure only, no code changes beyond Dockerfile/deploy config
 - All phases benefit the future 4-6 player mode; especially delta updates (4.4) and client-side engine (6.x)
 - Error handling items should be implemented alongside their relevant phases, not as a separate effort
+
+### Lessons learned from Phase 2-3
+
+- **`loading="lazy"` contradicts pre-caching.** If you pre-cache images, don't also lazy-load them — lazy loading adds intersection observer delay even on cached images.
+- **Pre-cache the full deck, not just visible cards.** Cards drawn mid-game weren't in the initial visible state. Including `deckCardImages` from the server (all 110 cards) ensures no image ever lags.
+- **React hooks must be unconditional.** The context split introduced a `useMemo` after early returns in ResolutionPanel — caused a production crash (React error #300).
+- **`reconstruct_ms` includes DB overhead, not just reconstruction.** Even with cache hit, 3 DB queries cost ~180ms on Koyeb. This is now the dominant bottleneck, not the engine.
