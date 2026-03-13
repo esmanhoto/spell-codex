@@ -113,10 +113,15 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
   const newStatus = currentState.winner ? "finished" : "active"
   const turnDeadline = currentState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
-  await Promise.all([
+  const metaWrites = Promise.all([
     setGameStatus(gameId, newStatus, currentState.winner ?? undefined),
     touchGame(gameId, turnDeadline),
   ])
+  if (currentState.winner) {
+    await metaWrites
+  } else {
+    void metaWrites
+  }
 
   const total = performance.now()
   console.log(
