@@ -1,0 +1,810 @@
+{
+  "source": "benchmarks/phase4-koyeb-server.txt",
+  "total_moves": 63,
+  "games_count": 1,
+  "overall_stats": {
+    "reconstruct_ms": {
+      "min": 0.01,
+      "max": 0.1,
+      "avg": 0.02,
+      "p50": 0.01,
+      "p95": 0.03
+    },
+    "apply_move_ms": {
+      "min": 0.11,
+      "max": 4.17,
+      "avg": 0.56,
+      "p50": 0.31,
+      "p95": 1.62
+    },
+    "hash_ms": {
+      "min": 0.31,
+      "max": 1.76,
+      "avg": 0.44,
+      "p50": 0.4,
+      "p95": 0.57
+    },
+    "serialize_ms": {
+      "min": 0.44,
+      "max": 2.84,
+      "avg": 0.87,
+      "p50": 0.69,
+      "p95": 1.84
+    },
+    "broadcast_bytes": {
+      "min": 8377,
+      "max": 56698,
+      "avg": 32061.11,
+      "p50": 33561,
+      "p95": 53432
+    },
+    "total_ms": {
+      "min": 49.61,
+      "max": 701.43,
+      "avg": 76.22,
+      "p50": 53.3,
+      "p95": 125.75
+    }
+  },
+  "games": {
+    "26ea41d5-d5aa-452a-aed4-e754046006ce": {
+      "moves_recorded": 63,
+      "seq_range": "0–62",
+      "move_types": [
+        "PASS",
+        "PLAY_REALM",
+        "PLACE_CHAMPION",
+        "END_TURN",
+        "ATTACH_ITEM",
+        "DISCARD_CARD",
+        "DECLARE_ATTACK",
+        "DECLARE_DEFENSE",
+        "PLAY_COMBAT_CARD",
+        "STOP_PLAYING",
+        "PLAY_EVENT",
+        "RESOLVE_RAZE_REALM",
+        "RESOLVE_DONE",
+        "DISCARD_COMBAT_CARD"
+      ],
+      "per_move": [
+        {
+          "seq": 0,
+          "type": "PASS",
+          "actions_replayed": 0,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 1.13,
+          "hash_ms": 0.36,
+          "serialize_ms": 0.64,
+          "broadcast_bytes": 8377,
+          "total_ms": 55.21
+        },
+        {
+          "seq": 1,
+          "type": "PLAY_REALM",
+          "actions_replayed": 1,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 1.05,
+          "hash_ms": 0.36,
+          "serialize_ms": 0.54,
+          "broadcast_bytes": 8556,
+          "total_ms": 55.97
+        },
+        {
+          "seq": 2,
+          "type": "PLACE_CHAMPION",
+          "actions_replayed": 2,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 1,
+          "hash_ms": 0.4,
+          "serialize_ms": 2.31,
+          "broadcast_bytes": 9054,
+          "total_ms": 61.08
+        },
+        {
+          "seq": 3,
+          "type": "END_TURN",
+          "actions_replayed": 3,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 1.62,
+          "hash_ms": 0.44,
+          "serialize_ms": 0.53,
+          "broadcast_bytes": 8562,
+          "total_ms": 60.47
+        },
+        {
+          "seq": 4,
+          "type": "PASS",
+          "actions_replayed": 4,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.27,
+          "hash_ms": 0.42,
+          "serialize_ms": 0.81,
+          "broadcast_bytes": 11007,
+          "total_ms": 50.2
+        },
+        {
+          "seq": 5,
+          "type": "PLAY_REALM",
+          "actions_replayed": 5,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.37,
+          "hash_ms": 0.36,
+          "serialize_ms": 1.73,
+          "broadcast_bytes": 11693,
+          "total_ms": 59.23
+        },
+        {
+          "seq": 6,
+          "type": "PLACE_CHAMPION",
+          "actions_replayed": 6,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 4.17,
+          "hash_ms": 0.56,
+          "serialize_ms": 0.62,
+          "broadcast_bytes": 12479,
+          "total_ms": 56.82
+        },
+        {
+          "seq": 7,
+          "type": "PLACE_CHAMPION",
+          "actions_replayed": 7,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.23,
+          "hash_ms": 0.43,
+          "serialize_ms": 0.85,
+          "broadcast_bytes": 13371,
+          "total_ms": 50.85
+        },
+        {
+          "seq": 8,
+          "type": "END_TURN",
+          "actions_replayed": 8,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.42,
+          "hash_ms": 0.47,
+          "serialize_ms": 0.84,
+          "broadcast_bytes": 12769,
+          "total_ms": 51.22
+        },
+        {
+          "seq": 9,
+          "type": "PASS",
+          "actions_replayed": 9,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 2.78,
+          "hash_ms": 0.39,
+          "serialize_ms": 0.79,
+          "broadcast_bytes": 16267,
+          "total_ms": 56.42
+        },
+        {
+          "seq": 10,
+          "type": "PLAY_REALM",
+          "actions_replayed": 10,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.37,
+          "hash_ms": 0.35,
+          "serialize_ms": 0.68,
+          "broadcast_bytes": 15739,
+          "total_ms": 52.44
+        },
+        {
+          "seq": 11,
+          "type": "END_TURN",
+          "actions_replayed": 11,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.31,
+          "hash_ms": 0.41,
+          "serialize_ms": 0.58,
+          "broadcast_bytes": 14391,
+          "total_ms": 51.72
+        },
+        {
+          "seq": 12,
+          "type": "PASS",
+          "actions_replayed": 12,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.44,
+          "hash_ms": 0.47,
+          "serialize_ms": 1.06,
+          "broadcast_bytes": 18734,
+          "total_ms": 52.72
+        },
+        {
+          "seq": 13,
+          "type": "PLACE_CHAMPION",
+          "actions_replayed": 13,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.3,
+          "hash_ms": 0.39,
+          "serialize_ms": 0.52,
+          "broadcast_bytes": 19918,
+          "total_ms": 125.75
+        },
+        {
+          "seq": 14,
+          "type": "END_TURN",
+          "actions_replayed": 14,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 1.01,
+          "hash_ms": 0.35,
+          "serialize_ms": 1.11,
+          "broadcast_bytes": 17050,
+          "total_ms": 59.74
+        },
+        {
+          "seq": 15,
+          "type": "PASS",
+          "actions_replayed": 15,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 0.8,
+          "hash_ms": 0.34,
+          "serialize_ms": 0.8,
+          "broadcast_bytes": 20821,
+          "total_ms": 58.84
+        },
+        {
+          "seq": 16,
+          "type": "PLAY_REALM",
+          "actions_replayed": 16,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.22,
+          "hash_ms": 0.4,
+          "serialize_ms": 0.48,
+          "broadcast_bytes": 20851,
+          "total_ms": 50.41
+        },
+        {
+          "seq": 17,
+          "type": "PLACE_CHAMPION",
+          "actions_replayed": 17,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 0.27,
+          "hash_ms": 0.36,
+          "serialize_ms": 0.93,
+          "broadcast_bytes": 21677,
+          "total_ms": 78.03
+        },
+        {
+          "seq": 18,
+          "type": "ATTACH_ITEM",
+          "actions_replayed": 18,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.93,
+          "hash_ms": 0.67,
+          "serialize_ms": 1.37,
+          "broadcast_bytes": 21576,
+          "total_ms": 59.69
+        },
+        {
+          "seq": 19,
+          "type": "END_TURN",
+          "actions_replayed": 19,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 0.15,
+          "hash_ms": 0.62,
+          "serialize_ms": 2.52,
+          "broadcast_bytes": 20186,
+          "total_ms": 60.05
+        },
+        {
+          "seq": 20,
+          "type": "PASS",
+          "actions_replayed": 20,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.25,
+          "hash_ms": 0.57,
+          "serialize_ms": 1.45,
+          "broadcast_bytes": 26289,
+          "total_ms": 58.99
+        },
+        {
+          "seq": 21,
+          "type": "PLAY_REALM",
+          "actions_replayed": 21,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.21,
+          "hash_ms": 0.49,
+          "serialize_ms": 0.48,
+          "broadcast_bytes": 26106,
+          "total_ms": 84.94
+        },
+        {
+          "seq": 22,
+          "type": "DISCARD_CARD",
+          "actions_replayed": 22,
+          "reconstruct_ms": 0.03,
+          "apply_move_ms": 0.73,
+          "hash_ms": 0.43,
+          "serialize_ms": 0.44,
+          "broadcast_bytes": 23315,
+          "total_ms": 53.3
+        },
+        {
+          "seq": 23,
+          "type": "END_TURN",
+          "actions_replayed": 23,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.22,
+          "hash_ms": 0.39,
+          "serialize_ms": 0.51,
+          "broadcast_bytes": 24903,
+          "total_ms": 51.7
+        },
+        {
+          "seq": 24,
+          "type": "PASS",
+          "actions_replayed": 24,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.46,
+          "hash_ms": 0.43,
+          "serialize_ms": 0.68,
+          "broadcast_bytes": 28564,
+          "total_ms": 58.06
+        },
+        {
+          "seq": 25,
+          "type": "PLAY_REALM",
+          "actions_replayed": 25,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.28,
+          "hash_ms": 0.54,
+          "serialize_ms": 0.69,
+          "broadcast_bytes": 27953,
+          "total_ms": 59.88
+        },
+        {
+          "seq": 26,
+          "type": "DECLARE_ATTACK",
+          "actions_replayed": 26,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.87,
+          "hash_ms": 0.34,
+          "serialize_ms": 1.23,
+          "broadcast_bytes": 27225,
+          "total_ms": 50.77
+        },
+        {
+          "seq": 27,
+          "type": "DECLARE_DEFENSE",
+          "actions_replayed": 27,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 1.26,
+          "hash_ms": 0.35,
+          "serialize_ms": 1.06,
+          "broadcast_bytes": 28681,
+          "total_ms": 51.23
+        },
+        {
+          "seq": 28,
+          "type": "PLAY_COMBAT_CARD",
+          "actions_replayed": 28,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 1.71,
+          "hash_ms": 0.31,
+          "serialize_ms": 0.81,
+          "broadcast_bytes": 29471,
+          "total_ms": 51.46
+        },
+        {
+          "seq": 29,
+          "type": "PLAY_COMBAT_CARD",
+          "actions_replayed": 29,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 0.36,
+          "hash_ms": 0.39,
+          "serialize_ms": 0.54,
+          "broadcast_bytes": 31079,
+          "total_ms": 52.83
+        },
+        {
+          "seq": 30,
+          "type": "PLAY_COMBAT_CARD",
+          "actions_replayed": 30,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 0.44,
+          "hash_ms": 0.56,
+          "serialize_ms": 0.59,
+          "broadcast_bytes": 31829,
+          "total_ms": 51.01
+        },
+        {
+          "seq": 31,
+          "type": "STOP_PLAYING",
+          "actions_replayed": 31,
+          "reconstruct_ms": 0.1,
+          "apply_move_ms": 0.78,
+          "hash_ms": 0.35,
+          "serialize_ms": 0.68,
+          "broadcast_bytes": 33561,
+          "total_ms": 51.56
+        },
+        {
+          "seq": 32,
+          "type": "PLAY_EVENT",
+          "actions_replayed": 32,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 1.17,
+          "hash_ms": 0.41,
+          "serialize_ms": 0.76,
+          "broadcast_bytes": 38106,
+          "total_ms": 99.95
+        },
+        {
+          "seq": 33,
+          "type": "RESOLVE_RAZE_REALM",
+          "actions_replayed": 33,
+          "reconstruct_ms": 0.03,
+          "apply_move_ms": 0.83,
+          "hash_ms": 0.4,
+          "serialize_ms": 0.59,
+          "broadcast_bytes": 38328,
+          "total_ms": 50.76
+        },
+        {
+          "seq": 34,
+          "type": "RESOLVE_DONE",
+          "actions_replayed": 34,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.43,
+          "hash_ms": 0.36,
+          "serialize_ms": 0.56,
+          "broadcast_bytes": 33858,
+          "total_ms": 51.7
+        },
+        {
+          "seq": 35,
+          "type": "END_TURN",
+          "actions_replayed": 35,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.29,
+          "hash_ms": 0.36,
+          "serialize_ms": 0.63,
+          "broadcast_bytes": 33790,
+          "total_ms": 51.32
+        },
+        {
+          "seq": 36,
+          "type": "PASS",
+          "actions_replayed": 36,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.29,
+          "hash_ms": 0.34,
+          "serialize_ms": 0.67,
+          "broadcast_bytes": 38963,
+          "total_ms": 50
+        },
+        {
+          "seq": 37,
+          "type": "PLAY_REALM",
+          "actions_replayed": 37,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.36,
+          "hash_ms": 1.76,
+          "serialize_ms": 1.37,
+          "broadcast_bytes": 38009,
+          "total_ms": 220.13
+        },
+        {
+          "seq": 38,
+          "type": "PLACE_CHAMPION",
+          "actions_replayed": 38,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.29,
+          "hash_ms": 0.34,
+          "serialize_ms": 0.57,
+          "broadcast_bytes": 38849,
+          "total_ms": 49.61
+        },
+        {
+          "seq": 39,
+          "type": "END_TURN",
+          "actions_replayed": 39,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.2,
+          "hash_ms": 0.47,
+          "serialize_ms": 1.26,
+          "broadcast_bytes": 36229,
+          "total_ms": 99.41
+        },
+        {
+          "seq": 40,
+          "type": "PASS",
+          "actions_replayed": 40,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.39,
+          "hash_ms": 0.56,
+          "serialize_ms": 1.84,
+          "broadcast_bytes": 40314,
+          "total_ms": 54.01
+        },
+        {
+          "seq": 41,
+          "type": "PLAY_REALM",
+          "actions_replayed": 41,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.13,
+          "hash_ms": 0.35,
+          "serialize_ms": 0.66,
+          "broadcast_bytes": 40458,
+          "total_ms": 72.37
+        },
+        {
+          "seq": 42,
+          "type": "DISCARD_CARD",
+          "actions_replayed": 42,
+          "reconstruct_ms": 0.03,
+          "apply_move_ms": 0.29,
+          "hash_ms": 0.43,
+          "serialize_ms": 2.84,
+          "broadcast_bytes": 40422,
+          "total_ms": 54.01
+        },
+        {
+          "seq": 43,
+          "type": "DISCARD_CARD",
+          "actions_replayed": 43,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.18,
+          "hash_ms": 0.33,
+          "serialize_ms": 0.52,
+          "broadcast_bytes": 39075,
+          "total_ms": 51.27
+        },
+        {
+          "seq": 44,
+          "type": "END_TURN",
+          "actions_replayed": 44,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.29,
+          "hash_ms": 0.36,
+          "serialize_ms": 0.5,
+          "broadcast_bytes": 41413,
+          "total_ms": 53.03
+        },
+        {
+          "seq": 45,
+          "type": "PASS",
+          "actions_replayed": 45,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.43,
+          "hash_ms": 0.5,
+          "serialize_ms": 1.25,
+          "broadcast_bytes": 48022,
+          "total_ms": 52.88
+        },
+        {
+          "seq": 46,
+          "type": "PLAY_REALM",
+          "actions_replayed": 46,
+          "reconstruct_ms": 0.07,
+          "apply_move_ms": 0.45,
+          "hash_ms": 0.4,
+          "serialize_ms": 0.74,
+          "broadcast_bytes": 46652,
+          "total_ms": 100.49
+        },
+        {
+          "seq": 47,
+          "type": "PLACE_CHAMPION",
+          "actions_replayed": 47,
+          "reconstruct_ms": 0.03,
+          "apply_move_ms": 0.24,
+          "hash_ms": 0.4,
+          "serialize_ms": 0.75,
+          "broadcast_bytes": 47846,
+          "total_ms": 52.07
+        },
+        {
+          "seq": 48,
+          "type": "END_TURN",
+          "actions_replayed": 48,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.19,
+          "hash_ms": 0.46,
+          "serialize_ms": 0.63,
+          "broadcast_bytes": 42460,
+          "total_ms": 51.31
+        },
+        {
+          "seq": 49,
+          "type": "PASS",
+          "actions_replayed": 49,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.28,
+          "hash_ms": 0.37,
+          "serialize_ms": 0.77,
+          "broadcast_bytes": 47048,
+          "total_ms": 59.06
+        },
+        {
+          "seq": 50,
+          "type": "PLAY_REALM",
+          "actions_replayed": 50,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.33,
+          "hash_ms": 0.42,
+          "serialize_ms": 0.73,
+          "broadcast_bytes": 47329,
+          "total_ms": 51.78
+        },
+        {
+          "seq": 51,
+          "type": "PLACE_CHAMPION",
+          "actions_replayed": 51,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.28,
+          "hash_ms": 0.44,
+          "serialize_ms": 0.94,
+          "broadcast_bytes": 48602,
+          "total_ms": 52.29
+        },
+        {
+          "seq": 52,
+          "type": "ATTACH_ITEM",
+          "actions_replayed": 52,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.26,
+          "hash_ms": 0.37,
+          "serialize_ms": 0.83,
+          "broadcast_bytes": 48581,
+          "total_ms": 53.17
+        },
+        {
+          "seq": 53,
+          "type": "END_TURN",
+          "actions_replayed": 53,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.22,
+          "hash_ms": 0.39,
+          "serialize_ms": 0.57,
+          "broadcast_bytes": 47497,
+          "total_ms": 51.53
+        },
+        {
+          "seq": 54,
+          "type": "PASS",
+          "actions_replayed": 54,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 0.44,
+          "hash_ms": 0.54,
+          "serialize_ms": 0.78,
+          "broadcast_bytes": 56698,
+          "total_ms": 701.43
+        },
+        {
+          "seq": 55,
+          "type": "PLAY_REALM",
+          "actions_replayed": 55,
+          "reconstruct_ms": 0.02,
+          "apply_move_ms": 0.23,
+          "hash_ms": 0.33,
+          "serialize_ms": 0.7,
+          "broadcast_bytes": 56269,
+          "total_ms": 117.5
+        },
+        {
+          "seq": 56,
+          "type": "DECLARE_ATTACK",
+          "actions_replayed": 56,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.14,
+          "hash_ms": 0.44,
+          "serialize_ms": 0.65,
+          "broadcast_bytes": 45519,
+          "total_ms": 76.43
+        },
+        {
+          "seq": 57,
+          "type": "DECLARE_DEFENSE",
+          "actions_replayed": 57,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.24,
+          "hash_ms": 0.35,
+          "serialize_ms": 0.57,
+          "broadcast_bytes": 47383,
+          "total_ms": 97.8
+        },
+        {
+          "seq": 58,
+          "type": "PLAY_COMBAT_CARD",
+          "actions_replayed": 58,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.18,
+          "hash_ms": 0.46,
+          "serialize_ms": 0.62,
+          "broadcast_bytes": 48442,
+          "total_ms": 49.87
+        },
+        {
+          "seq": 59,
+          "type": "DISCARD_COMBAT_CARD",
+          "actions_replayed": 59,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.49,
+          "hash_ms": 0.33,
+          "serialize_ms": 0.63,
+          "broadcast_bytes": 47982,
+          "total_ms": 49.78
+        },
+        {
+          "seq": 60,
+          "type": "STOP_PLAYING",
+          "actions_replayed": 60,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.18,
+          "hash_ms": 0.4,
+          "serialize_ms": 0.67,
+          "broadcast_bytes": 53618,
+          "total_ms": 186.65
+        },
+        {
+          "seq": 61,
+          "type": "DISCARD_CARD",
+          "actions_replayed": 61,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.18,
+          "hash_ms": 0.5,
+          "serialize_ms": 0.66,
+          "broadcast_bytes": 53432,
+          "total_ms": 51.45
+        },
+        {
+          "seq": 62,
+          "type": "END_TURN",
+          "actions_replayed": 62,
+          "reconstruct_ms": 0.01,
+          "apply_move_ms": 0.11,
+          "hash_ms": 0.49,
+          "serialize_ms": 0.71,
+          "broadcast_bytes": 46602,
+          "total_ms": 106.33
+        }
+      ],
+      "stats": {
+        "reconstruct_ms": {
+          "min": 0.01,
+          "max": 0.1,
+          "avg": 0.02,
+          "p50": 0.01,
+          "p95": 0.03
+        },
+        "apply_move_ms": {
+          "min": 0.11,
+          "max": 4.17,
+          "avg": 0.56,
+          "p50": 0.31,
+          "p95": 1.62
+        },
+        "hash_ms": {
+          "min": 0.31,
+          "max": 1.76,
+          "avg": 0.44,
+          "p50": 0.4,
+          "p95": 0.57
+        },
+        "serialize_ms": {
+          "min": 0.44,
+          "max": 2.84,
+          "avg": 0.87,
+          "p50": 0.69,
+          "p95": 1.84
+        },
+        "broadcast_bytes": {
+          "min": 8377,
+          "max": 56698,
+          "avg": 32061.11,
+          "p50": 33561,
+          "p95": 53432
+        },
+        "total_ms": {
+          "min": 49.61,
+          "max": 701.43,
+          "avg": 76.22,
+          "p50": 53.3,
+          "p95": 125.75
+        }
+      }
+    }
+  }
+}

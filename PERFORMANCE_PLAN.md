@@ -93,12 +93,14 @@ Only `CardComponent` and `EventLog` wrapped with `memo()`. No custom comparison 
 ### 2.3 useMemo / useCallback for derived data ⚠️ PARTIAL
 
 Done:
+
 - `collectTargets()` in ResolutionPanel — memoized
 - `isCardAlreadyInPlay()` in Formation — wrapped in useCallback
 - `processIncomingEvents()` — wrapped in useCallback
 - Context value objects memoized
 
 Not done:
+
 - `fanTransform()` in PlayerHand — still inline per card per render
 - Parent components (Formation, PlayerHand, Pool) still create inline functions passed to CardComponent, defeating its memo
 
@@ -127,6 +129,7 @@ First load is slow, every subsequent load is instant from browser disk cache.
 Loading screen blocks game board until all card images are cached.
 
 **Implementation:**
+
 - Server includes `deckCardImages: Array<[setId, cardNumber]>` in the initial game state response (HTTP GET and WS JOIN_GAME only — not on move broadcasts)
 - `deckCardImages` contains all unique cards from both players' full decks (`hand + drawPile` = 55 cards each, ~110 unique images)
 - Client creates `new Image()` for each URL, shows progress bar
@@ -145,6 +148,7 @@ This ensures every card image that could appear during the game is already in br
 - JOIN_GAME also populates full cache on first connect
 
 **Koyeb results (86-move game):**
+
 - `cache_hit: true` on every move after first
 - Phase 0 at move 67: reconstruct was 1017ms. Phase 3 at move 74: 179ms (still DB overhead). **~6x improvement in late game.**
 
@@ -153,6 +157,7 @@ This ensures every card image that could appear during the game is already in br
 After 3.3, `reconstruct_ms` was still ~180ms on every cache hit — 3 DB queries (`getGame`, `getGamePlayers`, `lastSequence`) running unconditionally. These are now stored in the cache entry alongside the game state.
 
 **Implementation:**
+
 - `getGameCache(gameId)` returns `{ state, sequence, playerIds }` — enough to validate auth and apply move with zero DB reads
 - On cache hit: only DB operation is the `saveAction` write + `setGameStatus`/`touchGame` post-move
 - On cache miss: falls back to full DB path, populates complete cache entry
@@ -167,19 +172,19 @@ This is good practice regardless of infrastructure — even with co-located DB, 
 
 **Phase 0 baseline** (69 moves) vs **Phase 3.1–3.3** (86 moves) vs **Phase 3.4** (63 moves):
 
-| Metric | Phase 0 | Phase 3.3 | Phase 3.4 | vs Phase 0 |
-|--------|---------|-----------|-----------|------------|
-| total_ms avg | 562 | 332 | **127** | **-77%** |
-| total_ms p50 | 473 | 295 | **109** | **-77%** |
-| total_ms p95 | 973 | 504 | **214** | **-78%** |
-| total_ms max | 1712 | 628 | **366** | **-79%** |
-| reconstruct_ms avg | 388 | 202 | **0.04** | **-99.99%** |
-| reconstruct_ms p95 | 701 | 379 | **0.05** | **-99.99%** |
-| apply_move_ms avg | 2.35 | 0.39 | 0.48 | -80% |
+| Metric             | Phase 0 | Phase 3.3 | Phase 3.4 | vs Phase 0  |
+| ------------------ | ------- | --------- | --------- | ----------- |
+| total_ms avg       | 562     | 332       | **127**   | **-77%**    |
+| total_ms p50       | 473     | 295       | **109**   | **-77%**    |
+| total_ms p95       | 973     | 504       | **214**   | **-78%**    |
+| total_ms max       | 1712    | 628       | **366**   | **-79%**    |
+| reconstruct_ms avg | 388     | 202       | **0.04**  | **-99.99%** |
+| reconstruct_ms p95 | 701     | 379       | **0.05**  | **-99.99%** |
+| apply_move_ms avg  | 2.35    | 0.39      | 0.48      | -80%        |
 
 Key insight: Phase 0 performance **degrades linearly** with game length (every move replays the full history). Phase 3.4 is **flat** — move 62 is as fast as move 0 — and reconstruction overhead is effectively zero.
 
-**Remaining ~100ms floor** is DB *write* latency: `saveAction` (INSERT) runs sequentially before the broadcast, then `setGameStatus`+`touchGame` run in parallel after. With Koyeb's hosted Postgres each roundtrip costs ~50ms. This is addressed in Phase 4.1.
+**Remaining ~100ms floor** is DB _write_ latency: `saveAction` (INSERT) runs sequentially before the broadcast, then `setGameStatus`+`touchGame` run in parallel after. With Koyeb's hosted Postgres each roundtrip costs ~50ms. This is addressed in Phase 4.1.
 
 ---
 
@@ -226,36 +231,37 @@ See Phase 6.3 for the full description.
 
 ---
 
-## Phase 5 — Optimistic UI
+## Phase 5 — Optimistic UI ✅ DONE
 
-### 5.1 Instant local state update on move submission
+### 5.1 Instant local state update on move submission ✅
 
 When the player makes a move:
 
-1. **Immediately** update local React state as if it succeeded
+1. **Immediately** update local React state as if it succeeded (`qc.setQueryData` with optimistic state)
 2. Send move to server in background
-3. Server confirms via WS → state already matches, no visual flicker
-4. Server rejects → rollback to last confirmed state
+3. Server confirms via WS STATE_UPDATE → replaces optimistic state, clears `lastConfirmedStateRef`
+4. Server rejects (ERROR) → rollback to `lastConfirmedStateRef`
 
-Safe because the client already has `legalMoves` — if the move is legal, it will succeed.
+### 5.2 Move-specific optimistic handlers ✅
 
-### 5.2 Move-specific optimistic handlers
+Implemented in `packages/web/src/utils/optimistic-state.ts`:
 
-Start with the most common and visually impactful moves:
+- **PLAY_REALM** — remove from hand, add to formation slot instantly
+- **PLACE_CHAMPION** — remove from hand, add to pool
+- **ATTACH_ITEM** — remove from hand, attach to pool champion
+- **PLAY_HOLDING** — remove from hand, add to realm holdings
+- **DISCARD_CARD** — remove from hand, increment discardCount
+- **PASS / END_TURN / DECLINE_DEFENSE / STOP_PLAYING / END_ATTACK / INTERRUPT_COMBAT** — clear legalMoves (prevents double-submit)
 
-- **PLAY_REALM** — move card from hand to formation slot instantly
-- **PLACE_CHAMPION** — move card from hand/pool to formation slot
-- **ATTACH_ITEM/ARTIFACT** — attach card to champion in pool
-- **DRAW_CARD** — increment hand count, show card back placeholder
-- **PASS** — advance phase indicator immediately
+All other moves (DECLARE*ATTACK, combat, spells, RESOLVE*\*) return `null` → no optimistic update, normal WS flow.
 
-Combat moves (DECLARE_ATTACK, PLAY_COMBAT_CARD) are trickier due to opponent interaction — implement these after the simple ones.
+### 5.3 Rollback mechanism ✅
 
-### 5.3 Rollback mechanism
+`lastConfirmedStateRef` in `Game.tsx`: saved before every optimistic update.
 
-Keep a `lastConfirmedState` ref. On optimistic update, store the pre-update state. If server rejects (error response or WS sends different state), revert to `lastConfirmedState` and show a brief "move rejected" indicator.
-
-For a turn-based card game, rejection is rare (player can only make legal moves), so the rollback path is an edge case, not the common path.
+- WS STATE_UPDATE received → `lastConfirmedStateRef.current = null` (success)
+- WS ERROR received → `qc.setQueryData(key, lastConfirmedStateRef.current)` (rollback) + existing warning modal
+- HTTP error → same rollback in `.catch()`
 
 ---
 
@@ -393,7 +399,8 @@ The `sequence` number makes this safe: server rejects any move with an unexpecte
 - After each phase, re-run benchmarks and compare against baselines. Update the benchmark thresholds to lock in gains
 - ~~Phases 2-3 are pure improvements with no architectural risk~~ ✅ Done (Phase 2 partial, Phase 3 complete)
 - ~~Phase 4.1 is next: fire-and-forget metadata writes to break the ~100ms DB-write floor~~ ✅ Done (Phase 4 complete: 4.1 fire-and-forget, 4.2 skip hash on read, 4.3 exclude events from hash; 4.4 deferred to Phase 6)
-- Phases 5-6 are the biggest UX transformation — implement together since optimistic UI benefits enormously from having the engine on the client
+- ~~Phase 5~~ ✅ Done (optimistic UI: instant feedback for PLAY_REALM, PLACE_CHAMPION, ATTACH_ITEM, PLAY_HOLDING, DISCARD_CARD, pass-family moves; rollback on error)
+- Phase 6 is the next big UX transformation — client-side engine enables delta updates and removes server serialization cost
 - Phase 7 is infrastructure only, no code changes beyond Dockerfile/deploy config
 - All phases benefit the future 4-6 player mode; especially delta updates (4.4, now part of 6.3) and client-side engine (6.x)
 - Error handling items should be implemented alongside their relevant phases, not as a separate effort
@@ -404,3 +411,27 @@ The `sequence` number makes this safe: server rejects any move with an unexpecte
 - **Pre-cache the full deck, not just visible cards.** Cards drawn mid-game weren't in the initial visible state. Including `deckCardImages` from the server (all 110 cards) ensures no image ever lags.
 - **React hooks must be unconditional.** The context split introduced a `useMemo` after early returns in ResolutionPanel — caused a production crash (React error #300).
 - **`reconstruct_ms` includes DB overhead, not just reconstruction.** Even with cache hit, 3 DB queries cost ~180ms on Koyeb. This is now the dominant bottleneck, not the engine.
+
+### Lessons learned from Phase 5
+
+- **Frontend-only changes produce no signal in engine/API benchmarks.** Phase 5 benchmarks vs Phase 4 showed 2-4x variance on sub-millisecond timings — pure noise. Only meaningful metrics would come from measuring perceived latency in a real browser (time from click to visual update), which requires manual testing or a browser-based perf harness.
+
+---
+
+## Known Test Gaps
+
+### React Testing Library not set up (`packages/web`)
+
+The `Game.tsx` integration of optimistic UI has no automated tests — specifically:
+
+- `sendMove` applying optimistic state before WS dispatch
+- `handleWsMessage` rolling back state on WS ERROR
+- `handleWsMessage` clearing `lastConfirmedStateRef` on STATE_UPDATE
+
+These are covered manually (play a game, verify instant feedback; deliberately send a bad move if possible to verify rollback). Automating them requires React Testing Library + a mock WS client. Worth adding when the web test suite grows:
+
+```bash
+bun add -d @testing-library/react @testing-library/user-event jsdom
+```
+
+The pure logic (`applyOptimisticMove`) is fully tested in `optimistic-state.test.ts` (24 tests). The untested surface is the Game.tsx wiring only.

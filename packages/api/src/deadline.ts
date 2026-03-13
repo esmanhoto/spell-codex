@@ -88,9 +88,7 @@ async function processExpiredGame(gameId: string): Promise<void> {
   })
 
   const newStatus = result.newState.winner ? "finished" : "active"
-  const turnDeadline = result.newState.winner
-    ? undefined
-    : new Date(Date.now() + TURN_DEADLINE_MS)
+  const turnDeadline = result.newState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
   const metaWrites = Promise.all([
     setGameStatus(gameId, newStatus, result.newState.winner ?? undefined),
     touchGame(gameId, turnDeadline),
