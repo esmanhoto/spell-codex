@@ -1,37 +1,37 @@
 {
-  "label": "local",
+  "label": "phase4_local",
   "date": "2026-03-13",
   "engine": {
     "applyMove_moves_played": 100,
-    "applyMove_total_ms": 1.739,
-    "applyMove_per_move_avg_ms": 0.017,
+    "applyMove_total_ms": 2.196,
+    "applyMove_per_move_avg_ms": 0.022,
     "getLegalMoves_initial_ms": 0.004,
     "getLegalMoves_initial_count": 3,
-    "getLegalMoves_20moves_ms": 0.015,
+    "getLegalMoves_20moves_ms": 0.005,
     "getLegalMoves_20moves_count": 12,
-    "getLegalMoves_60moves_ms": 0.007,
+    "getLegalMoves_60moves_ms": 0.005,
     "getLegalMoves_60moves_count": 14,
     "hashState_10moves_events": 19,
-    "hashState_10moves_ms": 0.134,
+    "hashState_10moves_ms": 0.083,
     "hashState_50moves_events": 78,
-    "hashState_50moves_ms": 0.064,
+    "hashState_50moves_ms": 0.076,
     "hashState_100moves_events": 147,
-    "hashState_100moves_ms": 0.061,
-    "initGame_ms": 0.008
+    "hashState_100moves_ms": 0.071,
+    "initGame_ms": 0.017
   },
   "api": {
-    "reconstruct_50_actions_ms": 1.924,
+    "reconstruct_50_actions_ms": 1.815,
     "reconstruct_50_actions_events": 67,
-    "reconstruct_100_actions_ms": 3.832,
+    "reconstruct_100_actions_ms": 1.48,
     "reconstruct_100_actions_events": 117,
-    "reconstruct_200_actions_ms": 3.006,
+    "reconstruct_200_actions_ms": 2.14,
     "reconstruct_200_actions_events": 217,
-    "serialize_playerA_ms": 0.05,
+    "serialize_playerA_ms": 0.202,
     "serialize_payload_bytes_playerA": 9350,
-    "serialize_playerB_ms": 0.037,
+    "serialize_playerB_ms": 0.019,
     "serialize_payload_bytes_playerB": 8328,
-    "end_to_end_http_move_ms": 4.729,
+    "end_to_end_http_move_ms": 4.929,
     "end_to_end_http_move_status": 201,
-    "end_to_end_http_move_cached_ms": 0.902
+    "end_to_end_http_move_cached_ms": 0.929
   }
 }
