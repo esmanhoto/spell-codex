@@ -39,15 +39,7 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
   - default e2e (bypass/local profile)
   - auth e2e (non-bypass/mock Supabase profile)
 - Runtime DB error text cleanup to neutral guidance (`Verify DATABASE_URL and DB availability.`).
-- Full manual mode milestone delivered:
-  - `full_manual` is the default for new games.
-  - Runtime `playMode` persisted (`games.play_mode`) and serialized to clients.
-  - Manual governance controls shipped (mode switch, end turn, active player, draw count, hand limit).
-  - Manual->semi switch guard added with consistency validation + actionable reasons.
-  - Web interactions migrated to manual action builders (right-click/drag/click) with a temporary debug move-panel gate.
-  - Manual warnings support per-warning browser suppression (`Don't show again`, localStorage scope).
-  - Deadline auto-pass startup disabled for now.
-  - Added coverage in engine/api/ws/web e2e for mode switching, warnings, and manual play/cast flows.
+- Single play mode: `full_manual` concept removed; engine has one unified code path. `games.play_mode` column remains in schema but is not active.
 
 ## Supabase Runtime/Auth Milestone Status
 
@@ -78,7 +70,7 @@ This file is the concise merge of ideas from `GAME_PLAN.md` and `NEW_PLAN.md`.
   - Web e2e for login + dual-user session flow.
 - Connect runtime DB to Supabase Postgres (remove local-only Docker dependency from default dev path).
 - Define CI strategy for DB tests when using Supabase-managed Postgres.
-- Add Vercel deployment pipeline (web first, then API path decided by hosting constraints).
+- Koyeb single-service Docker deployment (see `DEPLOY.md`).
 - Add staging environment before production rollout.
 - Add observability baseline (structured logs + error tracking).
 - Add backup/restore + migration safety checklist.

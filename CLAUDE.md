@@ -74,6 +74,7 @@
 Run ALL of the following. No exceptions, no skipping, even if slow.
 
 **1. Typecheck + unit tests**
+
 - `bun run --cwd packages/engine typecheck && bun run --cwd packages/engine test`
 - `bun run --cwd packages/api typecheck && bun run --cwd packages/api test`
 - `bun run --cwd packages/db typecheck && bun run --cwd packages/db test`
@@ -81,6 +82,7 @@ Run ALL of the following. No exceptions, no skipping, even if slow.
 - `bun run --cwd packages/web build`
 
 **2. E2E tests** (requires API + DB running locally)
+
 - `bun run --cwd packages/web test:e2e`
 
 If anything fails, fix it first. Never commit with a failing check.
