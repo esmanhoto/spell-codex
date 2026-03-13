@@ -1,0 +1,36 @@
+{
+  "label": "phase2-frontend",
+  "date": "2026-03-13",
+  "engine": {
+    "applyMove_moves_played": 100,
+    "applyMove_total_ms": 2.15,
+    "applyMove_per_move_avg_ms": 0.022,
+    "getLegalMoves_initial_ms": 0.004,
+    "getLegalMoves_initial_count": 3,
+    "getLegalMoves_20moves_ms": 0.009,
+    "getLegalMoves_20moves_count": 12,
+    "getLegalMoves_60moves_ms": 0.008,
+    "getLegalMoves_60moves_count": 14,
+    "hashState_10moves_events": 19,
+    "hashState_10moves_ms": 0.078,
+    "hashState_50moves_events": 78,
+    "hashState_50moves_ms": 0.056,
+    "hashState_100moves_events": 147,
+    "hashState_100moves_ms": 0.058,
+    "initGame_ms": 0.023
+  },
+  "api": {
+    "reconstruct_50_actions_ms": 3.584,
+    "reconstruct_50_actions_events": 67,
+    "reconstruct_100_actions_ms": 5.391,
+    "reconstruct_100_actions_events": 117,
+    "reconstruct_200_actions_ms": 10.356,
+    "reconstruct_200_actions_events": 217,
+    "serialize_playerA_ms": 0.199,
+    "serialize_payload_bytes_playerA": 9350,
+    "serialize_playerB_ms": 0.019,
+    "serialize_payload_bytes_playerB": 8328,
+    "end_to_end_http_move_ms": 6.246,
+    "end_to_end_http_move_status": 201
+  }
+}

@@ -1,19 +1,14 @@
-import { useGame } from "../../context/GameContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
+import { useBoard } from "../../context/BoardContext.tsx"
+import { useGameUI } from "../../context/UIContext.tsx"
 import { nameOfCard } from "../../utils/card-helpers.ts"
 import { labelMove, moveInvolves, ANCHOR_FREE_TYPES } from "../../utils/move-helpers.ts"
 import styles from "./MovePanel.module.css"
 
 export function MovePanel({ playerId }: { playerId: string }) {
-  const {
-    legalMoves,
-    legalMovesPerPlayer,
-    activePlayer,
-    selectedId,
-    onSelect,
-    onMove,
-    allBoards,
-    winner,
-  } = useGame()
+  const { legalMoves, legalMovesPerPlayer, activePlayer, onMove } = useMoves()
+  const { allBoards, winner } = useBoard()
+  const { selectedId, onSelect } = useGameUI()
 
   if (winner) return null
 

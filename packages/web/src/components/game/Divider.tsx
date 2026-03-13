@@ -1,22 +1,12 @@
-import { useGame } from "../../context/GameContext.tsx"
+import { useBoard } from "../../context/BoardContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
 import { PhaseTracker } from "./PhaseTracker.tsx"
 import styles from "./Divider.module.css"
 
 export function Divider() {
-  const {
-    playerA,
-    playerAName,
-    playerBName,
-    myPlayerId,
-    phase,
-    turnNumber,
-    winner,
-    activePlayer,
-    legalMoves,
-    onMove,
-    allBoards,
-    handMaxSize,
-  } = useGame()
+  const { playerA, playerAName, playerBName, myPlayerId, winner, allBoards, handMaxSize } =
+    useBoard()
+  const { phase, turnNumber, activePlayer, legalMoves, onMove } = useMoves()
   const activeLabel = activePlayer === playerA ? playerAName : playerBName
   const isMyTurn = myPlayerId === activePlayer
 

@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { useGame } from "../../context/GameContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
+import { useGameUI } from "../../context/UIContext.tsx"
 import type { CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
-import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import type { ContextMenuAction } from "../../context/types.ts"
 import { buildHandContextActions } from "../../utils/manual-actions.ts"
 import { DrawPile } from "./DrawPile.tsx"
 import { DiscardPile } from "./DiscardPile.tsx"
@@ -26,7 +27,16 @@ export function PlayerHand({
   discardPile: CardInfo[]
   isOpponent: boolean
 }) {
-  const { selectedId, onSelect, openContextMenu, legalMoves, requestSpellCast, rebuildTarget, setRebuildTarget, submitRebuild } = useGame()
+  const { legalMoves } = useMoves()
+  const {
+    selectedId,
+    onSelect,
+    openContextMenu,
+    requestSpellCast,
+    rebuildTarget,
+    setRebuildTarget,
+    submitRebuild,
+  } = useGameUI()
   const [showDiscard, setShowDiscard] = useState(false)
   const [rebuildSelected, setRebuildSelected] = useState<string[]>([])
   const isRebuildMode = rebuildTarget !== null && !isOpponent
@@ -100,11 +110,15 @@ export function PlayerHand({
                 className={`${styles.cardSlot} ${isSelected ? styles.selected : ""} ${isRebuildPicked ? styles.rebuildSelected : ""}`}
                 style={fanTransform(i)}
                 draggable={!isRebuildMode}
-                onDragStart={isRebuildMode ? undefined : (e) => {
-                  e.dataTransfer.setData("drag-id", card.instanceId)
-                  e.dataTransfer.setData("drag-source", "hand")
-                  e.dataTransfer.effectAllowed = "move"
-                }}
+                onDragStart={
+                  isRebuildMode
+                    ? undefined
+                    : (e) => {
+                        e.dataTransfer.setData("drag-id", card.instanceId)
+                        e.dataTransfer.setData("drag-source", "hand")
+                        e.dataTransfer.effectAllowed = "move"
+                      }
+                }
                 onClick={handleClick}
                 onContextMenu={
                   contextActions.length
@@ -120,6 +134,7 @@ export function PlayerHand({
                     src={cardImageUrl(card.setId, card.cardNumber)}
                     alt={card.name}
                     className={styles.cardImg}
+                    loading="lazy"
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = "none"
                     }}

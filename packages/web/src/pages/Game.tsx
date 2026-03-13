@@ -3,8 +3,11 @@ import { useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { getGameState, submitMove, createWsClient } from "../api.ts"
 import type { GameState, Move, GameEvent, WsClientMessage, CardInfo } from "../api.ts"
-import { GameContext } from "../context/GameContext.tsx"
-import type { ContextMenuState } from "../context/GameContext.tsx"
+import { BoardContext } from "../context/BoardContext.tsx"
+import { CombatContext } from "../context/CombatContext.tsx"
+import { MovesContext } from "../context/MovesContext.tsx"
+import { UIContext } from "../context/UIContext.tsx"
+import type { ContextMenuState } from "../context/types.ts"
 import { useAuth } from "../auth.tsx"
 import { GameBoard } from "../components/game/GameBoard.tsx"
 import { CasterSelectModal } from "../components/game/CasterSelectModal.tsx"
@@ -556,6 +559,93 @@ export function Game() {
     [data?.board.players, playerIds],
   )
 
+  const boardCtxValue = useMemo(
+    () => ({
+      playerA: myPlayerId,
+      playerB: opponentPlayerId,
+      playerAName,
+      playerBName,
+      myPlayerId,
+      winner: data?.winner ?? null,
+      handMaxSize: data?.handMaxSize ?? 8,
+      allBoards: data?.board.players ?? {},
+      lingeringSpellsByPlayer,
+    }),
+    [
+      myPlayerId,
+      opponentPlayerId,
+      playerAName,
+      playerBName,
+      data?.winner,
+      data?.handMaxSize,
+      data?.board.players,
+      lingeringSpellsByPlayer,
+    ],
+  )
+
+  const combatCtxValue = useMemo(
+    () => ({
+      combat: data?.board.combat ?? null,
+      resolutionContext: data?.resolutionContext ?? null,
+    }),
+    [data?.board.combat, data?.resolutionContext],
+  )
+
+  const movesCtxValue = useMemo(
+    () => ({
+      legalMoves: data?.legalMoves ?? [],
+      ...(data?.legalMovesPerPlayer ? { legalMovesPerPlayer: data.legalMovesPerPlayer } : {}),
+      activePlayer: data?.activePlayer ?? "",
+      phase: data?.phase ?? "",
+      turnNumber: data?.turnNumber ?? 0,
+      onMove: sendMove,
+    }),
+    [
+      data?.legalMoves,
+      data?.legalMovesPerPlayer,
+      data?.activePlayer,
+      data?.phase,
+      data?.turnNumber,
+      sendMove,
+    ],
+  )
+
+  const uiCtxValue = useMemo(
+    () => ({
+      selectedId,
+      onSelect: setSelectedId,
+      contextMenu,
+      openContextMenu,
+      closeContextMenu,
+      warningMessage: warningState?.message ?? null,
+      warningCode: warningState?.code ?? null,
+      warningSuppressible: warningState?.suppressible ?? true,
+      warningProceedLabel: warningState?.proceedLabel,
+      warningConfirmAction: warningState?.confirmAction ?? null,
+      showWarning,
+      suppressWarningCode,
+      clearWarning,
+      rebuildTarget,
+      setRebuildTarget,
+      submitRebuild,
+      requestSpellCast,
+    }),
+    [
+      selectedId,
+      contextMenu,
+      openContextMenu,
+      closeContextMenu,
+      warningState,
+      showWarning,
+      suppressWarningCode,
+      clearWarning,
+      rebuildTarget,
+      setRebuildTarget,
+      submitRebuild,
+      requestSpellCast,
+    ],
+  )
+
   if (isLoading)
     return (
       <div className="page">
@@ -585,102 +675,71 @@ export function Game() {
   }
 
   return (
-    <GameContext.Provider
-      value={{
-        playerA: myPlayerId,
-        playerB: opponentPlayerId,
-        playerAName,
-        playerBName,
-        myPlayerId,
-        activePlayer: data.activePlayer,
-        phase: data.phase,
-        turnNumber: data.turnNumber,
-        winner: data.winner,
-        handMaxSize: data.handMaxSize,
-        allBoards: data.board.players,
-        lingeringSpellsByPlayer,
-        combat: data.board.combat,
-        resolutionContext: data.resolutionContext,
-        legalMoves: data.legalMoves,
-        ...(data.legalMovesPerPlayer ? { legalMovesPerPlayer: data.legalMovesPerPlayer } : {}),
-        onMove: sendMove,
-        selectedId,
-        onSelect: setSelectedId,
-        contextMenu,
-        openContextMenu,
-        closeContextMenu,
-        warningMessage: warningState?.message ?? null,
-        warningCode: warningState?.code ?? null,
-        warningSuppressible: warningState?.suppressible ?? true,
-        warningProceedLabel: warningState?.proceedLabel,
-        warningConfirmAction: warningState?.confirmAction ?? null,
-        showWarning,
-        suppressWarningCode,
-        clearWarning,
-        rebuildTarget,
-        setRebuildTarget,
-        submitRebuild,
-        requestSpellCast,
-      }}
-    >
-      <GameBoard events={eventLog} wsError={wsError} />
-      <div style={{ position: "fixed", top: 12, right: 14, zIndex: 500 }}>
-        <MusicPlayer />
-      </div>
-      <EmoteOverlay emotes={floatingEmotes} />
-      <ChatBar
-        chatOpen={chatOpen}
-        unreadCount={unreadCount}
-        onToggleChat={handleToggleChat}
-        onEmote={sendEmote}
-      />
-      {chatOpen && (
-        <ChatPanel
-          messages={chatMessages}
-          myPlayerId={myPlayerId}
-          playerIds={playerIds}
-          onSend={sendMessage}
-          onClose={handleToggleChat}
-        />
-      )}
-      {data.resolutionContext && (
-        <ResolutionPanel
-          ctx={data.resolutionContext}
-          allBoards={data.board.players}
-          myPlayerId={myPlayerId}
-          onMove={sendMove}
-        />
-      )}
-      {casterPrompt && (
-        <CasterSelectModal
-          spell={casterPrompt.spell}
-          casters={casterPrompt.casters}
-          onPick={(casterInstanceId) => {
-            dispatchSpellMove({
-              spell: casterPrompt.spell,
-              move: casterPrompt.move,
-              casterInstanceId,
-              ...(casterPrompt.target ? { target: casterPrompt.target } : {}),
-            })
-            setCasterPrompt(null)
-          }}
-          onClose={() => setCasterPrompt(null)}
-        />
-      )}
-      {activeAnnouncement && (
-        <SpellCastAnnouncementModal
-          announcement={activeAnnouncement}
-          canCounter={false}
-          onCounter={() => {}}
-          onClose={() => setActiveAnnouncement(null)}
-        />
-      )}
-      {resolutionOutcome && (
-        <ResolutionOutcomeModal
-          outcome={resolutionOutcome}
-          onClose={() => setResolutionOutcome(null)}
-        />
-      )}
-    </GameContext.Provider>
+    <BoardContext.Provider value={boardCtxValue}>
+      <CombatContext.Provider value={combatCtxValue}>
+        <MovesContext.Provider value={movesCtxValue}>
+          <UIContext.Provider value={uiCtxValue}>
+            <GameBoard events={eventLog} wsError={wsError} />
+            <div style={{ position: "fixed", top: 12, right: 14, zIndex: 500 }}>
+              <MusicPlayer />
+            </div>
+            <EmoteOverlay emotes={floatingEmotes} />
+            <ChatBar
+              chatOpen={chatOpen}
+              unreadCount={unreadCount}
+              onToggleChat={handleToggleChat}
+              onEmote={sendEmote}
+            />
+            {chatOpen && (
+              <ChatPanel
+                messages={chatMessages}
+                myPlayerId={myPlayerId}
+                playerIds={playerIds}
+                onSend={sendMessage}
+                onClose={handleToggleChat}
+              />
+            )}
+            {data.resolutionContext && (
+              <ResolutionPanel
+                ctx={data.resolutionContext}
+                allBoards={data.board.players}
+                myPlayerId={myPlayerId}
+                onMove={sendMove}
+              />
+            )}
+            {casterPrompt && (
+              <CasterSelectModal
+                spell={casterPrompt.spell}
+                casters={casterPrompt.casters}
+                onPick={(casterInstanceId) => {
+                  dispatchSpellMove({
+                    spell: casterPrompt.spell,
+                    move: casterPrompt.move,
+                    casterInstanceId,
+                    ...(casterPrompt.target ? { target: casterPrompt.target } : {}),
+                  })
+                  setCasterPrompt(null)
+                }}
+                onClose={() => setCasterPrompt(null)}
+              />
+            )}
+            {activeAnnouncement && (
+              <SpellCastAnnouncementModal
+                announcement={activeAnnouncement}
+                canCounter={false}
+                onCounter={() => {}}
+                onClose={() => setActiveAnnouncement(null)}
+              />
+            )}
+            {resolutionOutcome && (
+              <ResolutionOutcomeModal
+                outcome={resolutionOutcome}
+                onClose={() => setResolutionOutcome(null)}
+              />
+            )}
+          </UIContext.Provider>
+        </MovesContext.Provider>
+      </CombatContext.Provider>
+    </BoardContext.Provider>
   )
 }

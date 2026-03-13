@@ -1,7 +1,9 @@
 import { useState } from "react"
-import { useGame } from "../../context/GameContext.tsx"
+import { useBoard } from "../../context/BoardContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
+import { useGameUI } from "../../context/UIContext.tsx"
 import type { PoolEntry as PoolEntryType } from "../../api.ts"
-import type { ContextMenuAction } from "../../context/GameContext.tsx"
+import type { ContextMenuAction } from "../../context/types.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
 import { resolveHandDropMove } from "../../utils/manual-actions.ts"
 import { CardComponent } from "./CardComponent.tsx"
@@ -11,16 +13,9 @@ const STACK_OFFSET = 14
 const WORLD_WILDCARD = new Set([0, 9])
 
 export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOpponent?: boolean }) {
-  const {
-    legalMoves,
-    onMove,
-    selectedId,
-    onSelect,
-    allBoards,
-    phase,
-    showWarning,
-    requestSpellCast,
-  } = useGame()
+  const { allBoards } = useBoard()
+  const { legalMoves, onMove, phase } = useMoves()
+  const { selectedId, onSelect, showWarning, requestSpellCast } = useGameUI()
   const [attachDragOver, setAttachDragOver] = useState(false)
 
   const stackCards = [...entry.attachments, entry.champion]

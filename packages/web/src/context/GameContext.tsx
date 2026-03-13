@@ -1,117 +1,35 @@
-import React from "react"
-import type { Move, PlayerBoard, CombatInfo, CardInfo, ResolutionContextInfo } from "../api.ts"
-import type { WarningCode } from "../utils/warnings.ts"
+// Re-export shared types (kept here for backward compat with component imports)
+export type { ContextMenuAction, ContextMenuState } from "./types.ts"
 
-export interface ContextMenuAction {
-  label: string
-  move?: Move
-  action?: () => void
-}
+// Re-export individual context hooks
+export { useBoard } from "./BoardContext.tsx"
+export { useCombat } from "./CombatContext.tsx"
+export { useMoves } from "./MovesContext.tsx"
+export { useGameUI } from "./UIContext.tsx"
 
-export interface ContextMenuState {
-  x: number
-  y: number
-  actions: ContextMenuAction[]
-}
+import { useBoard } from "./BoardContext.tsx"
+import { useCombat } from "./CombatContext.tsx"
+import { useMoves } from "./MovesContext.tsx"
+import { useGameUI } from "./UIContext.tsx"
 
-export interface GameContextType {
-  // Core game state
-  playerA: string
-  playerB: string
-  playerAName: string
-  playerBName: string
-  myPlayerId: string
-  activePlayer: string
-  phase: string
-  turnNumber: number
-  winner: string | null
-  handMaxSize: number
-  allBoards: Record<string, PlayerBoard>
-  lingeringSpellsByPlayer: Record<string, CardInfo[]>
-  combat: CombatInfo | null
-  resolutionContext: ResolutionContextInfo | null
+import type { BoardContextType } from "./BoardContext.tsx"
+import type { CombatContextType } from "./CombatContext.tsx"
+import type { MovesContextType } from "./MovesContext.tsx"
+import type { UIContextType } from "./UIContext.tsx"
 
-  // Moves
-  legalMoves: Move[]
-  legalMovesPerPlayer?: Record<string, Move[]>
-  onMove: (m: Move | Move[]) => void
+export type GameContextType = BoardContextType &
+  CombatContextType &
+  MovesContextType &
+  UIContextType
 
-  // Selection
-  selectedId: string | null
-  onSelect: (id: string | null) => void
-
-  // Context menu
-  contextMenu: ContextMenuState | null
-  openContextMenu: (x: number, y: number, actions: ContextMenuAction[]) => void
-  closeContextMenu: () => void
-
-  // Warnings
-  warningMessage: string | null
-  warningCode: WarningCode | null
-  warningSuppressible: boolean
-  warningProceedLabel: string | undefined
-  warningConfirmAction: (() => void) | null
-  showWarning: (
-    message: string,
-    code?: WarningCode,
-    suppressible?: boolean,
-    confirmAction?: () => void,
-    proceedLabel?: string,
-  ) => void
-  suppressWarningCode: (code: WarningCode) => void
-  clearWarning: () => void
-
-  // Rebuild realm UX
-  rebuildTarget: string | null
-  setRebuildTarget: (slot: string | null) => void
-  submitRebuild: (cardInstanceIds: [string, string, string]) => void
-
-  // Spell casting UX
-  requestSpellCast: (
-    spellInstanceId: string,
-    target?: {
-      cardInstanceId: string
-      owner: "self" | "opponent"
-    },
-  ) => void
-}
-
-export const GameContext = React.createContext<GameContextType>({
-  playerA: "",
-  playerB: "",
-  playerAName: "",
-  playerBName: "",
-  myPlayerId: "",
-  activePlayer: "",
-  phase: "",
-  turnNumber: 0,
-  winner: null,
-  handMaxSize: 8,
-  allBoards: {},
-  lingeringSpellsByPlayer: {},
-  combat: null,
-  resolutionContext: null,
-  legalMoves: [],
-  onMove: () => {},
-  selectedId: null,
-  onSelect: () => {},
-  contextMenu: null,
-  openContextMenu: () => {},
-  closeContextMenu: () => {},
-  warningMessage: null,
-  warningCode: null,
-  warningSuppressible: true,
-  warningProceedLabel: undefined,
-  warningConfirmAction: null,
-  showWarning: () => {},
-  suppressWarningCode: () => {},
-  clearWarning: () => {},
-  rebuildTarget: null,
-  setRebuildTarget: () => {},
-  submitRebuild: () => {},
-  requestSpellCast: () => {},
-})
-
-export function useGame() {
-  return React.useContext(GameContext)
+// Convenience hook — subscribes to all 4 contexts.
+// Prefer specific hooks (useBoard, useCombat, useMoves, useGameUI) in components
+// that only need a subset, to avoid re-renders from unrelated context changes.
+export function useGame(): GameContextType {
+  return {
+    ...useBoard(),
+    ...useCombat(),
+    ...useMoves(),
+    ...useGameUI(),
+  }
 }

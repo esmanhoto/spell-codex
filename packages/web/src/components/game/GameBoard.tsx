@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react"
-import { useGame } from "../../context/GameContext.tsx"
+import { useBoard } from "../../context/BoardContext.tsx"
+import { useCombat } from "../../context/CombatContext.tsx"
+import { useMoves } from "../../context/MovesContext.tsx"
+import { useGameUI } from "../../context/UIContext.tsx"
 import type { GameEvent } from "../../api.ts"
 import { PlayerHand } from "./PlayerHand.tsx"
 import { PlayerArea } from "./PlayerArea.tsx"
@@ -14,6 +17,7 @@ import styles from "./GameBoard.module.css"
 function AttackLine() {
   const [line, setLine] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
   const rafRef = useRef<number>(0)
+  const prevLineRef = useRef<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
 
   const updateLine = useCallback(() => {
     const champEl = document.querySelector("[data-combat-champion]")
@@ -22,13 +26,25 @@ function AttackLine() {
     if (champEl && slotEl) {
       const champRect = champEl.getBoundingClientRect()
       const slotRect = slotEl.getBoundingClientRect()
-      setLine({
+      const next = {
         x1: champRect.left + champRect.width / 2,
         y1: champRect.top + champRect.height / 2,
         x2: slotRect.left + slotRect.width / 2,
         y2: slotRect.top + slotRect.height / 2,
-      })
-    } else {
+      }
+      const prev = prevLineRef.current
+      if (
+        !prev ||
+        prev.x1 !== next.x1 ||
+        prev.y1 !== next.y1 ||
+        prev.x2 !== next.x2 ||
+        prev.y2 !== next.y2
+      ) {
+        prevLineRef.current = next
+        setLine(next)
+      }
+    } else if (prevLineRef.current !== null) {
+      prevLineRef.current = null
       setLine(null)
     }
   }, [])
@@ -76,14 +92,12 @@ function AttackLine() {
 }
 
 export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: string | null }) {
+  const { playerA, playerB, allBoards } = useBoard()
+  const { combat } = useCombat()
+  const { onMove } = useMoves()
   const {
-    playerA,
-    playerB,
-    allBoards,
-    combat,
     contextMenu,
     closeContextMenu,
-    onMove,
     warningMessage,
     warningCode,
     warningSuppressible,
@@ -91,7 +105,7 @@ export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: s
     warningConfirmAction,
     suppressWarningCode,
     clearWarning,
-  } = useGame()
+  } = useGameUI()
   const showMovePanel = import.meta.env["VITE_SHOW_MOVE_PANEL"] === "true"
 
   const boardA = allBoards[playerA]

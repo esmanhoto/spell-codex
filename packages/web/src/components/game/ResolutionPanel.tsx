@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import type { Move, ResolutionContextInfo, PlayerBoard } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import styles from "./ResolutionPanel.module.css"
@@ -115,9 +115,7 @@ function collectTargets(allBoards: Record<string, PlayerBoard>) {
   return { unrazedRealms, razedRealms, champions, allies, items, holdings, discardChampions }
 }
 
-function getAvailableCategories(
-  targets: ReturnType<typeof collectTargets>,
-): ActionCategory[] {
+function getAvailableCategories(targets: ReturnType<typeof collectTargets>): ActionCategory[] {
   const cats: ActionCategory[] = []
   if (targets.unrazedRealms.length > 0) cats.push("raze_realm")
   if (targets.razedRealms.length > 0) cats.push("rebuild_realm")
@@ -201,9 +199,7 @@ export function ResolutionPanel({
           <div className={styles.header}>
             <div className={styles.label}>Card Destination</div>
             <div className={styles.cardName}>{ctx.pendingCard.name}</div>
-            <div className={styles.cardDesc}>
-              Where should the card you played go?
-            </div>
+            <div className={styles.cardDesc}>Where should the card you played go?</div>
           </div>
           <div className={styles.destRow}>
             {(["discard", "abyss", "void", "in_play"] as const).map((dest) => (
@@ -234,10 +230,7 @@ export function ResolutionPanel({
           >
             Confirm
           </button>
-          <button
-            className={styles.backLink}
-            onClick={() => setPendingDone(false)}
-          >
+          <button className={styles.backLink} onClick={() => setPendingDone(false)}>
             &larr; Back to actions
           </button>
         </div>
@@ -246,7 +239,7 @@ export function ResolutionPanel({
   }
 
   // ── Main resolution panel ───────────────────────────────────────────────
-  const targets = collectTargets(allBoards)
+  const targets = useMemo(() => collectTargets(allBoards), [allBoards])
   const availableCategories = getAvailableCategories(targets)
 
   const effectiveCategory =
@@ -376,7 +369,9 @@ export function ResolutionPanel({
                     checked={checkedRealms.has(key)}
                     onChange={() => toggleRealm(key)}
                   />
-                  <span>{r.realmName} (slot {r.slot})</span>
+                  <span>
+                    {r.realmName} (slot {r.slot})
+                  </span>
                 </label>
               )
             })}
@@ -394,7 +389,9 @@ export function ResolutionPanel({
                     checked={checkedRealms.has(key)}
                     onChange={() => toggleRealm(key)}
                   />
-                  <span>{r.realmName} (slot {r.slot})</span>
+                  <span>
+                    {r.realmName} (slot {r.slot})
+                  </span>
                 </label>
               )
             })}
@@ -504,16 +501,12 @@ export function ResolutionPanel({
                   min={1}
                   max={10}
                   value={drawCount}
-                  onChange={(e) =>
-                    setDrawCount(Math.max(1, parseInt(e.target.value, 10) || 1))
-                  }
+                  onChange={(e) => setDrawCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
                   className={styles.drawInput}
                 />
                 <button
                   className={styles.actionBtn}
-                  onClick={() =>
-                    onMove({ type: "RESOLVE_DRAW_CARDS", playerId, count: drawCount })
-                  }
+                  onClick={() => onMove({ type: "RESOLVE_DRAW_CARDS", playerId, count: drawCount })}
                 >
                   {playerId === myPlayerId ? "Draw for me" : "Draw for opponent"}
                 </button>
@@ -558,9 +551,7 @@ export function ResolutionPanel({
             value={effectiveCategory ?? ""}
             onChange={(e) => handleCategoryChange(e.target.value)}
           >
-            {availableCategories.length > 1 && (
-              <option value="">Select action...</option>
-            )}
+            {availableCategories.length > 1 && <option value="">Select action...</option>}
             {availableCategories.map((cat) => (
               <option key={cat} value={cat}>
                 {CATEGORY_LABELS[cat]}
@@ -570,9 +561,7 @@ export function ResolutionPanel({
         </div>
 
         {/* Dynamic content */}
-        {effectiveCategory && (
-          <div className={styles.section}>{renderCategoryContent()}</div>
-        )}
+        {effectiveCategory && <div className={styles.section}>{renderCategoryContent()}</div>}
 
         {/* Done → goes to card destination step */}
         <button className={styles.doneBtn} onClick={() => setPendingDone(true)}>
