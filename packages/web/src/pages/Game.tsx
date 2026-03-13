@@ -1,8 +1,12 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { useParams } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { applyMove } from "@spell/engine"
+import type { GameState as EngineGameState } from "@spell/engine"
 import { getGameState, submitMove, createWsClient } from "../api.ts"
 import type { GameState, Move, GameEvent, WsClientMessage, CardInfo } from "../api.ts"
+import { serializeEngineStateForClient } from "../utils/client-serialize.ts"
+import { hashEngineState } from "../utils/state-hash.ts"
 import { cardImageUrl, CARD_BACK_URL } from "../utils/card-helpers.ts"
 import { BoardContext } from "../context/BoardContext.tsx"
 import { CombatContext } from "../context/CombatContext.tsx"
@@ -134,6 +138,8 @@ export function Game() {
   const lastConfirmedStateRef = useRef<GameState | null>(null)
   // Ref to current data so sendMove can read it without a stale closure
   const currentDataRef = useRef<GameState | undefined>(undefined)
+  // Client-side engine state for local move application (Phase 6)
+  const localEngineStateRef = useRef<EngineGameState | null>(null)
   const {
     messages: chatMessages,
     unreadCount,
@@ -200,8 +206,9 @@ export function Game() {
     queryFn: () => getGameState(gameId!, identity!),
     enabled: !!gameId && !!identity,
     staleTime: Infinity,
-    // Keep eventual consistency even if WS reconnect/proxy has issues.
-    refetchInterval: (query) => (query.state.data?.winner ? false : 2000),
+    // Safety-net poll — MOVE_APPLIED delta handles real-time updates (Phase 6).
+    // This only matters if WS drops silently without triggering a reconnect.
+    refetchInterval: (query) => (query.state.data?.winner ? false : 60_000),
   })
   // Keep ref in sync so sendMove can access current state without a stale closure
   currentDataRef.current = data
@@ -314,11 +321,78 @@ export function Game() {
           )
           lastMoveSentAtRef.current = null
         }
+        // Initialize local engine state from raw engine state (JOIN_GAME / SYNC_REQUEST)
+        if (msg.rawEngineState) {
+          localEngineStateRef.current = msg.rawEngineState as EngineGameState
+        }
         // Server confirmed — clear rollback snapshot
         lastConfirmedStateRef.current = null
         const state = msg.state as GameState
         qc.setQueryData(["game", gameId, myPlayerId], state)
         if (state.events?.length) processIncomingEvents(state.events)
+        if (!document.hidden) {
+          requestAnimationFrame(() => {
+            console.log(
+              `[perf] ws_message_to_render_ms: ${(performance.now() - wsReceiveAt).toFixed(2)}`,
+            )
+          })
+        }
+      } else if (msg.type === "MOVE_APPLIED") {
+        const wsReceiveAt = performance.now()
+        const sentAt = lastMoveSentAtRef.current
+        if (sentAt !== null) {
+          const moveNum = moveCountRef.current
+          console.log(
+            `[perf] move_submit_to_ws_ack_ms: ${(wsReceiveAt - sentAt).toFixed(2)} (move ${moveNum})`,
+          )
+          lastMoveSentAtRef.current = null
+        }
+        const engineState = localEngineStateRef.current
+        if (!engineState) {
+          // No local engine state — request full sync
+          wsRef.current?.sendSyncRequest(msg.gameId)
+          return
+        }
+        let newEngineState: EngineGameState
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const result = applyMove(engineState, msg.playerId, msg.move as any)
+          newEngineState = result.newState
+        } catch (err) {
+          console.warn("[phase6] engine error on MOVE_APPLIED — requesting sync", err)
+          wsRef.current?.sendSyncRequest(msg.gameId)
+          return
+        }
+        // Hash reconciliation — async, non-blocking
+        void hashEngineState(newEngineState).then((clientHash) => {
+          if (clientHash !== msg.stateHash) {
+            console.warn(
+              `[phase6] hash mismatch (client=${clientHash.slice(0, 8)} server=${msg.stateHash.slice(0, 8)}) — requesting sync`,
+            )
+            wsRef.current?.sendSyncRequest(msg.gameId)
+          }
+        })
+        localEngineStateRef.current = newEngineState
+        // Derive API state and update React query cache
+        const currentApiState = currentDataRef.current
+        const apiState = serializeEngineStateForClient(newEngineState, myPlayerId, {
+          status: msg.status,
+          turnDeadline: msg.turnDeadline,
+          winner: msg.winner,
+          players: currentApiState?.players,
+        })
+        // Preserve deckCardImages from current state
+        const merged: GameState = {
+          ...(currentApiState ?? {}),
+          ...apiState,
+          ...(currentApiState?.deckCardImages
+            ? { deckCardImages: currentApiState.deckCardImages }
+            : {}),
+        }
+        // Server confirmed — clear rollback snapshot
+        lastConfirmedStateRef.current = null
+        qc.setQueryData(["game", gameId, myPlayerId], merged)
+        if (newEngineState.events.length) processIncomingEvents(newEngineState.events)
         if (!document.hidden) {
           requestAnimationFrame(() => {
             console.log(
