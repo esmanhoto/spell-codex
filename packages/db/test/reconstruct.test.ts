@@ -81,7 +81,11 @@ function buildActions(moves: Array<{ playerId: string; move: Move }>) {
   return { actions, finalState: current }
 }
 
-/** In-memory reconstruct — mirrors src/reconstruct.ts without the DB calls. */
+/**
+ * In-memory reconstruct — mirrors src/reconstruct.ts without the DB calls.
+ * Hash verification is intentionally absent: production reconstruct trusts the
+ * engine replay and skips per-step hash checks (phase 4.2).
+ */
 function reconstructInMemory(
   players: ReturnType<typeof makeGamePlayers>,
   actions: ReturnType<typeof buildActions>["actions"],
@@ -114,14 +118,6 @@ function reconstructInMemory(
       continue
     }
     current = result.newState
-    const actualHash = hashState(current)
-    if (actualHash !== action.stateHash) {
-      errors.push({
-        kind: "hash_mismatch",
-        sequence: action.sequence,
-        message: `expected ${action.stateHash}, got ${actualHash}`,
-      })
-    }
   }
 
   return { state: current, errors }
@@ -141,10 +137,20 @@ describe("hashState", () => {
     expect(hashState(state)).toBe(hashState(state))
   })
 
-  it("differs after a state change", () => {
+  it("differs after a board state change", () => {
     const state0 = makeState0()
     const result = applyMove(state0, PLAYER_A, { type: "PASS" })
     expect(hashState(state0)).not.toBe(hashState(result.newState))
+  })
+
+  it("is unaffected by events — same board with different events produces same hash", () => {
+    const state = makeState0()
+    const withExtraEvent = {
+      ...state,
+      events: [...state.events, { type: "TURN_STARTED", turn: 999, playerId: PLAYER_A }],
+    }
+    // Board fields are identical; only events differ — hash must match
+    expect(hashState(state)).toBe(hashState(withExtraEvent as typeof state))
   })
 })
 
@@ -175,19 +181,42 @@ describe("reconstruct (mocked IO)", () => {
     expect(state.currentTurn).toBe(finalState.currentTurn)
   })
 
-  it("reports hash_mismatch when stored hash is wrong", () => {
+  it("reports engine_error for an invalid move and continues replay", () => {
+    const passes: Array<{ playerId: string; move: Move }> = [
+      { playerId: PLAYER_A, move: { type: "PASS" } },
+      { playerId: PLAYER_A, move: { type: "PASS" } },
+    ]
+    const { actions, finalState } = buildActions(passes)
+
+    // Inject an invalid move between the two valid ones
+    const withBadMove = [
+      actions[0]!,
+      { ...actions[0]!, sequence: 99, move: { type: "INVALID_MOVE_TYPE" } as unknown as Move },
+      actions[1]!,
+    ]
+
+    const players = makeGamePlayers()
+    const { state, errors } = reconstructInMemory(players, withBadMove)
+
+    expect(errors).toHaveLength(1)
+    expect(errors[0]!.kind).toBe("engine_error")
+    // Replay continued past the bad move — final state still matches
+    expect(state.currentTurn).toBe(finalState.currentTurn)
+  })
+
+  it("ignores corrupted stored hashes — no hash_mismatch errors reported", () => {
     const passes: Array<{ playerId: string; move: Move }> = [
       { playerId: PLAYER_A, move: { type: "PASS" } },
     ]
     const { actions } = buildActions(passes)
 
-    // Corrupt the stored hash.
+    // Corrupt every stored hash
     const corrupted = actions.map((a) => ({ ...a, stateHash: "deadbeef" + a.stateHash.slice(8) }))
 
     const players = makeGamePlayers()
     const { errors } = reconstructInMemory(players, corrupted)
 
-    expect(errors).toHaveLength(1)
-    expect(errors[0]!.kind).toBe("hash_mismatch")
+    // Hash verification is skipped in production — no errors expected
+    expect(errors).toHaveLength(0)
   })
 })
