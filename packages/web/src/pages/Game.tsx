@@ -15,6 +15,7 @@ import { UIContext } from "../context/UIContext.tsx"
 import type { ContextMenuState } from "../context/types.ts"
 import { useAuth } from "../auth.tsx"
 import { GameBoard } from "../components/game/GameBoard.tsx"
+import { GameLoadingScreen } from "../components/game/GameLoadingScreen.tsx"
 import { CasterSelectModal } from "../components/game/CasterSelectModal.tsx"
 import { ResolutionPanel } from "../components/game/ResolutionPanel.tsx"
 import {
@@ -765,34 +766,14 @@ export function Game() {
     ],
   )
 
-  if (isLoading || (data && !imagesReady))
-    return (
-      <div
-        className="page"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 16,
-        }}
-      >
-        {isLoading ? (
-          <p>Loading game state…</p>
-        ) : (
-          <>
-            <p>
-              Loading images… {imageProgress.loaded} / {imageProgress.total}
-            </p>
-            <progress
-              value={imageProgress.loaded}
-              max={imageProgress.total}
-              style={{ width: 240 }}
-            />
-          </>
-        )}
-      </div>
-    )
+  if (isLoading || (data && !imagesReady)) {
+    const progress = isLoading
+      ? undefined
+      : imageProgress.total > 0
+        ? Math.round((imageProgress.loaded / imageProgress.total) * 100)
+        : 0
+    return <GameLoadingScreen progress={progress} />
+  }
   if (error)
     return (
       <div className="page">
