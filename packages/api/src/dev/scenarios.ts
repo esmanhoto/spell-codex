@@ -20,6 +20,8 @@ export interface RealmSlotDef {
 
 export interface PlayerDef {
   hand?: CardRef[]
+  drawPile?: CardRef[]
+  discardPile?: CardRef[]
   pool?: PoolEntryDef[]
   formation?: Partial<Record<FormationSlot, RealmSlotDef>>
 }
@@ -420,6 +422,238 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
       attackingPlayer: "p2",
       targetSlot: "A",
       roundPhase: "AWAITING_DEFENDER",
+    },
+  },
+
+  // ── Turn trigger: Marco Volo (start of turn — peek draw pile top 1) ─────
+  // Marco Volo (#50, Monster Hero, lv 3) fires at the start of the player's turn.
+  // Text: "look at the top card of any draw pile and discard it if he wants."
+  // Scenario starts at START_OF_TURN so the trigger panel appears immediately.
+  // Use PEEK DRAW PILE ×1, then optionally discard or just DONE.
+  "trigger-start-marco-volo": {
+    name: "Turn trigger — Marco Volo (start, peek draw pile)",
+    description:
+      "Marco Volo (lv 3, Monster Hero) fires at start of p1's turn. " +
+      "Peek the top card of any draw pile (×1). Discard it or leave it, then Done.",
+    phase: "START_OF_TURN",
+    p1: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 1 } } }, // Waterdeep
+      pool: [{ card: { setId: "1st", cardNumber: 50 } }], // Marco Volo, lv 3
+    },
+    p2: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 5 } } }, // Cormyr
+      pool: [{ card: { setId: "1st", cardNumber: 42 } }], // King Azoun IV
+      hand: [
+        { setId: "1st", cardNumber: 44 }, // Elminster
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss
+      ],
+      drawPile: [
+        { setId: "1st", cardNumber: 51 }, // The Harpers (top)
+        { setId: "1st", cardNumber: 48 }, // The Pereghost
+        { setId: "1st", cardNumber: 54 }, // War Party
+      ],
+    },
+  },
+
+  // ── Turn trigger: Ren's Crystal Ball (start — peek top 3, discard 1) ────
+  // Ren's Crystal Ball (#199, Artifact) on a champion fires at start of turn.
+  // Text: "inspect the top three cards of any deck and discard one."
+  // Use PEEK DRAW PILE ×3, then pick one to discard from the peek view, then Done.
+  "trigger-start-rens-crystal-ball": {
+    name: "Turn trigger — Ren's Crystal Ball (start, peek ×3 + discard 1)",
+    description:
+      "Ren's Crystal Ball (Artifact) attached to Elminster fires at start of p1's turn. " +
+      "Peek top 3 cards of any draw pile, discard one, then Done.",
+    phase: "START_OF_TURN",
+    p1: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 1 } } }, // Waterdeep
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 44 }, // Elminster the Mage, lv 9
+          attachments: [{ setId: "1st", cardNumber: 199 }], // Ren's Crystal Ball
+        },
+      ],
+    },
+    p2: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 5 } } }, // Cormyr
+      pool: [{ card: { setId: "1st", cardNumber: 42 } }], // King Azoun IV
+      hand: [
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss
+        { setId: "1st", cardNumber: 349 }, // Cure Light Wounds
+      ],
+      drawPile: [
+        { setId: "1st", cardNumber: 58 }, // Armies of Bloodstone (top)
+        { setId: "1st", cardNumber: 59 }, // The Iron Legion
+        { setId: "1st", cardNumber: 61 }, // Myrmidons
+        { setId: "1st", cardNumber: 54 }, // War Party
+      ],
+    },
+  },
+
+  // ── Turn trigger: Ring of All Seeing (start — peek opponent's hand) ──────
+  // Ring of All Seeing (#311, Magical Item, Def) fires at start of turn.
+  // Text: "look at one player's hand."
+  // Use PEEK HAND on opponent, then Done.
+  "trigger-start-ring-of-all-seeing": {
+    name: "Turn trigger — Ring of All Seeing (start, peek hand)",
+    description:
+      "Ring of All Seeing (Magical Item) on Alias fires at start of p1's turn. " +
+      "Select 'Peek Opponent's Hand' to reveal all cards in opponent's hand, then Done.",
+    phase: "START_OF_TURN",
+    p1: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 1 } } }, // Waterdeep
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 41 }, // Alias the Sell-Sword, lv 6
+          attachments: [{ setId: "1st", cardNumber: 311 }], // Ring of All Seeing
+        },
+      ],
+    },
+    p2: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 5 } } }, // Cormyr
+      pool: [{ card: { setId: "1st", cardNumber: 42 } }], // King Azoun IV
+      hand: [
+        { setId: "1st", cardNumber: 44 }, // Elminster
+        { setId: "1st", cardNumber: 51 }, // The Harpers
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss
+        { setId: "1st", cardNumber: 156 }, // Eye and Hand of Vecna
+      ],
+      drawPile: [
+        { setId: "1st", cardNumber: 58 }, // Armies of Bloodstone
+        { setId: "1st", cardNumber: 349 }, // Cure Light Wounds
+      ],
+    },
+  },
+
+  // ── Turn trigger: Hettman Tsurin (end of turn — discard from hand) ───────
+  // Hettman Tsurin (#172, Monster Hero, lv 2) fires at end of turn IF he didn't attack.
+  // Text: "randomly draw one card from another player's hand and discard it."
+  // Start at PHASE_FIVE. p1 PASSes → end trigger fires → use DISCARD FROM OPPONENT HAND.
+  "trigger-end-hettman-tsurin": {
+    name: "Turn trigger — Hettman Tsurin (end, discard from opponent hand)",
+    description:
+      "Hettman Tsurin (lv 2, Monster Hero) fires at end of p1's turn if he did not attack. " +
+      "Start at Phase Five, PASS → end trigger fires → use 'Discard from Opponent's Hand'. Done.",
+    phase: "PHASE_FIVE",
+    p1: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 1 } } }, // Waterdeep
+      pool: [{ card: { setId: "1st", cardNumber: 172 } }], // Hettman Tsurin, lv 2
+    },
+    p2: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 5 } } }, // Cormyr
+      pool: [{ card: { setId: "1st", cardNumber: 42 } }], // King Azoun IV
+      hand: [
+        { setId: "1st", cardNumber: 44 }, // Elminster
+        { setId: "1st", cardNumber: 51 }, // The Harpers
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss
+        { setId: "1st", cardNumber: 349 }, // Cure Light Wounds
+      ],
+      drawPile: [
+        { setId: "1st", cardNumber: 58 }, // Armies of Bloodstone
+        { setId: "1st", cardNumber: 54 }, // War Party
+      ],
+    },
+  },
+
+  // ── Turn trigger: multiple triggers fire simultaneously ──────────────────
+  // Marco Volo + Ring of All Seeing both fire at start of p1's turn.
+  // Two triggers are queued; resolve each in order with Done between them.
+  "trigger-start-multi": {
+    name: "Turn trigger — multiple at once (Marco Volo + Ring of All Seeing)",
+    description:
+      "Alias has Ring of All Seeing; Marco Volo is also in pool. " +
+      "Both fire at start of turn — two triggers queued. " +
+      "Resolve each: peek hand for Ring, peek draw pile ×1 for Marco. Done after each.",
+    phase: "START_OF_TURN",
+    p1: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 1 } } }, // Waterdeep
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 41 }, // Alias the Sell-Sword
+          attachments: [{ setId: "1st", cardNumber: 311 }], // Ring of All Seeing
+        },
+        { card: { setId: "1st", cardNumber: 50 } }, // Marco Volo
+      ],
+    },
+    p2: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 5 } } }, // Cormyr
+      pool: [{ card: { setId: "1st", cardNumber: 42 } }], // King Azoun IV
+      hand: [
+        { setId: "1st", cardNumber: 44 }, // Elminster
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss
+        { setId: "1st", cardNumber: 156 }, // Eye and Hand of Vecna
+      ],
+      drawPile: [
+        { setId: "1st", cardNumber: 51 }, // The Harpers (top)
+        { setId: "1st", cardNumber: 48 }, // The Pereghost
+        { setId: "1st", cardNumber: 58 }, // Armies of Bloodstone
+      ],
+    },
+  },
+
+  // ── Turn trigger: The Scarlet Brotherhood (start — eliminate champion) ───
+  // The Scarlet Brotherhood (#135, Realm, GH) fires at start of turn.
+  // Text: "Player can eliminate one champion from any pool. This realm is then razed."
+  // Use "Other effects": right-click a champion in p2's pool to discard it,
+  // then right-click The Scarlet Brotherhood realm to raze it. Done.
+  "trigger-start-scarlet-brotherhood": {
+    name: "Turn trigger — The Scarlet Brotherhood (start, eliminate champion)",
+    description:
+      "The Scarlet Brotherhood (Realm, GH) fires at start of p1's turn. " +
+      "Select 'Other effects' → Done, then right-click a champion in p2's pool to eliminate it, " +
+      "then right-click the Scarlet Brotherhood realm to raze it.",
+    phase: "START_OF_TURN",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 111 } }, // Free City of Greyhawk
+        B: { realm: { setId: "1st", cardNumber: 135 } }, // The Scarlet Brotherhood
+      },
+    },
+    p2: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 5 } } }, // Cormyr
+      pool: [
+        { card: { setId: "1st", cardNumber: 42 } }, // King Azoun IV, lv 7
+        { card: { setId: "1st", cardNumber: 44 } }, // Elminster the Mage, lv 9
+      ],
+    },
+  },
+
+  // ── Turn trigger: Cup of Al'Akbar (end — discard 3, return 1 from discard)
+  // Cup of Al'Akbar (#160, Artifact, GH) fires at end of turn.
+  // Text: "If the player discards three cards from his hand, can return one card from
+  //         discard pile to hand."
+  // Flow: PASS → trigger fires → "Other effects" → Done (still in Phase 5) →
+  //   discard 3 from hand → right-click discard pile card → return to hand → PASS.
+  "trigger-end-cup-of-alakbar": {
+    name: "Turn trigger — Cup of Al'Akbar (end, discard 3 → return 1 from discard)",
+    description:
+      "Cup of Al'Akbar (Artifact, GH) on Mordenkainen fires at end of p1's turn. " +
+      "PASS → trigger fires → Other effects → Done (still in Phase 5) → " +
+      "discard 3 cards from hand → right-click discard pile → return target card to hand → PASS.",
+    phase: "PHASE_FIVE",
+    p1: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 111 } } }, // Free City of Greyhawk
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 162 }, // Mordenkainen, GH Wizard lv 7
+          attachments: [{ setId: "1st", cardNumber: 160 }], // Cup of Al'Akbar
+        },
+      ],
+      hand: [
+        { setId: "1st", cardNumber: 54 },  // War Party
+        { setId: "1st", cardNumber: 58 },  // Armies of Bloodstone
+        { setId: "1st", cardNumber: 59 },  // The Iron Legion
+        { setId: "1st", cardNumber: 61 },  // Myrmidons
+      ],
+      discardPile: [
+        { setId: "1st", cardNumber: 44 }, // Elminster (retrievable)
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss
+        { setId: "1st", cardNumber: 342 }, // Shield spell
+      ],
+    },
+    p2: {
+      formation: { A: { realm: { setId: "1st", cardNumber: 5 } } }, // Cormyr
+      pool: [{ card: { setId: "1st", cardNumber: 42 } }], // King Azoun IV
     },
   },
 }
