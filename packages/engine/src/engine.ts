@@ -810,13 +810,30 @@ function handleDeclareAttack(
     throw new EngineError("INVALID_TARGET_REALM", "Target realm is not in play")
   }
 
-  // Find attacker champion — must be in pool
+  // Find attacker champion — pool first, then hand
+  let attackerChampion: CardInstance | null = null
   const poolEntry = player.pool.find((e) => e.champion.instanceId === move.championId)
-  if (!poolEntry) {
-    throw new EngineError("CHAMPION_NOT_IN_POOL", "Attacker champion must be in pool")
+  if (poolEntry) {
+    attackerChampion = poolEntry.champion
+  } else {
+    const handIdx = player.hand.findIndex((c) => c.instanceId === move.championId)
+    if (handIdx !== -1) {
+      const [card, newHand] = removeFromHand(player.hand, move.championId)
+      if (!isChampionType(card.card.typeId)) {
+        throw new EngineError("NOT_A_CHAMPION")
+      }
+      state = updatePlayer(state, playerId, {
+        hand: newHand,
+        pool: [...player.pool, { champion: card, attachments: [] }],
+      })
+      attackerChampion = card
+    }
+  }
+  if (!attackerChampion) {
+    throw new EngineError("CHAMPION_NOT_FOUND", "Attacker champion not in pool or hand")
   }
 
-  if (!isAttackable(targetPlayer.formation, move.targetRealmSlot, poolEntry.champion)) {
+  if (!isAttackable(targetPlayer.formation, move.targetRealmSlot, attackerChampion)) {
     throw new EngineError("REALM_PROTECTED", "Target realm is protected")
   }
 
@@ -833,7 +850,7 @@ function handleDeclareAttack(
     defendingPlayer: move.targetPlayerId,
     targetRealmSlot: move.targetRealmSlot,
     roundPhase: "AWAITING_DEFENDER",
-    attacker: poolEntry.champion,
+    attacker: attackerChampion,
     defender: null,
     attackerCards: [],
     defenderCards: [],
@@ -1093,10 +1110,28 @@ function handleContinueAttack(
     throw new EngineError("NOT_ATTACKER")
   }
 
-  const player = state.players[playerId]!
+  let s = state
+  let continueChampion: CardInstance | null = null
+  const player = s.players[playerId]!
   const poolEntry = player.pool.find((e) => e.champion.instanceId === move.championId)
-  if (!poolEntry) {
-    throw new EngineError("CHAMPION_NOT_IN_POOL")
+  if (poolEntry) {
+    continueChampion = poolEntry.champion
+  } else {
+    const handIdx = player.hand.findIndex((c) => c.instanceId === move.championId)
+    if (handIdx !== -1) {
+      const [card, newHand] = removeFromHand(player.hand, move.championId)
+      if (!isChampionType(card.card.typeId)) {
+        throw new EngineError("NOT_A_CHAMPION")
+      }
+      s = updatePlayer(s, playerId, {
+        hand: newHand,
+        pool: [...player.pool, { champion: card, attachments: [] }],
+      })
+      continueChampion = card
+    }
+  }
+  if (!continueChampion) {
+    throw new EngineError("CHAMPION_NOT_FOUND", "Attacker champion not in pool or hand")
   }
   if (combat.championsUsedThisBattle.includes(move.championId)) {
     throw new EngineError("CHAMPION_ALREADY_USED", "Cannot reuse a champion in the same battle")
@@ -1105,7 +1140,7 @@ function handleContinueAttack(
   const newCombat: CombatState = {
     ...combat,
     roundPhase: "AWAITING_DEFENDER",
-    attacker: poolEntry.champion,
+    attacker: continueChampion,
     defender: null,
     attackerCards: [],
     defenderCards: [],
@@ -1115,7 +1150,7 @@ function handleContinueAttack(
   }
 
   return {
-    ...state,
+    ...s,
     activePlayer: combat.defendingPlayer,
     combatState: newCombat,
   }
