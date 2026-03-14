@@ -12,6 +12,7 @@ export {
 } from "./spell-gating.ts"
 export type { SpellCastContext } from "./spell-gating.ts"
 export { initGame } from "./init.ts"
+export { populateTriggers } from "./triggers.ts"
 export {
   calculateCombatLevel,
   hasWorldMatch,
