@@ -95,7 +95,16 @@ export interface GameState {
   players?: Array<{ userId: string; seatPosition: number; nickname: string }>
   events?: GameEvent[]
   resolutionContext: ResolutionContextInfo | null
+  pendingTriggers: PendingTriggerInfo[]
   integrityErrors?: unknown[]
+}
+
+export interface PendingTriggerInfo {
+  id: string
+  sourceCardInstanceId: string
+  owningPlayerId: string
+  effect: { type: "turn_trigger"; timing: "start" | "end" }
+  peekContext: { targetPlayerId: string; source: "draw_pile" | "hand"; cards: CardInfo[] } | null
 }
 
 export interface GameEvent {
@@ -115,6 +124,7 @@ export type Move =
   | { type: "PLAY_REALM"; cardInstanceId: string; slot: string }
   | { type: "REBUILD_REALM"; slot: string; cardInstanceIds: [string, string, string] }
   | { type: "DISCARD_RAZED_REALM"; slot: string }
+  | { type: "RAZE_OWN_REALM"; slot: string }
   | { type: "PLAY_HOLDING"; cardInstanceId: string; realmSlot: string }
   | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: string }
   | { type: "PLACE_CHAMPION"; cardInstanceId: string }
@@ -160,6 +170,10 @@ export type Move =
       destination: { zone: string; playerId: string; returnsOnTurn?: number }
     }
   | { type: "RESOLVE_ATTACH_CARD"; cardInstanceId: string; targetInstanceId: string }
+  | { type: "RESOLVE_TRIGGER_PEEK"; source: "draw_pile" | "hand"; targetPlayerId: string; count?: number }
+  | { type: "RESOLVE_TRIGGER_DISCARD_PEEKED"; cardInstanceId: string }
+  | { type: "RESOLVE_TRIGGER_DISCARD_FROM_HAND"; targetPlayerId: string }
+  | { type: "RESOLVE_TRIGGER_DONE" }
   | { type: string; [key: string]: unknown }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
