@@ -714,6 +714,19 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
       moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
       moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
     }
+    // Pool attachments on active champions also count toward combat level and can be switched/discarded
+    if (combat.attacker) {
+      for (const card of getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId)) {
+        moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+        moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+      }
+    }
+    if (combat.defender) {
+      for (const card of getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId)) {
+        moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+        moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+      }
+    }
   }
 
   return moves
