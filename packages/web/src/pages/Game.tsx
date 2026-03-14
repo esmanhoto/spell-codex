@@ -116,8 +116,7 @@ export function Game() {
   const [imagesReady, setImagesReady] = useState(false)
   const [imageProgress, setImageProgress] = useState({ loaded: 0, total: 0 })
   const preCacheStartedRef = useRef(false)
-  const moveCountRef = useRef(0)
-  const lastMoveSentAtRef = useRef<number | null>(null)
+
   const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string; effects: string[] } | null>(
     null,
   )
@@ -317,15 +316,6 @@ export function Game() {
   const handleWsMessage = useCallback(
     (msg: WsClientMessage) => {
       if (msg.type === "STATE_UPDATE") {
-        const wsReceiveAt = performance.now()
-        const sentAt = lastMoveSentAtRef.current
-        if (sentAt !== null) {
-          const moveNum = moveCountRef.current
-          console.log(
-            `[perf] move_submit_to_ws_ack_ms: ${(wsReceiveAt - sentAt).toFixed(2)} (move ${moveNum})`,
-          )
-          lastMoveSentAtRef.current = null
-        }
         // Initialize local engine state from raw engine state (JOIN_GAME / SYNC_REQUEST)
         if (msg.rawEngineState) {
           localEngineStateRef.current = msg.rawEngineState as EngineGameState
@@ -335,23 +325,7 @@ export function Game() {
         const state = msg.state as GameState
         qc.setQueryData(["game", gameId, myPlayerId], state)
         if (state.events?.length) processIncomingEvents(state.events)
-        if (!document.hidden) {
-          requestAnimationFrame(() => {
-            console.log(
-              `[perf] ws_message_to_render_ms: ${(performance.now() - wsReceiveAt).toFixed(2)}`,
-            )
-          })
-        }
       } else if (msg.type === "MOVE_APPLIED") {
-        const wsReceiveAt = performance.now()
-        const sentAt = lastMoveSentAtRef.current
-        if (sentAt !== null) {
-          const moveNum = moveCountRef.current
-          console.log(
-            `[perf] move_submit_to_ws_ack_ms: ${(wsReceiveAt - sentAt).toFixed(2)} (move ${moveNum})`,
-          )
-          lastMoveSentAtRef.current = null
-        }
         const engineState = localEngineStateRef.current
         if (!engineState) {
           // No local engine state — request full sync
@@ -398,13 +372,6 @@ export function Game() {
         lastConfirmedStateRef.current = null
         qc.setQueryData(["game", gameId, myPlayerId], merged)
         if (newEngineState.events.length) processIncomingEvents(newEngineState.events)
-        if (!document.hidden) {
-          requestAnimationFrame(() => {
-            console.log(
-              `[perf] ws_message_to_render_ms: ${(performance.now() - wsReceiveAt).toFixed(2)}`,
-            )
-          })
-        }
       } else if (msg.type === "ERROR") {
         // Rollback optimistic state if we have a confirmed snapshot
         const confirmed = lastConfirmedStateRef.current
@@ -468,8 +435,6 @@ export function Game() {
       // Single move: prefer WS for low latency
       if (moves.length === 1) {
         if (wsRef.current?.sendMove(moves[0]!)) {
-          moveCountRef.current++
-          lastMoveSentAtRef.current = performance.now()
           return
         }
         submitMove(gameId!, identity, moves[0]!)
