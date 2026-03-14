@@ -4,13 +4,6 @@
   gap: 6px;
 }
 
-.label {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-}
-
 .pyramid {
   display: flex;
   flex-direction: column;

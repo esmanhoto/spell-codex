@@ -269,6 +269,7 @@ export type Move =
       slot: FormationSlot
       cardInstanceIds: [CardInstanceId, CardInstanceId, CardInstanceId]
     }
+  | { type: "DISCARD_RAZED_REALM"; slot: FormationSlot }
   | { type: "PLAY_HOLDING"; cardInstanceId: CardInstanceId; realmSlot: FormationSlot }
   | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: FormationSlot }
 
@@ -375,6 +376,7 @@ export type GameEvent =
       discardedIds: CardInstanceId[]
     }
   | { type: "REALM_RAZED"; playerId: PlayerId; slot: FormationSlot; realmName: string }
+  | { type: "REALM_DISCARDED"; playerId: PlayerId; slot: FormationSlot; realmName: string }
   | { type: "HOLDING_PLAYED"; playerId: PlayerId; instanceId: CardInstanceId; slot: FormationSlot }
   | {
       type: "HOLDING_REVEAL_TOGGLED"

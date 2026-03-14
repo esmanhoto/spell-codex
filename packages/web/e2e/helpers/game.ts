@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url"
 
 export const PLAYER_A = "00000000-0000-0000-0000-000000000001"
 export const PLAYER_B = "00000000-0000-0000-0000-000000000002"
+export const PLAYER_A_NICKNAME = "Alpha Tester"
+export const PLAYER_B_NICKNAME = "Beta Tester"
 const API_BASE = "/api"
 const SPELL_TYPE_IDS = new Set([4, 19]) // Cleric/Wizard spells
 const FIRST_EDITION_CARDS_PATH = path.resolve(
@@ -41,7 +43,21 @@ export async function clickMove(page: Page, playerId: string, moveType: string):
   }
 }
 
+async function setupTestNicknames(request: APIRequestContext) {
+  await Promise.all([
+    request.patch(`${API_BASE}/me/nickname`, {
+      headers: { "Content-Type": "application/json", "X-User-Id": PLAYER_A },
+      data: { nickname: PLAYER_A_NICKNAME },
+    }),
+    request.patch(`${API_BASE}/me/nickname`, {
+      headers: { "Content-Type": "application/json", "X-User-Id": PLAYER_B },
+      data: { nickname: PLAYER_B_NICKNAME },
+    }),
+  ])
+}
+
 export async function apiCreateGameForUi(request: APIRequestContext) {
+  await setupTestNicknames(request)
   const deckARes = await request.get(`${API_BASE}/decks/1st_edition_starter_deck_a-1`)
   const deckBRes = await request.get(`${API_BASE}/decks/1st_edition_starter_deck_b-1`)
   expect(deckARes.ok()).toBe(true)

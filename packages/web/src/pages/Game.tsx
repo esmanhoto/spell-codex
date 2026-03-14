@@ -116,8 +116,7 @@ export function Game() {
   const [imagesReady, setImagesReady] = useState(false)
   const [imageProgress, setImageProgress] = useState({ loaded: 0, total: 0 })
   const preCacheStartedRef = useRef(false)
-  const moveCountRef = useRef(0)
-  const lastMoveSentAtRef = useRef<number | null>(null)
+
   const resolutionWatchRef = useRef<{ card: CardInfo; playerId: string; effects: string[] } | null>(
     null,
   )
@@ -138,6 +137,9 @@ export function Game() {
   const lastConfirmedStateRef = useRef<GameState | null>(null)
   // Ref to current data so sendMove can read it without a stale closure
   const currentDataRef = useRef<GameState | undefined>(undefined)
+  // Stable players ref — only updated when we have actual player data, never reset to undefined
+  const stablePlayersRef = useRef<GameState["players"]>(undefined)
+  const stableOpponentIdRef = useRef<string>("")
   // Client-side engine state for local move application (Phase 6)
   const localEngineStateRef = useRef<EngineGameState | null>(null)
   const {
@@ -212,6 +214,8 @@ export function Game() {
   })
   // Keep ref in sync so sendMove can access current state without a stale closure
   currentDataRef.current = data
+  // Only update stable players when we actually have player data
+  if (data?.players) stablePlayersRef.current = data.players
 
   // Pre-cache all card images on first load before showing the game board
   useEffect(() => {
@@ -312,15 +316,6 @@ export function Game() {
   const handleWsMessage = useCallback(
     (msg: WsClientMessage) => {
       if (msg.type === "STATE_UPDATE") {
-        const wsReceiveAt = performance.now()
-        const sentAt = lastMoveSentAtRef.current
-        if (sentAt !== null) {
-          const moveNum = moveCountRef.current
-          console.log(
-            `[perf] move_submit_to_ws_ack_ms: ${(wsReceiveAt - sentAt).toFixed(2)} (move ${moveNum})`,
-          )
-          lastMoveSentAtRef.current = null
-        }
         // Initialize local engine state from raw engine state (JOIN_GAME / SYNC_REQUEST)
         if (msg.rawEngineState) {
           localEngineStateRef.current = msg.rawEngineState as EngineGameState
@@ -330,23 +325,7 @@ export function Game() {
         const state = msg.state as GameState
         qc.setQueryData(["game", gameId, myPlayerId], state)
         if (state.events?.length) processIncomingEvents(state.events)
-        if (!document.hidden) {
-          requestAnimationFrame(() => {
-            console.log(
-              `[perf] ws_message_to_render_ms: ${(performance.now() - wsReceiveAt).toFixed(2)}`,
-            )
-          })
-        }
       } else if (msg.type === "MOVE_APPLIED") {
-        const wsReceiveAt = performance.now()
-        const sentAt = lastMoveSentAtRef.current
-        if (sentAt !== null) {
-          const moveNum = moveCountRef.current
-          console.log(
-            `[perf] move_submit_to_ws_ack_ms: ${(wsReceiveAt - sentAt).toFixed(2)} (move ${moveNum})`,
-          )
-          lastMoveSentAtRef.current = null
-        }
         const engineState = localEngineStateRef.current
         if (!engineState) {
           // No local engine state — request full sync
@@ -393,13 +372,6 @@ export function Game() {
         lastConfirmedStateRef.current = null
         qc.setQueryData(["game", gameId, myPlayerId], merged)
         if (newEngineState.events.length) processIncomingEvents(newEngineState.events)
-        if (!document.hidden) {
-          requestAnimationFrame(() => {
-            console.log(
-              `[perf] ws_message_to_render_ms: ${(performance.now() - wsReceiveAt).toFixed(2)}`,
-            )
-          })
-        }
       } else if (msg.type === "ERROR") {
         // Rollback optimistic state if we have a confirmed snapshot
         const confirmed = lastConfirmedStateRef.current
@@ -463,8 +435,6 @@ export function Game() {
       // Single move: prefer WS for low latency
       if (moves.length === 1) {
         if (wsRef.current?.sendMove(moves[0]!)) {
-          moveCountRef.current++
-          lastMoveSentAtRef.current = performance.now()
           return
         }
         submitMove(gameId!, identity, moves[0]!)
@@ -687,7 +657,7 @@ export function Game() {
         "generic_warning",
         false,
         () => sendMove({ type: "CLAIM_SPOIL" }),
-        "Draw a spoil",
+        "Draw a well earned spoil",
       )
     }
     if (!hasSpoil) {
@@ -696,10 +666,12 @@ export function Game() {
   }, [data?.legalMoves, showWarning, sendMove])
 
   const playerIds = useMemo(() => Object.keys(data?.board.players ?? {}), [data?.board.players])
-  const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? ""
-  const playerAName = data?.players?.find((p) => p.userId === myPlayerId)?.nickname || "You"
+  const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? stableOpponentIdRef.current
+  if (opponentPlayerId) stableOpponentIdRef.current = opponentPlayerId
+  const playerAName =
+    stablePlayersRef.current?.find((p) => p.userId === myPlayerId)?.nickname ?? ""
   const playerBName =
-    data?.players?.find((p) => p.userId === opponentPlayerId)?.nickname || "Opponent"
+    stablePlayersRef.current?.find((p) => p.userId === opponentPlayerId)?.nickname ?? ""
 
   const lingeringSpellsByPlayer = useMemo(
     () => buildLingeringSpellsByPlayer(playerIds, data?.board.players),

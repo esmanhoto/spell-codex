@@ -89,13 +89,18 @@ gamesRouter.post("/", zValidator("json", CreateGameSchema), async (c) => {
   }
 
   const callerNickname = await resolveNickname(userId, email)
+  const nicknames = await Promise.all(
+    body.players.map((p) =>
+      p.userId === userId ? Promise.resolve(callerNickname) : resolveNickname(p.userId, null),
+    ),
+  )
   const game = await createGame({
     formatId: body.formatId,
     seed: body.seed,
     players: body.players.map((p, i) => ({
       userId: p.userId,
       seatPosition: i,
-      nickname: p.userId === userId ? callerNickname : "",
+      nickname: nicknames[i] ?? "",
       deckSnapshot: p.deckSnapshot,
     })),
   })

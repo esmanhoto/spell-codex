@@ -175,6 +175,24 @@ export function Formation({
         return
       }
 
+      // Champion from hand attacking opponent realm
+      if (formationOwnerId !== myPlayerId) {
+        const attackMove = legalMoves.find(
+          (m) =>
+            m.type === "DECLARE_ATTACK" &&
+            (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+              .championId === id &&
+            (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+              .targetRealmSlot === slot &&
+            (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+              .targetPlayerId === formationOwnerId,
+        )
+        if (attackMove) {
+          onMove(attackMove)
+          return
+        }
+      }
+
       if (card && isSpellCard(card)) {
         if (!slotState) {
           showWarning("Drop the spell on a card target, not an empty slot.")
@@ -224,7 +242,6 @@ export function Formation({
 
   return (
     <div className={styles.formation}>
-      <span className={styles.label}>Formation</span>
       <div className={styles.pyramid}>
         {displayRows.map((row, ri) => (
           <div key={ri} className={styles.row}>
@@ -253,6 +270,13 @@ export function Formation({
                       (m) => m.type === "REBUILD_REALM" && (m as { slot: string }).slot === slot,
                     )
                   : undefined
+              const discardRazedMove =
+                s?.isRazed && !isOpponent
+                  ? legalMoves.find(
+                      (m) =>
+                        m.type === "DISCARD_RAZED_REALM" && (m as { slot: string }).slot === slot,
+                    )
+                  : undefined
               const contextMenuItems: {
                 label: string
                 move?: (typeof legalMoves)[number]
@@ -262,6 +286,11 @@ export function Formation({
                 contextMenuItems.push({
                   label: "Rebuild Realm (discard 3)",
                   action: () => setRebuildTarget(slot),
+                })
+              if (discardRazedMove)
+                contextMenuItems.push({
+                  label: "Discard Realm",
+                  move: discardRazedMove,
                 })
               if (toggleHoldingMove)
                 contextMenuItems.push({
@@ -310,13 +339,15 @@ export function Formation({
                   {s ? (
                     <>
                       {s.isRazed ? (
-                        <div className={styles.cardBackWrap} title={`${s.realm.name} (razed)`}>
-                          <img
-                            src="/api/cards/cardback.jpg"
-                            alt="Razed"
-                            className={styles.cardBackImg}
-                          />
-                        </div>
+                        <CardTooltip cards={tooltipCards} razed>
+                          <div className={styles.cardBackWrap}>
+                            <img
+                              src="/api/cards/cardback.jpg"
+                              alt="Razed"
+                              className={styles.cardBackImg}
+                            />
+                          </div>
+                        </CardTooltip>
                       ) : (
                         <CardTooltip cards={tooltipCards}>
                           <div className={styles.realmStack}>

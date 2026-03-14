@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test"
-import { PLAYER_A, PLAYER_B, apiCreateGameForUi } from "./helpers/game.ts"
+import { PLAYER_A, PLAYER_B, PLAYER_B_NICKNAME, apiCreateGameForUi } from "./helpers/game.ts"
 
 async function passThroughTurn(page: Page) {
   for (let i = 0; i < 10; i++) {
@@ -40,6 +40,6 @@ test("second player view updates after first player move", async ({ browser, pag
   await passThroughTurn(page)
 
   await expect(pageB.getByTestId("turn-info")).toContainText("Turn 2", { timeout: 8000 })
-  await expect(pageB.getByTestId("active-player-label")).toContainText("You")
+  await expect(pageB.getByTestId("active-player-label")).toContainText(PLAYER_B_NICKNAME)
   await contextB.close()
 })

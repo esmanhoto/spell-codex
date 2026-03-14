@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useBoard } from "../../context/BoardContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
@@ -23,6 +23,21 @@ export function Pool({
   const { legalMoves, onMove, phase } = useMoves()
   const { showWarning } = useGameUI()
   const [dragOver, setDragOver] = useState(false)
+
+  // Clear dragOver when any drag ends or drop occurs.
+  // Use capture phase for drop so it fires before stopPropagation in child handlers
+  // (PoolEntry calls e.stopPropagation() which prevents Pool.onDrop from firing,
+  // and dragend never reaches document when the source element is removed from DOM
+  // by the optimistic state update before dragend can propagate).
+  useEffect(() => {
+    const clear = () => setDragOver(false)
+    document.addEventListener("dragend", clear)
+    document.addEventListener("drop", clear, true)
+    return () => {
+      document.removeEventListener("dragend", clear)
+      document.removeEventListener("drop", clear, true)
+    }
+  }, [])
 
   function findDraggedHandCard(instanceId: string) {
     for (const board of Object.values(allBoards)) {
@@ -88,7 +103,9 @@ export function Pool({
         e.preventDefault()
         setDragOver(true)
       }}
-      onDragLeave={() => setDragOver(false)}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(false)
+      }}
       onDrop={handleDrop}
     >
       <span className={styles.label}>

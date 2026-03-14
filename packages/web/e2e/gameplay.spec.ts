@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test"
-import { startGame } from "./helpers/game.ts"
+import { startGame, PLAYER_A_NICKNAME, PLAYER_B_NICKNAME } from "./helpers/game.ts"
 
 async function passThroughTurn(page: Page): Promise<void> {
   for (let i = 0; i < 10; i++) {
@@ -15,7 +15,7 @@ async function passThroughTurn(page: Page): Promise<void> {
 test("start game navigates and renders board", async ({ page, request }) => {
   await startGame(page, request)
   await expect(page.getByTestId("turn-info")).toContainText("Turn 1")
-  await expect(page.getByTestId("active-player-label")).toContainText("You")
+  await expect(page.getByTestId("active-player-label")).toContainText(PLAYER_A_NICKNAME)
 })
 
 test("ending turn hands control to Player B and increments turn", async ({ page, request }) => {
@@ -24,7 +24,7 @@ test("ending turn hands control to Player B and increments turn", async ({ page,
   await passThroughTurn(page)
 
   await expect(page.getByTestId("turn-info")).toContainText("Turn 2")
-  await expect(page.getByTestId("active-player-label")).toContainText("Opponent")
+  await expect(page.getByTestId("active-player-label")).toContainText(PLAYER_B_NICKNAME)
 })
 
 test("manual move can be executed without breaking board", async ({ page, request }) => {

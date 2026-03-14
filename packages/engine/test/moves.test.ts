@@ -1314,3 +1314,250 @@ describe("PLAY_HOLDING with rebuild_realm effect", () => {
     expect((holdingMoves[0] as { realmSlot: string }).realmSlot).toBe("A")
   })
 })
+
+// ─── Champion from hand in combat ────────────────────────────────────────────
+
+describe("combat: attacker champion from hand", () => {
+  function buildHandAttackState() {
+    let s = initGame(DEFAULT_CONFIG)
+    const champInHand: CardInstance = { instanceId: "champ-hand", card: CHAMPION_CLERIC_FR }
+    const realmP2: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
+    return {
+      ...s,
+      phase: Phase.Combat,
+      currentTurn: 3, // past round 1 (isRoundOne = currentTurn <= playerOrder.length)
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [],
+          hand: [champInHand],
+        },
+        p2: {
+          ...s.players["p2"]!,
+          pool: [],
+          formation: {
+            size: 6 as const,
+            slots: { A: { realm: realmP2, isRazed: false, holdings: [] } },
+          },
+        },
+      },
+    }
+  }
+
+  test("DECLARE_ATTACK legal moves include hand champion", () => {
+    const s = buildHandAttackState()
+    const moves = getLegalMoves(s, "p1")
+    const attackMoves = moves.filter((m) => m.type === "DECLARE_ATTACK")
+    expect(attackMoves.length).toBeGreaterThan(0)
+    expect(attackMoves.some((m) => (m as { championId: string }).championId === "champ-hand")).toBe(
+      true,
+    )
+  })
+
+  test("DECLARE_ATTACK from hand moves champion to pool", () => {
+    const s = buildHandAttackState()
+    const { newState } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "champ-hand",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    expect(newState.players["p1"]!.hand.find((c) => c.instanceId === "champ-hand")).toBeUndefined()
+    expect(
+      newState.players["p1"]!.pool.find((e) => e.champion.instanceId === "champ-hand"),
+    ).toBeDefined()
+    expect(newState.combatState!.attacker!.instanceId).toBe("champ-hand")
+  })
+
+  test("CONTINUE_ATTACK legal moves include hand champion", () => {
+    let s = initGame(DEFAULT_CONFIG)
+    const round1Champ: CardInstance = { instanceId: "att-r1", card: CHAMPION_CLERIC_FR }
+    const round2Champ: CardInstance = { instanceId: "att-r2", card: CHAMPION_WIZARD_FR }
+    const defender: CardInstance = { instanceId: "def", card: CHAMPION_CLERIC_FR }
+    const realm: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
+
+    // Set up: p1 already won round 1, now AWAITING_ATTACKER. round2Champ is in hand.
+    s = {
+      ...s,
+      phase: Phase.Combat,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [{ champion: round1Champ, attachments: [] }],
+          hand: [round2Champ],
+        },
+        p2: {
+          ...s.players["p2"]!,
+          pool: [{ champion: defender, attachments: [] }],
+          formation: { size: 6, slots: { A: { realm, isRazed: false, holdings: [] } } },
+        },
+      },
+      combatState: {
+        attackingPlayer: "p1",
+        defendingPlayer: "p2",
+        targetRealmSlot: "A",
+        roundPhase: "AWAITING_ATTACKER",
+        attacker: round1Champ,
+        defender: null,
+        attackerCards: [],
+        defenderCards: [],
+        championsUsedThisBattle: [round1Champ.instanceId],
+        attackerWins: 1,
+        attackerManualLevel: null,
+        defenderManualLevel: null,
+      },
+    }
+
+    const moves = getLegalMoves(s, "p1")
+    const continueMoves = moves.filter((m) => m.type === "CONTINUE_ATTACK")
+    expect(continueMoves.some((m) => (m as { championId: string }).championId === "att-r2")).toBe(
+      true,
+    )
+  })
+
+  test("CONTINUE_ATTACK from hand moves champion to pool", () => {
+    let s = initGame(DEFAULT_CONFIG)
+    const round1Champ: CardInstance = { instanceId: "att-r1", card: CHAMPION_CLERIC_FR }
+    const round2Champ: CardInstance = { instanceId: "att-r2", card: CHAMPION_WIZARD_FR }
+    const defender: CardInstance = { instanceId: "def", card: CHAMPION_CLERIC_FR }
+    const realm: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
+
+    s = {
+      ...s,
+      phase: Phase.Combat,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [{ champion: round1Champ, attachments: [] }],
+          hand: [round2Champ],
+        },
+        p2: {
+          ...s.players["p2"]!,
+          pool: [{ champion: defender, attachments: [] }],
+          formation: { size: 6, slots: { A: { realm, isRazed: false, holdings: [] } } },
+        },
+      },
+      combatState: {
+        attackingPlayer: "p1",
+        defendingPlayer: "p2",
+        targetRealmSlot: "A",
+        roundPhase: "AWAITING_ATTACKER",
+        attacker: round1Champ,
+        defender: null,
+        attackerCards: [],
+        defenderCards: [],
+        championsUsedThisBattle: [round1Champ.instanceId],
+        attackerWins: 1,
+        attackerManualLevel: null,
+        defenderManualLevel: null,
+      },
+    }
+
+    const { newState } = applyMove(s, "p1", {
+      type: "CONTINUE_ATTACK",
+      championId: "att-r2",
+    })
+    expect(newState.players["p1"]!.hand.find((c) => c.instanceId === "att-r2")).toBeUndefined()
+    expect(
+      newState.players["p1"]!.pool.find((e) => e.champion.instanceId === "att-r2"),
+    ).toBeDefined()
+    expect(newState.combatState!.attacker!.instanceId).toBe("att-r2")
+  })
+})
+
+describe("combat: defender champion from hand", () => {
+  test("DECLARE_DEFENSE legal moves include hand champion", () => {
+    let s = initGame(DEFAULT_CONFIG)
+    const attacker: CardInstance = { instanceId: "att", card: CHAMPION_WIZARD_FR }
+    const defenderInHand: CardInstance = { instanceId: "def-hand", card: CHAMPION_CLERIC_FR }
+    const realm: CardInstance = { instanceId: "realm-p1", card: REALM_GENERIC }
+
+    s = {
+      ...s,
+      phase: Phase.Combat,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [],
+          hand: [defenderInHand],
+          formation: { size: 6, slots: { A: { realm, isRazed: false, holdings: [] } } },
+        },
+        p2: { ...s.players["p2"]!, pool: [{ champion: attacker, attachments: [] }] },
+      },
+      combatState: {
+        attackingPlayer: "p2",
+        defendingPlayer: "p1",
+        targetRealmSlot: "A",
+        roundPhase: "AWAITING_DEFENDER",
+        attacker,
+        defender: null,
+        attackerCards: [],
+        defenderCards: [],
+        championsUsedThisBattle: [attacker.instanceId],
+        attackerWins: 0,
+        attackerManualLevel: null,
+        defenderManualLevel: null,
+      },
+      activePlayer: "p1",
+    }
+
+    const moves = getLegalMoves(s, "p1")
+    const defenseMoves = moves.filter((m) => m.type === "DECLARE_DEFENSE")
+    expect(
+      defenseMoves.some((m) => (m as { championId: string }).championId === "def-hand"),
+    ).toBe(true)
+  })
+
+  test("DECLARE_DEFENSE from hand moves champion to pool", () => {
+    let s = initGame(DEFAULT_CONFIG)
+    const attacker: CardInstance = { instanceId: "att", card: CHAMPION_WIZARD_FR }
+    const defenderInHand: CardInstance = { instanceId: "def-hand", card: CHAMPION_CLERIC_FR }
+    const realm: CardInstance = { instanceId: "realm-p1", card: REALM_GENERIC }
+
+    s = {
+      ...s,
+      phase: Phase.Combat,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [],
+          hand: [defenderInHand],
+          formation: { size: 6, slots: { A: { realm, isRazed: false, holdings: [] } } },
+        },
+        p2: { ...s.players["p2"]!, pool: [{ champion: attacker, attachments: [] }] },
+      },
+      combatState: {
+        attackingPlayer: "p2",
+        defendingPlayer: "p1",
+        targetRealmSlot: "A",
+        roundPhase: "AWAITING_DEFENDER",
+        attacker,
+        defender: null,
+        attackerCards: [],
+        defenderCards: [],
+        championsUsedThisBattle: [attacker.instanceId],
+        attackerWins: 0,
+        attackerManualLevel: null,
+        defenderManualLevel: null,
+      },
+      activePlayer: "p1",
+    }
+
+    const { newState } = applyMove(s, "p1", {
+      type: "DECLARE_DEFENSE",
+      championId: "def-hand",
+    })
+    expect(
+      newState.players["p1"]!.hand.find((c) => c.instanceId === "def-hand"),
+    ).toBeUndefined()
+    expect(
+      newState.players["p1"]!.pool.find((e) => e.champion.instanceId === "def-hand"),
+    ).toBeDefined()
+    expect(newState.combatState!.defender!.instanceId).toBe("def-hand")
+  })
+})

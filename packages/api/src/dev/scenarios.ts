@@ -368,4 +368,58 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
       ],
     },
   },
+
+  // ── Attacker from hand ────────────────────────────────────────────────────
+  // p1 has no pool champions — their only champion is Alias in hand.
+  // p2 has Cormyr in slot A (exposed). p1 must attack from hand.
+  // Right-click Alias in hand → "Attack with" → pick target realm → combat starts.
+  // Alias should appear in pool after attacking. p2 has no champion → decline → realm razed.
+  "attacker-from-hand": {
+    name: "Attack with champion from hand",
+    description:
+      "p1 has no pool. Alias (lv 6) is in hand. p2 has Cormyr (slot A, undefended). " +
+      "Right-click Alias in hand to attack with it. Alias moves to pool, combat starts. " +
+      "p2 declines → Cormyr is razed. p1 earns spoils.",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 1 } }, // Waterdeep
+      },
+      pool: [],
+      hand: [{ setId: "1st", cardNumber: 41 }], // Alias the Sell-Sword, lv 6
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+      },
+      pool: [],
+    },
+  },
+
+  // ── Defender from hand ────────────────────────────────────────────────────
+  // p1 is attacked on Cormyr by King Azoun IV (lv 7, same world → lv 10).
+  // p1 has no pool champion — only Alias (lv 6, no world bonus → lv 6) in hand.
+  // Right-click Alias in hand → "Defend with" → Alias moves to pool, fights King Azoun.
+  // p1 is losing (6 < 10) → play a card or stop playing.
+  "defender-from-hand": {
+    name: "Defend with champion from hand",
+    description:
+      "King Azoun IV (FR, lv 7 → 10 with world bonus) attacks p1's Cormyr. " +
+      "p1 has no pool champion. Alias (lv 6) is in hand. " +
+      "Right-click Alias in hand to defend with it. Alias moves to pool and enters combat.",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+      },
+      pool: [],
+      hand: [{ setId: "1st", cardNumber: 41 }], // Alias the Sell-Sword, lv 6
+    },
+    p2: {
+      pool: [{ card: { setId: "1st", cardNumber: 42 } }], // King Azoun IV, FR lv 7
+    },
+    combat: {
+      attackingPlayer: "p2",
+      targetSlot: "A",
+      roundPhase: "AWAITING_DEFENDER",
+    },
+  },
 }

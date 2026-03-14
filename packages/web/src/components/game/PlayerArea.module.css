@@ -13,3 +13,50 @@
   border-radius: 8px;
   padding: 14px;
 }
+
+.zonePanelCollapsible {
+  background: var(--bg-panel);
+  border: 1px solid var(--bg-panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.collapseRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 10px 14px;
+  transition: background 0.15s;
+}
+
+.collapseRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.collapseRow:hover .zoneLabel {
+  color: var(--text-primary);
+}
+
+.collapseRow:hover .collapseBtn {
+  color: var(--text-primary);
+}
+
+.zoneLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  transition: color 0.15s;
+}
+
+.collapseBtn {
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.formationBody {
+  padding: 0 14px 14px;
+}

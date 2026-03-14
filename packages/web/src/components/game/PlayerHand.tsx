@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useBoard } from "../../context/BoardContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
 import type { CardInfo } from "../../api.ts"
@@ -27,6 +28,7 @@ export function PlayerHand({
   discardPile: CardInfo[]
   isOpponent: boolean
 }) {
+  const { allBoards } = useBoard()
   const { legalMoves } = useMoves()
   const {
     selectedId,
@@ -54,12 +56,42 @@ export function PlayerHand({
   }
 
   function buildContextActions(card: CardInfo): ContextMenuAction[] {
-    return buildHandContextActions({
+    const actions = buildHandContextActions({
       card,
       isOpponent,
       legalMoves,
       requestSpellCast,
     })
+
+    if (!isOpponent) {
+      // DECLARE_DEFENSE from hand
+      const defendMove = legalMoves.find(
+        (m) =>
+          m.type === "DECLARE_DEFENSE" &&
+          (m as { championId: string }).championId === card.instanceId,
+      )
+      if (defendMove) {
+        actions.unshift({ label: "Join combat as defender", move: defendMove })
+      }
+
+      // DECLARE_ATTACK from hand — one entry per target realm
+      const attackMoves = legalMoves.filter(
+        (m) =>
+          m.type === "DECLARE_ATTACK" &&
+          (m as { championId: string }).championId === card.instanceId,
+      )
+      for (const m of attackMoves) {
+        const { targetRealmSlot, targetPlayerId } = m as {
+          targetRealmSlot: string
+          targetPlayerId: string
+        }
+        const realmName =
+          allBoards[targetPlayerId]?.formation[targetRealmSlot]?.realm.name ?? targetRealmSlot
+        actions.unshift({ label: `Attack ${realmName}`, move: m })
+      }
+    }
+
+    return actions
   }
 
   return (

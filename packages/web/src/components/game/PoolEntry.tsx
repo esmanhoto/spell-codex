@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useBoard } from "../../context/BoardContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
@@ -17,6 +17,16 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
   const { legalMoves, onMove, phase } = useMoves()
   const { selectedId, onSelect, showWarning, requestSpellCast } = useGameUI()
   const [attachDragOver, setAttachDragOver] = useState(false)
+
+  useEffect(() => {
+    const clear = () => setAttachDragOver(false)
+    document.addEventListener("dragend", clear)
+    document.addEventListener("drop", clear, true)
+    return () => {
+      document.removeEventListener("dragend", clear)
+      document.removeEventListener("drop", clear, true)
+    }
+  }, [])
 
   const stackCards = [...entry.attachments, entry.champion]
   const n = stackCards.length

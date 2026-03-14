@@ -421,6 +421,12 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
       }
     }
 
+    for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+      if (realmSlot?.isRazed) {
+        moves.push({ type: "DISCARD_RAZED_REALM", slot: slot as FormationSlot })
+      }
+    }
+
     for (const card of player.hand) {
       if (card.card.typeId === CardTypeId.Holding) {
         if (!isUniqueInPlay(card.card, state)) continue
@@ -514,17 +520,34 @@ function getCombatDeclOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]!
 
   const isRoundOne = state.currentTurn <= state.playerOrder.length
-  if (isRoundOne || state.hasAttackedThisTurn || player.pool.length === 0) return moves
+  if (isRoundOne || state.hasAttackedThisTurn) return moves
 
-  for (const entry of player.pool) {
-    for (const [otherPlayerId, otherPlayer] of Object.entries(state.players)) {
-      if (otherPlayerId === playerId) continue
-      for (const [slot, realmSlot] of Object.entries(otherPlayer.formation.slots)) {
-        if (!realmSlot || realmSlot.isRazed) continue
-        if (!isAttackable(otherPlayer.formation, slot as FormationSlot, entry.champion)) continue
+  // Candidates: pool champions + hand champions
+  const poolChampions = player.pool.map((e) => e.champion)
+  const handChampions = player.hand
+    .filter((c) => isChampionType(c.card.typeId) && isUniqueInPlay(c.card, state))
+    .map((c) => c)
+
+  if (poolChampions.length === 0 && handChampions.length === 0) return moves
+
+  for (const [otherPlayerId, otherPlayer] of Object.entries(state.players)) {
+    if (otherPlayerId === playerId) continue
+    for (const [slot, realmSlot] of Object.entries(otherPlayer.formation.slots)) {
+      if (!realmSlot || realmSlot.isRazed) continue
+      for (const champ of poolChampions) {
+        if (!isAttackable(otherPlayer.formation, slot as FormationSlot, champ)) continue
         moves.push({
           type: "DECLARE_ATTACK",
-          championId: entry.champion.instanceId,
+          championId: champ.instanceId,
+          targetRealmSlot: slot as FormationSlot,
+          targetPlayerId: otherPlayerId,
+        })
+      }
+      for (const card of handChampions) {
+        if (!isAttackable(otherPlayer.formation, slot as FormationSlot, card)) continue
+        moves.push({
+          type: "DECLARE_ATTACK",
+          championId: card.instanceId,
           targetRealmSlot: slot as FormationSlot,
           targetPlayerId: otherPlayerId,
         })
@@ -570,6 +593,13 @@ function getAttackerContinueMoves(
   for (const entry of player.pool) {
     if (combat.championsUsedThisBattle.includes(entry.champion.instanceId)) continue
     moves.push({ type: "CONTINUE_ATTACK", championId: entry.champion.instanceId })
+  }
+
+  for (const card of player.hand) {
+    if (!isChampionType(card.card.typeId)) continue
+    if (!isUniqueInPlay(card.card, state)) continue
+    if (combat.championsUsedThisBattle.includes(card.instanceId)) continue
+    moves.push({ type: "CONTINUE_ATTACK", championId: card.instanceId })
   }
 
   return moves
@@ -707,6 +737,19 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     for (const card of combat.defenderCards) {
       moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
       moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+    }
+    // Pool attachments on active champions also count toward combat level and can be switched/discarded
+    if (combat.attacker) {
+      for (const card of getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId)) {
+        moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+        moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+      }
+    }
+    if (combat.defender) {
+      for (const card of getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId)) {
+        moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+        moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+      }
     }
   }
 
