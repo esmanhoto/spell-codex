@@ -10,6 +10,7 @@ import type {
   PlayerState,
   CombatState,
   Formation,
+  TriggerEntry,
 } from "./types.ts"
 import { Phase } from "./types.ts"
 import {
@@ -50,7 +51,16 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]
   if (!player) return []
 
-  // 0. Resolution context — only the resolving player may act, with RESOLVE_* moves only
+  // 0a. Pending triggers — only the owning player may act, with RESOLVE_TRIGGER_* moves only
+  if (state.pendingTriggers.length > 0) {
+    const trigger = state.pendingTriggers[0]!
+    if (playerId === trigger.owningPlayerId) {
+      return dedupeMoves(getTriggerMoves(state, trigger, playerId))
+    }
+    return []
+  }
+
+  // 0b. Resolution context — only the resolving player may act, with RESOLVE_* moves only
   if (state.resolutionContext) {
     if (playerId === state.resolutionContext.resolvingPlayer) {
       return dedupeMoves(getResolutionMoves(state, playerId))
@@ -335,6 +345,7 @@ function getForwardPhaseMoves(state: GameState, playerId: PlayerId, fromPhase: P
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
   moves.push(...getDiscardMoves(player))
+  moves.push(...getRazeOwnRealmMoves(player, playerId))
 
   const { maxEnd } = HAND_SIZES[state.deckSize]!
   if (player.hand.length <= maxEnd) {
@@ -373,7 +384,19 @@ function getStartOfTurnMoves(state: GameState, playerId: PlayerId): Move[] {
   moves.push(...getHoldingRevealMoves(player))
   // Allow realm/holding plays during draw phase — engine will auto-draw when applied
   moves.push(...getRealmOnlyMoves(state, playerId))
+  moves.push(...getRazeOwnRealmMoves(player, playerId))
 
+  return moves
+}
+
+/** RAZE_OWN_REALM — all unrazed own realms (for card special powers like The Scarlet Brotherhood). */
+function getRazeOwnRealmMoves(player: PlayerState, _playerId: PlayerId): Move[] {
+  const moves: Move[] = []
+  for (const [slot, s] of Object.entries(player.formation.slots)) {
+    if (s && !s.isRazed) {
+      moves.push({ type: "RAZE_OWN_REALM", slot: slot as FormationSlot })
+    }
+  }
   return moves
 }
 
@@ -430,7 +453,7 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
     for (const card of player.hand) {
       if (card.card.typeId === CardTypeId.Holding) {
         if (!isUniqueInPlay(card.card, state)) continue
-        const isRebuilder = card.card.effects.includes("rebuild_realm")
+        const isRebuilder = card.card.effects.some(e => e.type === "rebuild_realm")
         for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
           if (!realmSlot) continue
           if (realmSlot.isRazed && !isRebuilder) continue
@@ -760,16 +783,20 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]!
   const { maxEnd } = HAND_SIZES[state.deckSize]!
 
-  // Must discard to meet hand limit before ending turn
+  const moves: Move[] = []
+
+  // Must discard to meet hand limit before ending turn; voluntary discard is always allowed
+  for (const card of player.hand) {
+    moves.push({ type: "DISCARD_CARD" as const, cardInstanceId: card.instanceId })
+  }
+
   if (player.hand.length > maxEnd) {
-    return player.hand.map((card) => ({
-      type: "DISCARD_CARD" as const,
-      cardInstanceId: card.instanceId,
-    }))
+    // Forced discard — only discard moves are legal
+    return moves
   }
 
   // Hand is within limit — player can end turn or play events
-  const moves: Move[] = [{ type: "END_TURN" }]
+  moves.push({ type: "END_TURN" })
 
   for (const card of player.hand) {
     if (
@@ -782,6 +809,7 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
     }
   }
   moves.push(...getHoldingRevealMoves(player))
+  moves.push(...getRazeOwnRealmMoves(player, playerId))
 
   return moves
 }
@@ -961,4 +989,48 @@ export function canPlayInCombat(
 /** Returns true if the two cards are world-compatible (one is world-agnostic or same world) */
 function worldCompatible(card: CardData, other: CardData): boolean {
   return card.worldId === 0 || other.worldId === 0 || card.worldId === other.worldId
+}
+
+// ─── Trigger Move Generator ───────────────────────────────────────────────────
+
+/**
+ * Returns generic trigger tool moves while a turn trigger is pending.
+ * All tools are always available (filtered only by physical possibility).
+ * Players decide which tools apply to their card's text.
+ */
+function getTriggerMoves(state: GameState, _trigger: TriggerEntry, playerId: PlayerId): Move[] {
+  const trigger = state.pendingTriggers[0]!
+  const moves: Move[] = []
+
+  if (trigger.peekContext) {
+    // Peek is open — offer discard options for draw_pile peeks, then done
+    if (trigger.peekContext.source === "draw_pile") {
+      for (const card of trigger.peekContext.cards) {
+        moves.push({ type: "RESOLVE_TRIGGER_DISCARD_PEEKED", cardInstanceId: card.instanceId })
+      }
+    }
+    moves.push({ type: "RESOLVE_TRIGGER_DONE" })
+    return moves
+  }
+
+  // No peek open — offer all tools
+  for (const pid of state.playerOrder) {
+    const p = state.players[pid]!
+    if (p.drawPile.length > 0) {
+      moves.push({ type: "RESOLVE_TRIGGER_PEEK", targetPlayerId: pid, source: "draw_pile", count: 1 })
+      if (p.drawPile.length >= 3) {
+        moves.push({ type: "RESOLVE_TRIGGER_PEEK", targetPlayerId: pid, source: "draw_pile", count: 3 })
+      }
+    }
+    if (p.hand.length > 0) {
+      moves.push({ type: "RESOLVE_TRIGGER_PEEK", targetPlayerId: pid, source: "hand" })
+    }
+    if (pid !== playerId && p.hand.length > 0) {
+      moves.push({ type: "RESOLVE_TRIGGER_DISCARD_FROM_HAND", targetPlayerId: pid })
+    }
+  }
+
+  // Done is always available — player may simply close the trigger
+  moves.push({ type: "RESOLVE_TRIGGER_DONE" })
+  return moves
 }

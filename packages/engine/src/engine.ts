@@ -48,6 +48,13 @@ import {
   handleResolveDone,
   openResolutionContext,
 } from "./resolution.ts"
+import {
+  populateTriggers,
+  handleResolveTriggerPeek,
+  handleResolveTriggerDiscardPeeked,
+  handleResolveTriggerDiscardFromHand,
+  handleResolveTriggerDone,
+} from "./triggers.ts"
 export { EngineError } from "./errors.ts"
 import { EngineError } from "./errors.ts"
 
@@ -85,6 +92,9 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
       break
     case "DISCARD_RAZED_REALM":
       newState = handleDiscardRazedRealm(state, playerId, move, events)
+      break
+    case "RAZE_OWN_REALM":
+      newState = handleRazeOwnRealm(state, playerId, move, events)
       break
     case "PLAY_HOLDING":
       newState = handlePlayHolding(state, playerId, move, events)
@@ -175,6 +185,18 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
       break
     case "RESOLVE_DONE":
       newState = handleResolveDone(state, playerId, events)
+      break
+    case "RESOLVE_TRIGGER_PEEK":
+      newState = handleResolveTriggerPeek(state, playerId, move, events)
+      break
+    case "RESOLVE_TRIGGER_DISCARD_PEEKED":
+      newState = handleResolveTriggerDiscardPeeked(state, playerId, move, events)
+      break
+    case "RESOLVE_TRIGGER_DISCARD_FROM_HAND":
+      newState = handleResolveTriggerDiscardFromHand(state, playerId, move, events)
+      break
+    case "RESOLVE_TRIGGER_DONE":
+      newState = handleResolveTriggerDone(state, playerId, events)
       break
     default:
       throw new EngineError("UNKNOWN_MOVE", `Unrecognised move type`)
@@ -278,6 +300,15 @@ function handlePass(state: GameState, playerId: PlayerId, events: GameEvent[]): 
         throw new EngineError("HAND_TOO_LARGE", `Discard down to ${maxEnd} cards before passing`)
       }
 
+      // Queue end-of-turn triggers once; return early so player can resolve them
+      if (!state.endTriggersPopulated) {
+        let s = { ...state, endTriggersPopulated: true }
+        s = populateTriggers(s, "end", events)
+        if (s.pendingTriggers.length > 0) return s
+        // No end triggers — fall through to normal turn-end
+        state = s
+      }
+
       events.push({ type: "TURN_ENDED", playerId })
       let s = { ...state, phase: Phase.EndTurn }
       s = checkZeroRealmCondition(s, events)
@@ -293,11 +324,15 @@ function handlePass(state: GameState, playerId: PlayerId, events: GameEvent[]): 
         hasAttackedThisTurn: false,
         hasPlayedRealmThisTurn: false,
         pendingSpoil: null,
+        endTriggersPopulated: false,
       }
       events.push({ type: "TURN_STARTED", playerId: nextId, turn: s.currentTurn })
       events.push({ type: "PHASE_CHANGED", phase: Phase.StartOfTurn })
-      // Win condition: next player wins if they have a full formation of unrazed realms
+      // Win condition: next player wins if they have a full unrazed formation
       s = checkWinCondition(s, events)
+      if (s.winner) return s
+      // Queue start-of-turn triggers for the new active player
+      s = populateTriggers(s, "start", events)
       return s
     }
 
@@ -488,6 +523,30 @@ function handleDiscardRazedRealm(
   return s
 }
 
+function handleRazeOwnRealm(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "RAZE_OWN_REALM" }>,
+  events: GameEvent[],
+): GameState {
+  const player = state.players[playerId]!
+  const realmSlot = player.formation.slots[move.slot]
+  if (!realmSlot || realmSlot.isRazed) {
+    throw new EngineError("NOT_RAZEABLE", `Slot ${move.slot} is not an unrazed realm`)
+  }
+
+  events.push({ type: "REALM_RAZED", playerId, slot: move.slot, realmName: realmSlot.realm.card.name })
+
+  const newSlot = { ...realmSlot, isRazed: true, holdings: [] }
+  return updatePlayer(state, playerId, {
+    discardPile: [...player.discardPile, ...realmSlot.holdings],
+    formation: {
+      ...player.formation,
+      slots: { ...player.formation.slots, [move.slot]: newSlot },
+    },
+  })
+}
+
 function handlePlayHolding(
   state: GameState,
   playerId: PlayerId,
@@ -505,7 +564,7 @@ function handlePlayHolding(
   if (!realmSlot) {
     throw new EngineError("INVALID_REALM", "No realm in that slot")
   }
-  const isRebuilder = card.card.effects.includes("rebuild_realm")
+  const isRebuilder = card.card.effects.some(e => e.type === "rebuild_realm")
   if (realmSlot.isRazed && !isRebuilder) {
     throw new EngineError("INVALID_REALM", "Target realm must be in play and unrazed")
   }
