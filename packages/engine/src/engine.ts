@@ -5,6 +5,7 @@ import type {
   EngineResult,
   PlayerId,
   CardInstanceId,
+  CardInstance,
   FormationSlot,
   CombatState,
   PoolEntry,
@@ -1145,24 +1146,27 @@ function handleInterruptCombat(
 
   events.push({ type: "COMBAT_INTERRUPTED", playerId })
 
-  // Discard round cards (allies, spells played this round) for both sides
+  // Both champions survive: items/artifacts from combat round re-attach; allies/spells discard
   let s = state
-  if (combat.attackerCards.length > 0 || combat.defenderCards.length > 0) {
-    for (const card of combat.attackerCards) {
-      const ap = s.players[combat.attackingPlayer]!
-      s = updatePlayer(s, combat.attackingPlayer, {
-        discardPile: [...ap.discardPile, card],
-      })
-    }
-    for (const card of combat.defenderCards) {
-      const dp = s.players[combat.defendingPlayer]!
-      s = updatePlayer(s, combat.defendingPlayer, {
-        discardPile: [...dp.discardPile, card],
-      })
-    }
+  const { toAttach: aItemsToKeep, toDiscard: aDiscards } = splitCombatCards(combat.attackerCards)
+  const { toAttach: dItemsToKeep, toDiscard: dDiscards } = splitCombatCards(combat.defenderCards)
+
+  if (combat.attacker) {
+    s = attachToPoolChampion(s, combat.attackingPlayer, combat.attacker.instanceId, aItemsToKeep)
+  }
+  if (aDiscards.length > 0) {
+    const ap = s.players[combat.attackingPlayer]!
+    s = updatePlayer(s, combat.attackingPlayer, { discardPile: [...ap.discardPile, ...aDiscards] })
   }
 
-  // Champions and their items/artifacts stay intact — just end the battle
+  if (combat.defender) {
+    s = attachToPoolChampion(s, combat.defendingPlayer, combat.defender.instanceId, dItemsToKeep)
+  }
+  if (dDiscards.length > 0) {
+    const dp = s.players[combat.defendingPlayer]!
+    s = updatePlayer(s, combat.defendingPlayer, { discardPile: [...dp.discardPile, ...dDiscards] })
+  }
+
   return endBattle(s, combat.attackingPlayer, events)
 }
 
@@ -1231,24 +1235,69 @@ function handleSwitchCombatSide(
   const inAttacker = combat.attackerCards.some((c) => c.instanceId === cardInstanceId)
   const inDefender = combat.defenderCards.some((c) => c.instanceId === cardInstanceId)
 
-  if (!inAttacker && !inDefender) {
+  // Also check pool attachments on active champions
+  const attackerAttachments = combat.attacker
+    ? getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId)
+    : []
+  const defenderAttachments = combat.defender
+    ? getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId)
+    : []
+  const inAttackerPool = attackerAttachments.some((c) => c.instanceId === cardInstanceId)
+  const inDefenderPool = defenderAttachments.some((c) => c.instanceId === cardInstanceId)
+
+  if (!inAttacker && !inDefender && !inAttackerPool && !inDefenderPool) {
     throw new EngineError("TARGET_NOT_FOUND", "Card is not in active combat")
   }
 
-  const card = (inAttacker ? combat.attackerCards : combat.defenderCards).find(
-    (c) => c.instanceId === cardInstanceId,
-  )!
+  const card = (
+    inAttacker
+      ? combat.attackerCards
+      : inDefender
+        ? combat.defenderCards
+        : inAttackerPool
+          ? attackerAttachments
+          : defenderAttachments
+  ).find((c) => c.instanceId === cardInstanceId)!
 
-  const from = inAttacker ? "attacker_combat" : "defender_combat"
-  const to = inAttacker ? "defender_combat" : "attacker_combat"
+  const from = inAttacker || inAttackerPool ? "attacker_combat" : "defender_combat"
+  const to = inAttacker || inAttackerPool ? "defender_combat" : "attacker_combat"
 
   events.push({
     type: "COMBAT_CARD_SWITCHED",
-    playerId: inAttacker ? combat.attackingPlayer : combat.defendingPlayer,
+    playerId: inAttacker || inAttackerPool ? combat.attackingPlayer : combat.defendingPlayer,
     instanceId: cardInstanceId,
     from,
     to,
   })
+
+  // For pool attachments: remove from the champion's pool attachments and add to the opposing combat cards
+  if (inAttackerPool) {
+    const attackerId = combat.attackingPlayer
+    const attackerPlayer = state.players[attackerId]!
+    const newPool = attackerPlayer.pool.map((entry) =>
+      entry.champion.instanceId === combat.attacker!.instanceId
+        ? { ...entry, attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId) }
+        : entry,
+    )
+    return {
+      ...updatePlayer(state, attackerId, { pool: newPool }),
+      combatState: { ...combat, defenderCards: [...combat.defenderCards, card] },
+    }
+  }
+
+  if (inDefenderPool) {
+    const defenderId = combat.defendingPlayer
+    const defenderPlayer = state.players[defenderId]!
+    const newPool = defenderPlayer.pool.map((entry) =>
+      entry.champion.instanceId === combat.defender!.instanceId
+        ? { ...entry, attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId) }
+        : entry,
+    )
+    return {
+      ...updatePlayer(state, defenderId, { pool: newPool }),
+      combatState: { ...combat, attackerCards: [...combat.attackerCards, card] },
+    }
+  }
 
   const newCombat: CombatState = inAttacker
     ? {
@@ -1280,18 +1329,50 @@ function handleDiscardCombatCard(
   const inAttacker = combat.attackerCards.some((c) => c.instanceId === cardInstanceId)
   const inDefender = combat.defenderCards.some((c) => c.instanceId === cardInstanceId)
 
-  if (!inAttacker && !inDefender) {
+  // Also check pool attachments on active champions
+  const attackerAttachments = combat.attacker
+    ? getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId)
+    : []
+  const defenderAttachments = combat.defender
+    ? getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId)
+    : []
+  const inAttackerPool = attackerAttachments.some((c) => c.instanceId === cardInstanceId)
+  const inDefenderPool = defenderAttachments.some((c) => c.instanceId === cardInstanceId)
+
+  if (!inAttacker && !inDefender && !inAttackerPool && !inDefenderPool) {
     throw new EngineError("TARGET_NOT_FOUND", "Card is not in active combat")
   }
 
-  const ownerId = inAttacker ? combat.attackingPlayer : combat.defendingPlayer
-  const card = (inAttacker ? combat.attackerCards : combat.defenderCards).find(
-    (c) => c.instanceId === cardInstanceId,
-  )!
+  const ownerId =
+    inAttacker || inAttackerPool ? combat.attackingPlayer : combat.defendingPlayer
+  const card = (
+    inAttacker
+      ? combat.attackerCards
+      : inDefender
+        ? combat.defenderCards
+        : inAttackerPool
+          ? attackerAttachments
+          : defenderAttachments
+  ).find((c) => c.instanceId === cardInstanceId)!
 
   events.push({ type: "COMBAT_CARD_DISCARDED", playerId: ownerId, instanceId: cardInstanceId })
 
   const owner = state.players[ownerId]!
+
+  // For pool attachments: remove from champion's pool and add to owner's discard
+  if (inAttackerPool || inDefenderPool) {
+    const championId = inAttackerPool ? combat.attacker!.instanceId : combat.defender!.instanceId
+    const newPool = owner.pool.map((entry) =>
+      entry.champion.instanceId === championId
+        ? { ...entry, attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId) }
+        : entry,
+    )
+    return {
+      ...updatePlayer(state, ownerId, { pool: newPool, discardPile: [...owner.discardPile, card] }),
+      combatState: combat,
+    }
+  }
+
   const newCombat: CombatState = inAttacker
     ? {
         ...combat,
@@ -1354,6 +1435,44 @@ function handleReturnFromDiscard(
 
 // ─── Combat Resolution Helpers ────────────────────────────────────────────────
 
+/**
+ * Splits cards played during a combat round:
+ *   - MagicalItems and Artifacts → re-attach to the surviving champion's pool entry
+ *   - Everything else (allies, spells) → discard
+ */
+function splitCombatCards(cards: CardInstance[]): {
+  toAttach: CardInstance[]
+  toDiscard: CardInstance[]
+} {
+  const toAttach: CardInstance[] = []
+  const toDiscard: CardInstance[] = []
+  for (const card of cards) {
+    if (card.card.typeId === CardTypeId.MagicalItem || card.card.typeId === CardTypeId.Artifact) {
+      toAttach.push(card)
+    } else {
+      toDiscard.push(card)
+    }
+  }
+  return { toAttach, toDiscard }
+}
+
+/** Adds cards to a champion's pool entry attachments. */
+function attachToPoolChampion(
+  state: GameState,
+  playerId: PlayerId,
+  championInstanceId: string,
+  cards: CardInstance[],
+): GameState {
+  if (cards.length === 0) return state
+  const player = state.players[playerId]!
+  const newPool = player.pool.map((entry) =>
+    entry.champion.instanceId === championInstanceId
+      ? { ...entry, attachments: [...entry.attachments, ...cards] }
+      : entry,
+  )
+  return updatePlayer(state, playerId, { pool: newPool })
+}
+
 function handleAttackerWins(
   state: GameState,
   combat: CombatState,
@@ -1368,8 +1487,8 @@ function handleAttackerWins(
     !defendingPlayer.pool.some((e) => e.champion.instanceId === combat.defender!.instanceId) &&
     targetRealmSlot?.realm.instanceId === combat.defender!.instanceId
 
-  // Discard attacker's combat cards (allies/spells); their champion stays in pool
-  const attackerDiscards = combat.attackerCards
+  // Attacker survives: items/artifacts from combat round re-attach to pool; allies/spells discard
+  const { toAttach: attackerItemsToKeep, toDiscard: attackerDiscards } = splitCombatCards(combat.attackerCards)
   if (attackerDiscards.length > 0) {
     events.push({
       type: "CARDS_DISCARDED",
@@ -1379,6 +1498,7 @@ function handleAttackerWins(
   }
 
   let s = state
+  s = attachToPoolChampion(s, combat.attackingPlayer, combat.attacker!.instanceId, attackerItemsToKeep)
   const attackingPlayer = s.players[combat.attackingPlayer]!
   s = updatePlayer(s, combat.attackingPlayer, {
     discardPile: [...attackingPlayer.discardPile, ...attackerDiscards],
@@ -1497,14 +1617,15 @@ function handleDefenderWins(state: GameState, combat: CombatState, events: GameE
     (e) => e.champion.instanceId !== combat.attacker!.instanceId,
   )
 
-  // Discard defender's combat cards; their champion stays in pool
-  const defenderDiscards = combat.defenderCards
+  // Defender survives: items/artifacts from combat round re-attach to pool; allies/spells discard
+  const { toAttach: defenderItemsToKeep, toDiscard: defenderDiscards } = splitCombatCards(combat.defenderCards)
 
   let s = updatePlayer(state, combat.attackingPlayer, {
     pool: newAttackerPool,
     discardPile: [...attackingPlayer.discardPile, ...attackerDiscardCards],
   })
 
+  s = attachToPoolChampion(s, combat.defendingPlayer, combat.defender!.instanceId, defenderItemsToKeep)
   const defendingPlayer = s.players[combat.defendingPlayer]!
   s = updatePlayer(s, combat.defendingPlayer, {
     discardPile: [...defendingPlayer.discardPile, ...defenderDiscards],
