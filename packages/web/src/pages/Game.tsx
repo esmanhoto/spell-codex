@@ -18,6 +18,7 @@ import { GameBoard } from "../components/game/GameBoard.tsx"
 import { GameLoadingScreen } from "../components/game/GameLoadingScreen.tsx"
 import { CasterSelectModal } from "../components/game/CasterSelectModal.tsx"
 import { ResolutionPanel } from "../components/game/ResolutionPanel.tsx"
+import { TriggerPanel } from "../components/game/TriggerPanel.tsx"
 import {
   SpellCastAnnouncementModal,
   type SpellCastAnnouncement,
@@ -824,6 +825,14 @@ export function Game() {
             {data.resolutionContext && (
               <ResolutionPanel
                 ctx={data.resolutionContext}
+                allBoards={data.board.players}
+                myPlayerId={myPlayerId}
+                onMove={sendMove}
+              />
+            )}
+            {!data.resolutionContext && data.pendingTriggers && data.pendingTriggers.length > 0 && (
+              <TriggerPanel
+                trigger={data.pendingTriggers[0]}
                 allBoards={data.board.players}
                 myPlayerId={myPlayerId}
                 onMove={sendMove}

@@ -282,10 +282,21 @@ export function Formation({
                 move?: (typeof legalMoves)[number]
                 action?: () => void
               }[] = []
+              const razeOwnMove =
+                s && !s.isRazed && !isOpponent
+                  ? legalMoves.find(
+                      (m) => m.type === "RAZE_OWN_REALM" && (m as { slot: string }).slot === slot,
+                    )
+                  : undefined
               if (rebuildMove)
                 contextMenuItems.push({
                   label: "Rebuild Realm (discard 3)",
                   action: () => setRebuildTarget(slot),
+                })
+              if (razeOwnMove)
+                contextMenuItems.push({
+                  label: "Raze Realm",
+                  move: razeOwnMove,
                 })
               if (discardRazedMove)
                 contextMenuItems.push({
