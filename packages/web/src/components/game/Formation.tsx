@@ -175,6 +175,24 @@ export function Formation({
         return
       }
 
+      // Champion from hand attacking opponent realm
+      if (formationOwnerId !== myPlayerId) {
+        const attackMove = legalMoves.find(
+          (m) =>
+            m.type === "DECLARE_ATTACK" &&
+            (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+              .championId === id &&
+            (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+              .targetRealmSlot === slot &&
+            (m as { championId: string; targetRealmSlot: string; targetPlayerId: string })
+              .targetPlayerId === formationOwnerId,
+        )
+        if (attackMove) {
+          onMove(attackMove)
+          return
+        }
+      }
+
       if (card && isSpellCard(card)) {
         if (!slotState) {
           showWarning("Drop the spell on a card target, not an empty slot.")
