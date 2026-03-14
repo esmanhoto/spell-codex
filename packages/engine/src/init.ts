@@ -52,6 +52,8 @@ export function initGame(config: GameConfig): GameState {
     hasPlayedRealmThisTurn: false,
     pendingSpoil: null,
     resolutionContext: null,
+    pendingTriggers: [],
+    endTriggersPopulated: false,
   }
 }
 
