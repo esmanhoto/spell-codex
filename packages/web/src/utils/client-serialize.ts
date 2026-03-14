@@ -168,6 +168,18 @@ export function serializeEngineStateForClient(
           attachTarget: state.resolutionContext.attachTarget ?? null,
         }
       : null,
+    pendingTriggers: state.pendingTriggers.map((t) => ({
+      id: t.id,
+      sourceCardInstanceId: t.sourceCardInstanceId,
+      owningPlayerId: t.owningPlayerId,
+      effect: t.effect,
+      peekContext:
+        t.peekContext && viewerPlayerId === t.owningPlayerId
+          ? { targetPlayerId: t.peekContext.targetPlayerId, source: t.peekContext.source, cards: t.peekContext.cards.map(card) }
+          : t.peekContext
+            ? { targetPlayerId: t.peekContext.targetPlayerId, source: t.peekContext.source, cards: [] }
+            : null,
+    })),
     ...(extra.players !== undefined ? { players: extra.players } : {}),
   }
 }

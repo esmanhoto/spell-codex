@@ -5,7 +5,8 @@ import type {
   CombatState,
   FormationSlot,
 } from "@spell/engine"
-import { Phase, calculateCombatLevel, hasWorldMatch, getLosingPlayer } from "@spell/engine"
+import { Phase, calculateCombatLevel, hasWorldMatch, getLosingPlayer, populateTriggers } from "@spell/engine"
+import type { GameEvent } from "@spell/engine"
 import { lookupCard } from "./card-lookup.ts"
 import type { ScenarioDef, CardRef, CombatDef } from "./scenarios.ts"
 
@@ -24,6 +25,8 @@ function resolve(ref: CardRef, instanceId: string): CardInstance {
 
 function buildPlayerState(def: ScenarioDef["p1"], prefix: string, userId: string): PlayerState {
   const hand = (def.hand ?? []).map((ref, i) => resolve(ref, `${prefix}-hand-${i}`))
+  const drawPile = (def.drawPile ?? []).map((ref, i) => resolve(ref, `${prefix}-draw-${i}`))
+  const discardPile = (def.discardPile ?? []).map((ref, i) => resolve(ref, `${prefix}-disc-${i}`))
 
   const pool = (def.pool ?? []).map((entry, i) => ({
     champion: resolve(entry.card, `${prefix}-pool-${i}`),
@@ -49,8 +52,8 @@ function buildPlayerState(def: ScenarioDef["p1"], prefix: string, userId: string
   return {
     id: userId,
     hand,
-    drawPile: [],
-    discardPile: [],
+    drawPile,
+    discardPile,
     limbo: [],
     abyss: [],
     formation: { size: 6, slots },
@@ -152,7 +155,9 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     activePlayer = getLosingPlayer(attackerLevel, defenderLevel, combatState)
   }
 
-  return {
+  const phase = combatState ? Phase.Combat : scenario.phase ? (scenario.phase as Phase) : Phase.Pool
+
+  let state: GameState = {
     id: "dev-placeholder",
     players: {
       [DEV_P1_ID]: p1State,
@@ -161,9 +166,11 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     currentTurn: 5,
     activePlayer,
     playerOrder: [DEV_P1_ID, DEV_P2_ID],
-    phase: combatState ? Phase.Combat : scenario.phase ? (scenario.phase as Phase) : Phase.Pool,
+    phase,
     combatState,
     resolutionContext: null,
+    pendingTriggers: [],
+    endTriggersPopulated: false,
     winner: null,
     events: [],
     deckSize: 55,
@@ -171,4 +178,13 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     hasPlayedRealmThisTurn: false,
     pendingSpoil: null,
   }
+
+  // Pre-populate start-of-turn triggers so they appear immediately in START_OF_TURN scenarios.
+  if (phase === Phase.StartOfTurn) {
+    const events: GameEvent[] = []
+    state = populateTriggers(state, "start", events)
+    state = { ...state, events }
+  }
+
+  return state
 }

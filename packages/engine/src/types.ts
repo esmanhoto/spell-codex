@@ -28,6 +28,27 @@ export type SupportRef = number | string
  */
 export type WorldId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9
 
+// ─── Effect Tags ─────────────────────────────────────────────────────────────
+
+/** A card that can rebuild a razed realm (holdings and events). */
+export interface RebuildRealmEffect {
+  type: "rebuild_realm"
+}
+
+/**
+ * Signals that this card opens the trigger resolution panel at the specified
+ * turn boundary. Players are responsible for reading their card text and
+ * choosing the appropriate generic tools (peek, discard, etc.).
+ * The engine provides tools — not rules enforcement.
+ */
+export interface TurnTriggerEffect {
+  type: "turn_trigger"
+  timing: "start" | "end"
+}
+
+/** Union of all structured effect tags on CardData. */
+export type EffectTag = RebuildRealmEffect | TurnTriggerEffect
+
 // ─── Card Data (static — from the card database) ─────────────────────────────
 
 /**
@@ -56,8 +77,8 @@ export interface CardData {
    * Empty/missing means "unknown" (engine falls back to text parse/default).
    */
   castPhases?: Array<3 | 4 | 5>
-  /** Reserved for future card automation; ignored by current engine runtime. */
-  effects: unknown[]
+  /** Structured effect tags driving engine automation. */
+  effects: EffectTag[]
 }
 
 // ─── Card Instance (runtime — unique in-game object) ─────────────────────────
@@ -122,6 +143,37 @@ export interface PlayerState {
    * not yet attached to a specific champion or realm).
    */
   lastingEffects: CardInstance[]
+}
+
+// ─── Turn-Triggered Ability System ───────────────────────────────────────────
+
+/**
+ * Temporarily revealed cards during a peek trigger.
+ * For draw_pile peeks: cards are removed from the draw pile and held here until resolved.
+ * For hand peeks: cards are copied here for visibility only (originals stay in hand).
+ */
+export interface PeekContext {
+  targetPlayerId: PlayerId
+  cards: CardInstance[]
+  /** Determines cleanup on RESOLVE_TRIGGER_DONE */
+  source: "draw_pile" | "hand"
+}
+
+/**
+ * A queued triggered ability waiting for player resolution.
+ * Populated at turn boundaries by scanning the active player's cards for TurnTriggerEffects.
+ */
+export interface TriggerEntry {
+  /** Unique ID for this trigger instance */
+  id: string
+  /** The card that generated this trigger */
+  sourceCardInstanceId: CardInstanceId
+  /** Player who owns the triggering card */
+  owningPlayerId: PlayerId
+  /** The effect driving this trigger */
+  effect: TurnTriggerEffect
+  /** Populated after RESOLVE_TRIGGER_PEEK — cleared on RESOLVE_TRIGGER_DONE */
+  peekContext?: PeekContext
 }
 
 // ─── Resolution System ────────────────────────────────────────────────────────
@@ -243,6 +295,17 @@ export interface GameState {
    * Only the resolving player may act (RESOLVE_* moves only).
    */
   resolutionContext: ResolutionContext | null
+  /**
+   * Queued turn-triggered abilities awaiting resolution. Processed FIFO.
+   * Only the owning player may act while non-empty; all other move types blocked.
+   */
+  pendingTriggers: TriggerEntry[]
+  /**
+   * True once end-of-turn triggers have been queued this turn.
+   * Prevents re-queuing the same triggers on a second PASS after resolving.
+   * Reset to false at the start of each turn.
+   */
+  endTriggersPopulated: boolean
   winner: PlayerId | null
   /** Full event log for determinism / replay */
   events: GameEvent[]
@@ -270,6 +333,7 @@ export type Move =
       cardInstanceIds: [CardInstanceId, CardInstanceId, CardInstanceId]
     }
   | { type: "DISCARD_RAZED_REALM"; slot: FormationSlot }
+  | { type: "RAZE_OWN_REALM"; slot: FormationSlot }
   | { type: "PLAY_HOLDING"; cardInstanceId: CardInstanceId; realmSlot: FormationSlot }
   | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: FormationSlot }
 
@@ -351,6 +415,23 @@ export type Move =
     }
   /** Finish resolution — places the resolved card in its destination */
   | { type: "RESOLVE_DONE" }
+
+  // Trigger resolution moves — only legal when pendingTriggers is non-empty.
+  // These are generic tools; players choose what applies to their card's text.
+  /** Reveal top N cards of a draw pile, or a player's full hand, into peekContext */
+  | {
+      type: "RESOLVE_TRIGGER_PEEK"
+      targetPlayerId: PlayerId
+      source: "draw_pile" | "hand"
+      /** Number of cards to reveal from draw_pile. Ignored for hand. */
+      count?: number
+    }
+  /** After a draw_pile peek: discard one of the revealed cards */
+  | { type: "RESOLVE_TRIGGER_DISCARD_PEEKED"; cardInstanceId: CardInstanceId }
+  /** Discard a randomly chosen card from a player's hand */
+  | { type: "RESOLVE_TRIGGER_DISCARD_FROM_HAND"; targetPlayerId: PlayerId }
+  /** Finish the current trigger — returns any held draw pile cards, clears peekContext */
+  | { type: "RESOLVE_TRIGGER_DONE" }
 
 // ─── Engine Result ────────────────────────────────────────────────────────────
 
@@ -475,6 +556,37 @@ export type GameEvent =
     }
   | { type: "TURN_ENDED"; playerId: PlayerId }
   | { type: "GAME_OVER"; winner: PlayerId }
+  | {
+      type: "TRIGGERS_QUEUED"
+      playerId: PlayerId
+      count: number
+    }
+  | {
+      type: "TRIGGER_PEEK_OPENED"
+      playerId: PlayerId
+      targetPlayerId: PlayerId
+      cardCount: number
+      source: "draw_pile" | "hand"
+    }
+  | {
+      type: "TRIGGER_CARD_DISCARDED"
+      playerId: PlayerId
+      targetPlayerId: PlayerId
+      instanceId: CardInstanceId
+      cardName: string
+    }
+  | {
+      type: "TRIGGER_CHAMPION_ELIMINATED"
+      playerId: PlayerId
+      targetPlayerId: PlayerId
+      instanceId: CardInstanceId
+      cardName: string
+    }
+  | {
+      type: "TRIGGER_RESOLVED"
+      playerId: PlayerId
+      sourceCardInstanceId: CardInstanceId
+    }
 
 // ─── Game Config ──────────────────────────────────────────────────────────────
 

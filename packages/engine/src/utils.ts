@@ -35,6 +35,23 @@ export function seededShuffle<T>(arr: readonly T[], seed: number): T[] {
   return result
 }
 
+/**
+ * Deterministic integer derived from a numeric seed and a string key.
+ * Used for "random" picks that must be reproducible across replays.
+ * Returns a non-negative integer; caller takes modulo of desired range.
+ */
+export function seededRandom(seed: number, key: string): number {
+  let h = seed >>> 0 || 1
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i)
+    h ^= h << 13
+    h ^= h >>> 17
+    h ^= h << 5
+    h = h >>> 0
+  }
+  return h
+}
+
 // ─── Instance Creation ────────────────────────────────────────────────────────
 
 /**
