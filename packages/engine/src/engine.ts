@@ -82,6 +82,9 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "REBUILD_REALM":
       newState = handleRebuildRealm(state, playerId, move, events)
       break
+    case "DISCARD_RAZED_REALM":
+      newState = handleDiscardRazedRealm(state, playerId, move, events)
+      break
     case "PLAY_HOLDING":
       newState = handlePlayHolding(state, playerId, move, events)
       break
@@ -435,6 +438,49 @@ function handleRebuildRealm(
   }
 
   // Auto-advance to Pool phase after rebuilding
+  if (s.phase === Phase.PlayRealm) {
+    s = advanceToPhase(s, playerId, Phase.Pool, events)
+  }
+  return s
+}
+
+function handleDiscardRazedRealm(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "DISCARD_RAZED_REALM" }>,
+  events: GameEvent[],
+): GameState {
+  if (state.phase !== Phase.StartOfTurn && state.phase !== Phase.PlayRealm) {
+    throw new EngineError(
+      "WRONG_PHASE",
+      `Expected START_OF_TURN or PLAY_REALM, got ${state.phase as string}`,
+    )
+  }
+  const player = state.players[playerId]!
+  const realmSlot = player.formation.slots[move.slot]
+
+  if (!realmSlot?.isRazed) {
+    throw new EngineError("NOT_RAZED", `Slot ${move.slot} is not a razed realm`)
+  }
+
+  events.push({
+    type: "REALM_DISCARDED",
+    playerId,
+    slot: move.slot,
+    realmName: realmSlot.realm.card.name,
+  })
+
+  const newSlots = { ...player.formation.slots }
+  delete newSlots[move.slot]
+
+  let s = {
+    ...updatePlayer(state, playerId, {
+      discardPile: [...player.discardPile, realmSlot.realm],
+      formation: { ...player.formation, slots: newSlots },
+    }),
+    hasPlayedRealmThisTurn: true,
+  }
+
   if (s.phase === Phase.PlayRealm) {
     s = advanceToPhase(s, playerId, Phase.Pool, events)
   }

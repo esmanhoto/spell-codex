@@ -421,6 +421,12 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
       }
     }
 
+    for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+      if (realmSlot?.isRazed) {
+        moves.push({ type: "DISCARD_RAZED_REALM", slot: slot as FormationSlot })
+      }
+    }
+
     for (const card of player.hand) {
       if (card.card.typeId === CardTypeId.Holding) {
         if (!isUniqueInPlay(card.card, state)) continue
