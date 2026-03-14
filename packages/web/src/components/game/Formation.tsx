@@ -252,6 +252,13 @@ export function Formation({
                       (m) => m.type === "REBUILD_REALM" && (m as { slot: string }).slot === slot,
                     )
                   : undefined
+              const discardRazedMove =
+                s?.isRazed && !isOpponent
+                  ? legalMoves.find(
+                      (m) =>
+                        m.type === "DISCARD_RAZED_REALM" && (m as { slot: string }).slot === slot,
+                    )
+                  : undefined
               const contextMenuItems: {
                 label: string
                 move?: (typeof legalMoves)[number]
@@ -261,6 +268,11 @@ export function Formation({
                 contextMenuItems.push({
                   label: "Rebuild Realm (discard 3)",
                   action: () => setRebuildTarget(slot),
+                })
+              if (discardRazedMove)
+                contextMenuItems.push({
+                  label: "Discard Realm",
+                  move: discardRazedMove,
                 })
               if (toggleHoldingMove)
                 contextMenuItems.push({
@@ -309,13 +321,15 @@ export function Formation({
                   {s ? (
                     <>
                       {s.isRazed ? (
-                        <div className={styles.cardBackWrap} title={`${s.realm.name} (razed)`}>
-                          <img
-                            src="/api/cards/cardback.jpg"
-                            alt="Razed"
-                            className={styles.cardBackImg}
-                          />
-                        </div>
+                        <CardTooltip cards={tooltipCards} razed>
+                          <div className={styles.cardBackWrap}>
+                            <img
+                              src="/api/cards/cardback.jpg"
+                              alt="Razed"
+                              className={styles.cardBackImg}
+                            />
+                          </div>
+                        </CardTooltip>
                       ) : (
                         <CardTooltip cards={tooltipCards}>
                           <div className={styles.realmStack}>

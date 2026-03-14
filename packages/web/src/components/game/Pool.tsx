@@ -24,12 +24,19 @@ export function Pool({
   const { showWarning } = useGameUI()
   const [dragOver, setDragOver] = useState(false)
 
-  // Clear dragOver whenever any drag ends — catches the case where a drop lands
-  // on a child PoolEntry that calls e.stopPropagation(), preventing Pool.onDrop.
+  // Clear dragOver when any drag ends or drop occurs.
+  // Use capture phase for drop so it fires before stopPropagation in child handlers
+  // (PoolEntry calls e.stopPropagation() which prevents Pool.onDrop from firing,
+  // and dragend never reaches document when the source element is removed from DOM
+  // by the optimistic state update before dragend can propagate).
   useEffect(() => {
     const clear = () => setDragOver(false)
     document.addEventListener("dragend", clear)
-    return () => document.removeEventListener("dragend", clear)
+    document.addEventListener("drop", clear, true)
+    return () => {
+      document.removeEventListener("dragend", clear)
+      document.removeEventListener("drop", clear, true)
+    }
   }, [])
 
   function findDraggedHandCard(instanceId: string) {

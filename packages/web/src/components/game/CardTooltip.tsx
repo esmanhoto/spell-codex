@@ -10,10 +10,12 @@ export function CardTooltip({
   card,
   cards,
   children,
+  razed,
 }: {
   card?: CardInfo
   cards?: CardInfo[]
   children: React.ReactNode
+  razed?: boolean
 }) {
   const [show, setShow] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -58,7 +60,10 @@ export function CardTooltip({
                 </div>
                 <div className={styles.content}>
                   <div className={styles.header}>
-                    <div className={styles.name}>{c.name}</div>
+                    <div className={styles.name}>
+                      {c.name}
+                      {razed && <span className={styles.razedBadge}> RAZED</span>}
+                    </div>
                     {c.level != null && <div className={styles.level}>{c.level}</div>}
                   </div>
                   {c.description && <div className={styles.desc}>{c.description}</div>}
