@@ -19,6 +19,10 @@
   min-height: 180px;
 }
 
+.rightAlign {
+  justify-content: flex-end;
+}
+
 .zoneWrap {
   display: grid;
   grid-template-columns: 3fr 1fr;
