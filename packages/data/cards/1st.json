@@ -3737,7 +3737,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": [{"type":"counter_spell"}]
   },
   {
     "setId": "1st",
@@ -5879,7 +5879,7 @@
     "spellNature": "defensive",
     "castPhases": [3, 4],
     "weight": 1,
-    "effects": []
+    "effects": [{"type":"counter_spell"}]
   },
   {
     "setId": "1st",
@@ -6083,7 +6083,7 @@
     "spellNature": "defensive",
     "castPhases": [3, 4],
     "weight": 1,
-    "effects": []
+    "effects": [{"type":"counter_spell"}]
   },
   {
     "setId": "1st",
@@ -6593,7 +6593,7 @@
     "spellNature": "defensive",
     "castPhases": [4],
     "weight": 1,
-    "effects": []
+    "effects": [{"type":"counter_spell"}]
   },
   {
     "setId": "1st",
@@ -6797,7 +6797,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": [{"type":"counter_event"}]
   },
   {
     "setId": "1st",
@@ -7256,7 +7256,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": [{"type":"counter_event"}]
   },
   {
     "setId": "1st",
@@ -7409,7 +7409,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": [{"type":"counter_event"}]
   },
   {
     "setId": "1st",
@@ -7647,7 +7647,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": []
+    "effects": [{"type":"counter_event"}]
   },
   {
     "setId": "1st",

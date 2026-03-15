@@ -12,4 +12,12 @@ export interface TurnTriggerEffect {
   timing: "start" | "end"
 }
 
-export type EffectTag = RebuildRealmEffect | TurnTriggerEffect
+export interface CounterEventEffect {
+  type: "counter_event"
+}
+
+export interface CounterSpellEffect {
+  type: "counter_spell"
+}
+
+export type EffectTag = RebuildRealmEffect | TurnTriggerEffect | CounterEventEffect | CounterSpellEffect
