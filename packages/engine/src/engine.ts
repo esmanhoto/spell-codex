@@ -47,6 +47,9 @@ import {
   handleResolveSetCardDestination,
   handleResolveDone,
   openResolutionContext,
+  handlePassCounter,
+  handleCounterPlay,
+  handlePoolCounter,
 } from "./resolution.ts"
 import {
   populateTriggers,
@@ -65,6 +68,20 @@ import { EngineError } from "./errors.ts"
 export function applyMove(state: GameState, playerId: PlayerId, move: Move): EngineResult {
   if (state.winner !== null) {
     throw new EngineError("GAME_OVER", "Game is already over")
+  }
+
+  // Dev-only: bypass all validation, add a card directly to any player's hand
+  if (move.type === "DEV_GIVE_CARD") {
+    const target = state.players[move.playerId]
+    if (!target) throw new EngineError("INVALID_PLAYER", "Player not found")
+    const newState: GameState = {
+      ...state,
+      players: {
+        ...state.players,
+        [move.playerId]: { ...target, hand: [...target.hand, { instanceId: move.instanceId, card: move.card }] },
+      },
+    }
+    return { newState, events: [], legalMoves: getLegalMoves(newState, state.activePlayer) }
   }
 
   // Validate turn ownership — some moves are valid out of turn (combat defense)
@@ -148,7 +165,13 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
       newState = handleClaimSpoil(state, playerId, events)
       break
     case "PLAY_EVENT":
-      newState = handlePlaySpellCard(state, playerId, move, events)
+      // If a counter window is open and this player is not the resolving player,
+      // treat this as a counter play (cancels original resolution, places both cards).
+      if (state.resolutionContext?.counterWindowOpen && playerId !== state.resolutionContext.resolvingPlayer) {
+        newState = handleCounterPlay(state, playerId, move.cardInstanceId, events)
+      } else {
+        newState = handlePlaySpellCard(state, playerId, move, events)
+      }
       break
     case "SET_COMBAT_LEVEL":
       newState = handleSetCombatLevel(state, playerId, move, events)
@@ -198,6 +221,12 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "RESOLVE_TRIGGER_DONE":
       newState = handleResolveTriggerDone(state, playerId, events)
       break
+    case "PASS_COUNTER":
+      newState = handlePassCounter(state, playerId)
+      break
+    case "USE_POOL_COUNTER":
+      newState = handlePoolCounter(state, playerId, move.cardInstanceId, events)
+      break
     default:
       throw new EngineError("UNKNOWN_MOVE", `Unrecognised move type`)
   }
@@ -220,6 +249,16 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
   // During resolution, the resolving player can make RESOLVE_* moves even out of turn
   if (state.resolutionContext && playerId === state.resolutionContext.resolvingPlayer) {
     return move.type.startsWith("RESOLVE_")
+  }
+
+  // Non-resolving player may pass or play counter cards during the counter window
+  if (
+    state.resolutionContext?.counterWindowOpen &&
+    playerId !== state.resolutionContext.resolvingPlayer
+  ) {
+    if (move.type === "PASS_COUNTER") return true
+    if (move.type === "PLAY_EVENT") return true
+    if (move.type === "USE_POOL_COUNTER") return true
   }
 
   // Events are always playable by any player out of combat

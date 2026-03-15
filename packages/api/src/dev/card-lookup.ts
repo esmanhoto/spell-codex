@@ -24,3 +24,46 @@ export function lookupCard(setId: string, cardNumber: number): CardData {
   if (!card) throw new Error(`Card not found: setId="${setId}" cardNumber=${cardNumber}`)
   return card
 }
+
+type SetMeta = { id: string }
+
+let allSetIds: string[] | null = null
+
+function getAllSetIds(): string[] {
+  if (allSetIds) return allSetIds
+  const path = join(import.meta.dir, "../../..", "data", "sets.json")
+  const sets = JSON.parse(readFileSync(path, "utf-8")) as SetMeta[]
+  allSetIds = sets.map((s) => s.id)
+  return allSetIds
+}
+
+export interface CardSearchResult {
+  setId: string
+  cardNumber: number
+  name: string
+  typeId: number
+}
+
+/**
+ * Searches all card sets by name (case-insensitive substring) and optional typeIds.
+ * Returns at most `limit` results.
+ */
+export function searchCards(query: string, typeIds: number[] | null, limit = 30): CardSearchResult[] {
+  const q = query.toLowerCase().trim()
+  const results: CardSearchResult[] = []
+  for (const setId of getAllSetIds()) {
+    let cards: CardData[]
+    try {
+      cards = loadSet(setId)
+    } catch {
+      continue
+    }
+    for (const card of cards) {
+      if (q && !card.name.toLowerCase().includes(q)) continue
+      if (typeIds && !typeIds.includes(card.typeId)) continue
+      results.push({ setId, cardNumber: card.cardNumber, name: card.name, typeId: card.typeId })
+      if (results.length >= limit) return results
+    }
+  }
+  return results
+}

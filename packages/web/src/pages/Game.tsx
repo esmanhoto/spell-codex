@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useLocation, useNavigate } from "react-router-dom"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { applyMove } from "@spell/engine"
 import type { GameState as EngineGameState } from "@spell/engine"
-import { getGameState, submitMove, createWsClient } from "../api.ts"
+import { getGameState, submitMove, createWsClient, loadDevScenario } from "../api.ts"
 import type { GameState, Move, GameEvent, WsClientMessage, CardInfo } from "../api.ts"
 import { serializeEngineStateForClient } from "../utils/client-serialize.ts"
 import { hashEngineState } from "../utils/state-hash.ts"
@@ -47,6 +47,7 @@ import { MusicPlayer } from "../components/MusicPlayer.tsx"
 import { ChatBar } from "../components/game/ChatBar.tsx"
 import { ChatPanel } from "../components/game/ChatPanel.tsx"
 import { EmoteOverlay } from "../components/game/EmoteOverlay.tsx"
+import { DevGiveCardPanel } from "../components/game/DevGiveCardPanel.tsx"
 import { useChat } from "../hooks/useChat.ts"
 import "../styles/game-vars.css"
 
@@ -90,7 +91,13 @@ function buildLingeringSpellsByPlayer(
 
 export function Game() {
   const { id: gameId } = useParams<{ id: string }>()
-  const { identity } = useAuth()
+  const location = useLocation()
+  const { identity, bypass } = useAuth()
+  const navigate = useNavigate()
+  const searchParams = new URLSearchParams(location.search)
+  const devAs = bypass ? searchParams.get("devAs") : null
+  const devScenarioId = bypass ? searchParams.get("scenario") : null
+  const effectiveIdentity: typeof identity = devAs ? { userId: devAs, accessToken: null } : identity
   const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [eventLog, setEventLog] = useState<GameEvent[]>([])
@@ -114,6 +121,9 @@ export function Game() {
   const [announcementQueue, setAnnouncementQueue] = useState<SpellCastAnnouncement[]>([])
   const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
   const [resolutionOutcome, setResolutionOutcome] = useState<ResolutionOutcome | null>(null)
+  const [counterReveal, setCounterReveal] = useState<{
+    setId: string; cardNumber: number; cardName: string; cancelledCardName: string
+  } | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
   const [imagesReady, setImagesReady] = useState(false)
   const [imageProgress, setImageProgress] = useState({ loaded: 0, total: 0 })
@@ -192,7 +202,7 @@ export function Game() {
     persistSuppressedWarnings(next)
   }, [])
 
-  const myPlayerId = identity?.userId ?? ""
+  const myPlayerId = effectiveIdentity?.userId ?? ""
 
   useEffect(() => {
     suppressedWarningsRef.current = readSuppressedWarnings()
@@ -205,10 +215,41 @@ export function Game() {
     setActiveAnnouncement(null)
   }, [gameId])
 
+  // Cross-tab scenario restart: when another tab reloads a scenario, navigate here too
+  useEffect(() => {
+    if (!bypass) return
+    function onStorage(e: StorageEvent) {
+      if (e.key !== "spell:dev-restart" || !e.newValue) return
+      const data = JSON.parse(e.newValue) as { scenarioId: string; slug: string; p1UserId: string; p2UserId: string }
+      const myId = effectiveIdentity?.userId
+      const target = myId === data.p2UserId
+        ? `/game/${data.slug}?devAs=${data.p2UserId}&scenario=${data.scenarioId}`
+        : `/game/${data.slug}?scenario=${data.scenarioId}`
+      navigate(target)
+    }
+    window.addEventListener("storage", onStorage)
+    return () => window.removeEventListener("storage", onStorage)
+  }, [bypass, effectiveIdentity, navigate])
+
+  async function handleRestartScenario() {
+    if (!devScenarioId) return
+    const result = await loadDevScenario(devScenarioId)
+    const slug = result.slug ?? result.gameId
+    localStorage.setItem(
+      "spell:dev-restart",
+      JSON.stringify({ scenarioId: devScenarioId, slug, p1UserId: result.p1UserId, p2UserId: result.p2UserId, ts: Date.now() }),
+    )
+    const myId = effectiveIdentity?.userId
+    const target = myId === result.p2UserId
+      ? `/game/${slug}?devAs=${result.p2UserId}&scenario=${devScenarioId}`
+      : `/game/${slug}?scenario=${devScenarioId}`
+    navigate(target)
+  }
+
   const { data, error, isLoading, refetch } = useQuery<GameState>({
     queryKey: ["game", gameId, myPlayerId],
-    queryFn: () => getGameState(gameId!, identity!),
-    enabled: !!gameId && !!identity,
+    queryFn: () => getGameState(gameId!, effectiveIdentity!),
+    enabled: !!gameId && !!effectiveIdentity,
     staleTime: Infinity,
     // Safety-net poll — MOVE_APPLIED delta handles real-time updates (Phase 6).
     // This only matters if WS drops silently without triggering a reconnect.
@@ -295,6 +336,14 @@ export function Game() {
               watched.effects.push(`Returned ${event.cardName as string} to pool`)
               break
           }
+        }
+        if (event.type === "COUNTER_PLAYED" && event.playerId !== myPlayerId) {
+          setCounterReveal({
+            setId: event.setId as string,
+            cardNumber: event.cardNumber as number,
+            cardName: event.cardName as string,
+            cancelledCardName: event.cancelledCardName as string,
+          })
         }
         if (event.type === "RESOLUTION_COMPLETED" && event.playerId !== myPlayerId) {
           const watched = resolutionWatchRef.current
@@ -405,18 +454,18 @@ export function Game() {
   }, [data?.resolutionContext, myPlayerId])
 
   useEffect(() => {
-    if (!gameId || !identity) return
-    const client = createWsClient(gameId, identity, handleWsMessage)
+    if (!gameId || !effectiveIdentity) return
+    const client = createWsClient(gameId, effectiveIdentity, handleWsMessage)
     wsRef.current = client
     return () => {
       client.close()
       wsRef.current = null
     }
-  }, [gameId, identity, handleWsMessage])
+  }, [gameId, effectiveIdentity, handleWsMessage])
 
   const sendMove = useCallback(
     (m: Move | Move[]) => {
-      if (!identity) return
+      if (!effectiveIdentity) return
       const moves = Array.isArray(m) ? m : [m]
       if (moves.length === 0) return
       setSelectedId(null)
@@ -439,7 +488,7 @@ export function Game() {
         if (wsRef.current?.sendMove(moves[0]!)) {
           return
         }
-        submitMove(gameId!, identity, moves[0]!)
+        submitMove(gameId!, effectiveIdentity, moves[0]!)
           .then(() => {
             lastConfirmedStateRef.current = null
             return refetch()
@@ -481,7 +530,7 @@ export function Game() {
       }
       let chain = Promise.resolve()
       for (const move of moves) {
-        chain = chain.then(() => submitMove(gameId!, identity, move) as Promise<void>)
+        chain = chain.then(() => submitMove(gameId!, effectiveIdentity, move) as Promise<void>)
       }
       chain
         .then(() => refetch())
@@ -504,7 +553,7 @@ export function Game() {
           console.error(err)
         })
     },
-    [gameId, identity, myPlayerId, qc, refetch, showWarning],
+    [gameId, effectiveIdentity, myPlayerId, qc, refetch, showWarning],
   )
 
   const submitRebuild = useCallback(
@@ -806,6 +855,20 @@ export function Game() {
             <div style={{ position: "fixed", top: 12, right: 14, zIndex: 500 }}>
               <MusicPlayer />
             </div>
+            {devScenarioId && (
+              <button
+                onClick={() => void handleRestartScenario()}
+                title="Restart scenario (syncs both tabs)"
+                style={{
+                  position: "fixed", top: 12, left: 64, zIndex: 500,
+                  background: "#1a1a1a", border: "1px solid #444", color: "#888",
+                  borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600,
+                  cursor: "pointer", letterSpacing: "0.04em",
+                }}
+              >
+                ↺ Restart
+              </button>
+            )}
             <EmoteOverlay emotes={floatingEmotes} />
             <ChatBar
               chatOpen={chatOpen}
@@ -822,14 +885,35 @@ export function Game() {
                 onClose={handleToggleChat}
               />
             )}
-            {data.resolutionContext && (
-              <ResolutionPanel
-                ctx={data.resolutionContext}
-                allBoards={data.board.players}
-                myPlayerId={myPlayerId}
-                onMove={sendMove}
-              />
-            )}
+            {data.resolutionContext && (() => {
+              // Build counter options from legalMoves for the waiting view
+              const myBoard = data.board.players[myPlayerId]
+              const counterOptions = data.legalMoves
+                .filter((m) => m.type === "PLAY_EVENT" || m.type === "USE_POOL_COUNTER")
+                .map((m) => {
+                  let card: CardInfo | null = null
+                  if (m.type === "PLAY_EVENT" && "cardInstanceId" in m) {
+                    card = myBoard?.hand.find((c) => c.instanceId === m.cardInstanceId) ?? null
+                  } else if (m.type === "USE_POOL_COUNTER" && "cardInstanceId" in m) {
+                    for (const entry of myBoard?.pool ?? []) {
+                      if (entry.champion.instanceId === m.cardInstanceId) { card = entry.champion; break }
+                      const att = entry.attachments.find((a: CardInfo) => a.instanceId === m.cardInstanceId)
+                      if (att) { card = att; break }
+                    }
+                  }
+                  return card ? { card, move: m } : null
+                })
+                .filter((x): x is { card: CardInfo; move: Move } => x !== null)
+              return (
+                <ResolutionPanel
+                  ctx={data.resolutionContext}
+                  allBoards={data.board.players}
+                  myPlayerId={myPlayerId}
+                  counterOptions={counterOptions}
+                  onMove={sendMove}
+                />
+              )
+            })()}
             {!data.resolutionContext && data.pendingTriggers && data.pendingTriggers.length > 0 && (
               <TriggerPanel
                 trigger={data.pendingTriggers[0]}
@@ -866,6 +950,34 @@ export function Game() {
               <ResolutionOutcomeModal
                 outcome={resolutionOutcome}
                 onClose={() => setResolutionOutcome(null)}
+              />
+            )}
+            {counterReveal && (
+              <div className="overlay-modal" style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: "var(--z-modal)", background: "rgba(0,0,0,0.6)" }}>
+                <div style={{ background: "#151818", border: "2px solid #8a7a30", borderRadius: "8px", padding: "20px", maxWidth: "320px", display: "flex", flexDirection: "column", gap: "10px", alignItems: "center" }}>
+                  <div style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", color: "#c8b060", fontWeight: 700 }}>Countered!</div>
+                  <div style={{ fontSize: "15px", fontWeight: 700, color: "#e8d8a0" }}>{counterReveal.cardName}</div>
+                  <div style={{ fontSize: "12px", color: "#b0a080" }}>cancelled {counterReveal.cancelledCardName}</div>
+                  <img
+                    src={cardImageUrl(counterReveal.setId, counterReveal.cardNumber)}
+                    alt={counterReveal.cardName}
+                    style={{ width: "160px", borderRadius: "4px" }}
+                  />
+                  <button
+                    style={{ background: "#2a2a2a", border: "1px solid #555", color: "#ccc", borderRadius: "5px", padding: "7px 20px", fontSize: "12px", cursor: "pointer" }}
+                    onClick={() => setCounterReveal(null)}
+                  >
+                    Ok
+                  </button>
+                </div>
+              </div>
+            )}
+            {bypass && gameId && opponentPlayerId && (
+              <DevGiveCardPanel
+                gameId={gameId}
+                myPlayerId={myPlayerId}
+                opponentId={opponentPlayerId}
+                onGiven={() => void refetch()}
               />
             )}
           </UIContext.Provider>

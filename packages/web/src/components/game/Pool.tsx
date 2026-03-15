@@ -122,7 +122,7 @@ export function Pool({
           ))}
         </div>
         <div data-testid={ownerId ? `lasting-spells-${ownerId}` : undefined}>
-          <div className={styles.row}>
+          <div className={`${styles.row} ${styles.rightAlign}`}>
             {(lingeringSpells ?? []).map((card) => (
               <CardComponent
                 key={card.instanceId}

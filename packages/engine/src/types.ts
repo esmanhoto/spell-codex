@@ -46,8 +46,18 @@ export interface TurnTriggerEffect {
   timing: "start" | "end"
 }
 
+/** A card that can be played from hand to negate/cancel an event. */
+export interface CounterEventEffect {
+  type: "counter_event"
+}
+
+/** A card that can be played from hand to negate/cancel a spell. */
+export interface CounterSpellEffect {
+  type: "counter_spell"
+}
+
 /** Union of all structured effect tags on CardData. */
-export type EffectTag = RebuildRealmEffect | TurnTriggerEffect
+export type EffectTag = RebuildRealmEffect | TurnTriggerEffect | CounterEventEffect | CounterSpellEffect
 
 // ─── Card Data (static — from the card database) ─────────────────────────────
 
@@ -216,6 +226,12 @@ export interface ResolutionContext {
   cardDestination: "discard" | "abyss" | "void" | "in_play"
   /** If in_play, where it attaches (optional) */
   attachTarget?: AttachTarget
+  /**
+   * True when at least one opponent has a tagged counter card in hand and has not yet
+   * acknowledged. While true, the resolving player cannot apply resolution effects.
+   * Opponents may send PASS_COUNTER (acknowledge) or play a counter card.
+   */
+  counterWindowOpen: boolean
 }
 
 // ─── Combat ───────────────────────────────────────────────────────────────────
@@ -370,6 +386,17 @@ export type Move =
   // Any phase
   | { type: "PLAY_EVENT"; cardInstanceId: CardInstanceId }
   | { type: "PASS" }
+  /**
+   * Sent by a non-resolving player to acknowledge the counter window and allow
+   * the resolving player to proceed. Legal only when resolutionContext.counterWindowOpen.
+   */
+  | { type: "PASS_COUNTER" }
+  /**
+   * Activate an in-play counter card (artifact attachment or champion ability in pool).
+   * The card stays in the pool after use; the pending resolution is cancelled.
+   * Legal only when resolutionContext.counterWindowOpen and the card is in the player's pool.
+   */
+  | { type: "USE_POOL_COUNTER"; cardInstanceId: CardInstanceId }
   /** Draw the 1-card spoil earned by winning combat (optional) */
   | { type: "CLAIM_SPOIL" }
   /** Skip remaining phases and end the turn (only when hand ≤ maxEnd) */
@@ -432,6 +459,10 @@ export type Move =
   | { type: "RESOLVE_TRIGGER_DISCARD_FROM_HAND"; targetPlayerId: PlayerId }
   /** Finish the current trigger — returns any held draw pile cards, clears peekContext */
   | { type: "RESOLVE_TRIGGER_DONE" }
+
+  // Dev-only — bypasses all validation, adds a card directly to a player's hand.
+  // Only submitted via the /dev/games/:id/give-card endpoint in AUTH_BYPASS mode.
+  | { type: "DEV_GIVE_CARD"; playerId: PlayerId; instanceId: CardInstanceId; card: CardData }
 
 // ─── Engine Result ────────────────────────────────────────────────────────────
 
@@ -547,6 +578,15 @@ export type GameEvent =
       playerId: PlayerId
       cardInstanceId: CardInstanceId
       cardName: string
+    }
+  | {
+      type: "COUNTER_PLAYED"
+      playerId: PlayerId
+      cardInstanceId: CardInstanceId
+      cardName: string
+      setId: string
+      cardNumber: number
+      cancelledCardName: string
     }
   | {
       type: "RESOLUTION_COMPLETED"

@@ -35,6 +35,20 @@ export interface CombatDef {
   roundPhase: "CARD_PLAY" | "AWAITING_ATTACKER" | "AWAITING_DEFENDER"
 }
 
+export interface ResolutionContextSeed {
+  /** Which player already played the card (the resolving player). */
+  initiatingPlayer: "p1" | "p2"
+  /** The card that was played — will be held in pendingCard (not in any hand). */
+  pendingCard: CardRef
+  /** Where the card ends up after RESOLVE_DONE. */
+  cardDestination: "discard" | "abyss" | "void" | "in_play"
+  /**
+   * Whether the counter window is open.
+   * Defaults to true when omitted (the normal pre-seeded-counter-window case).
+   */
+  counterWindowOpen?: boolean
+}
+
 export interface ScenarioDef {
   /** Short display name shown in the dev UI. */
   name: string
@@ -46,6 +60,12 @@ export interface ScenarioDef {
   combat?: CombatDef
   /** Override the starting phase (default: Pool, or Combat if combat is set). */
   phase?: "START_OF_TURN" | "DRAW" | "PLAY_REALM" | "POOL" | "COMBAT" | "PHASE_FIVE" | "END_TURN"
+  /**
+   * If provided, the game starts mid-resolution — the pending card has already been played
+   * and the resolutionContext is pre-populated. Use this for counter-window scenarios where
+   * you (p1) need to react to something p2 already played.
+   */
+  resolutionContext?: ResolutionContextSeed
 }
 
 // ─── Scenario registry ────────────────────────────────────────────────────────
@@ -654,6 +674,87 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
     p2: {
       formation: { A: { realm: { setId: "1st", cardNumber: 5 } } }, // Cormyr
       pool: [{ card: { setId: "1st", cardNumber: 42 } }], // King Azoun IV
+    },
+  },
+
+  // ── Counter window: comprehensive test setup ─────────────────────────────
+  //
+  // P1 (active, POOL phase) — has hand counter cards:
+  //   Calm (#400, counter_event), Dispel Magic (#346, counter_spell)
+  //   Fear (#348, Off wizard spell — cast with Elminster in combat)
+  //
+  // P2 (not active) — has pool counter cards:
+  //   King Azoun + Rod of Dispel Magic (#220, counter_spell artifact)
+  //   Cleric of Gond + Dori's Cape (#427, counter_event artifact)
+  //   Delsenora (#450, counter_event champion)
+  //   Hand: Cataclysm! (#99, harmful event), Horrors of the Abyss (#96, Off wizard spell),
+  //         2 allies
+  //
+  // Pool phase tests (play as P2 then switch to P1 tab):
+  //   → P2 plays Cataclysm! → P1 counters with Calm (hand) or Allow
+  //
+  // Combat tests (P1 attacks P2 or vice versa, CARD_PLAY phase):
+  //   → P2 casts Horrors of the Abyss → P1 counters with Dispel Magic (hand) or P2 uses Rod
+  //   → P1 casts Fear → P2 counters with Rod (pool) or Allow
+  //   → Any event → P2 uses Cape or Delsenora to counter
+  "counter-window-all": {
+    name: "Counter window — full setup (all counter cards)",
+    description:
+      "Both players have a full board: 2 realms, 4 champions each, allies. " +
+      "P1 hand: Calm (counter_event), Dispel Magic (counter_spell), Fear (Off wizard spell). " +
+      "P2 pool: Rod of Dispel Magic, Dori's Cape, Delsenora (all counters). " +
+      "P2 hand: Cataclysm! (event), Horrors of the Abyss (spell), 2 allies. " +
+      "P1 is active in Pool phase. Use two tabs to test all counter paths.",
+    phase: "POOL",
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 1 } },   // Waterdeep
+        B: { realm: { setId: "1st", cardNumber: 2 } },   // Menzoberranzan
+      },
+      pool: [
+        { card: { setId: "1st", cardNumber: 44 } },       // Elminster (Wizard, lv 9) — casts Fear/Dispel
+        { card: { setId: "1st", cardNumber: 63 } },       // Karlott the Shaman (Cleric)
+        {
+          card: { setId: "1st", cardNumber: 41 },         // Alias the Sell-Sword (Hero, lv 6)
+          attachments: [{ setId: "1st", cardNumber: 54 }], // War Party ally (+4)
+        },
+        {
+          card: { setId: "1st", cardNumber: 48 },         // The Pereghost (Monster, lv 7)
+          attachments: [{ setId: "1st", cardNumber: 59 }], // The Iron Legion ally (+3)
+        },
+      ],
+      hand: [
+        { setId: "1st", cardNumber: 400 }, // Calm (counter_event)
+        { setId: "1st", cardNumber: 346 }, // Dispel Magic (counter_spell)
+        { setId: "1st", cardNumber: 348 }, // Fear (Off wizard spell — cast in combat)
+      ],
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } },   // Cormyr
+        B: { realm: { setId: "1st", cardNumber: 111 } }, // Free City of Greyhawk
+      },
+      pool: [
+        {
+          card: { setId: "1st", cardNumber: 42 },         // King Azoun IV (Hero, lv 7)
+          attachments: [{ setId: "1st", cardNumber: 220 }], // Rod of Dispel Magic (counter_spell)
+        },
+        {
+          card: { setId: "1st", cardNumber: 162 },        // Mordenkainen (GH Wizard, lv 7)
+          attachments: [{ setId: "1st", cardNumber: 58 }], // Armies of Bloodstone ally (+4)
+        },
+        {
+          card: { setId: "1st", cardNumber: 68 },         // Cleric of Gond (Cleric)
+          attachments: [{ setId: "1st", cardNumber: 427 }], // Dori the Barbarian's Cape (counter_event)
+        },
+        { card: { setId: "1st", cardNumber: 450 } },      // Delsenora (counter_event champion)
+      ],
+      hand: [
+        { setId: "1st", cardNumber: 99 },  // Cataclysm! (harmful event — P2 plays, P1 counters)
+        { setId: "1st", cardNumber: 96 },  // Horrors of the Abyss (Off wizard spell — P2 casts in combat)
+        { setId: "1st", cardNumber: 61 },  // Myrmidons ally (+4)
+        { setId: "1st", cardNumber: 54 },  // War Party ally (+4)
+      ],
     },
   },
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
-import type { Move, ResolutionContextInfo, PlayerBoard } from "../../api.ts"
+import type { Move, ResolutionContextInfo, PlayerBoard, CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
+import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./ResolutionPanel.module.css"
 
 const DEST_LABELS: Record<string, string> = {
@@ -19,6 +20,7 @@ type ActionCategory =
   | "discard_holding"
   | "draw_cards"
   | "return_to_play"
+  | "other"
 
 const CATEGORY_LABELS: Record<ActionCategory, string> = {
   raze_realm: "Raze a Realm",
@@ -29,6 +31,7 @@ const CATEGORY_LABELS: Record<ActionCategory, string> = {
   discard_holding: "Discard/Remove Holding",
   draw_cards: "Draw Cards",
   return_to_play: "Return Champion to Pool",
+  other: "Other / Manual Effect",
 }
 
 // Card type IDs
@@ -125,6 +128,7 @@ function getAvailableCategories(targets: ReturnType<typeof collectTargets>): Act
   if (targets.holdings.length > 0) cats.push("discard_holding")
   cats.push("draw_cards")
   if (targets.discardChampions.length > 0) cats.push("return_to_play")
+  cats.push("other")
   return cats
 }
 
@@ -138,11 +142,14 @@ export function ResolutionPanel({
   ctx,
   allBoards,
   myPlayerId,
+  counterOptions,
   onMove,
 }: {
   ctx: ResolutionContextInfo
   allBoards: Record<string, PlayerBoard>
   myPlayerId: string
+  /** Counter cards available to use (hand + pool), derived from legalMoves in Game.tsx */
+  counterOptions?: Array<{ card: CardInfo; move: Move }>
   onMove: (m: Move | Move[]) => void
 }) {
   const [selectedCategory, setSelectedCategory] = useState<ActionCategory | null>(null)
@@ -152,6 +159,7 @@ export function ResolutionPanel({
   const [waitingDismissed, setWaitingDismissed] = useState(false)
   const [pendingDone, setPendingDone] = useState(false)
   const [localDestination, setLocalDestination] = useState<string | null>(null)
+  const [selectedCounterIdx, setSelectedCounterIdx] = useState(0)
   const isMyResolution = ctx.resolvingPlayer === myPlayerId
   const targets = useMemo(() => collectTargets(allBoards), [allBoards])
   const availableCategories = getAvailableCategories(targets)
@@ -164,11 +172,14 @@ export function ResolutionPanel({
     setWaitingDismissed(false)
     setPendingDone(false)
     setLocalDestination(null)
+    setSelectedCounterIdx(0)
   }, [ctx.cardInstanceId])
 
   // Waiting view for non-resolving player
   if (!isMyResolution) {
     if (waitingDismissed) return null
+    const hasCounterWindow = ctx.counterWindowOpen && (counterOptions?.length ?? 0) > 0
+    const selectedCounter = counterOptions?.[selectedCounterIdx] ?? counterOptions?.[0]
     return (
       <div className={styles.overlayModal}>
         <div className={styles.panelModal}>
@@ -184,10 +195,51 @@ export function ResolutionPanel({
             alt={ctx.pendingCard.name}
             className={styles.cardImgSmall}
           />
-          <div className={styles.sectionLabel}>Waiting for opponent to resolve...</div>
-          <button className={styles.okBtn} onClick={() => setWaitingDismissed(true)}>
-            Ok
-          </button>
+          {hasCounterWindow && counterOptions && (
+            <div className={styles.counterSection}>
+              <div className={styles.counterLabel}>You MAY be able to counter with:</div>
+              {counterOptions.map((opt, i) => (
+                <CardTooltip key={i} card={opt.card}>
+                  <div
+                    className={i === selectedCounterIdx ? styles.counterCardNameSelected : styles.counterCardName}
+                    onClick={() => setSelectedCounterIdx(i)}
+                  >
+                    {opt.card.name}
+                  </div>
+                </CardTooltip>
+              ))}
+            </div>
+          )}
+          <div className={styles.counterActions}>
+            {hasCounterWindow ? (
+              <>
+                <button
+                  className={styles.counterBtn}
+                  onClick={() => selectedCounter && onMove(selectedCounter.move)}
+                >
+                  Counter
+                </button>
+                <button
+                  className={styles.allowBtn}
+                  onClick={() => onMove({ type: "PASS_COUNTER" })}
+                >
+                  Allow
+                </button>
+              </>
+            ) : ctx.counterWindowOpen ? (
+              // Counter window open but no usable cards — must allow
+              <button
+                className={styles.allowBtn}
+                onClick={() => onMove({ type: "PASS_COUNTER" })}
+              >
+                Allow
+              </button>
+            ) : (
+              <button className={styles.okBtn} onClick={() => setWaitingDismissed(true)}>
+                Ok
+              </button>
+            )}
+          </div>
         </div>
       </div>
     )
@@ -527,8 +579,19 @@ export function ResolutionPanel({
             </button>
           </>
         )
+
+      case "other":
+        return (
+          <div className={styles.cardDesc} style={{ fontSize: "12px", color: "#b0a080" }}>
+            Use right-click menus and game board actions to apply this effect manually.
+            Coordinate with your opponent via chat if needed. Click &ldquo;Done Resolving&rdquo;
+            when finished.
+          </div>
+        )
     }
   }
+
+  const counterBlocked = ctx.counterWindowOpen
 
   return (
     <div className={styles.overlay}>
@@ -542,6 +605,13 @@ export function ResolutionPanel({
           )}
         </div>
 
+        {/* Counter window waiting indicator */}
+        {counterBlocked && (
+          <div className={styles.counterWaitBanner}>
+            Waiting for opponent&hellip;
+          </div>
+        )}
+
         {/* Action category selector */}
         <div className={styles.section}>
           <div className={styles.sectionLabel}>Action:</div>
@@ -549,6 +619,7 @@ export function ResolutionPanel({
             className={styles.categorySelect}
             value={effectiveCategory ?? ""}
             onChange={(e) => handleCategoryChange(e.target.value)}
+            disabled={counterBlocked}
           >
             {availableCategories.length > 1 && <option value="">Select action...</option>}
             {availableCategories.map((cat) => (
@@ -560,10 +631,16 @@ export function ResolutionPanel({
         </div>
 
         {/* Dynamic content */}
-        {effectiveCategory && <div className={styles.section}>{renderCategoryContent()}</div>}
+        {effectiveCategory && !counterBlocked && (
+          <div className={styles.section}>{renderCategoryContent()}</div>
+        )}
 
         {/* Done → goes to card destination step */}
-        <button className={styles.doneBtn} onClick={() => setPendingDone(true)}>
+        <button
+          className={styles.doneBtn}
+          disabled={counterBlocked}
+          onClick={() => setPendingDone(true)}
+        >
           Done Resolving
         </button>
       </div>
