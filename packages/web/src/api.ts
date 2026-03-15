@@ -72,6 +72,7 @@ export interface ResolutionContextInfo {
     targetInstanceId?: string
     targetRealmSlot?: string
   } | null
+  counterWindowOpen: boolean
 }
 
 export interface GameState {
@@ -174,6 +175,8 @@ export type Move =
   | { type: "RESOLVE_TRIGGER_DISCARD_PEEKED"; cardInstanceId: string }
   | { type: "RESOLVE_TRIGGER_DISCARD_FROM_HAND"; targetPlayerId: string }
   | { type: "RESOLVE_TRIGGER_DONE" }
+  | { type: "PASS_COUNTER" }
+  | { type: "USE_POOL_COUNTER"; cardInstanceId: string }
   | { type: string; [key: string]: unknown }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
@@ -315,6 +318,34 @@ export async function loadDevScenario(scenarioId: string): Promise<{
   p2UserId: string
 }> {
   return request(`/dev/scenarios/${encodeURIComponent(scenarioId)}/load`, { method: "POST" })
+}
+
+export interface DevCardResult {
+  setId: string
+  cardNumber: number
+  name: string
+  typeId: number
+}
+
+export async function devSearchCards(q: string, types: number[] | null): Promise<DevCardResult[]> {
+  const params = new URLSearchParams()
+  if (q) params.set("q", q)
+  if (types && types.length > 0) params.set("types", types.join(","))
+  const res = await request<{ cards: DevCardResult[] }>(`/dev/cards?${params}`)
+  return res.cards
+}
+
+export async function devGiveCard(
+  gameId: string,
+  playerId: string,
+  setId: string,
+  cardNumber: number,
+): Promise<void> {
+  await request(`/dev/games/${gameId}/give-card`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playerId, setId, cardNumber }),
+  })
 }
 
 export async function submitMove(

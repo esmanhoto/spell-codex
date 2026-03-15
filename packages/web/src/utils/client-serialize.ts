@@ -166,6 +166,7 @@ export function serializeEngineStateForClient(
           resolvingPlayer: state.resolutionContext.resolvingPlayer,
           cardDestination: state.resolutionContext.cardDestination,
           attachTarget: state.resolutionContext.attachTarget ?? null,
+          counterWindowOpen: state.resolutionContext.counterWindowOpen,
         }
       : null,
     pendingTriggers: state.pendingTriggers.map((t) => ({
