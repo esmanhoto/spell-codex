@@ -463,9 +463,28 @@ export function handleResolveDone(
 
 // ─── Resolution context opener ────────────────────────────────────────────────
 
+const COUNTER_EFFECT_TYPES = new Set(["counter_event", "counter_spell"])
+
+function opponentsHaveCounterCards(state: GameState, initiatingPlayer: PlayerId): boolean {
+  for (const [pid, player] of Object.entries(state.players)) {
+    if (pid === initiatingPlayer) continue
+    const hasEffect = (inst: CardInstance) =>
+      inst.card.effects.some((e) => COUNTER_EFFECT_TYPES.has(e.type))
+    // Hand: Dispel Magic, Calm, etc.
+    if (player.hand.some(hasEffect)) return true
+    // Pool: champion abilities (Delsenora) and attached artifacts (Rod, Dori's Cape)
+    for (const entry of player.pool) {
+      if (hasEffect(entry.champion)) return true
+      if (entry.attachments.some(hasEffect)) return true
+    }
+  }
+  return false
+}
+
 /**
  * Opens a resolution context after a card is played.
  * The card is removed from hand by the caller; its instance is stored here.
+ * Sets counterWindowOpen if any opponent has a tagged counter card in hand or pool.
  */
 export function openResolutionContext(
   state: GameState,
@@ -489,6 +508,129 @@ export function openResolutionContext(
       initiatingPlayer: playerId,
       resolvingPlayer: playerId,
       cardDestination: defaultDestination,
+      counterWindowOpen: opponentsHaveCounterCards(state, playerId),
     },
   }
+}
+
+// ─── Counter window handlers ──────────────────────────────────────────────────
+
+/**
+ * Non-resolving player passes on the counter window, allowing resolution to proceed.
+ */
+export function handlePassCounter(state: GameState, _playerId: PlayerId): GameState {
+  if (!state.resolutionContext?.counterWindowOpen) {
+    throw new EngineError("NOT_IN_COUNTER_WINDOW", "No open counter window")
+  }
+  return {
+    ...state,
+    resolutionContext: { ...state.resolutionContext, counterWindowOpen: false },
+  }
+}
+
+/**
+ * Non-resolving player plays a tagged counter card from hand.
+ * The counter card is placed in its natural destination (void for events, discard for spells).
+ * The original pending card is also placed in its default destination and the resolution is cleared.
+ */
+export function handleCounterPlay(
+  state: GameState,
+  playerId: PlayerId,
+  cardInstanceId: CardInstanceId,
+  events: GameEvent[],
+): GameState {
+  const ctx = state.resolutionContext
+  if (!ctx?.counterWindowOpen) {
+    throw new EngineError("NOT_IN_COUNTER_WINDOW", "No open counter window")
+  }
+
+  const player = state.players[playerId]!
+  const counterInst = player.hand.find((c) => c.instanceId === cardInstanceId)
+  if (!counterInst) throw new EngineError("CARD_NOT_IN_HAND", "Counter card not in hand")
+
+  const isCounterEffect = counterInst.card.effects.some((e) => COUNTER_EFFECT_TYPES.has(e.type))
+  if (!isCounterEffect) throw new EngineError("NOT_A_COUNTER_CARD", "Card is not a counter card")
+
+  events.push({
+    type: "COUNTER_PLAYED",
+    playerId,
+    cardInstanceId: counterInst.instanceId,
+    cardName: counterInst.card.name,
+    setId: counterInst.card.setId,
+    cardNumber: counterInst.card.cardNumber,
+    cancelledCardName: ctx.pendingCard.card.name,
+  })
+
+  // Remove counter card from hand, place in void/discard
+  const isCounterEvent = counterInst.card.typeId === 6 // Event typeId
+  let s = updatePlayer(state, playerId, {
+    hand: player.hand.filter((c) => c.instanceId !== cardInstanceId),
+    ...(isCounterEvent
+      ? { abyss: [...player.abyss, counterInst] }
+      : { discardPile: [...player.discardPile, counterInst] }),
+  })
+
+  // Place the cancelled card in its default destination
+  const originalIsEvent = ctx.pendingCard.card.typeId === 6
+  const initiator = s.players[ctx.initiatingPlayer]!
+  s = updatePlayer(s, ctx.initiatingPlayer, {
+    ...(originalIsEvent
+      ? { abyss: [...initiator.abyss, ctx.pendingCard] }
+      : { discardPile: [...initiator.discardPile, ctx.pendingCard] }),
+  })
+
+  return { ...s, resolutionContext: null }
+}
+
+/**
+ * Activate an in-play counter card (artifact/champion in pool).
+ * The card stays in the pool; the pending resolution is cancelled.
+ */
+export function handlePoolCounter(
+  state: GameState,
+  playerId: PlayerId,
+  cardInstanceId: CardInstanceId,
+  events: GameEvent[],
+): GameState {
+  const ctx = state.resolutionContext
+  if (!ctx?.counterWindowOpen) {
+    throw new EngineError("NOT_IN_COUNTER_WINDOW", "No open counter window")
+  }
+
+  const player = state.players[playerId]!
+  // Find the card in pool (champion or attachment)
+  let counterInst: CardInstance | undefined
+  for (const entry of player.pool) {
+    if (entry.champion.instanceId === cardInstanceId) {
+      counterInst = entry.champion
+      break
+    }
+    const att = entry.attachments.find((a) => a.instanceId === cardInstanceId)
+    if (att) { counterInst = att; break }
+  }
+  if (!counterInst) throw new EngineError("CARD_NOT_IN_POOL", "Counter card not in pool")
+
+  const isCounterEffect = counterInst.card.effects.some((e) => COUNTER_EFFECT_TYPES.has(e.type))
+  if (!isCounterEffect) throw new EngineError("NOT_A_COUNTER_CARD", "Card is not a counter card")
+
+  events.push({
+    type: "COUNTER_PLAYED",
+    playerId,
+    cardInstanceId: counterInst.instanceId,
+    cardName: counterInst.card.name,
+    setId: counterInst.card.setId,
+    cardNumber: counterInst.card.cardNumber,
+    cancelledCardName: ctx.pendingCard.card.name,
+  })
+
+  // Place the cancelled card in its default destination (pool counter card stays in pool)
+  const originalIsEvent = ctx.pendingCard.card.typeId === 6
+  const initiator = state.players[ctx.initiatingPlayer]!
+  const s = updatePlayer(state, ctx.initiatingPlayer, {
+    ...(originalIsEvent
+      ? { abyss: [...initiator.abyss, ctx.pendingCard] }
+      : { discardPile: [...initiator.discardPile, ctx.pendingCard] }),
+  })
+
+  return { ...s, resolutionContext: null }
 }

@@ -65,6 +65,30 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
     if (playerId === state.resolutionContext.resolvingPlayer) {
       return dedupeMoves(getResolutionMoves(state, playerId))
     }
+    // Non-resolving player: during counter window they may acknowledge or use a counter card
+    if (state.resolutionContext.counterWindowOpen) {
+      const isCounter = (e: { type: string }) =>
+        e.type === "counter_event" || e.type === "counter_spell"
+      const moves: Move[] = [{ type: "PASS_COUNTER" }]
+      // Hand counter cards (Calm, Dispel Magic, etc.) — played and discarded
+      for (const inst of player.hand) {
+        if (inst.card.effects.some(isCounter)) {
+          moves.push({ type: "PLAY_EVENT", cardInstanceId: inst.instanceId })
+        }
+      }
+      // Pool counter cards (Rod of Dispel Magic, Dori's Cape, Delsenora) — stay in pool
+      for (const entry of player.pool) {
+        if (entry.champion.card.effects.some(isCounter)) {
+          moves.push({ type: "USE_POOL_COUNTER", cardInstanceId: entry.champion.instanceId })
+        }
+        for (const att of entry.attachments) {
+          if (att.card.effects.some(isCounter)) {
+            moves.push({ type: "USE_POOL_COUNTER", cardInstanceId: att.instanceId })
+          }
+        }
+      }
+      return moves
+    }
     return []
   }
 
