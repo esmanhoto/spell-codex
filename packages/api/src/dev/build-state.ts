@@ -4,11 +4,12 @@ import type {
   PlayerState,
   CombatState,
   FormationSlot,
+  ResolutionContext,
 } from "@spell/engine"
 import { Phase, calculateCombatLevel, hasWorldMatch, getLosingPlayer, populateTriggers } from "@spell/engine"
 import type { GameEvent } from "@spell/engine"
 import { lookupCard } from "./card-lookup.ts"
-import type { ScenarioDef, CardRef, CombatDef } from "./scenarios.ts"
+import type { ScenarioDef, CardRef, CombatDef, ResolutionContextSeed } from "./scenarios.ts"
 
 // ─── Fixed dev player UUIDs ───────────────────────────────────────────────────
 // These match the web's BYPASS_DEFAULT_USER_ID so the dev page works out of
@@ -101,6 +102,24 @@ function buildCombatState(
   }
 }
 
+function buildResolutionContext(
+  seed: ResolutionContextSeed,
+  _p1State: PlayerState,
+  _p2State: PlayerState,
+): ResolutionContext {
+  const initiatingId = seed.initiatingPlayer === "p1" ? DEV_P1_ID : DEV_P2_ID
+  const instanceId = `${seed.initiatingPlayer}-pending-card`
+  const pendingCard: CardInstance = resolve(seed.pendingCard, instanceId)
+  return {
+    cardInstanceId: instanceId,
+    pendingCard,
+    initiatingPlayer: initiatingId,
+    resolvingPlayer: initiatingId,
+    cardDestination: seed.cardDestination,
+    counterWindowOpen: seed.counterWindowOpen ?? true,
+  }
+}
+
 // ─── Main builder ─────────────────────────────────────────────────────────────
 
 /**
@@ -157,6 +176,17 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
 
   const phase = combatState ? Phase.Combat : scenario.phase ? (scenario.phase as Phase) : Phase.Pool
 
+  const resolutionContext = scenario.resolutionContext
+    ? buildResolutionContext(scenario.resolutionContext, p1State, p2State)
+    : null
+
+  // When a resolution context is pre-seeded, the resolving player is "active"
+  // (they're waiting on the counter window). The counter player (p1 in these scenarios)
+  // sends PASS_COUNTER / PLAY_EVENT as an out-of-turn move.
+  if (resolutionContext) {
+    activePlayer = resolutionContext.initiatingPlayer === DEV_P1_ID ? DEV_P1_ID : DEV_P2_ID
+  }
+
   let state: GameState = {
     id: "dev-placeholder",
     players: {
@@ -168,7 +198,7 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     playerOrder: [DEV_P1_ID, DEV_P2_ID],
     phase,
     combatState,
-    resolutionContext: null,
+    resolutionContext,
     pendingTriggers: [],
     endTriggersPopulated: false,
     winner: null,
