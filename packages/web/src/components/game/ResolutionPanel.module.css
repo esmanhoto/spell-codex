@@ -58,6 +58,82 @@
   background: #383838;
 }
 
+.counterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  align-items: flex-start;
+}
+
+.counterLabel {
+  font-size: 11px;
+  color: #9aaa70;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.counterCardName {
+  font-size: 13px;
+  color: #d0c890;
+  font-weight: 600;
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  align-self: flex-start;
+}
+
+.counterCardName:hover {
+  background: #1e2a14;
+}
+
+.counterCardNameSelected {
+  composes: counterCardName;
+  border-color: #7b9c5a;
+  background: #1e2a14;
+  color: #b0d488;
+}
+
+.counterActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.counterBtn {
+  flex: 1;
+  background: #1e2e10;
+  border: 1px solid #5a8030;
+  color: #b0d488;
+  border-radius: 5px;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.counterBtn:hover {
+  background: #263818;
+}
+
+.allowBtn {
+  flex: 1;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #ccc;
+  border-radius: 5px;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.allowBtn:hover {
+  background: #383838;
+}
+
 .panel {
   width: min(480px, calc(100vw - 32px));
   max-height: calc(100vh - 64px);
@@ -290,4 +366,19 @@
 
 .doneBtn:hover {
   background: #2e4028;
+}
+
+.doneBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.counterWaitBanner {
+  background: #1e1a10;
+  border: 1px solid #8a7a30;
+  border-radius: 5px;
+  color: #c8b060;
+  font-size: 12px;
+  padding: 7px 10px;
+  text-align: center;
 }
