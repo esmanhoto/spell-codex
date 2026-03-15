@@ -256,6 +256,48 @@ export const EVENT_CARD: CardData = {
   effects: [],
 }
 
+export const COUNTER_EVENT_CARD: CardData = {
+  setId: "1st",
+  cardNumber: 400,
+  name: "Calm",
+  typeId: 6, // Event
+  worldId: 0,
+  isAvatar: false,
+  level: null,
+  description: "Counters any event.",
+  attributes: [],
+  supportIds: [],
+  effects: [{ type: "counter_event" }],
+}
+
+export const COUNTER_SPELL_CARD: CardData = {
+  setId: "1st",
+  cardNumber: 346,
+  name: "Dispel Magic",
+  typeId: 6, // Event
+  worldId: 0,
+  isAvatar: false,
+  level: null,
+  description: "Counters any spell.",
+  attributes: [],
+  supportIds: [],
+  effects: [{ type: "counter_spell" }],
+}
+
+export const ARTIFACT_COUNTER_EVENT: CardData = {
+  setId: "1st",
+  cardNumber: 220,
+  name: "Rod of Dispel Magic",
+  typeId: 2, // Artifact — stays in pool when used
+  worldId: 0,
+  isAvatar: false,
+  level: null,
+  description: "Bearer can counter any event once per turn.",
+  attributes: [],
+  supportIds: [],
+  effects: [{ type: "counter_event" }],
+}
+
 // ─── Deck Builders ────────────────────────────────────────────────────────────
 
 /**
