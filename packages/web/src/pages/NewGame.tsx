@@ -14,7 +14,7 @@ import {
 } from "../api.ts"
 import { useAuth } from "../auth.tsx"
 import { MusicPlayer } from "../components/MusicPlayer.tsx"
-import { getCustomDecks } from "./DeckBuilder.tsx"
+import { getCustomDecks } from "../components/deck-builder/deck-storage.ts"
 import styles from "./NewGame.module.css"
 
 import { formatEmailAsName } from "../utils/display-name.ts"
