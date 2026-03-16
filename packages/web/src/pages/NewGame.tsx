@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Plus, LogIn, Users, Swords } from "lucide-react"
+import { Plus, LogIn, Users, Swords, Hammer } from "lucide-react"
 import {
   listDecks,
   getDeck,
+  getSetCards,
   createLobbyGame,
   joinLobbyGame,
   getLobbyStatus,
@@ -13,6 +14,7 @@ import {
 } from "../api.ts"
 import { useAuth } from "../auth.tsx"
 import { MusicPlayer } from "../components/MusicPlayer.tsx"
+import { getCustomDecks } from "./DeckBuilder.tsx"
 import styles from "./NewGame.module.css"
 
 import { formatEmailAsName } from "../utils/display-name.ts"
@@ -71,13 +73,32 @@ export function NewGame() {
     }
   }, [lobbyStatus?.status, navigate, waitingGameId, waitingSlug])
 
+  async function hydrateSelectedDeck(deckValue: string): Promise<object[]> {
+    if (deckValue.startsWith("custom:")) {
+      const customName = deckValue.slice(7)
+      const custom = customDecks.find((d) => d.name === customName)
+      if (!custom) throw new Error(`Custom deck "${customName}" not found.`)
+      // Hydrate card refs into full card data via set endpoint
+      const { cards: allSetCards } = await getSetCards("1st")
+      const byNum = new Map(allSetCards.map((c) => [c.cardNumber, c]))
+      const hydrated = custom.cards
+        .map((ref) => byNum.get(ref.cardNumber))
+        .filter(Boolean) as object[]
+      if (hydrated.length !== 55)
+        throw new Error(`Custom deck has ${hydrated.length} resolvable cards (need 55).`)
+      return hydrated
+    }
+    const { cards } = await getDeck(deckValue)
+    return cards
+  }
+
   async function handleCreate() {
     setError(null)
     setInfo(null)
     setLoading(true)
     try {
       if (!identity) throw new Error("You are not authenticated.")
-      const { cards } = await getDeck(createDeck)
+      const cards = await hydrateSelectedDeck(createDeck)
       const seed = Math.floor(Math.random() * 0x7fffffff)
       const { gameId, slug } = await createLobbyGame({
         identity,
@@ -104,7 +125,7 @@ export function NewGame() {
       const gameIdentifier = joinGameId.trim()
       if (!gameIdentifier) throw new Error("Please enter a Game ID.")
 
-      const { cards } = await getDeck(joinDeck)
+      const cards = await hydrateSelectedDeck(joinDeck)
       const result = await joinLobbyGame({
         identity,
         gameId: gameIdentifier,
@@ -150,6 +171,7 @@ export function NewGame() {
   }
 
   const decks = deckList?.decks ?? []
+  const customDecks = getCustomDecks()
 
   return (
     <div className={styles.lobbyPage} data-testid="lobby-page">
@@ -247,6 +269,15 @@ export function NewGame() {
               <span className={styles.actionHint}>Enter a game code</span>
             </button>
           </div>
+
+          <Link
+            to="/deck-builder"
+            className={styles.deckBuilderLink}
+            data-testid="deck-builder-link"
+          >
+            <Hammer className={styles.deckBuilderIcon} aria-hidden />
+            <span>Build a Custom Deck</span>
+          </Link>
         </section>
 
         <aside className={styles.rightColumn}>
@@ -334,11 +365,22 @@ export function NewGame() {
                     value={createDeck}
                     onChange={(e) => setCreateDeck(e.target.value)}
                   >
-                    {decks.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
+                    {customDecks.length > 0 && (
+                      <optgroup label="Custom Decks">
+                        {customDecks.map((d) => (
+                          <option key={`custom:${d.name}`} value={`custom:${d.name}`}>
+                            {d.name} ({d.cards.length} cards)
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <optgroup label="Pre-built Decks">
+                      {decks.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                 </label>
 
@@ -350,7 +392,7 @@ export function NewGame() {
                     className={styles.modalCreateBtn}
                     data-testid="create-game-btn"
                     onClick={handleCreate}
-                    disabled={loading || decks.length === 0}
+                    disabled={loading || (decks.length === 0 && customDecks.length === 0)}
                   >
                     {loading ? "Creating..." : "Create"}
                   </button>
@@ -382,11 +424,22 @@ export function NewGame() {
                     value={joinDeck}
                     onChange={(e) => setJoinDeck(e.target.value)}
                   >
-                    {decks.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
+                    {customDecks.length > 0 && (
+                      <optgroup label="Custom Decks">
+                        {customDecks.map((d) => (
+                          <option key={`custom:${d.name}`} value={`custom:${d.name}`}>
+                            {d.name} ({d.cards.length} cards)
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <optgroup label="Pre-built Decks">
+                      {decks.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                 </label>
 
@@ -398,7 +451,11 @@ export function NewGame() {
                     className={styles.modalJoinBtn}
                     data-testid="join-game-btn"
                     onClick={handleJoin}
-                    disabled={loading || decks.length === 0 || joinGameId.trim().length === 0}
+                    disabled={
+                      loading ||
+                      (decks.length === 0 && customDecks.length === 0) ||
+                      joinGameId.trim().length === 0
+                    }
                   >
                     {loading ? "Joining..." : "Join"}
                   </button>
