@@ -966,7 +966,10 @@ describe("counter window", () => {
         },
       },
     }
-    const afterPlay = applyMove(state, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
+    const afterPlay = applyMove(state, "p1", {
+      type: "PLAY_EVENT",
+      cardInstanceId: "ev-1",
+    }).newState
     expect(afterPlay.resolutionContext!.counterWindowOpen).toBe(true)
   })
 

@@ -477,7 +477,7 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
     for (const card of player.hand) {
       if (card.card.typeId === CardTypeId.Holding) {
         if (!isUniqueInPlay(card.card, state)) continue
-        const isRebuilder = card.card.effects.some(e => e.type === "rebuild_realm")
+        const isRebuilder = card.card.effects.some((e) => e.type === "rebuild_realm")
         for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
           if (!realmSlot) continue
           if (realmSlot.isRazed && !isRebuilder) continue
@@ -787,13 +787,21 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     }
     // Pool attachments on active champions also count toward combat level and can be switched/discarded
     if (combat.attacker) {
-      for (const card of getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId)) {
+      for (const card of getPoolAttachments(
+        state,
+        combat.attackingPlayer,
+        combat.attacker.instanceId,
+      )) {
         moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
         moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
       }
     }
     if (combat.defender) {
-      for (const card of getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId)) {
+      for (const card of getPoolAttachments(
+        state,
+        combat.defendingPlayer,
+        combat.defender.instanceId,
+      )) {
         moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
         moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
       }
@@ -1041,9 +1049,19 @@ function getTriggerMoves(state: GameState, _trigger: TriggerEntry, playerId: Pla
   for (const pid of state.playerOrder) {
     const p = state.players[pid]!
     if (p.drawPile.length > 0) {
-      moves.push({ type: "RESOLVE_TRIGGER_PEEK", targetPlayerId: pid, source: "draw_pile", count: 1 })
+      moves.push({
+        type: "RESOLVE_TRIGGER_PEEK",
+        targetPlayerId: pid,
+        source: "draw_pile",
+        count: 1,
+      })
       if (p.drawPile.length >= 3) {
-        moves.push({ type: "RESOLVE_TRIGGER_PEEK", targetPlayerId: pid, source: "draw_pile", count: 3 })
+        moves.push({
+          type: "RESOLVE_TRIGGER_PEEK",
+          targetPlayerId: pid,
+          source: "draw_pile",
+          count: 3,
+        })
       }
     }
     if (p.hand.length > 0) {

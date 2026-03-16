@@ -4,6 +4,7 @@ Scripts in this folder scan card JSON files and populate the `effects[]` array w
 effect objects that drive engine automation. Each script handles one mechanic.
 
 **Key rules for all scripts:**
+
 - **Append only** — never overwrite the effects array; a card can have multiple effects.
 - **Idempotent** — safe to re-run; skips cards that already have the effect.
 - **Run for every new set** — pass the new JSON file as an argument (see each script's usage).
@@ -22,6 +23,7 @@ Types for all effect objects are defined in `types.ts` (mirrored in `packages/en
 razed realm slot back to an active state.
 
 **Matching strategy:**
+
 - Description contains `rebuild` + (`razed` or `realm`), OR `restores ... razed`
 - Excludes negations (`cannot rebuild`, `prevent rebuilding`)
 - Excludes trigger-only phrasing (`when this realm is rebuilt`)
@@ -30,6 +32,7 @@ razed realm slot back to an active state.
 Arms of the Shield Lands (#216), Spirit of the land (#288)
 
 **Usage:**
+
 ```
 bun run src/tags/tag-rebuild-realm.ts                          # defaults to cards/1st.json
 bun run src/tags/tag-rebuild-realm.ts packages/data/cards/2nd.json
@@ -45,12 +48,14 @@ bun run src/tags/tag-rebuild-realm.ts cards/2nd.json cards/3rd.json
 **What it finds:** Champions or items that let the owner look at the top N cards of any draw pile at the start of their turn, with optional discard.
 
 **Matching strategy:**
+
 - `"look at the top card of any draw pile"` → count:1, may_discard:true
 - `"inspect the top three cards of any deck and discard one"` → count:3, may_discard:true
 
 **Example cards (1st edition):** Marco Volo (#50), Ren's Crystal Ball (#199)
 
 **Usage:**
+
 ```
 bun run src/tags/tag-turn-trigger-peek-draw-pile.ts packages/data/cards/2nd.json
 ```
@@ -64,6 +69,7 @@ bun run src/tags/tag-turn-trigger-peek-draw-pile.ts packages/data/cards/2nd.json
 **What it finds:** Items or artifacts that let the owner look at a player's full hand at the start of their turn (information only, no discard).
 
 **Matching strategy:**
+
 - Requires `"beginning of his/its owner's turn"` or `"start of ... turn"` proximity
 - Requires `"look at"`, `"examine"`, or `"inspect"` near `"hand"`
 - `"opponent's hand"` → targets: "opponent"; otherwise targets: "any"
@@ -71,6 +77,7 @@ bun run src/tags/tag-turn-trigger-peek-draw-pile.ts packages/data/cards/2nd.json
 **Example cards (1st edition):** Ring of All Seeing (#311), Annulus (#411)
 
 **Usage:**
+
 ```
 bun run src/tags/tag-turn-trigger-peek-hand.ts packages/data/cards/2nd.json
 ```
@@ -84,6 +91,7 @@ bun run src/tags/tag-turn-trigger-peek-hand.ts packages/data/cards/2nd.json
 **What it finds:** Champions that randomly discard a card from another player's hand at the end of their turn.
 
 **Matching strategy:**
+
 - Requires `"end of his turn"` proximity
 - Requires `"randomly draw one card from another player's hand and discard"`
 - `"does not attack"` → adds condition: "did_not_attack"
@@ -91,6 +99,7 @@ bun run src/tags/tag-turn-trigger-peek-hand.ts packages/data/cards/2nd.json
 **Example cards (1st edition):** Hettman Tsurin (#172)
 
 **Usage:**
+
 ```
 bun run src/tags/tag-turn-trigger-discard-hand.ts packages/data/cards/2nd.json
 ```

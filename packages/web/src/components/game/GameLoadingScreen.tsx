@@ -77,7 +77,7 @@ function FloatingRunes() {
       fontSize: `${20 + (i % 3) * 15}px`,
       char: RUNE_CHARS[(i * 3) % RUNE_CHARS.length]!,
       duration: `${4 + (i % 4)}s`,
-      delay: `${(i % 3)}s`,
+      delay: `${i % 3}s`,
     })),
   )
 

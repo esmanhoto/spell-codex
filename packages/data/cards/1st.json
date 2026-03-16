@@ -847,7 +847,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"turn_trigger","timing":"start"}]
+    "effects": [{ "type": "turn_trigger", "timing": "start" }]
   },
   {
     "setId": "1st",
@@ -1816,7 +1816,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"rebuild_realm"}]
+    "effects": [{ "type": "rebuild_realm" }]
   },
   {
     "setId": "1st",
@@ -1833,7 +1833,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"rebuild_realm"}]
+    "effects": [{ "type": "rebuild_realm" }]
   },
   {
     "setId": "1st",
@@ -2292,7 +2292,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"turn_trigger","timing":"start"}]
+    "effects": [{ "type": "turn_trigger", "timing": "start" }]
   },
   {
     "setId": "1st",
@@ -2717,7 +2717,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"turn_trigger","timing":"end"}]
+    "effects": [{ "type": "turn_trigger", "timing": "end" }]
   },
   {
     "setId": "1st",
@@ -2921,7 +2921,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"turn_trigger","timing":"end"}]
+    "effects": [{ "type": "turn_trigger", "timing": "end" }]
   },
   {
     "setId": "1st",
@@ -3380,7 +3380,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"turn_trigger","timing":"start"}]
+    "effects": [{ "type": "turn_trigger", "timing": "start" }]
   },
   {
     "setId": "1st",
@@ -3669,7 +3669,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"rebuild_realm"}]
+    "effects": [{ "type": "rebuild_realm" }]
   },
   {
     "setId": "1st",
@@ -3737,7 +3737,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"counter_spell"}]
+    "effects": [{ "type": "counter_spell" }]
   },
   {
     "setId": "1st",
@@ -4893,7 +4893,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"rebuild_realm"}]
+    "effects": [{ "type": "rebuild_realm" }]
   },
   {
     "setId": "1st",
@@ -5284,7 +5284,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"turn_trigger","timing":"start"}]
+    "effects": [{ "type": "turn_trigger", "timing": "start" }]
   },
   {
     "setId": "1st",
@@ -5879,7 +5879,7 @@
     "spellNature": "defensive",
     "castPhases": [3, 4],
     "weight": 1,
-    "effects": [{"type":"counter_spell"}]
+    "effects": [{ "type": "counter_spell" }]
   },
   {
     "setId": "1st",
@@ -6083,7 +6083,7 @@
     "spellNature": "defensive",
     "castPhases": [3, 4],
     "weight": 1,
-    "effects": [{"type":"counter_spell"}]
+    "effects": [{ "type": "counter_spell" }]
   },
   {
     "setId": "1st",
@@ -6593,7 +6593,7 @@
     "spellNature": "defensive",
     "castPhases": [4],
     "weight": 1,
-    "effects": [{"type":"counter_spell"}]
+    "effects": [{ "type": "counter_spell" }]
   },
   {
     "setId": "1st",
@@ -6797,7 +6797,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"counter_event"}]
+    "effects": [{ "type": "counter_event" }]
   },
   {
     "setId": "1st",
@@ -6984,7 +6984,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"turn_trigger","timing":"start"}]
+    "effects": [{ "type": "turn_trigger", "timing": "start" }]
   },
   {
     "setId": "1st",
@@ -7256,7 +7256,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"counter_event"}]
+    "effects": [{ "type": "counter_event" }]
   },
   {
     "setId": "1st",
@@ -7409,7 +7409,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"counter_event"}]
+    "effects": [{ "type": "counter_event" }]
   },
   {
     "setId": "1st",
@@ -7647,7 +7647,7 @@
     "spellNature": null,
     "castPhases": [],
     "weight": 1,
-    "effects": [{"type":"counter_event"}]
+    "effects": [{ "type": "counter_event" }]
   },
   {
     "setId": "1st",

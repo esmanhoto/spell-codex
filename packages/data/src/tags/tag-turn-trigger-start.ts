@@ -32,8 +32,7 @@ interface CardEntry {
 const EFFECT: TurnTriggerEffect = { type: "turn_trigger", timing: "start" }
 const EFFECT_JSON = JSON.stringify(EFFECT)
 
-const START_PATTERN =
-  /\b(at the (start|beginning) of (the player'?s|his|its owner'?s) turn)\b/i
+const START_PATTERN = /\b(at the (start|beginning) of (the player'?s|his|its owner'?s) turn)\b/i
 
 // Rule cards say "Played at the beginning of the player's turn, this card is not discarded."
 // Those are chosen actions, not triggered abilities — exclude them.
@@ -45,7 +44,7 @@ function shouldTag(desc: string): boolean {
 }
 
 function alreadyTagged(effects: EffectTag[]): boolean {
-  return effects.some(e => e.type === "turn_trigger" && e.timing === "start")
+  return effects.some((e) => e.type === "turn_trigger" && e.timing === "start")
 }
 
 function applyPatch(text: string, card: CardEntry): string {

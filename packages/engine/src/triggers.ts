@@ -163,7 +163,7 @@ export function handleResolveTriggerDiscardPeeked(
     throw new EngineError("INVALID_TRIGGER_ACTION", "Can only discard from a draw_pile peek")
   }
 
-  const card = peek.cards.find(c => c.instanceId === move.cardInstanceId)
+  const card = peek.cards.find((c) => c.instanceId === move.cardInstanceId)
   if (!card) throw new EngineError("CARD_NOT_IN_PEEK", "Card not in peek context")
 
   const targetPlayer = state.players[peek.targetPlayerId]!
@@ -186,7 +186,12 @@ export function handleResolveTriggerDiscardPeeked(
         },
       },
     },
-    { peekContext: { ...peek, cards: peek.cards.filter(c => c.instanceId !== move.cardInstanceId) } },
+    {
+      peekContext: {
+        ...peek,
+        cards: peek.cards.filter((c) => c.instanceId !== move.cardInstanceId),
+      },
+    },
   )
 }
 

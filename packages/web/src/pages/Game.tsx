@@ -122,7 +122,10 @@ export function Game() {
   const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
   const [resolutionOutcome, setResolutionOutcome] = useState<ResolutionOutcome | null>(null)
   const [counterReveal, setCounterReveal] = useState<{
-    setId: string; cardNumber: number; cardName: string; cancelledCardName: string
+    setId: string
+    cardNumber: number
+    cardName: string
+    cancelledCardName: string
   } | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
   const [imagesReady, setImagesReady] = useState(false)
@@ -220,11 +223,17 @@ export function Game() {
     if (!bypass) return
     function onStorage(e: StorageEvent) {
       if (e.key !== "spell:dev-restart" || !e.newValue) return
-      const data = JSON.parse(e.newValue) as { scenarioId: string; slug: string; p1UserId: string; p2UserId: string }
+      const data = JSON.parse(e.newValue) as {
+        scenarioId: string
+        slug: string
+        p1UserId: string
+        p2UserId: string
+      }
       const myId = effectiveIdentity?.userId
-      const target = myId === data.p2UserId
-        ? `/game/${data.slug}?devAs=${data.p2UserId}&scenario=${data.scenarioId}`
-        : `/game/${data.slug}?scenario=${data.scenarioId}`
+      const target =
+        myId === data.p2UserId
+          ? `/game/${data.slug}?devAs=${data.p2UserId}&scenario=${data.scenarioId}`
+          : `/game/${data.slug}?scenario=${data.scenarioId}`
       navigate(target)
     }
     window.addEventListener("storage", onStorage)
@@ -237,12 +246,19 @@ export function Game() {
     const slug = result.slug ?? result.gameId
     localStorage.setItem(
       "spell:dev-restart",
-      JSON.stringify({ scenarioId: devScenarioId, slug, p1UserId: result.p1UserId, p2UserId: result.p2UserId, ts: Date.now() }),
+      JSON.stringify({
+        scenarioId: devScenarioId,
+        slug,
+        p1UserId: result.p1UserId,
+        p2UserId: result.p2UserId,
+        ts: Date.now(),
+      }),
     )
     const myId = effectiveIdentity?.userId
-    const target = myId === result.p2UserId
-      ? `/game/${slug}?devAs=${result.p2UserId}&scenario=${devScenarioId}`
-      : `/game/${slug}?scenario=${devScenarioId}`
+    const target =
+      myId === result.p2UserId
+        ? `/game/${slug}?devAs=${result.p2UserId}&scenario=${devScenarioId}`
+        : `/game/${slug}?scenario=${devScenarioId}`
     navigate(target)
   }
 
@@ -719,8 +735,7 @@ export function Game() {
   const playerIds = useMemo(() => Object.keys(data?.board.players ?? {}), [data?.board.players])
   const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? stableOpponentIdRef.current
   if (opponentPlayerId) stableOpponentIdRef.current = opponentPlayerId
-  const playerAName =
-    stablePlayersRef.current?.find((p) => p.userId === myPlayerId)?.nickname ?? ""
+  const playerAName = stablePlayersRef.current?.find((p) => p.userId === myPlayerId)?.nickname ?? ""
   const playerBName =
     stablePlayersRef.current?.find((p) => p.userId === opponentPlayerId)?.nickname ?? ""
 
@@ -860,10 +875,19 @@ export function Game() {
                 onClick={() => void handleRestartScenario()}
                 title="Restart scenario (syncs both tabs)"
                 style={{
-                  position: "fixed", top: 12, left: 64, zIndex: 500,
-                  background: "#1a1a1a", border: "1px solid #444", color: "#888",
-                  borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600,
-                  cursor: "pointer", letterSpacing: "0.04em",
+                  position: "fixed",
+                  top: 12,
+                  left: 64,
+                  zIndex: 500,
+                  background: "#1a1a1a",
+                  border: "1px solid #444",
+                  color: "#888",
+                  borderRadius: 6,
+                  padding: "4px 10px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  letterSpacing: "0.04em",
                 }}
               >
                 ↺ Restart
@@ -885,35 +909,44 @@ export function Game() {
                 onClose={handleToggleChat}
               />
             )}
-            {data.resolutionContext && (() => {
-              // Build counter options from legalMoves for the waiting view
-              const myBoard = data.board.players[myPlayerId]
-              const counterOptions = data.legalMoves
-                .filter((m) => m.type === "PLAY_EVENT" || m.type === "USE_POOL_COUNTER")
-                .map((m) => {
-                  let card: CardInfo | null = null
-                  if (m.type === "PLAY_EVENT" && "cardInstanceId" in m) {
-                    card = myBoard?.hand.find((c) => c.instanceId === m.cardInstanceId) ?? null
-                  } else if (m.type === "USE_POOL_COUNTER" && "cardInstanceId" in m) {
-                    for (const entry of myBoard?.pool ?? []) {
-                      if (entry.champion.instanceId === m.cardInstanceId) { card = entry.champion; break }
-                      const att = entry.attachments.find((a: CardInfo) => a.instanceId === m.cardInstanceId)
-                      if (att) { card = att; break }
+            {data.resolutionContext &&
+              (() => {
+                // Build counter options from legalMoves for the waiting view
+                const myBoard = data.board.players[myPlayerId]
+                const counterOptions = data.legalMoves
+                  .filter((m) => m.type === "PLAY_EVENT" || m.type === "USE_POOL_COUNTER")
+                  .map((m) => {
+                    let card: CardInfo | null = null
+                    if (m.type === "PLAY_EVENT" && "cardInstanceId" in m) {
+                      card = myBoard?.hand.find((c) => c.instanceId === m.cardInstanceId) ?? null
+                    } else if (m.type === "USE_POOL_COUNTER" && "cardInstanceId" in m) {
+                      for (const entry of myBoard?.pool ?? []) {
+                        if (entry.champion.instanceId === m.cardInstanceId) {
+                          card = entry.champion
+                          break
+                        }
+                        const att = entry.attachments.find(
+                          (a: CardInfo) => a.instanceId === m.cardInstanceId,
+                        )
+                        if (att) {
+                          card = att
+                          break
+                        }
+                      }
                     }
-                  }
-                  return card ? { card, move: m } : null
-                })
-                .filter((x): x is { card: CardInfo; move: Move } => x !== null)
-              return (
-                <ResolutionPanel
-                  ctx={data.resolutionContext}
-                  allBoards={data.board.players}
-                  myPlayerId={myPlayerId}
-                  counterOptions={counterOptions}
-                  onMove={sendMove}
-                />
-              )
-            })()}
+                    return card ? { card, move: m } : null
+                  })
+                  .filter((x): x is { card: CardInfo; move: Move } => x !== null)
+                return (
+                  <ResolutionPanel
+                    ctx={data.resolutionContext}
+                    allBoards={data.board.players}
+                    myPlayerId={myPlayerId}
+                    counterOptions={counterOptions}
+                    onMove={sendMove}
+                  />
+                )
+              })()}
             {!data.resolutionContext && data.pendingTriggers && data.pendingTriggers.length > 0 && (
               <TriggerPanel
                 trigger={data.pendingTriggers[0]}
@@ -953,18 +986,63 @@ export function Game() {
               />
             )}
             {counterReveal && (
-              <div className="overlay-modal" style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: "var(--z-modal)", background: "rgba(0,0,0,0.6)" }}>
-                <div style={{ background: "#151818", border: "2px solid #8a7a30", borderRadius: "8px", padding: "20px", maxWidth: "320px", display: "flex", flexDirection: "column", gap: "10px", alignItems: "center" }}>
-                  <div style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", color: "#c8b060", fontWeight: 700 }}>Countered!</div>
-                  <div style={{ fontSize: "15px", fontWeight: 700, color: "#e8d8a0" }}>{counterReveal.cardName}</div>
-                  <div style={{ fontSize: "12px", color: "#b0a080" }}>cancelled {counterReveal.cancelledCardName}</div>
+              <div
+                className="overlay-modal"
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: "var(--z-modal)",
+                  background: "rgba(0,0,0,0.6)",
+                }}
+              >
+                <div
+                  style={{
+                    background: "#151818",
+                    border: "2px solid #8a7a30",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    maxWidth: "320px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "#c8b060",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Countered!
+                  </div>
+                  <div style={{ fontSize: "15px", fontWeight: 700, color: "#e8d8a0" }}>
+                    {counterReveal.cardName}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#b0a080" }}>
+                    cancelled {counterReveal.cancelledCardName}
+                  </div>
                   <img
                     src={cardImageUrl(counterReveal.setId, counterReveal.cardNumber)}
                     alt={counterReveal.cardName}
                     style={{ width: "160px", borderRadius: "4px" }}
                   />
                   <button
-                    style={{ background: "#2a2a2a", border: "1px solid #555", color: "#ccc", borderRadius: "5px", padding: "7px 20px", fontSize: "12px", cursor: "pointer" }}
+                    style={{
+                      background: "#2a2a2a",
+                      border: "1px solid #555",
+                      color: "#ccc",
+                      borderRadius: "5px",
+                      padding: "7px 20px",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                    }}
                     onClick={() => setCounterReveal(null)}
                   >
                     Ok

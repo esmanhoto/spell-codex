@@ -39,7 +39,13 @@ export function DevScenarios() {
       // Broadcast so any open game tabs can sync to the new game
       localStorage.setItem(
         "spell:dev-restart",
-        JSON.stringify({ scenarioId, slug, p1UserId: result.p1UserId, p2UserId: result.p2UserId, ts: Date.now() }),
+        JSON.stringify({
+          scenarioId,
+          slug,
+          p1UserId: result.p1UserId,
+          p2UserId: result.p2UserId,
+          ts: Date.now(),
+        }),
       )
     } catch (e) {
       setError(String(e))
@@ -80,7 +86,9 @@ export function DevScenarios() {
             alignItems: "center",
           }}
         >
-          <span style={{ color: "#9aaa70", fontSize: "0.85rem", flex: 1 }}>Scenario loaded — choose your seat:</span>
+          <span style={{ color: "#9aaa70", fontSize: "0.85rem", flex: 1 }}>
+            Scenario loaded — choose your seat:
+          </span>
           <button
             onClick={() => playAs(loaded.p1UserId, loaded.slug, loaded.scenarioId, false)}
             style={{

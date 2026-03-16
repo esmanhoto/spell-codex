@@ -1,6 +1,33 @@
 import { describe, it, expect } from "bun:test"
 import { app } from "../src/index.ts"
 
+describe("GET /decks/cards/:setId", () => {
+  it("returns all cards for a valid set", async () => {
+    const res = await app.request("/decks/cards/1st")
+    expect(res.status).toBe(200)
+
+    const body = (await res.json()) as {
+      setId: string
+      cards: Array<{ cardNumber: number; typeId: number; name: string }>
+    }
+    expect(body.setId).toBe("1st")
+    expect(Array.isArray(body.cards)).toBe(true)
+    expect(body.cards.length).toBeGreaterThan(100)
+
+    // Every card should have required fields
+    for (const card of body.cards.slice(0, 10)) {
+      expect(typeof card.cardNumber).toBe("number")
+      expect(typeof card.typeId).toBe("number")
+      expect(typeof card.name).toBe("string")
+    }
+  })
+
+  it("returns 404 for an unknown set", async () => {
+    const res = await app.request("/decks/cards/nonexistent_set_xyz")
+    expect(res.status).toBe(404)
+  })
+})
+
 describe("GET /decks", () => {
   it("returns only playable 55-card deck names", async () => {
     const res = await app.request("/decks")

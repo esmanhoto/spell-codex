@@ -176,9 +176,17 @@ export function serializeEngineStateForClient(
       effect: t.effect,
       peekContext:
         t.peekContext && viewerPlayerId === t.owningPlayerId
-          ? { targetPlayerId: t.peekContext.targetPlayerId, source: t.peekContext.source, cards: t.peekContext.cards.map(card) }
+          ? {
+              targetPlayerId: t.peekContext.targetPlayerId,
+              source: t.peekContext.source,
+              cards: t.peekContext.cards.map(card),
+            }
           : t.peekContext
-            ? { targetPlayerId: t.peekContext.targetPlayerId, source: t.peekContext.source, cards: [] }
+            ? {
+                targetPlayerId: t.peekContext.targetPlayerId,
+                source: t.peekContext.source,
+                cards: [],
+              }
             : null,
     })),
     ...(extra.players !== undefined ? { players: extra.players } : {}),

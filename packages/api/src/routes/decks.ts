@@ -41,6 +41,16 @@ async function hydrateDeck(refs: DeckRef[]): Promise<object[]> {
   return hydrated
 }
 
+/** GET /decks/cards/:setId — all cards for a given set */
+decksRouter.get("/cards/:setId", async (c) => {
+  const setId = c.req.param("setId")
+  const filePath = path.join(CARDS_DIR, `${setId}.json`)
+  const file = Bun.file(filePath)
+  if (!(await file.exists())) return c.notFound()
+  const cards: unknown[] = await file.json()
+  return c.json({ setId, cards })
+})
+
 /** GET /decks — list available deck names */
 decksRouter.get("/", async (c) => {
   const allNames = (

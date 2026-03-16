@@ -201,7 +201,11 @@ export function ResolutionPanel({
               {counterOptions.map((opt, i) => (
                 <CardTooltip key={i} card={opt.card}>
                   <div
-                    className={i === selectedCounterIdx ? styles.counterCardNameSelected : styles.counterCardName}
+                    className={
+                      i === selectedCounterIdx
+                        ? styles.counterCardNameSelected
+                        : styles.counterCardName
+                    }
                     onClick={() => setSelectedCounterIdx(i)}
                   >
                     {opt.card.name}
@@ -228,10 +232,7 @@ export function ResolutionPanel({
               </>
             ) : ctx.counterWindowOpen ? (
               // Counter window open but no usable cards — must allow
-              <button
-                className={styles.allowBtn}
-                onClick={() => onMove({ type: "PASS_COUNTER" })}
-              >
+              <button className={styles.allowBtn} onClick={() => onMove({ type: "PASS_COUNTER" })}>
                 Allow
               </button>
             ) : (
@@ -583,9 +584,8 @@ export function ResolutionPanel({
       case "other":
         return (
           <div className={styles.cardDesc} style={{ fontSize: "12px", color: "#b0a080" }}>
-            Use right-click menus and game board actions to apply this effect manually.
-            Coordinate with your opponent via chat if needed. Click &ldquo;Done Resolving&rdquo;
-            when finished.
+            Use right-click menus and game board actions to apply this effect manually. Coordinate
+            with your opponent via chat if needed. Click &ldquo;Done Resolving&rdquo; when finished.
           </div>
         )
     }
@@ -607,9 +607,7 @@ export function ResolutionPanel({
 
         {/* Counter window waiting indicator */}
         {counterBlocked && (
-          <div className={styles.counterWaitBanner}>
-            Waiting for opponent&hellip;
-          </div>
+          <div className={styles.counterWaitBanner}>Waiting for opponent&hellip;</div>
         )}
 
         {/* Action category selector */}

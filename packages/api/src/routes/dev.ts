@@ -1,7 +1,15 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import { z } from "zod"
-import { createDevGame, getGame, getGameBySlug, reconstructState, lastSequence, saveAction, hashState } from "@spell/db"
+import {
+  createDevGame,
+  getGame,
+  getGameBySlug,
+  reconstructState,
+  lastSequence,
+  saveAction,
+  hashState,
+} from "@spell/db"
 import { applyMove } from "@spell/engine"
 import type { GameState } from "@spell/engine"
 import { authBypassEnabled } from "../auth-verify.ts"
@@ -108,7 +116,11 @@ devRouter.post("/games/:id/give-card", zValidator("json", GiveCardSchema), async
     seq0 = hit.sequence
   } else {
     seq0 = await lastSequence(gameId)
-    const { state: reconstructed } = await reconstructState(gameId, game.seed, (game.stateSnapshot as GameState | null) ?? null)
+    const { state: reconstructed } = await reconstructState(
+      gameId,
+      game.seed,
+      (game.stateSnapshot as GameState | null) ?? null,
+    )
     state = reconstructed
   }
 

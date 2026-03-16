@@ -57,7 +57,11 @@ export interface CounterSpellEffect {
 }
 
 /** Union of all structured effect tags on CardData. */
-export type EffectTag = RebuildRealmEffect | TurnTriggerEffect | CounterEventEffect | CounterSpellEffect
+export type EffectTag =
+  | RebuildRealmEffect
+  | TurnTriggerEffect
+  | CounterEventEffect
+  | CounterSpellEffect
 
 // ─── Card Data (static — from the card database) ─────────────────────────────
 

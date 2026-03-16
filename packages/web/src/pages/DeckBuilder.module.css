@@ -1,0 +1,684 @@
+.page {
+  min-height: 100svh;
+  color: hsl(var(--foreground));
+  font-family: "Crimson Text", Georgia, serif;
+  background: hsl(var(--table-surface));
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Top bar ───────────────────────────────────────── */
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 22px;
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  background: hsl(var(--card) / 0.7);
+  flex-shrink: 0;
+}
+
+.topLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.backBtn {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card) / 0.45);
+  color: hsl(var(--foreground) / 0.9);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: "Cinzel", serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.backBtn:hover {
+  background: hsl(var(--card) / 0.65);
+}
+
+.pageTitle {
+  margin: 0;
+  color: hsl(var(--gold-bright));
+  font-family: "Cinzel", serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.topRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deckNameInput {
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 6px 12px;
+  background: hsl(var(--input));
+  color: hsl(var(--foreground));
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.85rem;
+  width: 200px;
+}
+
+.deckNameInput:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+}
+
+.saveBtn {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 16px;
+  background: linear-gradient(135deg, hsl(var(--realm-green)), hsl(var(--realm-glow)));
+  color: hsl(var(--background));
+  font-family: "Cinzel", serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.saveBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.clearBtn {
+  border: 1px solid hsl(0 60% 40%);
+  border-radius: 8px;
+  padding: 7px 12px;
+  background: hsl(0 40% 20% / 0.6);
+  color: hsl(0 80% 75%);
+  font-family: "Cinzel", serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.clearBtn:hover {
+  background: hsl(0 40% 25% / 0.8);
+}
+
+/* ─── Custom decks panel ───────────────────────────── */
+
+.customDecksPanel {
+  padding: 8px 16px;
+  background: hsl(var(--card) / 0.15);
+  border-bottom: 1px solid hsl(var(--border) / 0.3);
+  flex-shrink: 0;
+}
+
+.customDecksTitle {
+  margin: 0 0 6px;
+  color: hsl(var(--gold));
+  font-family: "Cinzel", serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.customDecksList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 150px;
+}
+
+.customDeckRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+  text-decoration: none;
+}
+
+.customDeckRow:hover {
+  background: hsl(var(--card) / 0.35);
+}
+
+.customDeckRowActive {
+  background: hsl(var(--card) / 0.5);
+  border-color: hsl(var(--gold-dim) / 0.5);
+}
+
+.customDeckName {
+  color: hsl(var(--foreground) / 0.85);
+  font-size: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.customDeckActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.customDeckActionBtn {
+  border: none;
+  background: none;
+  color: hsl(var(--muted-foreground) / 0.6);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  text-decoration: none;
+  line-height: 1;
+  transition: color 0.12s;
+}
+
+.customDeckActionBtn:hover {
+  color: hsl(var(--foreground));
+}
+
+.customDeckActionBtn:last-child:hover {
+  color: hsl(0 70% 60%);
+}
+
+/* ─── My deck strip ─────────────────────────────────── */
+
+.myDeckStrip {
+  border-bottom: 1px solid hsl(var(--border) / 0.5);
+  background: hsl(var(--card) / 0.3);
+  padding: 8px 16px;
+  flex-shrink: 0;
+}
+
+.myDeckHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.myDeckTitle {
+  margin: 0;
+  color: hsl(var(--gold));
+  font-family: "Cinzel", serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.deckCountOk {
+  color: hsl(var(--realm-glow));
+}
+
+.deckCountOver {
+  color: hsl(0 80% 65%);
+}
+
+.deckCountUnder {
+  color: hsl(var(--gold));
+}
+
+.levelInfo {
+  font-size: 0.7rem;
+  color: hsl(var(--muted-foreground));
+  margin-left: 12px;
+}
+
+.levelWarn {
+  color: hsl(0 80% 65%);
+}
+
+.myDeckCards {
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  padding: 4px 0;
+  min-height: 52px;
+  align-items: flex-start;
+}
+
+.myDeckEmpty {
+  color: hsl(var(--muted-foreground) / 0.5);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.miniCard {
+  flex-shrink: 0;
+  width: 32px;
+  height: 44px;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border) / 0.5);
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.12s;
+}
+
+.miniCard:hover {
+  border-color: hsl(var(--gold) / 0.7);
+}
+
+.miniCardImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ─── Category tabs ─────────────────────────────────── */
+
+.tabBar {
+  display: flex;
+  gap: 2px;
+  padding: 6px 16px;
+  background: hsl(var(--card) / 0.2);
+  border-bottom: 1px solid hsl(var(--border) / 0.3);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.tab {
+  border: none;
+  background: none;
+  color: hsl(var(--muted-foreground));
+  font-family: "Cinzel", serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+
+.tab:hover {
+  background: hsl(var(--card) / 0.5);
+  color: hsl(var(--foreground));
+}
+
+.tabActive {
+  background: hsl(var(--card) / 0.7);
+  color: hsl(var(--gold-bright));
+}
+
+.tabCount {
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.6rem;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+/* ─── Card browser ──────────────────────────────────── */
+
+.browser {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: hsl(var(--gold));
+  font-family: "Cinzel", serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sectionRange {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.7rem;
+}
+
+.sectionControls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.worldFilter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filterLabel {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.7rem;
+}
+
+.worldDropdownBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 3px 8px;
+  background: hsl(var(--card) / 0.5);
+  color: hsl(var(--foreground) / 0.8);
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+  min-width: 180px;
+  max-width: 180px;
+}
+
+.worldDropdownLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 auto;
+}
+
+.worldDropdownArrow {
+  font-size: 0.5rem;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.worldDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  z-index: 100;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 4px 0;
+  min-width: 180px;
+  box-shadow: 0 4px 16px #000000aa;
+}
+
+.worldDropdownItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  color: hsl(var(--foreground) / 0.85);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.worldDropdownItem:hover {
+  background: hsl(var(--card) / 0.5);
+}
+
+.worldDropdownItem input[type="checkbox"] {
+  accent-color: hsl(var(--gold));
+}
+
+.worldDropdownClear {
+  display: block;
+  width: 100%;
+  border: none;
+  border-top: 1px solid hsl(var(--border) / 0.5);
+  background: none;
+  color: hsl(0 60% 55%);
+  font-size: 0.7rem;
+  padding: 5px 12px;
+  cursor: pointer;
+  text-align: left;
+  margin-top: 2px;
+}
+
+.worldDropdownClear:hover {
+  color: hsl(0 70% 65%);
+  background: hsl(var(--card) / 0.3);
+}
+
+.sortLabel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.sortSelect {
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 3px 8px;
+  background: hsl(var(--card) / 0.5);
+  color: hsl(var(--foreground) / 0.8);
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.sortSelect:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 6px;
+}
+
+.gridCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
+}
+
+.gridCardInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 32px;
+}
+
+.gridCard:hover {
+  border-color: hsl(var(--gold-dim) / 0.5);
+  background: hsl(var(--card) / 0.3);
+}
+
+.gridCardSelected {
+  border-color: hsl(var(--gold));
+  background: hsl(var(--gold) / 0.1);
+}
+
+.gridCardImg {
+  width: 70px;
+  height: 98px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border) / 0.4);
+  background: #0f1f10;
+}
+
+.gridCardImgInner {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gridCardName {
+  font-size: 9px;
+  color: hsl(var(--foreground) / 0.7);
+  text-align: center;
+  line-height: 1.2;
+  max-width: 78px;
+  word-break: break-word;
+}
+
+.gridCardLevel {
+  font-size: 9px;
+  color: hsl(var(--gold));
+}
+
+/* ─── Tooltip for grid cards ────────────────────────── */
+
+.tooltipWrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tooltipBox {
+  position: fixed;
+  z-index: 500;
+  background: #111827;
+  border: 1px solid #3a5a8a;
+  border-radius: 6px;
+  padding: 8px;
+  width: 260px;
+  box-shadow: 0 4px 20px #000000aa;
+  pointer-events: none;
+}
+
+.tooltipItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tooltipIcon {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid #2a3a5a;
+  background: #0b1220;
+}
+
+.tooltipIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+  transform: scale(3);
+  transform-origin: top left;
+  border-radius: 4px;
+}
+
+.tooltipContent {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tooltipHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.tooltipName {
+  font-size: 11px;
+  font-weight: bold;
+  color: hsl(var(--gold));
+  line-height: 1.2;
+}
+
+.tooltipLevel {
+  font-size: 12px;
+  color: #7ec8e3;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+.tooltipDesc {
+  font-size: 10px;
+  color: #999;
+  line-height: 1.3;
+}
+
+/* ─── Validation messages ───────────────────────────── */
+
+.validationBar {
+  display: flex;
+  gap: 10px;
+  padding: 6px 16px;
+  background: hsl(var(--card) / 0.2);
+  border-top: 1px solid hsl(var(--border) / 0.3);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.validOk {
+  font-size: 0.7rem;
+  color: hsl(var(--realm-glow));
+}
+
+.validErr {
+  font-size: 0.7rem;
+  color: hsl(0 80% 65%);
+}
+
+/* ─── Toast ─────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  border-radius: 10px;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card) / 0.9);
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  color: #b8e0ae;
+  backdrop-filter: blur(8px);
+}

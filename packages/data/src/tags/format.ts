@@ -44,10 +44,7 @@ export function formatEffect(effect: Record<string, unknown>, arrayIndent: strin
  *   []                                    → [<effectJson>]  (one-line for small objects)
  *   [existing]                            → [existing,<effectJson>]
  */
-export function buildEffectsReplacement(
-  currentEffectsJson: string,
-  effectJson: string,
-): string {
+export function buildEffectsReplacement(currentEffectsJson: string, effectJson: string): string {
   if (currentEffectsJson.trim() === "[]") {
     return `[${effectJson}]`
   }

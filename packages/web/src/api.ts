@@ -171,7 +171,12 @@ export type Move =
       destination: { zone: string; playerId: string; returnsOnTurn?: number }
     }
   | { type: "RESOLVE_ATTACH_CARD"; cardInstanceId: string; targetInstanceId: string }
-  | { type: "RESOLVE_TRIGGER_PEEK"; source: "draw_pile" | "hand"; targetPlayerId: string; count?: number }
+  | {
+      type: "RESOLVE_TRIGGER_PEEK"
+      source: "draw_pile" | "hand"
+      targetPlayerId: string
+      count?: number
+    }
   | { type: "RESOLVE_TRIGGER_DISCARD_PEEKED"; cardInstanceId: string }
   | { type: "RESOLVE_TRIGGER_DISCARD_FROM_HAND"; targetPlayerId: string }
   | { type: "RESOLVE_TRIGGER_DONE" }
@@ -197,6 +202,28 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function listDecks(): Promise<{ decks: string[] }> {
   return request("/decks")
+}
+
+export interface SetCardData {
+  setId: string
+  cardNumber: number
+  level: number | string | null
+  typeId: number
+  worldId: number
+  isAvatar: boolean
+  name: string
+  description: string
+  rarity: string
+  attributes: string[]
+  supportIds: Array<number | string>
+  spellNature: "offensive" | "defensive" | null
+  castPhases: Array<3 | 4 | 5>
+  weight: number | null
+  effects: unknown[]
+}
+
+export async function getSetCards(setId: string): Promise<{ setId: string; cards: SetCardData[] }> {
+  return request(`/decks/cards/${encodeURIComponent(setId)}`)
 }
 
 export async function getDeck(name: string): Promise<{ name: string; cards: object[] }> {

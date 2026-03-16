@@ -48,7 +48,7 @@ function shouldTag(desc: string): boolean {
 }
 
 function alreadyTagged(effects: EffectTag[]): boolean {
-  return effects.some(e => e.type === "turn_trigger" && e.timing === "end")
+  return effects.some((e) => e.type === "turn_trigger" && e.timing === "end")
 }
 
 function applyPatch(text: string, card: CardEntry): string {

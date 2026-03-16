@@ -1,22 +1,4 @@
 .lobbyPage {
-  --background: 220 20% 8%;
-  --foreground: 45 20% 85%;
-  --card: 220 15% 14%;
-  --popover: 220 18% 12%;
-  --border: 220 15% 20%;
-  --input: 220 15% 18%;
-  --ring: 45 70% 50%;
-  --muted-foreground: 220 10% 50%;
-  --gold: 45 70% 50%;
-  --gold-dim: 45 50% 30%;
-  --gold-bright: 45 80% 65%;
-  --arcane-blue: 200 60% 40%;
-  --arcane-glow: 200 80% 55%;
-  --realm-green: 140 40% 35%;
-  --realm-glow: 140 50% 50%;
-  --zone-bg: 220 15% 10%;
-  --table-surface: 220 22% 7%;
-  --table-felt: 150 26% 14%;
   position: relative;
   min-height: 100svh;
   color: hsl(var(--foreground));
@@ -272,6 +254,40 @@
   color: hsl(var(--muted-foreground));
   font-family: "Cinzel", serif;
   font-size: 0.75rem;
+}
+
+.deckBuilderLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--card) / 0.4);
+  color: hsl(var(--gold-dim));
+  font-family: "Cinzel", serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.14s,
+    color 0.14s,
+    border-color 0.14s;
+}
+
+.deckBuilderLink:hover {
+  background: hsl(var(--card) / 0.65);
+  color: hsl(var(--gold-bright));
+  border-color: hsl(var(--gold) / 0.4);
+}
+
+.deckBuilderIcon {
+  width: 16px;
+  height: 16px;
 }
 
 .rightColumn {

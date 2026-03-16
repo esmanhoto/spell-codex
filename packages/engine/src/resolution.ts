@@ -606,7 +606,10 @@ export function handlePoolCounter(
       break
     }
     const att = entry.attachments.find((a) => a.instanceId === cardInstanceId)
-    if (att) { counterInst = att; break }
+    if (att) {
+      counterInst = att
+      break
+    }
   }
   if (!counterInst) throw new EngineError("CARD_NOT_IN_POOL", "Counter card not in pool")
 

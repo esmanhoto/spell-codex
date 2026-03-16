@@ -3,6 +3,7 @@ import { NewGame } from "./pages/NewGame.tsx"
 import { Game } from "./pages/Game.tsx"
 import { Login } from "./pages/Login.tsx"
 import { DevScenarios } from "./pages/DevScenarios.tsx"
+import { DeckBuilder } from "./pages/DeckBuilder.tsx"
 import { useAuth } from "./auth.tsx"
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
@@ -38,6 +39,14 @@ export function App() {
         element={
           <RequireAuth>
             <NewGame />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/deck-builder"
+        element={
+          <RequireAuth>
+            <DeckBuilder />
           </RequireAuth>
         }
       />

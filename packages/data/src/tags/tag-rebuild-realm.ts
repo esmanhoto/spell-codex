@@ -58,7 +58,7 @@ function shouldTag(desc: string): boolean {
 }
 
 function alreadyTagged(effects: EffectTag[]): boolean {
-  return effects.some(e => e.type === EFFECT_TYPE)
+  return effects.some((e) => e.type === EFFECT_TYPE)
 }
 
 function processFile(filePath: string): number {
@@ -83,9 +83,7 @@ function processFile(filePath: string): number {
 
     if (card.effects.length === 0) {
       // Empty array: replace [] with [{"type":"rebuild_realm"}]
-      const pattern = new RegExp(
-        `("name":\\s*"${nameEscaped}"[\\s\\S]*?"effects":\\s*)\\[\\]`,
-      )
+      const pattern = new RegExp(`("name":\\s*"${nameEscaped}"[\\s\\S]*?"effects":\\s*)\\[\\]`)
       const replacement = `$1[{"type":"${EFFECT_TYPE}"}]`
       const newText = text.replace(pattern, replacement)
       if (newText === text) {

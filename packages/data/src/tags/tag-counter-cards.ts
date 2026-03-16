@@ -53,9 +53,9 @@ const TYPE_WIZARD_SPELL = 19
 // These are artifacts/champions whose abilities happen while already in play.
 // Map: cardNumber → effect type to apply
 const KNOWN_COUNTER_CARDS: Map<number, "counter_event" | "counter_spell"> = new Map([
-  [220, "counter_spell"],  // Rod of Dispel Magic (Artifact) — cancels one magic spell when attacking/defending
-  [427, "counter_event"],  // Dori the Barbarian's Cape (Artifact) — cancels one helpful event per turn
-  [450, "counter_event"],  // Delsenora (Champion) — cancels one event card, then discarded
+  [220, "counter_spell"], // Rod of Dispel Magic (Artifact) — cancels one magic spell when attacking/defending
+  [427, "counter_event"], // Dori the Barbarian's Cape (Artifact) — cancels one helpful event per turn
+  [450, "counter_event"], // Delsenora (Champion) — cancels one event card, then discarded
 ])
 
 // counter_event patterns (for Events, typeId=6)
@@ -88,7 +88,7 @@ function shouldTagAsCounterSpell(desc: string, typeId: number): boolean {
 }
 
 function alreadyTagged(effects: EffectTag[], effectType: string): boolean {
-  return effects.some(e => e.type === effectType)
+  return effects.some((e) => e.type === effectType)
 }
 
 function applyTag(text: string, card: CardEntry, effectType: string): string {
@@ -97,9 +97,7 @@ function applyTag(text: string, card: CardEntry, effectType: string): string {
 
   if (card.effects.length === 0) {
     // Empty array: replace [] with [{"type":"<effectType>"}]
-    const pattern = new RegExp(
-      `(${cardNumAnchor}[\\s\\S]*?"effects":\\s*)\\[\\]`,
-    )
+    const pattern = new RegExp(`(${cardNumAnchor}[\\s\\S]*?"effects":\\s*)\\[\\]`)
     const replacement = `$1[{"type":"${effectType}"}]`
     const newText = text.replace(pattern, replacement)
     if (newText === text) {
@@ -109,9 +107,7 @@ function applyTag(text: string, card: CardEntry, effectType: string): string {
     return newText
   } else {
     // Non-empty array: append before closing bracket
-    const pattern = new RegExp(
-      `(${cardNumAnchor}[\\s\\S]*?"effects":\\s*\\[[\\s\\S]*?)(\\])`,
-    )
+    const pattern = new RegExp(`(${cardNumAnchor}[\\s\\S]*?"effects":\\s*\\[[\\s\\S]*?)(\\])`)
     const replacement = `$1,{"type":"${effectType}"}$2`
     const newText = text.replace(pattern, replacement)
     if (newText === text) {
@@ -132,7 +128,10 @@ function processFile(filePath: string): number {
     const desc = card.description ?? ""
 
     // Description-based auto-detection (hand-played spells and events)
-    if (shouldTagAsCounterEvent(desc, card.typeId) && !alreadyTagged(card.effects, "counter_event")) {
+    if (
+      shouldTagAsCounterEvent(desc, card.typeId) &&
+      !alreadyTagged(card.effects, "counter_event")
+    ) {
       tagged++
       console.log(
         `  [+] #${card.cardNumber} ${card.name} (type ${card.typeId}): counter_event — "${desc.slice(0, 80)}${desc.length > 80 ? "..." : ""}"`,
@@ -140,7 +139,10 @@ function processFile(filePath: string): number {
       text = applyTag(text, card, "counter_event")
     }
 
-    if (shouldTagAsCounterSpell(desc, card.typeId) && !alreadyTagged(card.effects, "counter_spell")) {
+    if (
+      shouldTagAsCounterSpell(desc, card.typeId) &&
+      !alreadyTagged(card.effects, "counter_spell")
+    ) {
       tagged++
       console.log(
         `  [+] #${card.cardNumber} ${card.name} (type ${card.typeId}): counter_spell — "${desc.slice(0, 80)}${desc.length > 80 ? "..." : ""}"`,

@@ -6,7 +6,13 @@ import type {
   FormationSlot,
   ResolutionContext,
 } from "@spell/engine"
-import { Phase, calculateCombatLevel, hasWorldMatch, getLosingPlayer, populateTriggers } from "@spell/engine"
+import {
+  Phase,
+  calculateCombatLevel,
+  hasWorldMatch,
+  getLosingPlayer,
+  populateTriggers,
+} from "@spell/engine"
 import type { GameEvent } from "@spell/engine"
 import { lookupCard } from "./card-lookup.ts"
 import type { ScenarioDef, CardRef, CombatDef, ResolutionContextSeed } from "./scenarios.ts"
