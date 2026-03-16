@@ -20,4 +20,8 @@ export interface CounterSpellEffect {
   type: "counter_spell"
 }
 
-export type EffectTag = RebuildRealmEffect | TurnTriggerEffect | CounterEventEffect | CounterSpellEffect
+export type EffectTag =
+  | RebuildRealmEffect
+  | TurnTriggerEffect
+  | CounterEventEffect
+  | CounterSpellEffect

@@ -660,10 +660,10 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
         },
       ],
       hand: [
-        { setId: "1st", cardNumber: 54 },  // War Party
-        { setId: "1st", cardNumber: 58 },  // Armies of Bloodstone
-        { setId: "1st", cardNumber: 59 },  // The Iron Legion
-        { setId: "1st", cardNumber: 61 },  // Myrmidons
+        { setId: "1st", cardNumber: 54 }, // War Party
+        { setId: "1st", cardNumber: 58 }, // Armies of Bloodstone
+        { setId: "1st", cardNumber: 59 }, // The Iron Legion
+        { setId: "1st", cardNumber: 61 }, // Myrmidons
       ],
       discardPile: [
         { setId: "1st", cardNumber: 44 }, // Elminster (retrievable)
@@ -708,18 +708,18 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
     phase: "POOL",
     p1: {
       formation: {
-        A: { realm: { setId: "1st", cardNumber: 1 } },   // Waterdeep
-        B: { realm: { setId: "1st", cardNumber: 2 } },   // Menzoberranzan
+        A: { realm: { setId: "1st", cardNumber: 1 } }, // Waterdeep
+        B: { realm: { setId: "1st", cardNumber: 2 } }, // Menzoberranzan
       },
       pool: [
-        { card: { setId: "1st", cardNumber: 44 } },       // Elminster (Wizard, lv 9) — casts Fear/Dispel
-        { card: { setId: "1st", cardNumber: 63 } },       // Karlott the Shaman (Cleric)
+        { card: { setId: "1st", cardNumber: 44 } }, // Elminster (Wizard, lv 9) — casts Fear/Dispel
+        { card: { setId: "1st", cardNumber: 63 } }, // Karlott the Shaman (Cleric)
         {
-          card: { setId: "1st", cardNumber: 41 },         // Alias the Sell-Sword (Hero, lv 6)
+          card: { setId: "1st", cardNumber: 41 }, // Alias the Sell-Sword (Hero, lv 6)
           attachments: [{ setId: "1st", cardNumber: 54 }], // War Party ally (+4)
         },
         {
-          card: { setId: "1st", cardNumber: 48 },         // The Pereghost (Monster, lv 7)
+          card: { setId: "1st", cardNumber: 48 }, // The Pereghost (Monster, lv 7)
           attachments: [{ setId: "1st", cardNumber: 59 }], // The Iron Legion ally (+3)
         },
       ],
@@ -731,29 +731,29 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
     },
     p2: {
       formation: {
-        A: { realm: { setId: "1st", cardNumber: 5 } },   // Cormyr
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
         B: { realm: { setId: "1st", cardNumber: 111 } }, // Free City of Greyhawk
       },
       pool: [
         {
-          card: { setId: "1st", cardNumber: 42 },         // King Azoun IV (Hero, lv 7)
+          card: { setId: "1st", cardNumber: 42 }, // King Azoun IV (Hero, lv 7)
           attachments: [{ setId: "1st", cardNumber: 220 }], // Rod of Dispel Magic (counter_spell)
         },
         {
-          card: { setId: "1st", cardNumber: 162 },        // Mordenkainen (GH Wizard, lv 7)
+          card: { setId: "1st", cardNumber: 162 }, // Mordenkainen (GH Wizard, lv 7)
           attachments: [{ setId: "1st", cardNumber: 58 }], // Armies of Bloodstone ally (+4)
         },
         {
-          card: { setId: "1st", cardNumber: 68 },         // Cleric of Gond (Cleric)
+          card: { setId: "1st", cardNumber: 68 }, // Cleric of Gond (Cleric)
           attachments: [{ setId: "1st", cardNumber: 427 }], // Dori the Barbarian's Cape (counter_event)
         },
-        { card: { setId: "1st", cardNumber: 450 } },      // Delsenora (counter_event champion)
+        { card: { setId: "1st", cardNumber: 450 } }, // Delsenora (counter_event champion)
       ],
       hand: [
-        { setId: "1st", cardNumber: 99 },  // Cataclysm! (harmful event — P2 plays, P1 counters)
-        { setId: "1st", cardNumber: 96 },  // Horrors of the Abyss (Off wizard spell — P2 casts in combat)
-        { setId: "1st", cardNumber: 61 },  // Myrmidons ally (+4)
-        { setId: "1st", cardNumber: 54 },  // War Party ally (+4)
+        { setId: "1st", cardNumber: 99 }, // Cataclysm! (harmful event — P2 plays, P1 counters)
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss (Off wizard spell — P2 casts in combat)
+        { setId: "1st", cardNumber: 61 }, // Myrmidons ally (+4)
+        { setId: "1st", cardNumber: 54 }, // War Party ally (+4)
       ],
     },
   },

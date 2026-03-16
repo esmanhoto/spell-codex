@@ -78,7 +78,10 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
       ...state,
       players: {
         ...state.players,
-        [move.playerId]: { ...target, hand: [...target.hand, { instanceId: move.instanceId, card: move.card }] },
+        [move.playerId]: {
+          ...target,
+          hand: [...target.hand, { instanceId: move.instanceId, card: move.card }],
+        },
       },
     }
     return { newState, events: [], legalMoves: getLegalMoves(newState, state.activePlayer) }
@@ -167,7 +170,10 @@ export function applyMove(state: GameState, playerId: PlayerId, move: Move): Eng
     case "PLAY_EVENT":
       // If a counter window is open and this player is not the resolving player,
       // treat this as a counter play (cancels original resolution, places both cards).
-      if (state.resolutionContext?.counterWindowOpen && playerId !== state.resolutionContext.resolvingPlayer) {
+      if (
+        state.resolutionContext?.counterWindowOpen &&
+        playerId !== state.resolutionContext.resolvingPlayer
+      ) {
         newState = handleCounterPlay(state, playerId, move.cardInstanceId, events)
       } else {
         newState = handlePlaySpellCard(state, playerId, move, events)
@@ -574,7 +580,12 @@ function handleRazeOwnRealm(
     throw new EngineError("NOT_RAZEABLE", `Slot ${move.slot} is not an unrazed realm`)
   }
 
-  events.push({ type: "REALM_RAZED", playerId, slot: move.slot, realmName: realmSlot.realm.card.name })
+  events.push({
+    type: "REALM_RAZED",
+    playerId,
+    slot: move.slot,
+    realmName: realmSlot.realm.card.name,
+  })
 
   const newSlot = { ...realmSlot, isRazed: true, holdings: [] }
   return updatePlayer(state, playerId, {
@@ -603,7 +614,7 @@ function handlePlayHolding(
   if (!realmSlot) {
     throw new EngineError("INVALID_REALM", "No realm in that slot")
   }
-  const isRebuilder = card.card.effects.some(e => e.type === "rebuild_realm")
+  const isRebuilder = card.card.effects.some((e) => e.type === "rebuild_realm")
   if (realmSlot.isRazed && !isRebuilder) {
     throw new EngineError("INVALID_REALM", "Target realm must be in play and unrazed")
   }
@@ -1409,7 +1420,10 @@ function handleSwitchCombatSide(
     const attackerPlayer = state.players[attackerId]!
     const newPool = attackerPlayer.pool.map((entry) =>
       entry.champion.instanceId === combat.attacker!.instanceId
-        ? { ...entry, attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId) }
+        ? {
+            ...entry,
+            attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId),
+          }
         : entry,
     )
     return {
@@ -1423,7 +1437,10 @@ function handleSwitchCombatSide(
     const defenderPlayer = state.players[defenderId]!
     const newPool = defenderPlayer.pool.map((entry) =>
       entry.champion.instanceId === combat.defender!.instanceId
-        ? { ...entry, attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId) }
+        ? {
+            ...entry,
+            attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId),
+          }
         : entry,
     )
     return {
@@ -1476,8 +1493,7 @@ function handleDiscardCombatCard(
     throw new EngineError("TARGET_NOT_FOUND", "Card is not in active combat")
   }
 
-  const ownerId =
-    inAttacker || inAttackerPool ? combat.attackingPlayer : combat.defendingPlayer
+  const ownerId = inAttacker || inAttackerPool ? combat.attackingPlayer : combat.defendingPlayer
   const card = (
     inAttacker
       ? combat.attackerCards
@@ -1497,7 +1513,10 @@ function handleDiscardCombatCard(
     const championId = inAttackerPool ? combat.attacker!.instanceId : combat.defender!.instanceId
     const newPool = owner.pool.map((entry) =>
       entry.champion.instanceId === championId
-        ? { ...entry, attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId) }
+        ? {
+            ...entry,
+            attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId),
+          }
         : entry,
     )
     return {
@@ -1621,7 +1640,9 @@ function handleAttackerWins(
     targetRealmSlot?.realm.instanceId === combat.defender!.instanceId
 
   // Attacker survives: items/artifacts from combat round re-attach to pool; allies/spells discard
-  const { toAttach: attackerItemsToKeep, toDiscard: attackerDiscards } = splitCombatCards(combat.attackerCards)
+  const { toAttach: attackerItemsToKeep, toDiscard: attackerDiscards } = splitCombatCards(
+    combat.attackerCards,
+  )
   if (attackerDiscards.length > 0) {
     events.push({
       type: "CARDS_DISCARDED",
@@ -1631,7 +1652,12 @@ function handleAttackerWins(
   }
 
   let s = state
-  s = attachToPoolChampion(s, combat.attackingPlayer, combat.attacker!.instanceId, attackerItemsToKeep)
+  s = attachToPoolChampion(
+    s,
+    combat.attackingPlayer,
+    combat.attacker!.instanceId,
+    attackerItemsToKeep,
+  )
   const attackingPlayer = s.players[combat.attackingPlayer]!
   s = updatePlayer(s, combat.attackingPlayer, {
     discardPile: [...attackingPlayer.discardPile, ...attackerDiscards],
@@ -1751,14 +1777,21 @@ function handleDefenderWins(state: GameState, combat: CombatState, events: GameE
   )
 
   // Defender survives: items/artifacts from combat round re-attach to pool; allies/spells discard
-  const { toAttach: defenderItemsToKeep, toDiscard: defenderDiscards } = splitCombatCards(combat.defenderCards)
+  const { toAttach: defenderItemsToKeep, toDiscard: defenderDiscards } = splitCombatCards(
+    combat.defenderCards,
+  )
 
   let s = updatePlayer(state, combat.attackingPlayer, {
     pool: newAttackerPool,
     discardPile: [...attackingPlayer.discardPile, ...attackerDiscardCards],
   })
 
-  s = attachToPoolChampion(s, combat.defendingPlayer, combat.defender!.instanceId, defenderItemsToKeep)
+  s = attachToPoolChampion(
+    s,
+    combat.defendingPlayer,
+    combat.defender!.instanceId,
+    defenderItemsToKeep,
+  )
   const defendingPlayer = s.players[combat.defendingPlayer]!
   s = updatePlayer(s, combat.defendingPlayer, {
     discardPile: [...defendingPlayer.discardPile, ...defenderDiscards],

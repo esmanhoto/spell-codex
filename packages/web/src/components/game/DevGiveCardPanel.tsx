@@ -15,10 +15,24 @@ const TYPE_GROUPS: Array<{ label: string; typeIds: number[] }> = [
 ]
 
 const TYPE_LABEL: Record<number, string> = {
-  1: "Ally", 2: "Artifact", 4: "Cleric Spell", 5: "Cleric", 6: "Event",
-  7: "Hero", 8: "Holding", 9: "Magical Item", 10: "Monster", 11: "Psionic Power",
-  12: "Psionicist", 13: "Realm", 14: "Regent", 16: "Thief", 17: "Thief Ability",
-  18: "Unarmed Combat", 19: "Wizard Spell", 20: "Wizard",
+  1: "Ally",
+  2: "Artifact",
+  4: "Cleric Spell",
+  5: "Cleric",
+  6: "Event",
+  7: "Hero",
+  8: "Holding",
+  9: "Magical Item",
+  10: "Monster",
+  11: "Psionic Power",
+  12: "Psionicist",
+  13: "Realm",
+  14: "Regent",
+  16: "Thief",
+  17: "Thief Ability",
+  18: "Unarmed Combat",
+  19: "Wizard Spell",
+  20: "Wizard",
 }
 
 interface Props {
@@ -54,7 +68,9 @@ export function DevGiveCardPanel({ gameId, myPlayerId, opponentId, onGiven }: Pr
         .catch(() => setResults([]))
         .finally(() => setLoading(false))
     }, 300)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
   }, [query, selectedGroup, open])
 
   async function handleGive(card: DevCardResult) {
@@ -118,7 +134,15 @@ export function DevGiveCardPanel({ gameId, myPlayerId, opponentId, onGiven }: Pr
             maxHeight: "calc(100vh - 120px)",
           }}
         >
-          <div style={{ color: "#9aaa70", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          <div
+            style={{
+              color: "#9aaa70",
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
             Give Card
           </div>
 
@@ -148,7 +172,9 @@ export function DevGiveCardPanel({ gameId, myPlayerId, opponentId, onGiven }: Pr
           {/* Type filter */}
           <select
             value={selectedGroup ?? ""}
-            onChange={(e) => setSelectedGroup(e.target.value === "" ? null : Number(e.target.value))}
+            onChange={(e) =>
+              setSelectedGroup(e.target.value === "" ? null : Number(e.target.value))
+            }
             style={{
               background: "#1e1a17",
               border: "1px solid #4a3a32",
@@ -161,7 +187,9 @@ export function DevGiveCardPanel({ gameId, myPlayerId, opponentId, onGiven }: Pr
           >
             <option value="">All types</option>
             {TYPE_GROUPS.map((g, i) => (
-              <option key={g.label} value={i}>{g.label}</option>
+              <option key={g.label} value={i}>
+                {g.label}
+              </option>
             ))}
           </select>
 
@@ -184,13 +212,25 @@ export function DevGiveCardPanel({ gameId, myPlayerId, opponentId, onGiven }: Pr
           />
 
           {/* Results */}
-          <div style={{ overflowY: "auto", maxHeight: 280, display: "flex", flexDirection: "column", gap: 2 }}>
-            {loading && <div style={{ color: "#666", fontSize: 11, padding: "4px 0" }}>Searching…</div>}
+          <div
+            style={{
+              overflowY: "auto",
+              maxHeight: 280,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            {loading && (
+              <div style={{ color: "#666", fontSize: 11, padding: "4px 0" }}>Searching…</div>
+            )}
             {!loading && results.length === 0 && (query.trim() || selectedGroup !== null) && (
               <div style={{ color: "#555", fontSize: 11, padding: "4px 0" }}>No results</div>
             )}
             {!loading && results.length === 0 && !query.trim() && selectedGroup === null && (
-              <div style={{ color: "#555", fontSize: 11, padding: "4px 0" }}>Type a name or pick a type</div>
+              <div style={{ color: "#555", fontSize: 11, padding: "4px 0" }}>
+                Type a name or pick a type
+              </div>
             )}
             {results.map((card) => {
               const key = `${card.setId}-${card.cardNumber}`
@@ -211,9 +251,12 @@ export function DevGiveCardPanel({ gameId, myPlayerId, opponentId, onGiven }: Pr
                     gap: 2,
                   }}
                 >
-                  <span style={{ color: "#e0d4b8", fontSize: 12, fontWeight: 600 }}>{card.name}</span>
+                  <span style={{ color: "#e0d4b8", fontSize: 12, fontWeight: 600 }}>
+                    {card.name}
+                  </span>
                   <span style={{ color: "#666", fontSize: 10 }}>
-                    {card.setId} #{card.cardNumber} · {TYPE_LABEL[card.typeId] ?? `type ${card.typeId}`}
+                    {card.setId} #{card.cardNumber} ·{" "}
+                    {TYPE_LABEL[card.typeId] ?? `type ${card.typeId}`}
                   </span>
                 </button>
               )
@@ -222,7 +265,13 @@ export function DevGiveCardPanel({ gameId, myPlayerId, opponentId, onGiven }: Pr
 
           {/* Toast */}
           {toast && (
-            <div style={{ color: toast.startsWith("✓") ? "#b0d488" : "#e07070", fontSize: 11, paddingTop: 2 }}>
+            <div
+              style={{
+                color: toast.startsWith("✓") ? "#b0d488" : "#e07070",
+                fontSize: 11,
+                paddingTop: 2,
+              }}
+            >
               {toast}
             </div>
           )}

@@ -1507,9 +1507,9 @@ describe("combat: defender champion from hand", () => {
 
     const moves = getLegalMoves(s, "p1")
     const defenseMoves = moves.filter((m) => m.type === "DECLARE_DEFENSE")
-    expect(
-      defenseMoves.some((m) => (m as { championId: string }).championId === "def-hand"),
-    ).toBe(true)
+    expect(defenseMoves.some((m) => (m as { championId: string }).championId === "def-hand")).toBe(
+      true,
+    )
   })
 
   test("DECLARE_DEFENSE from hand moves champion to pool", () => {
@@ -1552,9 +1552,7 @@ describe("combat: defender champion from hand", () => {
       type: "DECLARE_DEFENSE",
       championId: "def-hand",
     })
-    expect(
-      newState.players["p1"]!.hand.find((c) => c.instanceId === "def-hand"),
-    ).toBeUndefined()
+    expect(newState.players["p1"]!.hand.find((c) => c.instanceId === "def-hand")).toBeUndefined()
     expect(
       newState.players["p1"]!.pool.find((e) => e.champion.instanceId === "def-hand"),
     ).toBeDefined()

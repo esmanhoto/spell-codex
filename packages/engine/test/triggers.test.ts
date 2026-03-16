@@ -94,9 +94,16 @@ function advanceTo(state: GameState, phase: Phase): GameState {
 }
 
 /** Build a state with the given champion in p1's pool. */
-function withChampionInPool(state: GameState, champion: CardData, attachments: CardData[] = []): GameState {
+function withChampionInPool(
+  state: GameState,
+  champion: CardData,
+  attachments: CardData[] = [],
+): GameState {
   const champInstance: CardInstance = { instanceId: "trigger-champ-1", card: champion }
-  const attInstances: CardInstance[] = attachments.map((a, i) => ({ instanceId: `trigger-att-${i}`, card: a }))
+  const attInstances: CardInstance[] = attachments.map((a, i) => ({
+    instanceId: `trigger-att-${i}`,
+    card: a,
+  }))
   const p1 = state.players["p1"]!
   return {
     ...state,
@@ -134,7 +141,10 @@ function withP2DrawPile(state: GameState, cards: CardInstance[]): GameState {
   }
 }
 
-const makeCard = (instanceId: string, card: CardData = ALLY_PLUS4): CardInstance => ({ instanceId, card })
+const makeCard = (instanceId: string, card: CardData = ALLY_PLUS4): CardInstance => ({
+  instanceId,
+  card,
+})
 
 // ─── populateTriggers ─────────────────────────────────────────────────────────
 
@@ -493,7 +503,10 @@ describe("RAZE_OWN_REALM", () => {
   /** Build a state with p1 having a realm at slot A (optionally with holdings). */
   function withRealmAtA(state: GameState, holdings: CardData[] = []): GameState {
     const realmInst: CardInstance = { instanceId: "own-realm-1", card: REALM_FR }
-    const holdingInsts: CardInstance[] = holdings.map((h, i) => ({ instanceId: `own-holding-${i}`, card: h }))
+    const holdingInsts: CardInstance[] = holdings.map((h, i) => ({
+      instanceId: `own-holding-${i}`,
+      card: h,
+    }))
     const p1 = state.players["p1"]!
     return {
       ...state,
@@ -517,7 +530,9 @@ describe("RAZE_OWN_REALM", () => {
     let s = initGame(DEFAULT_CONFIG)
     s = withRealmAtA(s)
     const moves = getLegalMoves(s, "p1")
-    expect(moves.some((m) => m.type === "RAZE_OWN_REALM" && (m as { slot: string }).slot === "A")).toBe(true)
+    expect(
+      moves.some((m) => m.type === "RAZE_OWN_REALM" && (m as { slot: string }).slot === "A"),
+    ).toBe(true)
   })
 
   test("RAZE_OWN_REALM is legal in POOL phase", () => {
@@ -525,7 +540,9 @@ describe("RAZE_OWN_REALM", () => {
     s = withRealmAtA(s)
     s = advanceTo(s, Phase.Pool)
     const moves = getLegalMoves(s, "p1")
-    expect(moves.some((m) => m.type === "RAZE_OWN_REALM" && (m as { slot: string }).slot === "A")).toBe(true)
+    expect(
+      moves.some((m) => m.type === "RAZE_OWN_REALM" && (m as { slot: string }).slot === "A"),
+    ).toBe(true)
   })
 
   test("RAZE_OWN_REALM is legal in PHASE_FIVE", () => {
@@ -533,7 +550,9 @@ describe("RAZE_OWN_REALM", () => {
     s = withRealmAtA(s)
     s = advanceTo(s, Phase.PhaseFive)
     const moves = getLegalMoves(s, "p1")
-    expect(moves.some((m) => m.type === "RAZE_OWN_REALM" && (m as { slot: string }).slot === "A")).toBe(true)
+    expect(
+      moves.some((m) => m.type === "RAZE_OWN_REALM" && (m as { slot: string }).slot === "A"),
+    ).toBe(true)
   })
 
   test("handler marks realm as razed", () => {
@@ -586,7 +605,10 @@ describe("voluntary DISCARD_CARD in Phase 5", () => {
     const config: typeof DEFAULT_CONFIG = {
       ...DEFAULT_CONFIG,
       players: [
-        { id: "p1", deckCards: makeDeck([REALM_FR, CHAMPION_WIZARD_FR, CHAMPION_HERO_GENERIC, ALLY_PLUS4]) },
+        {
+          id: "p1",
+          deckCards: makeDeck([REALM_FR, CHAMPION_WIZARD_FR, CHAMPION_HERO_GENERIC, ALLY_PLUS4]),
+        },
         { id: "p2", deckCards: makeDeck([REALM_GENERIC, CHAMPION_HERO_GENERIC]) },
       ] as [{ id: string; deckCards: CardData[] }, { id: string; deckCards: CardData[] }],
     }

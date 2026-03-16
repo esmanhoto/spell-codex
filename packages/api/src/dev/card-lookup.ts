@@ -48,7 +48,11 @@ export interface CardSearchResult {
  * Searches all card sets by name (case-insensitive substring) and optional typeIds.
  * Returns at most `limit` results.
  */
-export function searchCards(query: string, typeIds: number[] | null, limit = 30): CardSearchResult[] {
+export function searchCards(
+  query: string,
+  typeIds: number[] | null,
+  limit = 30,
+): CardSearchResult[] {
   const q = query.toLowerCase().trim()
   const results: CardSearchResult[] = []
   for (const setId of getAllSetIds()) {

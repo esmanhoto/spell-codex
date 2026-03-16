@@ -2,7 +2,13 @@ import { describe, test, expect, beforeEach } from "bun:test"
 import { applyMove } from "../../src/engine.ts"
 import { _resetInstanceCounter } from "../../src/utils.ts"
 import { ALLY_PLUS4, ARTIFACT_FR } from "../fixtures.ts"
-import { inst, makeChampion, makeRealm, makeMagicalItem, buildCombatCardPlayState } from "../scenario-builders.ts"
+import {
+  inst,
+  makeChampion,
+  makeRealm,
+  makeMagicalItem,
+  buildCombatCardPlayState,
+} from "../scenario-builders.ts"
 
 beforeEach(() => {
   _resetInstanceCounter()
@@ -147,7 +153,9 @@ describe("combat cleanup: loser discards everything", () => {
     const { newState } = applyMove(state, "p1", { type: "STOP_PLAYING" })
 
     expect(newState.players["p1"]!.pool).toHaveLength(0)
-    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "combat-item")).toBe(true)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "combat-item")).toBe(
+      true,
+    )
   })
 })
 
@@ -180,8 +188,12 @@ describe("combat cleanup: interrupt returns items/artifacts to pool", () => {
     expect(newState.players["p2"]!.pool).toHaveLength(1)
 
     // Items re-attached to respective pool champions
-    expect(newState.players["p1"]!.pool[0]!.attachments.some((a) => a.instanceId === "a-item")).toBe(true)
-    expect(newState.players["p2"]!.pool[0]!.attachments.some((a) => a.instanceId === "d-item")).toBe(true)
+    expect(
+      newState.players["p1"]!.pool[0]!.attachments.some((a) => a.instanceId === "a-item"),
+    ).toBe(true)
+    expect(
+      newState.players["p2"]!.pool[0]!.attachments.some((a) => a.instanceId === "d-item"),
+    ).toBe(true)
 
     // Allies discarded
     expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "a-ally")).toBe(true)
@@ -230,7 +242,10 @@ describe("pool attachment SWITCH_COMBAT_SIDE / DISCARD_COMBAT_CARD", () => {
       attackerAttachments: [item],
     })
 
-    const { newState } = applyMove(state, "p1", { type: "SWITCH_COMBAT_SIDE", cardInstanceId: "item" })
+    const { newState } = applyMove(state, "p1", {
+      type: "SWITCH_COMBAT_SIDE",
+      cardInstanceId: "item",
+    })
 
     expect(newState.players["p1"]!.pool[0]!.attachments).toHaveLength(0)
     expect(newState.combatState!.defenderCards.some((c) => c.instanceId === "item")).toBe(true)
@@ -250,7 +265,10 @@ describe("pool attachment SWITCH_COMBAT_SIDE / DISCARD_COMBAT_CARD", () => {
       defenderAttachments: [item],
     })
 
-    const { newState } = applyMove(state, "p1", { type: "SWITCH_COMBAT_SIDE", cardInstanceId: "item" })
+    const { newState } = applyMove(state, "p1", {
+      type: "SWITCH_COMBAT_SIDE",
+      cardInstanceId: "item",
+    })
 
     expect(newState.players["p2"]!.pool[0]!.attachments).toHaveLength(0)
     expect(newState.combatState!.attackerCards.some((c) => c.instanceId === "item")).toBe(true)
@@ -271,7 +289,10 @@ describe("pool attachment SWITCH_COMBAT_SIDE / DISCARD_COMBAT_CARD", () => {
       attackerAttachments: [item],
     })
 
-    const { newState } = applyMove(state, "p1", { type: "DISCARD_COMBAT_CARD", cardInstanceId: "item" })
+    const { newState } = applyMove(state, "p1", {
+      type: "DISCARD_COMBAT_CARD",
+      cardInstanceId: "item",
+    })
 
     expect(newState.players["p1"]!.pool[0]!.attachments).toHaveLength(0)
     expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "item")).toBe(true)

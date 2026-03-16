@@ -109,7 +109,10 @@ export function TriggerPanel({
                         className={styles.actionBtn}
                         style={{ padding: "2px 8px", fontSize: "11px" }}
                         onClick={() =>
-                          onMove({ type: "RESOLVE_TRIGGER_DISCARD_PEEKED", cardInstanceId: c.instanceId })
+                          onMove({
+                            type: "RESOLVE_TRIGGER_DISCARD_PEEKED",
+                            cardInstanceId: c.instanceId,
+                          })
                         }
                       >
                         Discard
@@ -121,7 +124,10 @@ export function TriggerPanel({
             )}
           </div>
 
-          <button className={styles.doneBtn} onClick={() => onMove({ type: "RESOLVE_TRIGGER_DONE" })}>
+          <button
+            className={styles.doneBtn}
+            onClick={() => onMove({ type: "RESOLVE_TRIGGER_DONE" })}
+          >
             Done
           </button>
         </div>
@@ -231,12 +237,14 @@ export function TriggerPanel({
           <div className={styles.section}>
             <div className={styles.sectionLabel}>Manual resolution</div>
             <div className={styles.cardDesc} style={{ fontSize: "12px", color: "#b0a080" }}>
-              Use the existing game actions to handle this effect yourself — right-click
-              menus, discard cards, return from discard pile, etc. Coordinate with your
-              opponent via chat.
+              Use the existing game actions to handle this effect yourself — right-click menus,
+              discard cards, return from discard pile, etc. Coordinate with your opponent via chat.
               {trigger.effect.timing === "end" && (
-                <> Click Done to dismiss this overlay; you will still be in Phase 5 and can
-                continue acting before ending your turn.</>
+                <>
+                  {" "}
+                  Click Done to dismiss this overlay; you will still be in Phase 5 and can continue
+                  acting before ending your turn.
+                </>
               )}
             </div>
           </div>
