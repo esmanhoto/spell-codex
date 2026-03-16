@@ -1,22 +1,4 @@
 .page {
-  --background: 220 20% 8%;
-  --foreground: 45 20% 85%;
-  --card: 220 15% 14%;
-  --popover: 220 18% 12%;
-  --border: 220 15% 20%;
-  --input: 220 15% 18%;
-  --ring: 45 70% 50%;
-  --muted-foreground: 220 10% 50%;
-  --gold: 45 70% 50%;
-  --gold-dim: 45 50% 30%;
-  --gold-bright: 45 80% 65%;
-  --arcane-blue: 200 60% 40%;
-  --arcane-glow: 200 80% 55%;
-  --realm-green: 140 40% 35%;
-  --realm-glow: 140 50% 50%;
-  --zone-bg: 220 15% 10%;
-  --table-surface: 220 22% 7%;
-  --table-felt: 150 26% 14%;
   min-height: 100svh;
   color: hsl(var(--foreground));
   font-family: "Crimson Text", Georgia, serif;
@@ -192,12 +174,6 @@
   min-width: 0;
 }
 
-.customDeckCount {
-  color: hsl(var(--muted-foreground));
-  font-size: 0.65rem;
-  flex-shrink: 0;
-}
-
 .customDeckActions {
   display: flex;
   align-items: center;
@@ -250,11 +226,6 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-}
-
-.deckCount {
-  font-size: 0.75rem;
-  font-weight: 600;
 }
 
 .deckCountOk {
