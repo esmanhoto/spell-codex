@@ -132,6 +132,100 @@
   background: hsl(0 40% 25% / 0.8);
 }
 
+/* ─── Custom decks panel ───────────────────────────── */
+
+.customDecksPanel {
+  padding: 8px 16px;
+  background: hsl(var(--card) / 0.15);
+  border-bottom: 1px solid hsl(var(--border) / 0.3);
+  flex-shrink: 0;
+}
+
+.customDecksTitle {
+  margin: 0 0 6px;
+  color: hsl(var(--gold));
+  font-family: "Cinzel", serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.customDecksList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 150px;
+}
+
+.customDeckRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+  text-decoration: none;
+}
+
+.customDeckRow:hover {
+  background: hsl(var(--card) / 0.35);
+}
+
+.customDeckRowActive {
+  background: hsl(var(--card) / 0.5);
+  border-color: hsl(var(--gold-dim) / 0.5);
+}
+
+.customDeckName {
+  color: hsl(var(--foreground) / 0.85);
+  font-size: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.customDeckCount {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.customDeckActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.customDeckActionBtn {
+  border: none;
+  background: none;
+  color: hsl(var(--muted-foreground) / 0.6);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  text-decoration: none;
+  line-height: 1;
+  transition: color 0.12s;
+}
+
+.customDeckActionBtn:hover {
+  color: hsl(var(--foreground));
+}
+
+.customDeckActionBtn:last-child:hover {
+  color: hsl(0 70% 60%);
+}
+
 /* ─── My deck strip ─────────────────────────────────── */
 
 .myDeckStrip {
@@ -302,6 +396,134 @@
   font-size: 0.7rem;
 }
 
+.sectionControls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.worldFilter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filterLabel {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.7rem;
+}
+
+.worldDropdownBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 3px 8px;
+  background: hsl(var(--card) / 0.5);
+  color: hsl(var(--foreground) / 0.8);
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+  min-width: 180px;
+  max-width: 180px;
+}
+
+.worldDropdownLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 auto;
+}
+
+.worldDropdownArrow {
+  font-size: 0.5rem;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.worldDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  z-index: 100;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 4px 0;
+  min-width: 180px;
+  box-shadow: 0 4px 16px #000000aa;
+}
+
+.worldDropdownItem {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  color: hsl(var(--foreground) / 0.85);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.worldDropdownItem:hover {
+  background: hsl(var(--card) / 0.5);
+}
+
+.worldDropdownItem input[type="checkbox"] {
+  accent-color: hsl(var(--gold));
+}
+
+.worldDropdownClear {
+  display: block;
+  width: 100%;
+  border: none;
+  border-top: 1px solid hsl(var(--border) / 0.5);
+  background: none;
+  color: hsl(0 60% 55%);
+  font-size: 0.7rem;
+  padding: 5px 12px;
+  cursor: pointer;
+  text-align: left;
+  margin-top: 2px;
+}
+
+.worldDropdownClear:hover {
+  color: hsl(0 70% 65%);
+  background: hsl(var(--card) / 0.3);
+}
+
+.sortLabel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.sortSelect {
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  padding: 3px 8px;
+  background: hsl(var(--card) / 0.5);
+  color: hsl(var(--foreground) / 0.8);
+  font-family: "Crimson Text", Georgia, serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.sortSelect:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+}
+
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -320,6 +542,13 @@
   transition:
     border-color 0.12s,
     background 0.12s;
+}
+
+.gridCardInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 32px;
 }
 
 .gridCard:hover {
