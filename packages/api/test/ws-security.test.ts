@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterAll } from "bun:test"
 import type { ServerWebSocket } from "bun"
-import { wsHandlers, registry } from "../src/ws.ts"
+import { wsHandlers, registry, processWsMove } from "../src/ws.ts"
 import { setCachedState, evictCachedState } from "../src/state-cache.ts"
 import type { GameState } from "@spell/engine"
 
@@ -387,5 +387,19 @@ describe("socket open", () => {
     expect(ws.data.userId).toBeNull()
     expect(ws.data.displayName).toBeNull()
     expect(ws.data.lastChatTs).toBe(0)
+  })
+})
+
+// ─── Blocked move types (C1 security fix) ────────────────────────────────────
+
+describe("processWsMove blocked move types", () => {
+  it("rejects DEV_GIVE_CARD without hitting DB or engine", async () => {
+    const result = await processWsMove(GAME, P1, {
+      type: "DEV_GIVE_CARD",
+      playerId: P1,
+      instanceId: "exploit-1",
+      card: { name: "Exploit" },
+    })
+    expect(result).toEqual({ ok: false, code: "BLOCKED_MOVE", message: "Blocked move type" })
   })
 })

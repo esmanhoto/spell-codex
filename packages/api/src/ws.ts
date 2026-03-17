@@ -106,11 +106,16 @@ export function broadcastToGame(gameId: string, msg: ServerMessage): void {
 
 // ─── Move processing ──────────────────────────────────────────────────────────
 
+const BLOCKED_MOVE_TYPES = new Set(["DEV_GIVE_CARD"])
+
 export async function processWsMove(
   gameId: string,
   userId: string,
   move: { type: string; [key: string]: unknown },
 ): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
+  if (BLOCKED_MOVE_TYPES.has(move.type)) {
+    return { ok: false, code: "BLOCKED_MOVE", message: "Blocked move type" }
+  }
   const t0 = performance.now()
 
   const loaded = await loadGameState(gameId)

@@ -338,4 +338,31 @@ describe("POST /games/:id/moves", () => {
     const body = (await res.json()) as { code?: string }
     expect(body.code).toBe("UNKNOWN_MOVE")
   })
+
+  it("rejects DEV_GIVE_CARD via the moves endpoint (C1 security fix)", async () => {
+    const res = await app.request(`/games/${gameId}/moves`, {
+      method: "POST",
+      headers: headers(PLAYER_A),
+      body: JSON.stringify({
+        type: "DEV_GIVE_CARD",
+        playerId: PLAYER_A,
+        instanceId: "exploit-1",
+        card: {
+          setId: "1st",
+          cardNumber: 1,
+          name: "Exploit Card",
+          typeId: 5,
+          worldId: 1,
+          isAvatar: false,
+          level: 10,
+          description: "",
+          attributes: [],
+          supportIds: [],
+          effects: [],
+        },
+      }),
+    })
+    // Zod schema rejects blocked move types before reaching the engine
+    expect(res.status).toBe(400)
+  })
 })

@@ -61,7 +61,8 @@ export async function reconstructState(
 
     let next
     try {
-      next = applyMove(current, action.playerId, move)
+      const opts = move.type === "DEV_GIVE_CARD" ? { devMode: true } : undefined
+      next = applyMove(current, action.playerId, move, opts)
     } catch (err) {
       errors.push({
         kind: "engine_error",

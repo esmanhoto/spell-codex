@@ -103,7 +103,7 @@ devRouter.post("/games/:id/give-card", zValidator("json", GiveCardSchema), async
 
   let result
   try {
-    result = applyMove(loaded.state, playerId, move)
+    result = applyMove(loaded.state, playerId, move, { devMode: true })
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Apply failed"
     return c.json({ error: msg }, 422)

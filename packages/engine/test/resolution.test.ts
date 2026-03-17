@@ -995,40 +995,40 @@ describe("counter window", () => {
 // ─── DEV_GIVE_CARD ────────────────────────────────────────────────────────────
 
 describe("DEV_GIVE_CARD", () => {
-  test("adds a card to the specified player's hand", () => {
+  test("adds a card to the specified player's hand in devMode", () => {
     const s = initGame(DEFAULT_CONFIG)
     const before = s.players["p1"]!.hand.length
-    const { newState } = applyMove(s, "p1", {
-      type: "DEV_GIVE_CARD",
-      playerId: "p1",
-      instanceId: "dev-1",
-      card: EVENT_CARD,
-    })
+    const { newState } = applyMove(
+      s,
+      "p1",
+      { type: "DEV_GIVE_CARD", playerId: "p1", instanceId: "dev-1", card: EVENT_CARD },
+      { devMode: true },
+    )
     expect(newState.players["p1"]!.hand.length).toBe(before + 1)
     expect(newState.players["p1"]!.hand.some((c) => c.instanceId === "dev-1")).toBe(true)
   })
 
-  test("can give a card to the opponent", () => {
+  test("can give a card to the opponent in devMode", () => {
     const s = initGame(DEFAULT_CONFIG)
     const before = s.players["p2"]!.hand.length
-    const { newState } = applyMove(s, "p1", {
-      type: "DEV_GIVE_CARD",
-      playerId: "p2",
-      instanceId: "dev-2",
-      card: COUNTER_EVENT_CARD,
-    })
+    const { newState } = applyMove(
+      s,
+      "p1",
+      { type: "DEV_GIVE_CARD", playerId: "p2", instanceId: "dev-2", card: COUNTER_EVENT_CARD },
+      { devMode: true },
+    )
     expect(newState.players["p2"]!.hand.length).toBe(before + 1)
     expect(newState.players["p2"]!.hand.some((c) => c.instanceId === "dev-2")).toBe(true)
   })
 
   test("does not change phase or activePlayer", () => {
     const s = { ...initGame(DEFAULT_CONFIG), phase: Phase.Pool, activePlayer: "p1" as const }
-    const { newState } = applyMove(s, "p1", {
-      type: "DEV_GIVE_CARD",
-      playerId: "p1",
-      instanceId: "dev-3",
-      card: EVENT_CARD,
-    })
+    const { newState } = applyMove(
+      s,
+      "p1",
+      { type: "DEV_GIVE_CARD", playerId: "p1", instanceId: "dev-3", card: EVENT_CARD },
+      { devMode: true },
+    )
     expect(newState.phase).toBe(Phase.Pool)
     expect(newState.activePlayer).toBe("p1")
   })
@@ -1036,13 +1036,37 @@ describe("DEV_GIVE_CARD", () => {
   test("throws for unknown player", () => {
     const s = initGame(DEFAULT_CONFIG)
     expect(() =>
+      applyMove(
+        s,
+        "p1",
+        { type: "DEV_GIVE_CARD", playerId: "p99" as never, instanceId: "dev-4", card: EVENT_CARD },
+        { devMode: true },
+      ),
+    ).toThrow(EngineError)
+  })
+
+  test("throws DEV_ONLY when devMode is not set", () => {
+    const s = initGame(DEFAULT_CONFIG)
+    expect(() =>
       applyMove(s, "p1", {
         type: "DEV_GIVE_CARD",
-        playerId: "p99" as never,
-        instanceId: "dev-4",
+        playerId: "p1",
+        instanceId: "dev-5",
         card: EVENT_CARD,
       }),
-    ).toThrow(EngineError)
+    ).toThrow(/DEV_GIVE_CARD is not allowed outside dev mode/)
+  })
+
+  test("throws DEV_ONLY when devMode is false", () => {
+    const s = initGame(DEFAULT_CONFIG)
+    expect(() =>
+      applyMove(
+        s,
+        "p1",
+        { type: "DEV_GIVE_CARD", playerId: "p1", instanceId: "dev-6", card: EVENT_CARD },
+        { devMode: false },
+      ),
+    ).toThrow(/DEV_GIVE_CARD is not allowed outside dev mode/)
   })
 })
 

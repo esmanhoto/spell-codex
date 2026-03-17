@@ -67,13 +67,21 @@ import { EngineError } from "./errors.ts"
  * The core engine function. Pure — no side effects.
  * Validates the move, applies it, and returns the new state with events and legal moves.
  */
-export function applyMove(state: GameState, playerId: PlayerId, move: Move): EngineResult {
+export function applyMove(
+  state: GameState,
+  playerId: PlayerId,
+  move: Move,
+  opts?: { devMode?: boolean },
+): EngineResult {
   if (state.winner !== null) {
     throw new EngineError("GAME_OVER", "Game is already over")
   }
 
   // Dev-only: bypass all validation, add a card directly to any player's hand
   if (move.type === "DEV_GIVE_CARD") {
+    if (!opts?.devMode) {
+      throw new EngineError("DEV_ONLY", "DEV_GIVE_CARD is not allowed outside dev mode")
+    }
     const target = state.players[move.playerId]
     if (!target) throw new EngineError("INVALID_PLAYER", "Player not found")
     const newState: GameState = {

@@ -7,10 +7,13 @@ import { loadGameState, persistMoveResult } from "../game-ops.ts"
 
 // ─── Move schema ──────────────────────────────────────────────────────────────
 // We accept any JSON object with a `type` string — the engine validates the rest.
+// Dev-only move types are blocked at the API layer to prevent exploitation.
+
+const BLOCKED_MOVE_TYPES = new Set(["DEV_GIVE_CARD"])
 
 const MoveSchema = z
   .object({
-    type: z.string(),
+    type: z.string().refine((t) => !BLOCKED_MOVE_TYPES.has(t), "Blocked move type"),
   })
   .passthrough()
 
