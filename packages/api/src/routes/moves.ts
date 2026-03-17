@@ -25,7 +25,7 @@ movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const t0 = performance.now()
   const userId = c.get("userId")
   const gameId = c.req.param("id")
-  const move = c.req.valid("json") as { type: string }
+  const move = { ...c.req.valid("json"), playerId: userId } as { type: string }
 
   const loaded = await loadGameState(gameId)
   if (!loaded) return c.json({ error: "Game not found or not active" }, 404)

@@ -142,7 +142,7 @@ describe("Full move lifecycle (api + db + engine)", () => {
     const actions = await listActions(gameId)
     const lastAction = actions[actions.length - 1]!
     expect(lastAction.playerId).toBe(PLAYER_A)
-    expect(lastAction.move).toEqual({ type: "PASS" })
+    expect(lastAction.move).toEqual({ type: "PASS", playerId: PLAYER_A })
 
     // Verify hash matches server-side reconstructed state
     const cached = getGameCache(gameId)
@@ -170,7 +170,7 @@ describe("Full move lifecycle (api + db + engine)", () => {
     expect(msgA["stateHash"]).toBe(msgB["stateHash"])
     expect(msgA["sequence"]).toBe(msgB["sequence"])
     expect(msgA["playerId"]).toBe(PLAYER_A)
-    expect(msgA["move"]).toEqual({ type: "PASS" })
+    expect(msgA["move"]).toEqual({ type: "PASS", playerId: PLAYER_A })
     expect(msgA["status"]).toBe("active")
   })
 

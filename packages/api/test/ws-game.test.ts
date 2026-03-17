@@ -257,7 +257,7 @@ describe("SUBMIT_MOVE", () => {
     expect(moveA).toBeDefined()
     expect(moveB).toBeDefined()
     expect(moveA!["playerId"]).toBe(PLAYER_A)
-    expect(moveA!["move"]).toEqual({ type: "PASS" })
+    expect(moveA!["move"]).toEqual({ type: "PASS", playerId: PLAYER_A })
     expect(typeof moveA!["stateHash"]).toBe("string")
     expect(typeof moveA!["sequence"]).toBe("number")
   })

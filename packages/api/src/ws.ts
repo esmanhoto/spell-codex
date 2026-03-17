@@ -129,6 +129,8 @@ export async function processWsMove(
   if (BLOCKED_MOVE_TYPES.has(move.type)) {
     return { ok: false, code: "BLOCKED_MOVE", message: "Blocked move type" }
   }
+  // Overwrite playerId with authenticated userId to prevent forging
+  const safeMove = { ...move, playerId: userId }
   const t0 = performance.now()
 
   const loaded = await loadGameState(gameId)
@@ -143,7 +145,7 @@ export async function processWsMove(
   let result
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    result = applyMove(state, userId, move as any)
+    result = applyMove(state, userId, safeMove as any)
   } catch (err) {
     if (err instanceof EngineError) {
       return { ok: false, code: err.code, message: err.message }
@@ -158,7 +160,7 @@ export async function processWsMove(
     sequence: seq,
     stateHash,
     turnDeadline,
-  } = await persistMoveResult(gameId, userId, move, result.newState, seq0)
+  } = await persistMoveResult(gameId, userId, safeMove, result.newState, seq0)
   const tHashEnd = performance.now()
 
   // Broadcast delta update to all players — client applies via local engine
@@ -170,7 +172,7 @@ export async function processWsMove(
       type: "MOVE_APPLIED",
       gameId,
       playerId: userId,
-      move,
+      move: safeMove,
       stateHash,
       sequence: seq,
       turnDeadline: turnDeadline ? turnDeadline.toISOString() : null,
@@ -253,7 +255,7 @@ export const wsHandlers = {
           } else if (
             authBypassEnabled() &&
             typeof msg.playerId === "string" &&
-            msg.playerId.length > 0
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(msg.playerId)
           ) {
             userId = msg.playerId
             displayName = null
