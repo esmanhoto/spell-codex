@@ -6,16 +6,16 @@
 
 ## Executive Summary
 
-| Package | Files | Tested          | Coverage | Verdict                         |
-| ------- | ----- | --------------- | -------- | ------------------------------- |
-| engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 415 tests    |
-| api     | 15    | 19              | ~90%     | **Phase 2 DONE** — 190 tests    |
-| db      | 10    | 6               | ~65%     | **Phase 3a+3b DONE** — 55 tests |
-| web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows     |
-| data    | 15    | 0               | 0%       | None — zero tests               |
+| Package | Files | Tested          | Coverage | Verdict                      |
+| ------- | ----- | --------------- | -------- | ---------------------------- |
+| engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 415 tests |
+| api     | 15    | 19              | ~90%     | **Phase 2 DONE** — 190 tests |
+| db      | 10    | 8               | ~80%     | **Phase 3 DONE** — 72 tests  |
+| web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows  |
+| data    | 15    | 0               | 0%       | None — zero tests            |
 
-**Total test files**: 66 (27 engine + 19 api + 6 db + 4 web unit + 10 web e2e)
-**Total test count**: ~743+ (415 engine + 190 api + 55 db + 83 web)
+**Total test files**: 68 (27 engine + 19 api + 8 db + 4 web unit + 10 web e2e)
+**Total test count**: ~760+ (415 engine + 190 api + 72 db + 83 web)
 
 ### New Dependencies Required
 
@@ -136,7 +136,7 @@
 
 ---
 
-## Phase 3: packages/db — 1 test file, 7 tests
+## Phase 3: packages/db — ✅ COMPLETE (72 tests across 8 files)
 
 ### What's tested
 
@@ -170,12 +170,12 @@
 | Deck snapshot corruption | ✅     | data-integrity.test.ts — 3 tests (garbage JSONB, empty array, corrupt deck reconstruction) |
 | Slug collision retry     | ✅     | data-integrity.test.ts — 2 tests (distinct slugs, DB unique constraint)                    |
 
-### 3c. Low Priority
+### 3c. Low Priority — ✅ DONE (17 tests in 2 files)
 
-| Gap                | Detail                                           |
-| ------------------ | ------------------------------------------------ |
-| Migration rollback | 6 migrations, zero rollback tests                |
-| Large replay perf  | 100+ moves reconstruction — untested in DB layer |
+| Gap               | Status | Tests                                                                             |
+| ----------------- | ------ | --------------------------------------------------------------------------------- |
+| Migration schema  | ✅     | migrations.test.ts — 14 tests (columns, PKs, FKs, indexes, constraints per table) |
+| Large replay perf | ✅     | large-replay.test.ts — 3 tests (120 moves, 200 moves, 150-action lastSequence)    |
 
 ---
 
