@@ -6,16 +6,16 @@
 
 ## Executive Summary
 
-| Package | Files | Tested          | Coverage | Verdict                      |
-| ------- | ----- | --------------- | -------- | ---------------------------- |
-| engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 415 tests |
-| api     | 15    | 19              | ~90%     | **Phase 2 DONE** — 190 tests |
-| db      | 10    | 5               | ~55%     | **Phase 3a DONE** — 42 tests |
-| web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows  |
-| data    | 15    | 0               | 0%       | None — zero tests            |
+| Package | Files | Tested          | Coverage | Verdict                         |
+| ------- | ----- | --------------- | -------- | ------------------------------- |
+| engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 415 tests    |
+| api     | 15    | 19              | ~90%     | **Phase 2 DONE** — 190 tests    |
+| db      | 10    | 6               | ~65%     | **Phase 3a+3b DONE** — 55 tests |
+| web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows     |
+| data    | 15    | 0               | 0%       | None — zero tests               |
 
-**Total test files**: 65 (27 engine + 19 api + 5 db + 4 web unit + 10 web e2e)
-**Total test count**: ~730+ (415 engine + 190 api + 42 db + 83 web)
+**Total test files**: 66 (27 engine + 19 api + 6 db + 4 web unit + 10 web e2e)
+**Total test count**: ~743+ (415 engine + 190 api + 55 db + 83 web)
 
 ### New Dependencies Required
 
@@ -159,16 +159,16 @@
 | `getProfile()` / `upsertNickname()` | profiles.ts | ✅ profiles.test.ts — 5 tests (null nonexistent, return after upsert, create, update on conflict, updatedAt) |
 | `generateGameSlug()`                | slug.ts     | ✅ slug.test.ts — 4 tests (3-word format, non-empty segments, uniqueness, charset)                           |
 
-### 3b. Medium Priority (Data Integrity)
+### 3b. Medium Priority (Data Integrity) — ✅ DONE (13 tests in 1 file)
 
-| Gap                      | Detail                                                                               |
-| ------------------------ | ------------------------------------------------------------------------------------ |
-| Sequence collision       | Two concurrent inserts for same game — unique constraint untested                    |
-| Non-atomic persist       | saveAction + updateGameStatus not in transaction; partial failure untested           |
-| Hash mismatch detection  | Hashes stored but never verified during reconstruction (by design, but never tested) |
-| Partial action logs      | Game with N actions but DB returns N-1 — no continuity validation                    |
-| Deck snapshot corruption | JSONB cast to CardData[] without schema validation                                   |
-| Slug collision retry     | 10 retries then throw — exception path untested                                      |
+| Gap                      | Status | Tests                                                                                      |
+| ------------------------ | ------ | ------------------------------------------------------------------------------------------ |
+| Sequence collision       | ✅     | data-integrity.test.ts — 2 tests (concurrent race, post-collision insert)                  |
+| Non-atomic persist       | ✅     | data-integrity.test.ts — 2 tests (action without status, status without actions)           |
+| Hash mismatch detection  | ✅     | data-integrity.test.ts — 2 tests (wrong hash ignored, stored vs replayed divergence)       |
+| Partial action logs      | ✅     | data-integrity.test.ts — 2 tests (sequence gap, invalid move engine_error)                 |
+| Deck snapshot corruption | ✅     | data-integrity.test.ts — 3 tests (garbage JSONB, empty array, corrupt deck reconstruction) |
+| Slug collision retry     | ✅     | data-integrity.test.ts — 2 tests (distinct slugs, DB unique constraint)                    |
 
 ### 3c. Low Priority
 
