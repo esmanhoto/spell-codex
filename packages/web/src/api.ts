@@ -1,6 +1,10 @@
 const BASE = "/api"
 const WS_BASE = (() => {
-  const proto = window.location.protocol === "https:" ? "wss:" : "ws:"
+  const proto = import.meta.env.PROD
+    ? "wss:"
+    : window.location.protocol === "https:"
+      ? "wss:"
+      : "ws:"
   // In dev, Vite proxies /ws → localhost:3001/ws.
   return `${proto}//${window.location.host}`
 })()
