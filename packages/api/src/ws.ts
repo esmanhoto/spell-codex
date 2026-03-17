@@ -439,8 +439,12 @@ export const wsHandlers = {
           send(ws, { type: "ERROR", code: "UNKNOWN_MSG", message: "Unknown message type" })
       }
     } catch (err) {
-      console.error("[ws] Unhandled error in message handler:", err)
       const message = err instanceof Error ? err.message : String(err)
+      if (process.env["NODE_ENV"] === "production") {
+        console.error(JSON.stringify({ error: message, context: "ws_message_handler" }))
+      } else {
+        console.error("[ws] Unhandled error in message handler:", err)
+      }
       if (message.includes("ECONNREFUSED")) {
         send(ws, {
           type: "ERROR",

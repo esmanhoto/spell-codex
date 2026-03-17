@@ -17,6 +17,12 @@ const app = new Hono()
 // ─── Global middleware ────────────────────────────────────────────────────────
 
 app.use(logger())
+app.use(async (c, next) => {
+  await next()
+  c.header("X-Content-Type-Options", "nosniff")
+  c.header("X-Frame-Options", "DENY")
+  c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+})
 const CORS_ORIGINS = process.env["CORS_ORIGINS"]
   ? process.env["CORS_ORIGINS"].split(",").map((o) => o.trim())
   : ["http://localhost:5173", "http://localhost:5174"]
@@ -47,7 +53,11 @@ app.onError((err, c) => {
     )
   }
 
-  console.error(err)
+  if (process.env["NODE_ENV"] === "production") {
+    console.error(JSON.stringify({ error: message, code }))
+  } else {
+    console.error(err)
+  }
   return c.json({ error: "Internal server error" }, 500)
 })
 
