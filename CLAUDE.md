@@ -36,6 +36,9 @@
 - Add/adjust tests with behavior changes (`bun:test` used across engine/api/db).
 - After implementing a feature, assess what new tests can be written (unit tests for new logic, legal-moves coverage, handler edge cases) and add dev scenarios in `packages/api/src/dev/scenarios.ts` for manual verification using real cards.
 - Use existing package boundaries; avoid cross-package leakage.
+- Before writing new code, check if the same logic already exists elsewhere in the codebase and reuse or extract it into a shared helper.
+- Prefer small, focused components and functions over large monolithic ones — extract repeated patterns into reusable abstractions early.
+- Shared logic consumed by multiple packages belongs in the lowest common dependency (usually `engine`), not duplicated across consumers.
 
 ## Git Workflow
 
