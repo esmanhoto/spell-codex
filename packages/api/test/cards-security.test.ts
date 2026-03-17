@@ -35,11 +35,9 @@ describe("path traversal on /cards/:setId/:filename", () => {
     expect(res.status).toBe(404)
   })
 
-  it("returns error for null bytes in setId (should not crash)", async () => {
+  it("returns 404 for null bytes in setId", async () => {
     const res = await app.request("/cards/1st%00malicious/001.jpg")
-    // BUG: null bytes cause a 500 instead of 404 — Bun.file() doesn't handle
-    // null bytes gracefully. Should sanitize input or catch the error.
-    expect([400, 404, 500]).toContain(res.status)
+    expect(res.status).toBe(404)
   })
 
   it("returns 404 for very long setId", async () => {
