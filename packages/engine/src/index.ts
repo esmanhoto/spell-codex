@@ -19,6 +19,8 @@ export {
   resolveCombatRound,
   getLosingPlayer,
   getPoolAttachments,
+  getCombatRealmContext,
+  getCombatLevels,
 } from "./combat.ts"
 
 export {
@@ -36,6 +38,7 @@ export {
   takeCards,
   nextPlayer,
   opponentOf,
+  findOrPromoteChampion,
 } from "./utils.ts"
 
 export {
@@ -86,3 +89,10 @@ export type {
 } from "./types.ts"
 
 export { Phase } from "./types.ts"
+
+export {
+  serializeCard,
+  serializeFormation,
+  serializePool,
+  serializeCombat,
+} from "./serialize-shared.ts"

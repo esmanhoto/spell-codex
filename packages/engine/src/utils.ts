@@ -7,6 +7,7 @@ import type {
   PlayerState,
 } from "./types.ts"
 import { CHAMPION_TYPE_IDS, COSMOS_TYPE_IDS, SPELL_TYPE_IDS } from "./constants.ts"
+import { EngineError } from "./errors.ts"
 
 // ─── Seeded Random ────────────────────────────────────────────────────────────
 
@@ -194,4 +195,34 @@ export function nextPlayer(state: GameState): PlayerId {
 /** Returns the opponent's player ID (2-player assumption) */
 export function opponentOf(state: GameState, playerId: PlayerId): PlayerId {
   return state.playerOrder.find((id) => id !== playerId)!
+}
+
+/**
+ * Finds a champion in the player's pool, or promotes it from hand to pool.
+ * Returns [champion, updatedState]. Throws if not found.
+ */
+export function findOrPromoteChampion(
+  state: GameState,
+  playerId: PlayerId,
+  championId: CardInstanceId,
+  errorContext: string,
+): [CardInstance, GameState] {
+  const player = state.players[playerId]!
+  const poolEntry = player.pool.find((e) => e.champion.instanceId === championId)
+  if (poolEntry) return [poolEntry.champion, state]
+
+  const handIdx = player.hand.findIndex((c) => c.instanceId === championId)
+  if (handIdx !== -1) {
+    const [card, newHand] = removeFromHand(player.hand, championId)
+    if (!isChampionType(card.card.typeId)) {
+      throw new EngineError("NOT_A_CHAMPION")
+    }
+    const newState = updatePlayer(state, playerId, {
+      hand: newHand,
+      pool: [...player.pool, { champion: card, attachments: [] }],
+    })
+    return [card, newState]
+  }
+
+  throw new EngineError("CHAMPION_NOT_FOUND", errorContext)
 }
