@@ -1,5 +1,5 @@
-import { useEffect } from "react"
 import type { CardInfo } from "../../api.ts"
+import { Modal, modalStyles as base } from "./Modal.tsx"
 import styles from "./Phase3SpellOutcomeModal.module.css"
 
 export function Phase3SpellOutcomeModal({
@@ -11,30 +11,19 @@ export function Phase3SpellOutcomeModal({
   onPick: (keepInPlay: boolean) => void
   onClose: () => void
 }) {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
-
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.title}>Phase 3 Spell</div>
-        <div className={styles.message}>
-          Choose what happens after casting <strong>{spell.name}</strong>.
-        </div>
-        <div className={styles.buttons}>
-          <button className={styles.button} onClick={() => onPick(false)}>
-            Cast and discard
-          </button>
-          <button className={styles.button} onClick={() => onPick(true)}>
-            Cast and keep in play
-          </button>
-        </div>
+    <Modal title="Phase 3 Spell" onClose={onClose}>
+      <div className={base.message}>
+        Choose what happens after casting <strong>{spell.name}</strong>.
       </div>
-    </div>
+      <div className={styles.buttons}>
+        <button className={base.button} onClick={() => onPick(false)}>
+          Cast and discard
+        </button>
+        <button className={base.button} onClick={() => onPick(true)}>
+          Cast and keep in play
+        </button>
+      </div>
+    </Modal>
   )
 }
