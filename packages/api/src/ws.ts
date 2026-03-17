@@ -92,11 +92,14 @@ function enqueueMove(gameId: string, fn: () => Promise<void>): Promise<void> {
   return next
 }
 
+const WS_IDLE_TIMEOUT_MS = 5_000
+
 interface WsData {
   gameId: string | null
   userId: string | null
   displayName: string | null
   lastChatTs: number
+  idleTimer: ReturnType<typeof setTimeout> | null
 }
 
 // ─── Broadcast helpers ────────────────────────────────────────────────────────
@@ -220,7 +223,16 @@ export async function processWsMove(
 
 export const wsHandlers = {
   open(ws: ServerWebSocket<WsData>) {
-    ws.data = { gameId: null, userId: null, displayName: null, lastChatTs: 0 }
+    const idleTimer = setTimeout(() => {
+      if (!ws.data.userId) {
+        try {
+          ws.close(4001, "Idle timeout — authenticate within 5 seconds")
+        } catch {
+          // Socket may already be closed
+        }
+      }
+    }, WS_IDLE_TIMEOUT_MS)
+    ws.data = { gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer }
   },
 
   async message(ws: ServerWebSocket<WsData>, raw: string | Buffer) {
@@ -293,7 +305,8 @@ export const wsHandlers = {
             }
           }
 
-          ws.data = { gameId, userId, displayName, lastChatTs: ws.data.lastChatTs }
+          if (ws.data.idleTimer) clearTimeout(ws.data.idleTimer)
+          ws.data = { gameId, userId, displayName, lastChatTs: ws.data.lastChatTs, idleTimer: null }
           if (!registry.has(gameId)) registry.set(gameId, new Map())
           registry.get(gameId)!.set(userId, ws)
 
@@ -384,7 +397,7 @@ export const wsHandlers = {
             return
           }
           ws.data.lastChatTs = now
-          const text = msg.text.trim().slice(0, 500)
+          const text = msg.text.trim().slice(0, 500).replace(/<[^>]*>/g, "")
           if (!text) return
           broadcastToGame(ws.data.gameId, {
             type: "CHAT_MSG",
@@ -441,6 +454,7 @@ export const wsHandlers = {
   },
 
   close(ws: ServerWebSocket<WsData>) {
+    if (ws.data.idleTimer) clearTimeout(ws.data.idleTimer)
     if (ws.data.gameId && ws.data.userId) {
       const players = registry.get(ws.data.gameId)
       if (players?.get(ws.data.userId) === ws) {

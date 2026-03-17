@@ -17,6 +17,7 @@ interface WsData {
   userId: string | null
   displayName: string | null
   lastChatTs: number
+  idleTimer: ReturnType<typeof setTimeout> | null
 }
 
 interface MockSocket extends ServerWebSocket<WsData> {
@@ -55,11 +56,11 @@ function mockSocket(data: WsData): MockSocket {
 }
 
 function notJoinedSocket(): MockSocket {
-  return mockSocket({ gameId: null, userId: null, displayName: null, lastChatTs: 0 })
+  return mockSocket({ gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer: null })
 }
 
 function joinedSocket(gameId: string, userId: string): MockSocket {
-  return mockSocket({ gameId, userId, displayName: null, lastChatTs: 0 })
+  return mockSocket({ gameId, userId, displayName: null, lastChatTs: 0, idleTimer: null })
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -381,12 +382,14 @@ describe("socket open", () => {
       userId: "stale",
       displayName: "stale",
       lastChatTs: 999,
+      idleTimer: null,
     })
     wsHandlers.open(ws as unknown as ServerWebSocket<WsData>)
     expect(ws.data.gameId).toBeNull()
     expect(ws.data.userId).toBeNull()
     expect(ws.data.displayName).toBeNull()
     expect(ws.data.lastChatTs).toBe(0)
+    expect(ws.data.idleTimer).not.toBeNull()
   })
 })
 
