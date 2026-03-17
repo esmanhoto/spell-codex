@@ -21,12 +21,7 @@ import {
   PROTECTED_BY,
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
-import {
-  calculateCombatLevel,
-  hasWorldMatch,
-  getLosingPlayer,
-  getPoolAttachments,
-} from "./combat.ts"
+import { getLosingPlayer, getPoolAttachments, getCombatLevels } from "./combat.ts"
 import {
   canChampionUseSpell,
   canCastWithSupport,
@@ -696,41 +691,15 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
   const isDefender = playerId === combat.defendingPlayer
   if (!isAttacker && !isDefender) return []
 
-  const targetRealmSlot =
-    state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
-  const realmWorldId = targetRealmSlot?.realm.card.worldId ?? 0
-  const defenderIsRealm = targetRealmSlot?.realm.instanceId === combat.defender?.instanceId
-
-  const attackerLevel =
-    combat.attackerManualLevel ??
-    (combat.attacker
-      ? calculateCombatLevel(
-          combat.attacker,
-          combat.attackerCards,
-          hasWorldMatch(combat.attacker, realmWorldId),
-          "offensive",
-          getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId),
-        )
-      : 0)
-
-  const defenderLevel =
-    combat.defenderManualLevel ??
-    (combat.defender
-      ? calculateCombatLevel(
-          combat.defender,
-          combat.defenderCards,
-          !defenderIsRealm && hasWorldMatch(combat.defender, realmWorldId),
-          "defensive",
-          getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId),
-        )
-      : 0)
-
+  const { attackerLevel, defenderLevel } = getCombatLevels(state, combat)
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, combat)
   const isLosing = playerId === losingPlayer
 
   const moves: Move[] = []
 
   const player = state.players[playerId]!
+  const combatRealmSlot =
+    state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
 
   if (isLosing) {
     // Losing player can play any combat-legal support card
@@ -744,12 +713,11 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
       attachments: activePoolEntry?.attachments.map((a) => a.card) ?? [],
     }
     if (!isAttacker && activeChampion) {
-      // targetRealmSlot is already looked up above as the RealmSlot object
-      if (targetRealmSlot) {
+      if (combatRealmSlot) {
         spellContext = {
           ...spellContext,
-          defendingRealm: targetRealmSlot.realm.card,
-          holdingsOnRealm: targetRealmSlot.holdings.map((h) => h.card),
+          defendingRealm: combatRealmSlot.realm.card,
+          holdingsOnRealm: combatRealmSlot.holdings.map((h) => h.card),
         }
       }
     }

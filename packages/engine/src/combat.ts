@@ -78,3 +78,45 @@ export function getPoolAttachments(
   const entry = state.players[playerId]?.pool.find((e) => e.champion.instanceId === championId)
   return entry?.attachments ?? []
 }
+
+/** Extracts realmWorldId and defenderIsRealm from combat context. */
+export function getCombatRealmContext(
+  state: GameState,
+  combat: CombatState,
+): { realmWorldId: number; defenderIsRealm: boolean } {
+  const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
+  const realmWorldId = realmSlot?.realm.card.worldId ?? 0
+  const defenderIsRealm = realmSlot?.realm.instanceId === combat.defender?.instanceId
+  return { realmWorldId, defenderIsRealm }
+}
+
+/** Computes attacker + defender levels, respecting manual overrides. */
+export function getCombatLevels(
+  state: GameState,
+  combat: CombatState,
+): { attackerLevel: number; defenderLevel: number } {
+  const { realmWorldId, defenderIsRealm } = getCombatRealmContext(state, combat)
+  const attackerLevel =
+    combat.attackerManualLevel ??
+    (combat.attacker
+      ? calculateCombatLevel(
+          combat.attacker,
+          combat.attackerCards,
+          hasWorldMatch(combat.attacker, realmWorldId),
+          "offensive",
+          getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId),
+        )
+      : 0)
+  const defenderLevel =
+    combat.defenderManualLevel ??
+    (combat.defender
+      ? calculateCombatLevel(
+          combat.defender,
+          combat.defenderCards,
+          !defenderIsRealm && hasWorldMatch(combat.defender, realmWorldId),
+          "defensive",
+          getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId),
+        )
+      : 0)
+  return { attackerLevel, defenderLevel }
+}

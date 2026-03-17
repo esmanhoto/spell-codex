@@ -20,6 +20,7 @@ import {
   nextPlayer,
   isChampionType,
   isSpellType,
+  findOrPromoteChampion,
 } from "./utils.ts"
 import {
   calculateCombatLevel,
@@ -27,6 +28,7 @@ import {
   resolveCombatRound,
   getLosingPlayer,
   getPoolAttachments,
+  getCombatLevels,
 } from "./combat.ts"
 import {
   getLegalMoves,
@@ -910,7 +912,6 @@ function handleDeclareAttack(
     throw new EngineError("ALREADY_ATTACKED", "Only one attack per turn")
   }
 
-  const player = state.players[playerId]!
   const targetPlayer = state.players[move.targetPlayerId]
   if (!targetPlayer) throw new EngineError("INVALID_TARGET_PLAYER")
 
@@ -919,28 +920,13 @@ function handleDeclareAttack(
     throw new EngineError("INVALID_TARGET_REALM", "Target realm is not in play")
   }
 
-  // Find attacker champion — pool first, then hand
-  let attackerChampion: CardInstance | null = null
-  const poolEntry = player.pool.find((e) => e.champion.instanceId === move.championId)
-  if (poolEntry) {
-    attackerChampion = poolEntry.champion
-  } else {
-    const handIdx = player.hand.findIndex((c) => c.instanceId === move.championId)
-    if (handIdx !== -1) {
-      const [card, newHand] = removeFromHand(player.hand, move.championId)
-      if (!isChampionType(card.card.typeId)) {
-        throw new EngineError("NOT_A_CHAMPION")
-      }
-      state = updatePlayer(state, playerId, {
-        hand: newHand,
-        pool: [...player.pool, { champion: card, attachments: [] }],
-      })
-      attackerChampion = card
-    }
-  }
-  if (!attackerChampion) {
-    throw new EngineError("CHAMPION_NOT_FOUND", "Attacker champion not in pool or hand")
-  }
+  const [attackerChampion, s0] = findOrPromoteChampion(
+    state,
+    playerId,
+    move.championId,
+    "Attacker champion not in pool or hand",
+  )
+  state = s0
 
   if (!isAttackable(targetPlayer.formation, move.targetRealmSlot, attackerChampion)) {
     throw new EngineError("REALM_PROTECTED", "Target realm is protected")
@@ -990,30 +976,24 @@ function handleDeclareDefense(
   }
 
   let s = state
-  let defenderChampion = null
-
-  // Check pool first
+  let defenderChampion: CardInstance
+  // Pool or hand promotion
   const poolEntry = s.players[playerId]!.pool.find((e) => e.champion.instanceId === move.championId)
-
   if (poolEntry) {
     defenderChampion = poolEntry.champion
   } else {
     const player = s.players[playerId]!
     const handIdx = player.hand.findIndex((c) => c.instanceId === move.championId)
     if (handIdx !== -1) {
-      // Check hand — champion played directly from hand to defend
       const [card, newHand] = removeFromHand(player.hand, move.championId)
-      if (!isChampionType(card.card.typeId)) {
-        throw new EngineError("NOT_A_CHAMPION")
-      }
-      // Move from hand into pool
+      if (!isChampionType(card.card.typeId)) throw new EngineError("NOT_A_CHAMPION")
       s = updatePlayer(s, playerId, {
         hand: newHand,
         pool: [...player.pool, { champion: card, attachments: [] }],
       })
       defenderChampion = card
     } else {
-      // Check self-defending realm in formation
+      // Self-defending realm in formation
       const realmSlot = s.players[playerId]!.formation.slots[combat.targetRealmSlot]
       if (
         realmSlot &&
@@ -1022,7 +1002,6 @@ function handleDeclareDefense(
         realmSlot.realm.card.level != null
       ) {
         defenderChampion = realmSlot.realm
-        // Realm stays in formation — not moved anywhere
       } else {
         throw new EngineError(
           "CHAMPION_NOT_FOUND",
@@ -1138,29 +1117,7 @@ function handlePlayCombatCard(
 
   const s = updatePlayer({ ...state, combatState: newCombat }, playerId, { hand: newHand })
 
-  // Recalculate levels and update active player (new losing side goes next)
-  // Respect manual overrides — same logic as getLegalMoves/getCardPlayMoves
-  const realmSlot = s.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
-  const realmWorldId = realmSlot?.realm.card.worldId ?? 0
-  const defenderIsRealm = realmSlot?.realm.instanceId === newCombat.defender?.instanceId
-  const attackerLevel =
-    newCombat.attackerManualLevel ??
-    calculateCombatLevel(
-      newCombat.attacker!,
-      newCombat.attackerCards,
-      hasWorldMatch(newCombat.attacker!, realmWorldId),
-      "offensive",
-      getPoolAttachments(s, combat.attackingPlayer, newCombat.attacker!.instanceId),
-    )
-  const defenderLevel =
-    newCombat.defenderManualLevel ??
-    calculateCombatLevel(
-      newCombat.defender!,
-      newCombat.defenderCards,
-      !defenderIsRealm && hasWorldMatch(newCombat.defender!, realmWorldId),
-      "defensive",
-      getPoolAttachments(s, combat.defendingPlayer, newCombat.defender!.instanceId),
-    )
+  const { attackerLevel, defenderLevel } = getCombatLevels(s, newCombat)
   const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
 
   return { ...s, activePlayer: losingPlayer }
@@ -1173,30 +1130,7 @@ function handleStopPlaying(state: GameState, playerId: PlayerId, events: GameEve
   }
   const combat = state.combatState!
 
-  const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
-  const realmWorldId = realmSlot?.realm.card.worldId ?? 0
-  const defenderIsRealm = realmSlot?.realm.instanceId === combat.defender?.instanceId
-
-  // Use manual override if set, otherwise auto-compute
-  const attackerLevel =
-    combat.attackerManualLevel ??
-    calculateCombatLevel(
-      combat.attacker!,
-      combat.attackerCards,
-      hasWorldMatch(combat.attacker!, realmWorldId),
-      "offensive",
-      getPoolAttachments(state, combat.attackingPlayer, combat.attacker!.instanceId),
-    )
-  const defenderLevel =
-    combat.defenderManualLevel ??
-    calculateCombatLevel(
-      combat.defender!,
-      combat.defenderCards,
-      !defenderIsRealm && hasWorldMatch(combat.defender!, realmWorldId),
-      "defensive",
-      getPoolAttachments(state, combat.defendingPlayer, combat.defender!.instanceId),
-    )
-
+  const { attackerLevel, defenderLevel } = getCombatLevels(state, combat)
   const outcome = resolveCombatRound(attackerLevel, defenderLevel)
   events.push({ type: "COMBAT_RESOLVED", outcome, attackerLevel, defenderLevel })
 
@@ -1219,29 +1153,12 @@ function handleContinueAttack(
     throw new EngineError("NOT_ATTACKER")
   }
 
-  let s = state
-  let continueChampion: CardInstance | null = null
-  const player = s.players[playerId]!
-  const poolEntry = player.pool.find((e) => e.champion.instanceId === move.championId)
-  if (poolEntry) {
-    continueChampion = poolEntry.champion
-  } else {
-    const handIdx = player.hand.findIndex((c) => c.instanceId === move.championId)
-    if (handIdx !== -1) {
-      const [card, newHand] = removeFromHand(player.hand, move.championId)
-      if (!isChampionType(card.card.typeId)) {
-        throw new EngineError("NOT_A_CHAMPION")
-      }
-      s = updatePlayer(s, playerId, {
-        hand: newHand,
-        pool: [...player.pool, { champion: card, attachments: [] }],
-      })
-      continueChampion = card
-    }
-  }
-  if (!continueChampion) {
-    throw new EngineError("CHAMPION_NOT_FOUND", "Attacker champion not in pool or hand")
-  }
+  const [continueChampion, s] = findOrPromoteChampion(
+    state,
+    playerId,
+    move.championId,
+    "Attacker champion not in pool or hand",
+  )
   if (combat.championsUsedThisBattle.includes(move.championId)) {
     throw new EngineError("CHAMPION_ALREADY_USED", "Cannot reuse a champion in the same battle")
   }
@@ -1337,29 +1254,8 @@ function handleSetCombatLevel(
     ? { ...combat, attackerManualLevel: move.level }
     : { ...combat, defenderManualLevel: move.level }
 
-  // Recalculate who is losing after the level change and update active player
-  const realmSlot = state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
-  const realmWorldId = realmSlot?.realm.card.worldId ?? 0
-  const defenderIsRealm = realmSlot?.realm.instanceId === newCombat.defender?.instanceId
-  const newAttackerLevel =
-    newCombat.attackerManualLevel ??
-    calculateCombatLevel(
-      newCombat.attacker!,
-      newCombat.attackerCards,
-      hasWorldMatch(newCombat.attacker!, realmWorldId),
-      "offensive",
-      getPoolAttachments(state, combat.attackingPlayer, newCombat.attacker!.instanceId),
-    )
-  const newDefenderLevel =
-    newCombat.defenderManualLevel ??
-    calculateCombatLevel(
-      newCombat.defender!,
-      newCombat.defenderCards,
-      !defenderIsRealm && hasWorldMatch(newCombat.defender!, realmWorldId),
-      "defensive",
-      getPoolAttachments(state, combat.defendingPlayer, newCombat.defender!.instanceId),
-    )
-  const losingPlayer = getLosingPlayer(newAttackerLevel, newDefenderLevel, newCombat)
+  const { attackerLevel, defenderLevel } = getCombatLevels(state, newCombat)
+  const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, newCombat)
 
   return { ...state, combatState: newCombat, activePlayer: losingPlayer }
 }
