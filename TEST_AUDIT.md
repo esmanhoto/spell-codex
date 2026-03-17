@@ -9,13 +9,13 @@
 | Package | Files | Tested | Coverage | Verdict |
 |---------|-------|--------|----------|---------|
 | engine | 27 | 27 | ~95% | **Phase 1 DONE** — 415 tests |
-| api | 15 | 17 | ~80% | **Phase 2a+2b DONE** — 171 tests |
+| api | 15 | 19 | ~90% | **Phase 2 DONE** — 190 tests |
 | db | 10 | 1 | ~9% | Critical — almost no direct tests |
 | web | 72 | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows |
 | data | 15 | 0 | 0% | None — zero tests |
 
-**Total test files**: 59 (27 engine + 17 api + 1 db + 4 web unit + 10 web e2e)
-**Total test count**: ~676+ (415 engine + 171 api + 8 db + 83 web)
+**Total test files**: 61 (27 engine + 19 api + 1 db + 4 web unit + 10 web e2e)
+**Total test count**: ~695+ (415 engine + 190 api + 8 db + 83 web)
 
 ### New Dependencies Required
 
@@ -75,7 +75,7 @@
 
 ---
 
-## Phase 2: packages/api — 17 test files
+## Phase 2: packages/api — 19 test files — ✅ COMPLETE
 
 ### What's tested
 - Auth middleware: bearer tokens, invalid tokens, participant auth (auth-bearer.test.ts)
@@ -119,12 +119,12 @@
 | Slug generation | ✅ | deck-validation.test.ts — 3 slug format tests |
 | Deck validation edge cases | ✅ | deck-validation.test.ts — 9 tests (empty, <55, >110, float, join) |
 
-### 2c. Low Priority
-| Gap | File | Detail |
-|-----|------|--------|
-| routes/cards.ts | routes/cards.ts | ✅ Security tests in cards-security.test.ts |
-| routes/dev.ts | routes/dev.ts | Dev endpoints — zero tests (116 LoC) |
-| CORS middleware | index.ts | Actual CORS header behavior untested |
+### 2c. Low Priority — ✅ DONE (19 tests in 2 files)
+| Gap | Status | Tests |
+|-----|--------|-------|
+| routes/cards.ts | ✅ | cards-security.test.ts (9 tests, done in 2a) |
+| routes/dev.ts | ✅ | dev-routes.test.ts — 15 tests (scenarios, card search, give-card, AUTH_BYPASS guard) |
+| CORS middleware | ✅ | cors.test.ts — 4 tests (preflight, public, auth routes, wildcard origin) |
 
 ---
 
