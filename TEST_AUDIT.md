@@ -9,13 +9,14 @@
 | Package | Files | Tested          | Coverage | Verdict                      |
 | ------- | ----- | --------------- | -------- | ---------------------------- |
 | engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 415 tests |
-| api     | 15    | 19              | ~90%     | **Phase 2 DONE** — 190 tests |
+| api     | 15    | 24              | ~92%     | **Phase 2 DONE** + Phase 6 — 221 tests |
 | db      | 10    | 8               | ~80%     | **Phase 3 DONE** — 72 tests  |
 | web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows  |
 | data    | 15    | 8               | ~60%     | **Phase 5 DONE** — 195 tests  |
+| cross   | —     | 5               | —        | **Phase 6 DONE** — 31 tests   |
 
-**Total test files**: 76 (27 engine + 19 api + 8 db + 4 web unit + 10 web e2e + 8 data)
-**Total test count**: ~955+ (415 engine + 190 api + 72 db + 83 web + 195 data)
+**Total test files**: 81 (27 engine + 24 api + 8 db + 4 web unit + 10 web e2e + 8 data)
+**Total test count**: ~986+ (415 engine + 221 api + 72 db + 83 web + 195 data)
 
 ### New Dependencies Required
 
@@ -278,25 +279,32 @@
 
 ---
 
-## Phase 6: Cross-Package / Integration Gaps
+## Phase 6: Cross-Package / Integration Gaps — ✅ COMPLETE (31 tests across 5 files)
 
-### 6a. High Priority
+### What's tested
 
-| Gap                 | Packages          | Detail                                                                                  |
-| ------------------- | ----------------- | --------------------------------------------------------------------------------------- |
-| Full move lifecycle | api + db + engine | HTTP/WS move → reconstruct → engine apply → persist → broadcast — only tested piecewise |
-| WS auth + game join | api + db          | Token verify → addGamePlayer → WS registry — untested as integration                    |
-| Deadline expiration | api + db + engine | Timer fires → findExpiredGames → PASS move → status update — zero tests                 |
+- Full move lifecycle: WS move → DB action persist → hash verify → broadcast → reconstruct parity
+- Deadline expiration: expired game → auto-PASS → DB action + hash + reconstruct validity
+- State cache coherence: cache miss → DB reconstruct → cache update → evict → re-verify parity across multiple moves
+- Client delta pipeline: DB hashState ↔ web hashEngineState parity, client serialization shape + hand visibility + legal moves
+- Dev scenario lifecycle: snapshot in DB, WS join, legal move submission, reconstruct, give-card end-to-end
 
-### 6b. Medium Priority
+### 6a. High Priority — ✅ DONE (10 tests in 2 files)
 
-| Gap                   | Packages     | Detail                                                                           |
-| --------------------- | ------------ | -------------------------------------------------------------------------------- |
-| State cache coherence | api + db     | Cache miss → DB reconstruct → cache update — no isolated test                    |
-| Client delta pipeline | web + engine | WS MOVE_APPLIED → local engine replay → serialize → render — untested end-to-end |
+| Gap                 | Status | Tests                                                                                       |
+| ------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| Full move lifecycle | ✅     | cross-move-lifecycle.test.ts — 6 tests (persist+hash, broadcast, reconstruct, multi-move, invalid/wrong-player rejection) |
+| Deadline expiration | ✅     | cross-deadline-lifecycle.test.ts — 4 tests (auto-PASS hash, reconstruct, skip non-active, multi-game) |
 
-### 6c. Low Priority
+### 6b. Medium Priority — ✅ DONE (15 tests in 2 files)
 
-| Gap               | Packages          | Detail                                         |
-| ----------------- | ----------------- | ---------------------------------------------- |
-| Dev scenario load | api + db + engine | Load scenario → inject state → play — untested |
+| Gap                   | Status | Tests                                                                                      |
+| --------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| State cache coherence | ✅     | cross-cache-coherence.test.ts — 6 tests (miss→hit, move+evict, multi-move parity, sequence, playerIds, full reconstruct) |
+| Client delta pipeline | ✅     | cross-client-delta.test.ts — 9 tests (hash parity initial+post-move+different+events, serialize shape+hand+legal+perspective+post-move) |
+
+### 6c. Low Priority — ✅ DONE (6 tests in 1 file)
+
+| Gap               | Status | Tests                                                                                      |
+| ----------------- | ------ | ------------------------------------------------------------------------------------------ |
+| Dev scenario load | ✅     | cross-dev-scenario.test.ts — 6 tests (snapshot in DB, reconstruct, WS join, move persist, reconstruct after move, give-card) |
