@@ -3,7 +3,7 @@ import { useBoard } from "../../context/BoardContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
 import type { CardInfo, SlotState } from "../../api.ts"
-import { cardImageUrl } from "../../utils/card-helpers.ts"
+import { cardImageUrl, findHandCard, findPoolChampion } from "../../utils/card-helpers.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
 import { resolveHandDropMove } from "../../utils/manual-actions.ts"
 import { CardTooltip } from "./CardTooltip.tsx"
@@ -29,14 +29,6 @@ export function Formation({
     useGameUI()
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null)
 
-  function findDraggedHandCard(instanceId: string): CardInfo | undefined {
-    for (const board of Object.values(allBoards)) {
-      const c = board.hand.find((card) => card.instanceId === instanceId)
-      if (c) return c
-    }
-    return undefined
-  }
-
   const isCardAlreadyInPlay = useCallback(
     (card: CardInfo): boolean => {
       return Object.values(allBoards).some((board) => {
@@ -57,14 +49,6 @@ export function Formation({
     },
     [allBoards],
   )
-
-  function findDraggedPoolChampion(instanceId: string): CardInfo | undefined {
-    for (const board of Object.values(allBoards)) {
-      const c = board.pool.find((entry) => entry.champion.instanceId === instanceId)?.champion
-      if (c) return c
-    }
-    return undefined
-  }
 
   function warnInvalidHandDrop(card: CardInfo, slot: string) {
     const phaseLabel = phase.replaceAll("_", " ")
@@ -149,7 +133,7 @@ export function Formation({
     if (!id) return
 
     if (source === "hand") {
-      const card = findDraggedHandCard(id)
+      const card = findHandCard(allBoards, id)
       const slotState = slots[slot] ?? null
       const resolved = resolveHandDropMove({
         legalMoves,
@@ -214,7 +198,7 @@ export function Formation({
     }
 
     if (source === "pool") {
-      const champion = findDraggedPoolChampion(id)
+      const champion = findPoolChampion(allBoards, id)
       const attackMove = legalMoves.find(
         (m) =>
           m.type === "DECLARE_ATTACK" &&

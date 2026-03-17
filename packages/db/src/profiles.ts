@@ -1,10 +1,7 @@
-import { drizzle } from "drizzle-orm/postgres-js"
 import { eq } from "drizzle-orm"
-import { sql } from "./connection.ts"
+import { db } from "./connection.ts"
 import { profiles } from "./schema.ts"
 import type { Profile } from "./schema.ts"
-
-const db = drizzle(sql)
 
 export async function getProfile(userId: string): Promise<Profile | null> {
   const [row] = await db.select().from(profiles).where(eq(profiles.userId, userId))

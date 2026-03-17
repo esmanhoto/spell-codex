@@ -1,20 +1,13 @@
 import type { ServerWebSocket } from "bun"
-import {
-  getGame,
-  getGameBySlug,
-  getGamePlayers,
-  reconstructState,
-  lastSequence,
-  saveAction,
-  setGameStatus,
-  touchGame,
-  hashState,
-} from "@spell/db"
+import { getGamePlayers, lastSequence, reconstructState } from "@spell/db"
+// lastSequence + reconstructState needed for JOIN_GAME fallback on finished games
 import { applyMove, EngineError } from "@spell/engine"
 import type { GameState } from "@spell/engine"
 import { serializeGameState } from "./serialize.ts"
 import { authBypassEnabled, verifySupabaseAccessTokenFull } from "./auth-verify.ts"
-import { getGameCache, setCachedState, evictCachedState } from "./state-cache.ts"
+import { getGameCache } from "./state-cache.ts"
+import { resolveGame } from "./utils.ts"
+import { loadGameState, persistMoveResult } from "./game-ops.ts"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -113,8 +106,6 @@ export function broadcastToGame(gameId: string, msg: ServerMessage): void {
 
 // ─── Move processing ──────────────────────────────────────────────────────────
 
-const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
-
 export async function processWsMove(
   gameId: string,
   userId: string,
@@ -122,48 +113,13 @@ export async function processWsMove(
 ): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
   const t0 = performance.now()
 
-  // Try cache first — on hit, skip all DB reads
-  const hit = getGameCache(gameId)
-  let state: GameState
-  let seq: number
-  let cacheHit: boolean
-
-  if (hit) {
-    if (!hit.playerIds.includes(userId)) {
-      return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
-    }
-    state = hit.state
-    seq = hit.sequence
-    cacheHit = true
-  } else {
-    // Cache miss — fall back to DB
-    const game = await getGame(gameId)
-    if (!game) return { ok: false, code: "NOT_FOUND", message: "Game not found" }
-    if (game.status !== "active") {
-      return { ok: false, code: "GAME_ENDED", message: "Game is not active" }
-    }
-
-    const players = await getGamePlayers(gameId)
-    if (!players.some((p) => p.userId === userId)) {
-      return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
-    }
-
-    seq = await lastSequence(gameId)
-    const { state: reconstructed } = await reconstructState(
-      gameId,
-      game.seed,
-      (game.stateSnapshot as GameState | null) ?? null,
-    )
-    state = reconstructed
-    const playerIds = players.map((p) => p.userId)
-    setCachedState(gameId, state, seq, {
-      playerIds,
-      seed: game.seed,
-      stateSnapshot: (game.stateSnapshot as GameState | null) ?? null,
-    })
-    cacheHit = false
+  const loaded = await loadGameState(gameId)
+  if (!loaded) return { ok: false, code: "NOT_FOUND", message: "Game not found or not active" }
+  if (!loaded.playerIds.includes(userId)) {
+    return { ok: false, code: "FORBIDDEN", message: "Not a participant" }
   }
-  const actionsReplayed = seq + 1
+
+  const { state, sequence: seq0, cacheHit } = loaded
   const t1 = performance.now()
 
   let result
@@ -180,38 +136,14 @@ export async function processWsMove(
   const t2 = performance.now()
 
   const tHashStart = performance.now()
-  const stateHash = hashState(result.newState)
+  const {
+    sequence: seq,
+    stateHash,
+    turnDeadline,
+  } = await persistMoveResult(gameId, userId, move, result.newState, seq0)
   const tHashEnd = performance.now()
 
-  const action = await saveAction({
-    gameId,
-    sequence: seq + 1,
-    playerId: userId,
-    move: move as Parameters<typeof saveAction>[0]["move"],
-    stateHash,
-  })
-  seq = action.sequence
-
-  // Update in-memory cache with the newly applied state
-  setCachedState(gameId, result.newState, seq)
-  if (result.newState.winner) evictCachedState(gameId)
-
-  const newStatus = result.newState.winner ? "finished" : "active"
-  const turnDeadline = result.newState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
-  const metaWrites = Promise.all([
-    setGameStatus(gameId, newStatus, result.newState.winner ?? undefined),
-    touchGame(gameId, turnDeadline),
-  ])
-  if (result.newState.winner) {
-    await metaWrites
-  } else {
-    void metaWrites
-  }
-
   // Broadcast delta update to all players — client applies via local engine
-  const newTurnDeadline = result.newState.winner
-    ? null
-    : new Date(Date.now() + TURN_DEADLINE_MS).toISOString()
   const sockets = registry.get(gameId)
   let broadcastBytes = 0
   const tSerializeStart = performance.now()
@@ -223,7 +155,7 @@ export async function processWsMove(
       move,
       stateHash,
       sequence: seq,
-      turnDeadline: newTurnDeadline,
+      turnDeadline: turnDeadline ? turnDeadline.toISOString() : null,
       status: result.newState.winner ? "finished" : "active",
       winner: result.newState.winner ?? null,
     }
@@ -251,7 +183,7 @@ export async function processWsMove(
       seq,
       move_type: move.type,
       cache_hit: cacheHit,
-      actions_replayed: actionsReplayed,
+      actions_replayed: seq0 + 1,
       reconstruct_ms: +(t1 - t0).toFixed(2),
       apply_move_ms: +(t2 - t1).toFixed(2),
       hash_ms: +(tHashEnd - tHashStart).toFixed(2),
@@ -313,9 +245,7 @@ export const wsHandlers = {
           }
 
           // Resolve slug or UUID → canonical game record
-          const game = /^[0-9a-f-]{36}$/i.test(idOrSlug)
-            ? await getGame(idOrSlug)
-            : await getGameBySlug(idOrSlug)
+          const game = await resolveGame(idOrSlug)
           if (!game) {
             send(ws, { type: "ERROR", code: "NOT_FOUND", message: "Game not found" })
             return
@@ -348,13 +278,15 @@ export const wsHandlers = {
           registry.get(gameId)!.set(userId, ws)
 
           // Send current state (serialized to the API shape the client expects)
-          const joinHit = getGameCache(gameId)
+          const loaded = await loadGameState(gameId)
+          // If game can't be loaded (e.g. finished), reconstruct directly
           let joinState: GameState
           let joinSeq: number
-          if (joinHit) {
-            joinState = joinHit.state
-            joinSeq = joinHit.sequence
+          if (loaded) {
+            joinState = loaded.state
+            joinSeq = loaded.sequence
           } else {
+            // Fallback for non-active games (e.g. finished)
             joinSeq = await lastSequence(gameId)
             const { state: reconstructed } = await reconstructState(
               gameId,
@@ -362,12 +294,6 @@ export const wsHandlers = {
               (game.stateSnapshot as GameState | null) ?? null,
             )
             joinState = reconstructed
-            const playerIds = players.map((p) => p.userId)
-            setCachedState(gameId, joinState, joinSeq, {
-              playerIds,
-              seed: game.seed,
-              stateSnapshot: (game.stateSnapshot as GameState | null) ?? null,
-            })
           }
           send(ws, {
             type: "STATE_UPDATE",

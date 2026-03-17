@@ -4,8 +4,6 @@ import { z } from "zod"
 import {
   createGame,
   addGamePlayer,
-  getGame,
-  getGameBySlug,
   getGamePlayers,
   reconstructState,
   setGameStatus,
@@ -15,7 +13,7 @@ import type { GameState } from "@spell/engine"
 import type { CardData } from "@spell/engine"
 import { serializeGameState } from "../serialize.ts"
 import type { AppVariables } from "../auth.ts"
-import { formatEmailAsName } from "../utils.ts"
+import { formatEmailAsName, resolveGame } from "../utils.ts"
 
 async function resolveNickname(userId: string, email: string | null): Promise<string> {
   const profile = await getProfile(userId)
@@ -62,16 +60,6 @@ const CreateLobbySchema = z.object({
 const JoinLobbySchema = z.object({
   deckSnapshot: z.array(CardDataSchema).min(55).max(110),
 })
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
-/** Resolves a game by UUID or slug. */
-async function resolveGame(idOrSlug: string) {
-  if (UUID_RE.test(idOrSlug)) return getGame(idOrSlug)
-  return getGameBySlug(idOrSlug)
-}
 
 export const gamesRouter = new Hono<{ Variables: AppVariables }>()
 

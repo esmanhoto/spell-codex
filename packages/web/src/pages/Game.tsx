@@ -27,7 +27,6 @@ import {
   ResolutionOutcomeModal,
   type ResolutionOutcome,
 } from "../components/game/ResolutionOutcomeModal.tsx"
-import { usePhaseTracker } from "../hooks/usePhaseTracker.ts"
 import {
   isSpellCard,
   resolveSpellMove,
@@ -104,7 +103,6 @@ export function Game() {
   const [wsError, setWsError] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
   const [rebuildTarget, setRebuildTarget] = useState<string | null>(null)
-  const [lastMoveType, setLastMoveType] = useState<string | null>(null)
   const [warningState, setWarningState] = useState<{
     message: string
     code: WarningCode
@@ -390,7 +388,10 @@ export function Game() {
         // Server confirmed — clear rollback snapshot
         lastConfirmedStateRef.current = null
         const state = msg.state as GameState
-        qc.setQueryData(["game", gameId, myPlayerId], state)
+        // Preserve players (nicknames) — WS STATE_UPDATE doesn't include them
+        const prev = currentDataRef.current
+        const merged = prev?.players ? { ...state, players: prev.players } : state
+        qc.setQueryData(["game", gameId, myPlayerId], merged)
         if (state.events?.length) processIncomingEvents(state.events)
       } else if (msg.type === "MOVE_APPLIED") {
         const engineState = localEngineStateRef.current
@@ -485,7 +486,6 @@ export function Game() {
       const moves = Array.isArray(m) ? m : [m]
       if (moves.length === 0) return
       setSelectedId(null)
-      setLastMoveType(moves[moves.length - 1]!.type)
 
       // Single move: apply optimistic state before sending
       if (moves.length === 1) {
@@ -702,15 +702,6 @@ export function Game() {
       })
     },
     [data, dispatchSpellMove, showWarning],
-  )
-
-  usePhaseTracker(
-    data?.phase ?? "",
-    data?.legalMoves ?? [],
-    sendMove,
-    data?.activePlayer ?? "",
-    myPlayerId,
-    lastMoveType,
   )
 
   // Auto-show spoil modal when CLAIM_SPOIL enters legal moves

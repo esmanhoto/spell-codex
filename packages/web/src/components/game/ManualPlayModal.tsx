@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import type { CardInfo } from "../../api.ts"
+import { useEscapeKey } from "../../hooks/useEscapeKey.ts"
 
 type ManualPlayTargetKind = "none" | "player" | "card" | "realm" | "pool"
 type ManualPlayResolution = "discard" | "lasting" | "lasting_target"
@@ -69,13 +70,7 @@ export function ManualPlayModal({
     }
   }, [targetKind, resolution])
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
+  useEscapeKey(useCallback(() => onClose(), [onClose]))
 
   const effectiveTargetKind = isRealmCard ? "realm" : targetKind
   const effectiveResolution = isRealmCard ? "lasting" : resolution
