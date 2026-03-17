@@ -115,8 +115,8 @@
 | SUBMIT_MOVE rate limiting             | ⚠️     | No rate limiting exists — documented gap (only chat is throttled)             |
 | Concurrent move race                  | ✅     | ws-game.test.ts — enqueueMove serialization test                              |
 | Malformed WS JSON                     | ✅     | ws-security.test.ts — 4 tests (invalid JSON, empty, binary, large)            |
-| DEV_GIVE_CARD blocked (C1)            | ✅     | games.test.ts — 1 test (HTTP 400) + ws-security.test.ts — 1 test (WS blocked) + engine — 2 tests (devMode guard) |
-| rawEngineState filtering (C2)         | ✅     | ws-security.test.ts — 5 tests (viewer preserved, opponent hidden, non-hidden zones, no mutation, symmetric) |
+| DEV_GIVE_CARD blocked                 | ✅     | games.test.ts — 1 test (HTTP 400) + ws-security.test.ts — 1 test (WS blocked) + engine — 2 tests (devMode guard) |
+| rawEngineState filtering              | ✅     | ws-security.test.ts — 5 tests (viewer preserved, opponent hidden, non-hidden zones, no mutation, symmetric) |
 
 ### 2b. Medium Priority (Reliability) — ✅ DONE (51 tests in 5 files)
 

@@ -55,7 +55,7 @@ describe("path traversal on /cards/:setId/:filename", () => {
   })
 })
 
-// ─── Param allowlist validation (C3 defense-in-depth) ────────────────────────
+// ─── Param allowlist validation (defense-in-depth) ──────────────────────────
 
 describe("cards param allowlist rejects traversal chars", () => {
   it("rejects setId with ../", async () => {

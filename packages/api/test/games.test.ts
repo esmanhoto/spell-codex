@@ -339,7 +339,7 @@ describe("POST /games/:id/moves", () => {
     expect(body.code).toBe("UNKNOWN_MOVE")
   })
 
-  it("rejects DEV_GIVE_CARD via the moves endpoint (C1 security fix)", async () => {
+  it("rejects DEV_GIVE_CARD via the moves endpoint", async () => {
     const res = await app.request(`/games/${gameId}/moves`, {
       method: "POST",
       headers: headers(PLAYER_A),

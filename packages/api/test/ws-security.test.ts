@@ -390,7 +390,7 @@ describe("socket open", () => {
   })
 })
 
-// ─── Blocked move types (C1 security fix) ────────────────────────────────────
+// ─── Blocked move types ──────────────────────────────────────────────────────
 
 describe("processWsMove blocked move types", () => {
   it("rejects DEV_GIVE_CARD without hitting DB or engine", async () => {
@@ -404,7 +404,7 @@ describe("processWsMove blocked move types", () => {
   })
 })
 
-// ─── filterStateForPlayer (C2 security fix) ──────────────────────────────────
+// ─── filterStateForPlayer ────────────────────────────────────────────────────
 
 describe("filterStateForPlayer", () => {
   const card = { instanceId: "c1", card: { name: "Test" } }
