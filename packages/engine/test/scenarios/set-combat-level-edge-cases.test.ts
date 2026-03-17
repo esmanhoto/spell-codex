@@ -1,6 +1,8 @@
 import { describe, test, expect, beforeEach } from "bun:test"
 import { applyMove } from "../../src/engine.ts"
+import { initGame } from "../../src/init.ts"
 import { _resetInstanceCounter } from "../../src/utils.ts"
+import { DEFAULT_CONFIG, EVENT_CARD } from "../fixtures.ts"
 import { inst, makeChampion, makeRealm, buildCombatCardPlayState } from "../scenario-builders.ts"
 
 beforeEach(() => {
@@ -195,8 +197,6 @@ describe("DISCARD_COMBAT_CARD", () => {
 
 describe("PLAY_RULE_CARD", () => {
   test("rule card played in START_OF_TURN goes to discard", () => {
-    const { initGame } = require("../../src/init.ts")
-    const { DEFAULT_CONFIG } = require("../fixtures.ts")
     const base = initGame(DEFAULT_CONFIG)
     const ruleCard = inst("rule1", {
       setId: "test", cardNumber: 700, name: "Test Rule", typeId: 15,
@@ -223,8 +223,6 @@ describe("PLAY_RULE_CARD", () => {
   })
 
   test("non-rule card throws NOT_A_RULE_CARD", () => {
-    const { initGame } = require("../../src/init.ts")
-    const { DEFAULT_CONFIG, EVENT_CARD } = require("../fixtures.ts")
     const base = initGame(DEFAULT_CONFIG)
     const eventCard = inst("ev1", EVENT_CARD)
 
