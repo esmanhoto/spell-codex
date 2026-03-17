@@ -7,9 +7,9 @@
   --input: 220 15% 18%;
   --ring: 45 70% 50%;
   --muted-foreground: 220 10% 50%;
-  --gold: 45 70% 50%;
-  --gold-dim: 45 50% 30%;
-  --gold-bright: 45 80% 65%;
+  --hsl-gold: 45 70% 50%;
+  --hsl-gold-dim: 45 50% 30%;
+  --hsl-gold-bright: 45 80% 65%;
   --arcane-blue: 200 60% 40%;
   --arcane-glow: 200 80% 55%;
   --realm-green: 140 40% 35%;

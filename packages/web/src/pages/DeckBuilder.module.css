@@ -47,7 +47,7 @@
 
 .pageTitle {
   margin: 0;
-  color: hsl(var(--gold-bright));
+  color: hsl(var(--hsl-gold-bright));
   font-family: "Cinzel", serif;
   font-size: 1.1rem;
   letter-spacing: 0.1em;
@@ -125,7 +125,7 @@
 
 .customDecksTitle {
   margin: 0 0 6px;
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
   font-family: "Cinzel", serif;
   font-size: 0.75rem;
   font-weight: 600;
@@ -159,7 +159,7 @@
 
 .customDeckRowActive {
   background: hsl(var(--card) / 0.5);
-  border-color: hsl(var(--gold-dim) / 0.5);
+  border-color: hsl(var(--hsl-gold-dim) / 0.5);
 }
 
 .customDeckName {
@@ -220,7 +220,7 @@
 
 .myDeckTitle {
   margin: 0;
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
   font-family: "Cinzel", serif;
   font-size: 0.75rem;
   font-weight: 600;
@@ -237,7 +237,7 @@
 }
 
 .deckCountUnder {
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
 }
 
 .levelInfo {
@@ -280,7 +280,7 @@
 }
 
 .miniCard:hover {
-  border-color: hsl(var(--gold) / 0.7);
+  border-color: hsl(var(--hsl-gold) / 0.7);
 }
 
 .miniCardImg {
@@ -327,7 +327,7 @@
 
 .tabActive {
   background: hsl(var(--card) / 0.7);
-  color: hsl(var(--gold-bright));
+  color: hsl(var(--hsl-gold-bright));
 }
 
 .tabCount {
@@ -354,7 +354,7 @@
 
 .sectionTitle {
   margin: 0;
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
   font-family: "Cinzel", serif;
   font-size: 0.8rem;
   font-weight: 600;
@@ -447,7 +447,7 @@
 }
 
 .worldDropdownItem input[type="checkbox"] {
-  accent-color: hsl(var(--gold));
+  accent-color: hsl(var(--hsl-gold));
 }
 
 .worldDropdownClear {
@@ -523,13 +523,13 @@
 }
 
 .gridCard:hover {
-  border-color: hsl(var(--gold-dim) / 0.5);
+  border-color: hsl(var(--hsl-gold-dim) / 0.5);
   background: hsl(var(--card) / 0.3);
 }
 
 .gridCardSelected {
-  border-color: hsl(var(--gold));
-  background: hsl(var(--gold) / 0.1);
+  border-color: hsl(var(--hsl-gold));
+  background: hsl(var(--hsl-gold) / 0.1);
 }
 
 .gridCardImg {
@@ -559,7 +559,7 @@
 
 .gridCardLevel {
   font-size: 9px;
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
 }
 
 /* ─── Tooltip for grid cards ────────────────────────── */
@@ -626,7 +626,7 @@
 .tooltipName {
   font-size: 11px;
   font-weight: bold;
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
   line-height: 1.2;
 }
 

@@ -60,7 +60,7 @@
 
 .brandName {
   margin: 0;
-  color: hsl(var(--gold-bright));
+  color: hsl(var(--hsl-gold-bright));
   font-family: "Cinzel", serif;
   font-size: 1.25rem;
   letter-spacing: 0.12em;
@@ -105,7 +105,7 @@
 }
 
 .displayNameValue {
-  color: hsl(var(--gold-bright));
+  color: hsl(var(--hsl-gold-bright));
   font-weight: 600;
   max-width: 160px;
   overflow: hidden;
@@ -174,7 +174,7 @@
 
 .heroTitle {
   margin: 0;
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
   font-family: "Cinzel", serif;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -214,7 +214,7 @@
 
 .actionCard:hover {
   transform: translateY(-2px);
-  border-color: hsl(var(--gold) / 0.5);
+  border-color: hsl(var(--hsl-gold) / 0.5);
 }
 
 .createIcon,
@@ -265,7 +265,7 @@
   border: 1px solid hsl(var(--border));
   border-radius: 10px;
   background: hsl(var(--card) / 0.4);
-  color: hsl(var(--gold-dim));
+  color: hsl(var(--hsl-gold-dim));
   font-family: "Cinzel", serif;
   font-size: 0.75rem;
   font-weight: 600;
@@ -281,8 +281,8 @@
 
 .deckBuilderLink:hover {
   background: hsl(var(--card) / 0.65);
-  color: hsl(var(--gold-bright));
-  border-color: hsl(var(--gold) / 0.4);
+  color: hsl(var(--hsl-gold-bright));
+  border-color: hsl(var(--hsl-gold) / 0.4);
 }
 
 .deckBuilderIcon {
@@ -301,7 +301,7 @@
 
 .rightTitle {
   margin: 0 0 14px;
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
   font-family: "Cinzel", serif;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -381,7 +381,7 @@
 
 .label,
 .subLabel {
-  color: hsl(var(--gold-dim));
+  color: hsl(var(--hsl-gold-dim));
   font-family: "Cinzel", serif;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -454,7 +454,7 @@
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card) / 0.9);
   box-shadow:
-    0 0 60px hsl(var(--gold) / 0.06),
+    0 0 60px hsl(var(--hsl-gold) / 0.06),
     0 25px 50px hsl(220 20% 4% / 0.5);
   backdrop-filter: blur(24px);
   padding: 24px;
@@ -464,7 +464,7 @@
 
 .modalTitle {
   margin: 0;
-  color: hsl(var(--gold));
+  color: hsl(var(--hsl-gold));
   font-family: "Cinzel", serif;
   text-transform: uppercase;
   letter-spacing: 0.05em;
