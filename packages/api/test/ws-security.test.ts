@@ -33,13 +33,21 @@ function mockSocket(data: WsData): MockSocket {
     },
     close() {},
     terminate() {},
-    publish() { return 0 },
+    publish() {
+      return 0
+    },
     subscribe() {},
     unsubscribe() {},
-    isSubscribed() { return false },
+    isSubscribed() {
+      return false
+    },
     cork() {},
-    ping() { return 0 },
-    pong() { return 0 },
+    ping() {
+      return 0
+    },
+    pong() {
+      return 0
+    },
     remoteAddress: "127.0.0.1",
     readyState: 1 as const,
     binaryType: "arraybuffer" as const,
@@ -227,7 +235,12 @@ describe("SYNC_REQUEST", () => {
       ws as unknown as ServerWebSocket<WsData>,
       JSON.stringify({ type: "SYNC_REQUEST", gameId: GAME }),
     )
-    const msg = ws.received[0] as { type: string; gameId: string; rawEngineState: unknown; sequence: number }
+    const msg = ws.received[0] as {
+      type: string
+      gameId: string
+      rawEngineState: unknown
+      sequence: number
+    }
     expect(msg.type).toBe("STATE_UPDATE")
     expect(msg.gameId).toBe(GAME)
     expect(msg.rawEngineState).toBeDefined()
@@ -278,7 +291,8 @@ describe("JOIN_GAME auth", () => {
     process.env["SUPABASE_ANON_KEY"] = "test-key"
 
     globalThis.fetch = (async (input: RequestInfo | URL): Promise<Response> => {
-      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url
+      const url =
+        typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url
       if (url === "http://supabase.mock/auth/v1/user") {
         return new Response(JSON.stringify({ message: "Invalid JWT" }), { status: 401 })
       }
@@ -362,7 +376,12 @@ describe("socket close", () => {
 
 describe("socket open", () => {
   it("initializes ws.data with null fields", () => {
-    const ws = mockSocket({ gameId: "stale", userId: "stale", displayName: "stale", lastChatTs: 999 })
+    const ws = mockSocket({
+      gameId: "stale",
+      userId: "stale",
+      displayName: "stale",
+      lastChatTs: 999,
+    })
     wsHandlers.open(ws as unknown as ServerWebSocket<WsData>)
     expect(ws.data.gameId).toBeNull()
     expect(ws.data.userId).toBeNull()

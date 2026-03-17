@@ -25,7 +25,9 @@ describe("dev routes (AUTH_BYPASS=true)", () => {
     it("returns list of available scenarios", async () => {
       const res = await app.request("/dev/scenarios")
       expect(res.status).toBe(200)
-      const body = (await res.json()) as { scenarios: Array<{ id: string; name: string; description: string }> }
+      const body = (await res.json()) as {
+        scenarios: Array<{ id: string; name: string; description: string }>
+      }
       expect(Array.isArray(body.scenarios)).toBe(true)
       for (const s of body.scenarios) {
         expect(typeof s.id).toBe("string")
@@ -52,7 +54,12 @@ describe("dev routes (AUTH_BYPASS=true)", () => {
       const scenarioId = scenarios[0]!.id
       const res = await app.request(`/dev/scenarios/${scenarioId}/load`, { method: "POST" })
       expect(res.status).toBe(200)
-      const body = (await res.json()) as { gameId: string; slug: string; p1UserId: string; p2UserId: string }
+      const body = (await res.json()) as {
+        gameId: string
+        slug: string
+        p1UserId: string
+        p2UserId: string
+      }
       expect(body.gameId).toBeString()
       expect(body.slug).toBeString()
       expect(body.p1UserId).toBeString()
@@ -73,7 +80,9 @@ describe("dev routes (AUTH_BYPASS=true)", () => {
     it("searches cards by name substring", async () => {
       const res = await app.request("/dev/cards?q=dragon")
       expect(res.status).toBe(200)
-      const body = (await res.json()) as { cards: Array<{ name: string; setId: string; cardNumber: number }> }
+      const body = (await res.json()) as {
+        cards: Array<{ name: string; setId: string; cardNumber: number }>
+      }
       expect(body.cards.length).toBeGreaterThan(0)
       for (const card of body.cards) {
         expect(card.name.toLowerCase()).toContain("dragon")
@@ -120,7 +129,9 @@ describe("dev routes (AUTH_BYPASS=true)", () => {
       const { scenarios } = (await listRes.json()) as { scenarios: Array<{ id: string }> }
       if (scenarios.length === 0) return
 
-      const loadRes = await app.request(`/dev/scenarios/${scenarios[0]!.id}/load`, { method: "POST" })
+      const loadRes = await app.request(`/dev/scenarios/${scenarios[0]!.id}/load`, {
+        method: "POST",
+      })
       const { gameId, p1UserId } = (await loadRes.json()) as { gameId: string; p1UserId: string }
 
       const res = await app.request(`/dev/games/${gameId}/give-card`, {
@@ -136,7 +147,9 @@ describe("dev routes (AUTH_BYPASS=true)", () => {
       const { scenarios } = (await listRes.json()) as { scenarios: Array<{ id: string }> }
       if (scenarios.length === 0) return
 
-      const loadRes = await app.request(`/dev/scenarios/${scenarios[0]!.id}/load`, { method: "POST" })
+      const loadRes = await app.request(`/dev/scenarios/${scenarios[0]!.id}/load`, {
+        method: "POST",
+      })
       const { gameId, p1UserId } = (await loadRes.json()) as { gameId: string; p1UserId: string }
 
       const res = await app.request(`/dev/games/${gameId}/give-card`, {

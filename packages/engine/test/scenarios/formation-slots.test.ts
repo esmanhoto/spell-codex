@@ -4,7 +4,11 @@ import type { Formation } from "../../src/types.ts"
 import { inst, makeRealm } from "../scenario-builders.ts"
 
 function makeSlot(id: string) {
-  return { realm: inst(id, makeRealm({ cardNumber: parseInt(id, 36) })), isRazed: false, holdings: [] }
+  return {
+    realm: inst(id, makeRealm({ cardNumber: parseInt(id, 36) })),
+    isRazed: false,
+    holdings: [],
+  }
 }
 
 // ─── Size 6 formation slots (already partially covered) ─────────────────────
@@ -37,8 +41,12 @@ describe("getLegalRealmSlots: size 6", () => {
     const f: Formation = {
       size: 6,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"), F: makeSlot("f"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
+        F: makeSlot("f"),
       },
     }
     expect(getLegalRealmSlots(f)).toEqual([])
@@ -52,8 +60,12 @@ describe("getLegalRealmSlots: size 8", () => {
     const f: Formation = {
       size: 8,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"), F: makeSlot("f"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
+        F: makeSlot("f"),
       },
     }
     expect(getLegalRealmSlots(f)).toEqual(["G", "H"])
@@ -63,8 +75,11 @@ describe("getLegalRealmSlots: size 8", () => {
     const f: Formation = {
       size: 8,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
       },
     }
     const legal = getLegalRealmSlots(f)
@@ -77,9 +92,14 @@ describe("getLegalRealmSlots: size 8", () => {
     const f: Formation = {
       size: 8,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"), F: makeSlot("f"),
-        G: makeSlot("g"), H: makeSlot("h"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
+        F: makeSlot("f"),
+        G: makeSlot("g"),
+        H: makeSlot("h"),
       },
     }
     expect(getLegalRealmSlots(f)).toEqual([])
@@ -89,8 +109,12 @@ describe("getLegalRealmSlots: size 8", () => {
     const f: Formation = {
       size: 6,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"), F: makeSlot("f"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
+        F: makeSlot("f"),
       },
     }
     expect(getLegalRealmSlots(f)).toEqual([])
@@ -104,9 +128,14 @@ describe("getLegalRealmSlots: size 10", () => {
     const f: Formation = {
       size: 10,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"), F: makeSlot("f"),
-        G: makeSlot("g"), H: makeSlot("h"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
+        F: makeSlot("f"),
+        G: makeSlot("g"),
+        H: makeSlot("h"),
       },
     }
     expect(getLegalRealmSlots(f)).toEqual(["I", "J"])
@@ -116,8 +145,12 @@ describe("getLegalRealmSlots: size 10", () => {
     const f: Formation = {
       size: 10,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"), F: makeSlot("f"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
+        F: makeSlot("f"),
         G: makeSlot("g"),
       },
     }
@@ -131,9 +164,16 @@ describe("getLegalRealmSlots: size 10", () => {
     const f: Formation = {
       size: 10,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"), F: makeSlot("f"),
-        G: makeSlot("g"), H: makeSlot("h"), I: makeSlot("i"), J: makeSlot("j"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
+        F: makeSlot("f"),
+        G: makeSlot("g"),
+        H: makeSlot("h"),
+        I: makeSlot("i"),
+        J: makeSlot("j"),
       },
     }
     expect(getLegalRealmSlots(f)).toEqual([])
@@ -143,9 +183,14 @@ describe("getLegalRealmSlots: size 10", () => {
     const f: Formation = {
       size: 8,
       slots: {
-        A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c"),
-        D: makeSlot("d"), E: makeSlot("e"), F: makeSlot("f"),
-        G: makeSlot("g"), H: makeSlot("h"),
+        A: makeSlot("a"),
+        B: makeSlot("b"),
+        C: makeSlot("c"),
+        D: makeSlot("d"),
+        E: makeSlot("e"),
+        F: makeSlot("f"),
+        G: makeSlot("g"),
+        H: makeSlot("h"),
       },
     }
     expect(getLegalRealmSlots(f)).toEqual([])

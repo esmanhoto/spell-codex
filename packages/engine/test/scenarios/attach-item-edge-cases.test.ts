@@ -54,7 +54,11 @@ describe("ATTACH_ITEM: artifact restrictions", () => {
   test("second artifact on same champion throws ARTIFACT_ALREADY_ATTACHED", () => {
     const base = initGame(DEFAULT_CONFIG)
     const champion = inst("champ", makeChampion())
-    const existingArt = inst("art-existing", { ...ARTIFACT_FR, name: "Existing Artifact", cardNumber: 302 })
+    const existingArt = inst("art-existing", {
+      ...ARTIFACT_FR,
+      name: "Existing Artifact",
+      cardNumber: 302,
+    })
     const newArt = inst("art-new", { ...ARTIFACT_FR, name: "New Artifact", cardNumber: 303 })
 
     const state: GameState = {
@@ -83,7 +87,11 @@ describe("ATTACH_ITEM: artifact restrictions", () => {
     const base = initGame(DEFAULT_CONFIG)
     const champion = inst("champ", makeChampion())
     const item1 = inst("item1", MAGICAL_ITEM_PLUS2_PLUS1)
-    const item2 = inst("item2", { ...MAGICAL_ITEM_PLUS2_PLUS1, name: "Sword of Glory", cardNumber: 203 })
+    const item2 = inst("item2", {
+      ...MAGICAL_ITEM_PLUS2_PLUS1,
+      name: "Sword of Glory",
+      cardNumber: 203,
+    })
 
     const state: GameState = {
       ...base,

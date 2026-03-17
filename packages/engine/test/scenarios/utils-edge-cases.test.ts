@@ -61,21 +61,21 @@ describe("parseLevel: invalid/edge formats", () => {
     expect(parseLevel(-2)).toBe(-2)
   })
 
-  test("valid string \"+4\" returns 4", () => {
+  test('valid string "+4" returns 4', () => {
     expect(parseLevel("+4")).toBe(4)
   })
 
-  test("valid slash \"+2/+1\" returns offensive by default", () => {
+  test('valid slash "+2/+1" returns offensive by default', () => {
     expect(parseLevel("+2/+1")).toBe(2)
     expect(parseLevel("+2/+1", "defensive")).toBe(1)
   })
 
-  test("\"++4\" — parseInt stops at first non-digit, returns NaN → 0", () => {
+  test('"++4" — parseInt stops at first non-digit, returns NaN → 0', () => {
     // parseInt("++4") is NaN
     expect(parseLevel("++4")).toBe(0)
   })
 
-  test("\"+4/+3/+2\" — split gives 3 parts, only first two used", () => {
+  test('"+4/+3/+2" — split gives 3 parts, only first two used', () => {
     // split("/") → ["+4", "+3", "+2"], offStr="+4", defStr="+3"
     expect(parseLevel("+4/+3/+2", "offensive")).toBe(4)
     expect(parseLevel("+4/+3/+2", "defensive")).toBe(3)
@@ -89,11 +89,11 @@ describe("parseLevel: invalid/edge formats", () => {
     expect(parseLevel("abc")).toBe(0)
   })
 
-  test("negative string \"-3\" returns -3", () => {
+  test('negative string "-3" returns -3', () => {
     expect(parseLevel("-3")).toBe(-3)
   })
 
-  test("slash with empty parts \"/\" returns 0", () => {
+  test('slash with empty parts "/" returns 0', () => {
     // split("/") → ["", ""], parseInt("") → NaN → 0
     expect(parseLevel("/")).toBe(0)
     expect(parseLevel("/", "defensive")).toBe(0)

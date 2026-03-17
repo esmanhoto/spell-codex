@@ -52,9 +52,9 @@ describe("nested resolution is blocked", () => {
     const state = stateWithActiveResolution()
     const moves = getLegalMoves(state, "p1")
 
-    expect(moves.some((m) => m.type === "PLAY_SPELL" as any)).toBe(false)
-    expect(moves.some((m) => m.type === "PLAY_EVENT" as any)).toBe(false)
-    expect(moves.some((m) => m.type === "PLAY_PHASE3_CARD" as any)).toBe(false)
+    expect(moves.some((m) => m.type === ("PLAY_SPELL" as any))).toBe(false)
+    expect(moves.some((m) => m.type === ("PLAY_EVENT" as any))).toBe(false)
+    expect(moves.some((m) => m.type === ("PLAY_PHASE3_CARD" as any))).toBe(false)
   })
 
   test("non-resolving player gets zero moves (no counter window)", () => {

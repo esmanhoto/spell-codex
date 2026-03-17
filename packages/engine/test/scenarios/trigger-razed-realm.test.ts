@@ -13,19 +13,25 @@ beforeEach(() => {
 const TRIGGER_EFFECT = { type: "turn_trigger" as const, timing: "start" as const }
 
 function realmWithTrigger(id: string) {
-  return inst(id, makeRealm({
-    cardNumber: parseInt(id, 36),
-    name: `Trigger Realm ${id}`,
-    effects: [TRIGGER_EFFECT],
-  }))
+  return inst(
+    id,
+    makeRealm({
+      cardNumber: parseInt(id, 36),
+      name: `Trigger Realm ${id}`,
+      effects: [TRIGGER_EFFECT],
+    }),
+  )
 }
 
 function holdingWithTrigger(id: string) {
-  return inst(id, makeHolding({
-    cardNumber: parseInt(id, 36),
-    name: `Trigger Holding ${id}`,
-    effects: [TRIGGER_EFFECT],
-  }))
+  return inst(
+    id,
+    makeHolding({
+      cardNumber: parseInt(id, 36),
+      name: `Trigger Holding ${id}`,
+      effects: [TRIGGER_EFFECT],
+    }),
+  )
 }
 
 describe("populateTriggers: razed realm skipping", () => {

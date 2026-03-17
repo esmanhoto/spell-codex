@@ -34,13 +34,21 @@ function mockSocket(data?: Partial<WsData>): MockSocket {
     },
     close() {},
     terminate() {},
-    publish() { return 0 },
+    publish() {
+      return 0
+    },
     subscribe() {},
     unsubscribe() {},
-    isSubscribed() { return false },
+    isSubscribed() {
+      return false
+    },
     cork() {},
-    ping() { return 0 },
-    pong() { return 0 },
+    ping() {
+      return 0
+    },
+    pong() {
+      return 0
+    },
     remoteAddress: "127.0.0.1",
     readyState: 1 as const,
     binaryType: "arraybuffer" as const,

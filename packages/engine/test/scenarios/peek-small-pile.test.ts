@@ -35,12 +35,17 @@ describe("peek with small draw pile", () => {
   test("peek 3 from pile with 3+ cards: returns 3", () => {
     const state = stateWithDrawPile(5)
     const events: GameEvent[] = []
-    const newState = handleResolveTriggerPeek(state, "p1", {
-      type: "RESOLVE_TRIGGER_PEEK",
-      targetPlayerId: "p1",
-      source: "draw_pile",
-      count: 3,
-    }, events)
+    const newState = handleResolveTriggerPeek(
+      state,
+      "p1",
+      {
+        type: "RESOLVE_TRIGGER_PEEK",
+        targetPlayerId: "p1",
+        source: "draw_pile",
+        count: 3,
+      },
+      events,
+    )
 
     const peek = newState.pendingTriggers[0]!.peekContext!
     expect(peek.cards).toHaveLength(3)
@@ -51,12 +56,17 @@ describe("peek with small draw pile", () => {
   test("peek 3 from pile with 2 cards: returns only 2", () => {
     const state = stateWithDrawPile(2)
     const events: GameEvent[] = []
-    const newState = handleResolveTriggerPeek(state, "p1", {
-      type: "RESOLVE_TRIGGER_PEEK",
-      targetPlayerId: "p1",
-      source: "draw_pile",
-      count: 3,
-    }, events)
+    const newState = handleResolveTriggerPeek(
+      state,
+      "p1",
+      {
+        type: "RESOLVE_TRIGGER_PEEK",
+        targetPlayerId: "p1",
+        source: "draw_pile",
+        count: 3,
+      },
+      events,
+    )
 
     const peek = newState.pendingTriggers[0]!.peekContext!
     expect(peek.cards).toHaveLength(2)
@@ -66,12 +76,17 @@ describe("peek with small draw pile", () => {
   test("peek 3 from pile with 1 card: returns only 1", () => {
     const state = stateWithDrawPile(1)
     const events: GameEvent[] = []
-    const newState = handleResolveTriggerPeek(state, "p1", {
-      type: "RESOLVE_TRIGGER_PEEK",
-      targetPlayerId: "p1",
-      source: "draw_pile",
-      count: 3,
-    }, events)
+    const newState = handleResolveTriggerPeek(
+      state,
+      "p1",
+      {
+        type: "RESOLVE_TRIGGER_PEEK",
+        targetPlayerId: "p1",
+        source: "draw_pile",
+        count: 3,
+      },
+      events,
+    )
 
     const peek = newState.pendingTriggers[0]!.peekContext!
     expect(peek.cards).toHaveLength(1)
@@ -81,12 +96,17 @@ describe("peek with small draw pile", () => {
     const state = stateWithDrawPile(0)
     const events: GameEvent[] = []
     expect(() =>
-      handleResolveTriggerPeek(state, "p1", {
-        type: "RESOLVE_TRIGGER_PEEK",
-        targetPlayerId: "p1",
-        source: "draw_pile",
-        count: 3,
-      }, events),
+      handleResolveTriggerPeek(
+        state,
+        "p1",
+        {
+          type: "RESOLVE_TRIGGER_PEEK",
+          targetPlayerId: "p1",
+          source: "draw_pile",
+          count: 3,
+        },
+        events,
+      ),
     ).toThrow("No cards to peek")
   })
 
@@ -94,12 +114,17 @@ describe("peek with small draw pile", () => {
     const state = stateWithDrawPile(2)
     const drawBefore = state.players["p1"]!.drawPile.length
     const events: GameEvent[] = []
-    const newState = handleResolveTriggerPeek(state, "p1", {
-      type: "RESOLVE_TRIGGER_PEEK",
-      targetPlayerId: "p1",
-      source: "draw_pile",
-      count: 3,
-    }, events)
+    const newState = handleResolveTriggerPeek(
+      state,
+      "p1",
+      {
+        type: "RESOLVE_TRIGGER_PEEK",
+        targetPlayerId: "p1",
+        source: "draw_pile",
+        count: 3,
+      },
+      events,
+    )
 
     expect(newState.players["p1"]!.drawPile.length).toBe(drawBefore - 2)
   })
@@ -115,11 +140,16 @@ describe("peek hand: always returns all cards regardless of count", () => {
     const handSize = state.players["p1"]!.hand.length
     const events: GameEvent[] = []
 
-    const newState = handleResolveTriggerPeek(state, "p1", {
-      type: "RESOLVE_TRIGGER_PEEK",
-      targetPlayerId: "p1",
-      source: "hand",
-    }, events)
+    const newState = handleResolveTriggerPeek(
+      state,
+      "p1",
+      {
+        type: "RESOLVE_TRIGGER_PEEK",
+        targetPlayerId: "p1",
+        source: "hand",
+      },
+      events,
+    )
 
     const peek = newState.pendingTriggers[0]!.peekContext!
     expect(peek.cards).toHaveLength(handSize)
