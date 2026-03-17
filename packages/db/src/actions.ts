@@ -1,11 +1,8 @@
-import { drizzle } from "drizzle-orm/postgres-js"
 import { eq, asc } from "drizzle-orm"
 import type { Move } from "@spell/engine"
-import { sql } from "./connection.ts"
+import { db } from "./connection.ts"
 import { gameActions } from "./schema.ts"
 import type { GameAction } from "./schema.ts"
-
-const db = drizzle(sql)
 
 // ─── Save ─────────────────────────────────────────────────────────────────────
 

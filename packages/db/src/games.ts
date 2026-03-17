@@ -1,12 +1,9 @@
-import { drizzle } from "drizzle-orm/postgres-js"
 import { eq } from "drizzle-orm"
 import type { CardData } from "@spell/engine"
-import { sql } from "./connection.ts"
+import { db } from "./connection.ts"
 import { games, gamePlayers } from "./schema.ts"
 import type { Game, GamePlayer } from "./schema.ts"
 import { generateGameSlug } from "./slug.ts"
-
-const db = drizzle(sql)
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
