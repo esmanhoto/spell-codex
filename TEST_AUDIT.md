@@ -9,13 +9,13 @@
 | Package | Files | Tested | Coverage | Verdict |
 |---------|-------|--------|----------|---------|
 | engine | 27 | 27 | ~95% | **Phase 1 DONE** — 415 tests |
-| api | 15 | 12 | ~65% | **Phase 2a DONE** — 116 tests |
+| api | 15 | 17 | ~80% | **Phase 2a+2b DONE** — 171 tests |
 | db | 10 | 1 | ~9% | Critical — almost no direct tests |
 | web | 72 | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows |
 | data | 15 | 0 | 0% | None — zero tests |
 
-**Total test files**: 54 (27 engine + 12 api + 1 db + 4 web unit + 10 web e2e)
-**Total test count**: ~621+ (415 engine + 116 api + 8 db + 83 web)
+**Total test files**: 59 (27 engine + 17 api + 1 db + 4 web unit + 10 web e2e)
+**Total test count**: ~676+ (415 engine + 171 api + 8 db + 83 web)
 
 ### New Dependencies Required
 
@@ -75,7 +75,7 @@
 
 ---
 
-## Phase 2: packages/api — 12 test files
+## Phase 2: packages/api — 17 test files
 
 ### What's tested
 - Auth middleware: bearer tokens, invalid tokens, participant auth (auth-bearer.test.ts)
@@ -90,6 +90,11 @@
 - Perf: reconstruction scaling, serialization size (perf.test.ts)
 - Decks: cards by set, deck list, hydrated decks (decks.test.ts)
 - Utils: formatEmailAsName (utils.test.ts)
+- State cache: get/set/evict, meta, isolation (state-cache.test.ts — 11 tests)
+- Serialization: hand visibility, peek context, deck images, turnDeadline, legal moves (serialize.test.ts — 18 tests)
+- Game ops: loadGameState cache/DB, persistMoveResult sequence + hash (game-ops.test.ts — 6 tests)
+- Deadline: processExpiredGames, findExpiredGames (deadline.test.ts — 4 tests)
+- Deck validation: min/max cards, float values, join validation, slug format (deck-validation.test.ts — 12 tests)
 
 ### 2a. High Priority (Security) — ✅ DONE (46 tests in 4 files)
 | Gap | Status | Tests |
@@ -104,15 +109,15 @@
 | Concurrent move race | ✅ | ws-game.test.ts — enqueueMove serialization test |
 | Malformed WS JSON | ✅ | ws-security.test.ts — 4 tests (invalid JSON, empty, binary, large) |
 
-### 2b. Medium Priority (Reliability)
-| Gap | File | Detail |
-|-----|------|--------|
-| deadline.ts | deadline.ts | Entire turn-timeout system untested (76 LoC) |
-| game-ops.ts | game-ops.ts | State loading, move persistence, cache logic (92 LoC) |
-| state-cache.ts | state-cache.ts | TTL, eviction, collision edge cases (79 LoC) |
-| serialize.ts | serialize.ts | Visibility filtering, hand hiding, peek context |
-| Slug collision | games.ts | 10-retry unique slug generation untested |
-| Deck validation edge cases | games.ts | Empty deck, >110 cards, float values |
+### 2b. Medium Priority (Reliability) — ✅ DONE (51 tests in 5 files)
+| Gap | Status | Tests |
+|-----|--------|-------|
+| deadline.ts | ✅ | deadline.test.ts — 4 tests (processExpiredGames, findExpiredGames) |
+| game-ops.ts | ✅ | game-ops.test.ts — 6 tests (loadGameState cache/DB, persistMoveResult) |
+| state-cache.ts | ✅ | state-cache.test.ts — 11 tests (get/set/evict, meta, isolation) |
+| serialize.ts | ✅ | serialize.test.ts — 18 tests (hand visibility, peek context, deck images, status) |
+| Slug generation | ✅ | deck-validation.test.ts — 3 slug format tests |
+| Deck validation edge cases | ✅ | deck-validation.test.ts — 9 tests (empty, <55, >110, float, join) |
 
 ### 2c. Low Priority
 | Gap | File | Detail |
