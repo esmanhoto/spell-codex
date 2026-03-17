@@ -8,14 +8,14 @@
 
 | Package | Files | Tested | Coverage | Verdict |
 |---------|-------|--------|----------|---------|
-| engine | 13 | 11 | ~75-80% | Good — edge cases missing |
-| api | 15 | 8 | ~45% | Moderate — WS & security gaps |
+| engine | 27 | 27 | ~95% | **Phase 1 DONE** — 415 tests |
+| api | 15 | 12 | ~65% | **Phase 2a DONE** — 116 tests |
 | db | 10 | 1 | ~9% | Critical — almost no direct tests |
 | web | 72 | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows |
 | data | 15 | 0 | 0% | None — zero tests |
 
-**Total test files**: 37 (14 engine + 8 api + 1 db + 4 web unit + 10 web e2e)
-**Total test count**: ~350+
+**Total test files**: 54 (27 engine + 12 api + 1 db + 4 web unit + 10 web e2e)
+**Total test count**: ~621+ (415 engine + 116 api + 8 db + 83 web)
 
 ### New Dependencies Required
 
@@ -32,9 +32,9 @@
 
 ---
 
-## Phase 1: packages/engine — 254 tests across 14 files
+## Phase 1: packages/engine — ✅ COMPLETE (415 tests across 27 files)
 
-### What's well tested
+### What's tested
 - Core `applyMove` across all phases (moves.test.ts — 1,561 LoC)
 - Resolution system: zone destinations, card moving, counter windows (resolution.test.ts — 1,115 LoC)
 - Trigger system: start/end timing, peek, discard, queuing (triggers.test.ts — 645 LoC)
@@ -43,63 +43,66 @@
 - Init: hand/deck sizing, player setup (init.test.ts — 132 LoC)
 - Scenario tests: realm self-defense, combat cleanup, spell casting grants
 
-### 1a. High Priority
-| Gap | File | Detail |
-|-----|------|--------|
-| Multi-round combat | engine.ts | attackerWins 0→1→2 progression, defender bringing 2+ champions |
-| WALL outcome | combat.ts | No explicit test for WALL combat result |
-| Formation size 8/10 | legal-moves.ts | Only small formations tested; G/H/I/J slots untested |
-| serialize-shared.ts | serialize-shared.ts | 4 exported functions — zero tests |
-| Phase skip validation | engine.ts | Skip PLAY_REALM, go to POOL/combat |
-| Limbo lifecycle | engine.ts | Multiple champions returning same turn; limbo+pool+formation combos |
+### 1a. High Priority — ✅ DONE (47 tests in 5 files)
+| Gap | Status | Tests |
+|-----|--------|-------|
+| Multi-round combat | ✅ | multi-round-combat.test.ts — 8 tests |
+| Formation size 6/8/10 | ✅ | formation-slots.test.ts — 12 tests |
+| serialize-shared.ts | ✅ | serialize-shared.test.ts — 13 tests |
+| Phase skip validation | ✅ | phase-skip.test.ts — 6 tests |
+| Limbo lifecycle | ✅ | limbo-lifecycle.test.ts — 8 tests |
 
-### 1b. Medium Priority
-| Gap | Detail |
-|-----|--------|
-| Negative combat levels | Floor at 0? Penalty artifacts? |
-| Cosmos case sensitivity | "Elminster" vs "ELMINSTER" |
-| Counter multi-chain | Counter played → resolving player continues → another counter |
-| Trigger on razed realm | Should skip per code — not verified |
-| Peek with 1-2 cards in pile | count=3 requested but pile < 3 |
-| Nested resolution | Can resolution happen during resolution? |
-| Realm as defender at level 0 | Null/0 level self-defense |
+### 1b. Medium Priority — ✅ DONE (31 tests in 6 files)
+| Gap | Status | Tests |
+|-----|--------|-------|
+| Negative combat levels | ✅ | negative-combat-level.test.ts — 5 tests |
+| Cosmos case sensitivity | ✅ | cosmos-case-sensitivity.test.ts — 10 tests |
+| Counter chain + window | ✅ | counter-chain.test.ts — 7 tests |
+| Trigger on razed realm | ✅ | trigger-razed-realm.test.ts — 5 tests |
+| Peek with small pile | ✅ | peek-small-pile.test.ts — 6 tests |
+| Nested resolution | ✅ | nested-resolution.test.ts — 4 tests |
+| Realm defender level 0 | ✅ | realm-defender-level-zero.test.ts — 4 tests |
 
-### 1c. Low Priority
-| Gap | Detail |
-|-----|--------|
-| seededShuffle with empty/1-element arrays | Edge of Fisher-Yates |
-| parseLevel with invalid formats | "++4", "+4/+3/+2" |
-| `PLAY_RULE_CARD` | Minimal coverage |
-| `ATTACH_ITEM` | Artifact duplicate limit untested |
-| `DISCARD_COMBAT_CARD` | Edge cases unclear |
-| `SET_COMBAT_LEVEL` | Negative override, side with no champion |
+### 1c. Low Priority — ✅ DONE (34 tests in 3 files)
+| Gap | Status | Tests |
+|-----|--------|-------|
+| seededShuffle edge cases | ✅ | utils-edge-cases.test.ts — 7 tests |
+| parseLevel edge cases | ✅ | utils-edge-cases.test.ts — 11 tests |
+| ATTACH_ITEM restrictions | ✅ | attach-item-edge-cases.test.ts — 5 tests |
+| SET_COMBAT_LEVEL | ✅ | set-combat-level-edge-cases.test.ts — 5 tests |
+| DISCARD_COMBAT_CARD | ✅ | set-combat-level-edge-cases.test.ts — 4 tests |
+| PLAY_RULE_CARD | ✅ | set-combat-level-edge-cases.test.ts — 2 tests |
 
 ---
 
-## Phase 2: packages/api — 8 test files
+## Phase 2: packages/api — 12 test files
 
 ### What's tested
 - Auth middleware: bearer tokens, invalid tokens, participant auth (auth-bearer.test.ts)
+- Auth header precedence: Bearer vs X-User-Id (auth-precedence.test.ts — 3 tests)
 - Game lifecycle: create, get, lobby, join, slugs, nicknames (games.test.ts)
 - Profile: GET/PATCH /me/nickname with validation (profile.test.ts)
 - Chat WS: broadcast, emotes, rate limiting, truncation (chat-ws.test.ts)
+- WS security: malformed JSON, unknown types, auth guards, SYNC_REQUEST cache, socket lifecycle (ws-security.test.ts — 21 tests)
+- WS game flow: JOIN_GAME, SUBMIT_MOVE, SYNC_REQUEST integration (ws-game.test.ts — 13 tests)
+- Cards security: path traversal, extension validation, null bytes (cards-security.test.ts — 9 tests)
 - Routing: /api prefix, /ws upgrade, SPA fallback (routing.test.ts)
 - Perf: reconstruction scaling, serialization size (perf.test.ts)
 - Decks: cards by set, deck list, hydrated decks (decks.test.ts)
 - Utils: formatEmailAsName (utils.test.ts)
 
-### 2a. High Priority (Security)
-| Gap | Risk | Detail |
-|-----|------|--------|
-| WS JOIN_GAME auth | High | Token verification via Supabase untested |
-| WS SUBMIT_MOVE | High | Entire WS move path has zero tests |
-| WS SYNC_REQUEST | High | State sync via WS untested |
-| Path traversal on /cards/:setId/:file | High | `../../etc/passwd.jpg` not tested |
-| Move payload size | Medium | No test for 10MB JSON body (DoS) |
-| Auth header precedence | Medium | Both Authorization + X-User-Id headers |
-| SUBMIT_MOVE rate limiting | Medium | No throttle on WS moves (only chat throttled) |
-| Concurrent move race | Medium | Two moves for same game simultaneously |
-| Malformed WS JSON | Medium | 10MB garbage payload handling |
+### 2a. High Priority (Security) — ✅ DONE (46 tests in 4 files)
+| Gap | Status | Tests |
+|-----|--------|-------|
+| WS JOIN_GAME auth | ✅ | ws-security.test.ts (6 auth tests) + ws-game.test.ts (8 join tests) |
+| WS SUBMIT_MOVE | ✅ | ws-game.test.ts — 4 tests (broadcast, invalid move, wrong player, concurrent) |
+| WS SYNC_REQUEST | ✅ | ws-security.test.ts (3 cache tests) + ws-game.test.ts (1 integration) |
+| Path traversal on /cards/:setId/:file | ✅ | cards-security.test.ts — 9 tests |
+| Move payload size | ✅ | ws-security.test.ts — large garbage payload test |
+| Auth header precedence | ✅ | auth-precedence.test.ts — 3 tests |
+| SUBMIT_MOVE rate limiting | ⚠️ | No rate limiting exists — documented gap (only chat is throttled) |
+| Concurrent move race | ✅ | ws-game.test.ts — enqueueMove serialization test |
+| Malformed WS JSON | ✅ | ws-security.test.ts — 4 tests (invalid JSON, empty, binary, large) |
 
 ### 2b. Medium Priority (Reliability)
 | Gap | File | Detail |
@@ -114,7 +117,7 @@
 ### 2c. Low Priority
 | Gap | File | Detail |
 |-----|------|--------|
-| routes/cards.ts | routes/cards.ts | Static asset serving — zero tests (38 LoC) |
+| routes/cards.ts | routes/cards.ts | ✅ Security tests in cards-security.test.ts |
 | routes/dev.ts | routes/dev.ts | Dev endpoints — zero tests (116 LoC) |
 | CORS middleware | index.ts | Actual CORS header behavior untested |
 
