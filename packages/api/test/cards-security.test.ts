@@ -5,11 +5,13 @@
 import { describe, it, expect } from "bun:test"
 import { Hono } from "hono"
 import { cardsRouter } from "../src/routes/cards.ts"
+import { decksRouter } from "../src/routes/decks.ts"
 import path from "path"
 
-// Mount under /cards like the real app
+// Mount under /cards and /decks like the real app
 const app = new Hono()
 app.route("/cards", cardsRouter)
+app.route("/decks", decksRouter)
 
 // ─── Path traversal via setId ────────────────────────────────────────────────
 
@@ -49,6 +51,63 @@ describe("path traversal on /cards/:setId/:filename", () => {
   it("returns 404 for cardback with traversal", async () => {
     const res = await app.request("/cards/..%2Fcardback.jpg")
     // This hits /:setId/:filename, not /cardback.jpg — no filename → 404
+    expect(res.status).toBe(404)
+  })
+})
+
+// ─── Param allowlist validation (C3 defense-in-depth) ────────────────────────
+
+describe("cards param allowlist rejects traversal chars", () => {
+  it("rejects setId with ../", async () => {
+    const res = await app.request("/cards/../etc/001.jpg")
+    expect(res.status).toBe(404)
+  })
+
+  it("rejects setId with dots only", async () => {
+    const res = await app.request("/cards/..%2F/001.jpg")
+    expect(res.status).toBe(404)
+  })
+
+  it("rejects setId with slashes", async () => {
+    const res = await app.request("/cards/1st%2F..%2F..%2Fetc/passwd.jpg")
+    expect(res.status).toBe(404)
+  })
+
+  it("rejects filename with path separators", async () => {
+    const res = await app.request("/cards/1st/..%2Fpasswd.jpg")
+    expect(res.status).toBe(404)
+  })
+
+  it("accepts valid setId and filename", async () => {
+    // Will 404 because file doesn't exist, but should not be blocked by allowlist
+    const res = await app.request("/cards/1st/001.jpg")
+    expect(res.status).toBe(404) // file not found, not blocked
+  })
+})
+
+describe("decks param allowlist rejects traversal chars", () => {
+  it("rejects setId with ../", async () => {
+    const res = await app.request("/decks/cards/..%2F..%2Fetc")
+    expect(res.status).toBe(404)
+  })
+
+  it("rejects setId with null byte", async () => {
+    const res = await app.request("/decks/cards/1st%00malicious")
+    expect(res.status).toBe(404)
+  })
+
+  it("rejects deck name with ../", async () => {
+    const res = await app.request("/decks/..%2F..%2Fetc%2Fpasswd")
+    expect(res.status).toBe(404)
+  })
+
+  it("rejects deck name with dots and slashes", async () => {
+    const res = await app.request("/decks/..%2Fsecrets")
+    expect(res.status).toBe(404)
+  })
+
+  it("rejects deck name with null byte", async () => {
+    const res = await app.request("/decks/valid%00malicious")
     expect(res.status).toBe(404)
   })
 })
