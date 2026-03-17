@@ -16,7 +16,16 @@ const app = new Hono()
 // ─── Global middleware ────────────────────────────────────────────────────────
 
 app.use(logger())
-app.use(cors())
+const CORS_ORIGINS = process.env["CORS_ORIGINS"]
+  ? process.env["CORS_ORIGINS"].split(",").map((o) => o.trim())
+  : ["http://localhost:5173", "http://localhost:5174"]
+
+app.use(
+  cors({
+    origin: CORS_ORIGINS,
+    credentials: true,
+  }),
+)
 
 app.onError((err, c) => {
   const message = err instanceof Error ? err.message : String(err)
