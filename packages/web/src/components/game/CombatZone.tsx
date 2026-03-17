@@ -3,7 +3,7 @@ import { useBoard } from "../../context/BoardContext.tsx"
 import { useCombat } from "../../context/CombatContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
-import { cardImageUrl, nameOfCard } from "../../utils/card-helpers.ts"
+import { cardImageUrl, nameOfCard, findHandCard } from "../../utils/card-helpers.ts"
 import type { CardInfo } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/types.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
@@ -95,20 +95,12 @@ export function CombatZone() {
     }
   }
 
-  function findDraggedHandCard(instanceId: string): CardInfo | undefined {
-    for (const board of Object.values(allBoards)) {
-      const c = board.hand.find((card) => card.instanceId === instanceId)
-      if (c) return c
-    }
-    return undefined
-  }
-
   function handleCardDrop(e: React.DragEvent, targetCard: CardInfo) {
     const source = e.dataTransfer.getData("drag-source")
     if (source !== "hand") return
 
     const id = e.dataTransfer.getData("drag-id")
-    const card = findDraggedHandCard(id)
+    const card = findHandCard(allBoards, id)
     if (!card || !isSpellCard(card)) return
 
     e.preventDefault()

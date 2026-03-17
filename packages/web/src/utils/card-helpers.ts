@@ -1,4 +1,4 @@
-import type { PlayerBoard } from "../api.ts"
+import type { CardInfo, PlayerBoard } from "../api.ts"
 
 export const CARD_BACK_URL = "/api/cards/cardback.jpg"
 
@@ -18,4 +18,28 @@ export function nameOfCard(id: string, allBoards: Record<string, PlayerBoard>): 
     if (found) return found.name
   }
   return id.slice(0, 8) + "\u2026"
+}
+
+// ─── Cross-board card finders ────────────────────────────────────────────────
+
+export function findHandCard(
+  allBoards: Record<string, PlayerBoard>,
+  instanceId: string,
+): CardInfo | undefined {
+  for (const board of Object.values(allBoards)) {
+    const c = board.hand.find((card) => card.instanceId === instanceId)
+    if (c) return c
+  }
+  return undefined
+}
+
+export function findPoolChampion(
+  allBoards: Record<string, PlayerBoard>,
+  instanceId: string,
+): CardInfo | undefined {
+  for (const board of Object.values(allBoards)) {
+    const c = board.pool.find((entry) => entry.champion.instanceId === instanceId)?.champion
+    if (c) return c
+  }
+  return undefined
 }

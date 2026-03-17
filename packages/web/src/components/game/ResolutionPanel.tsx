@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
 import type { Move, ResolutionContextInfo, PlayerBoard, CardInfo } from "../../api.ts"
+import { CHAMPION_TYPE_IDS } from "@spell/engine"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./ResolutionPanel.module.css"
@@ -34,8 +35,6 @@ const CATEGORY_LABELS: Record<ActionCategory, string> = {
   other: "Other / Manual Effect",
 }
 
-// Card type IDs
-const CHAMPION_TYPE_IDS = new Set([5, 7, 10, 12, 14, 16, 20])
 const ALLY_TYPE_ID = 1
 const MAGICAL_ITEM_TYPE_ID = 9
 const ARTIFACT_TYPE_ID = 2
@@ -361,94 +360,70 @@ export function ResolutionPanel({
 
   // ── Checkbox list renderer ──────────────────────────────────────────────
 
+  function renderOwnerGroup<T extends { playerId: string }>(
+    items: T[],
+    label: string,
+    renderItem: (item: T) => {
+      key: string
+      checked: boolean
+      toggle: () => void
+      label: React.ReactNode
+    },
+  ) {
+    if (items.length === 0) return null
+    return (
+      <div>
+        <div className={styles.playerGroupLabel}>{label}</div>
+        {items.map((item) => {
+          const r = renderItem(item)
+          return (
+            <label key={r.key} className={styles.checkboxRow}>
+              <input type="checkbox" checked={r.checked} onChange={r.toggle} />
+              <span>{r.label}</span>
+            </label>
+          )
+        })}
+      </div>
+    )
+  }
+
   function renderCheckboxList(cards: TargetCard[]) {
     const { mine, theirs } = groupByOwner(cards, myPlayerId)
+    const cardItem = (c: TargetCard) => ({
+      key: c.instanceId,
+      checked: checkedCards.has(c.instanceId),
+      toggle: () => toggleCard(c.instanceId),
+      label: (
+        <>
+          {c.name}
+          {c.context && <span className={styles.cardContext}> {c.context}</span>}
+        </>
+      ),
+    })
     return (
       <>
-        {mine.length > 0 && (
-          <div>
-            <div className={styles.playerGroupLabel}>Your cards</div>
-            {mine.map((c) => (
-              <label key={c.instanceId} className={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={checkedCards.has(c.instanceId)}
-                  onChange={() => toggleCard(c.instanceId)}
-                />
-                <span>
-                  {c.name}
-                  {c.context && <span className={styles.cardContext}> {c.context}</span>}
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
-        {theirs.length > 0 && (
-          <div>
-            <div className={styles.playerGroupLabel}>Opponent's cards</div>
-            {theirs.map((c) => (
-              <label key={c.instanceId} className={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={checkedCards.has(c.instanceId)}
-                  onChange={() => toggleCard(c.instanceId)}
-                />
-                <span>
-                  {c.name}
-                  {c.context && <span className={styles.cardContext}> {c.context}</span>}
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
+        {renderOwnerGroup(mine, "Your cards", cardItem)}
+        {renderOwnerGroup(theirs, "Opponent's cards", cardItem)}
       </>
     )
   }
 
   function renderRealmCheckboxList(realms: RealmTarget[]) {
     const { mine, theirs } = groupByOwner(realms, myPlayerId)
+    const realmItem = (r: RealmTarget) => ({
+      key: `${r.playerId}-${r.slot}`,
+      checked: checkedRealms.has(`${r.playerId}-${r.slot}`),
+      toggle: () => toggleRealm(`${r.playerId}-${r.slot}`),
+      label: (
+        <>
+          {r.realmName} (slot {r.slot})
+        </>
+      ),
+    })
     return (
       <>
-        {mine.length > 0 && (
-          <div>
-            <div className={styles.playerGroupLabel}>Your realms</div>
-            {mine.map((r) => {
-              const key = `${r.playerId}-${r.slot}`
-              return (
-                <label key={key} className={styles.checkboxRow}>
-                  <input
-                    type="checkbox"
-                    checked={checkedRealms.has(key)}
-                    onChange={() => toggleRealm(key)}
-                  />
-                  <span>
-                    {r.realmName} (slot {r.slot})
-                  </span>
-                </label>
-              )
-            })}
-          </div>
-        )}
-        {theirs.length > 0 && (
-          <div>
-            <div className={styles.playerGroupLabel}>Opponent's realms</div>
-            {theirs.map((r) => {
-              const key = `${r.playerId}-${r.slot}`
-              return (
-                <label key={key} className={styles.checkboxRow}>
-                  <input
-                    type="checkbox"
-                    checked={checkedRealms.has(key)}
-                    onChange={() => toggleRealm(key)}
-                  />
-                  <span>
-                    {r.realmName} (slot {r.slot})
-                  </span>
-                </label>
-              )
-            })}
-          </div>
-        )}
+        {renderOwnerGroup(mine, "Your realms", realmItem)}
+        {renderOwnerGroup(theirs, "Opponent's realms", realmItem)}
       </>
     )
   }

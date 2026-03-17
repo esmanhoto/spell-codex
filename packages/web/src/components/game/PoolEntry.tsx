@@ -4,6 +4,7 @@ import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
 import type { PoolEntry as PoolEntryType } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/types.ts"
+import { findHandCard } from "../../utils/card-helpers.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
 import { resolveHandDropMove } from "../../utils/manual-actions.ts"
 import { CardComponent } from "./CardComponent.tsx"
@@ -31,20 +32,12 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
   const stackCards = [...entry.attachments, entry.champion]
   const n = stackCards.length
 
-  function findDraggedHandCard(instanceId: string) {
-    for (const board of Object.values(allBoards)) {
-      const c = board.hand.find((card) => card.instanceId === instanceId)
-      if (c) return c
-    }
-    return undefined
-  }
-
   function handleAttachDrop(e: React.DragEvent) {
     e.preventDefault()
     e.stopPropagation()
     setAttachDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
-    const card = findDraggedHandCard(id)
+    const card = findHandCard(allBoards, id)
     const move = resolveHandDropMove({
       legalMoves,
       cardInstanceId: id,
@@ -98,7 +91,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
     if (source !== "hand") return
 
     const cardId = e.dataTransfer.getData("drag-id")
-    const card = findDraggedHandCard(cardId)
+    const card = findHandCard(allBoards, cardId)
     if (!card || !isSpellCard(card)) return
 
     e.preventDefault()

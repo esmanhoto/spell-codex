@@ -1,4 +1,5 @@
-export const CHAMPION_TYPE_IDS = new Set([5, 7, 10, 12, 14, 16, 20])
+import { CHAMPION_TYPE_IDS } from "@spell/engine"
+export { CHAMPION_TYPE_IDS }
 
 export const MAX_CHAMPION_LEVELS = 90
 export const DECK_SIZE = 55
