@@ -3,6 +3,7 @@ import { logger } from "hono/logger"
 import { cors } from "hono/cors"
 import { join } from "path"
 import { auth } from "./auth.ts"
+import { rateLimiter } from "./rate-limit.ts"
 import { gamesRouter } from "./routes/games.ts"
 import { movesRouter } from "./routes/moves.ts"
 import { cardsRouter } from "./routes/cards.ts"
@@ -63,10 +64,12 @@ app.route("/dev", devRouter)
 // ─── Authenticated routes ─────────────────────────────────────────────────────
 
 app.use("/games/*", auth)
+app.use("/games/*", rateLimiter({ windowMs: 60_000, limit: 60 }))
 app.route("/games", gamesRouter)
 app.route("/games", movesRouter)
 app.use("/me", auth)
 app.use("/me/*", auth)
+app.use("/me/*", rateLimiter({ windowMs: 60_000, limit: 30 }))
 app.route("/", profileRouter)
 
 // ─── Export app for tests ─────────────────────────────────────────────────────
