@@ -12,10 +12,10 @@
 | api     | 15    | 19              | ~90%     | **Phase 2 DONE** — 190 tests |
 | db      | 10    | 8               | ~80%     | **Phase 3 DONE** — 72 tests  |
 | web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows  |
-| data    | 15    | 0               | 0%       | None — zero tests            |
+| data    | 15    | 6               | ~50%     | **Phase 5b DONE** — 175 tests |
 
-**Total test files**: 68 (27 engine + 19 api + 8 db + 4 web unit + 10 web e2e)
-**Total test count**: ~760+ (415 engine + 190 api + 72 db + 83 web)
+**Total test files**: 74 (27 engine + 19 api + 8 db + 4 web unit + 10 web e2e + 6 data)
+**Total test count**: ~935+ (415 engine + 190 api + 72 db + 83 web + 175 data)
 
 ### New Dependencies Required
 
@@ -234,28 +234,37 @@
 
 ---
 
-## Phase 5: packages/data — 0 tests
+## Phase 5: packages/data — 6 test files — IN PROGRESS
 
-**15 source files, 1,282 LoC, 40+ functions — completely untested.**
+### What's tested
 
-### 5a. High Priority
+- TCL parser: `parseTclList` (bare/braced/quoted, escapes, nesting), `extractTclBlock` (namespace, nested braces, edge cases)
+- Card record parsing: `parseLevel`, `parseRarity`, `parseAttributes`, `parseRefList`, `parseSpellMeta`, `parseCardRecord` (13-field validation, type coercion, spell meta)
+- Effect tagging: `shouldTagRebuildRealm`, `shouldTagAsCounterEvent`, `shouldTagAsCounterSpell`, `shouldTagTurnStart`, `shouldTagTurnEnd`, `patchEffectByName`, `patchEffectByNumber`
+- Format parsing: `parseLimitBlock`, `parseTotalBlock`, `parseCardRefList`
+- Deck parsing: `extractBareValue`, `parseDeckCardList`
+- Data validation: duplicate detection, schema fields, deck refs, format min≤max, spell meta edge cases
 
-| Gap                                            | Impact                                                                    |
-| ---------------------------------------------- | ------------------------------------------------------------------------- |
-| TCL parser (parseTclList, extractTclBlock)     | Complex state machine; edge cases could cause infinite loops or data loss |
-| Card record parsing (parseCardRecord)          | 13-field validation; malformed records silently skipped                   |
-| Effect tagging regexes (5 shouldTag functions) | False positives/negatives in game-critical card effects                   |
-| Schema validation                              | No check that typeId ∈ [0-21], worldId ∈ {0-7,9}, etc.                    |
+### 5a. High Priority — ✅ DONE (112 tests in 3 files)
 
-### 5b. Medium Priority
+| Gap                                            | Status | Tests                                                                 |
+| ---------------------------------------------- | ------ | --------------------------------------------------------------------- |
+| TCL parser (parseTclList, extractTclBlock)     | ✅     | tcl-parser.test.ts — 27 tests (braces, quotes, escapes, nesting)     |
+| Card record parsing (parseCardRecord)          | ✅     | extract-cards.test.ts — 45 tests (field parsers, records, spell meta) |
+| Effect tagging regexes (5 shouldTag functions) | ✅     | effect-tagging.test.ts — 40 tests (all 5 shouldTag + patch utils)    |
+| Schema validation                              | ⚠️     | No runtime validation exists — documented gap (type-only safety)     |
 
-| Gap                            | Impact                                    |
-| ------------------------------ | ----------------------------------------- |
-| Duplicate card detection       | Same (setId, cardNumber) pairs undetected |
-| Deck card reference validation | Deck refs to nonexistent cards            |
-| Format limit consistency       | min ≤ max not validated                   |
-| Spell meta regex               | Multiple spell tags in one description    |
-| Image filename handling        | Leading zeros, collisions                 |
+### 5b. Medium Priority — ✅ DONE (63 tests in 3 files)
+
+| Gap                            | Status | Tests                                                                            |
+| ------------------------------ | ------ | -------------------------------------------------------------------------------- |
+| Duplicate card detection       | ✅     | data-validation.test.ts — 4 tests (no duplicate keys, valid typeId/worldId/name) |
+| Schema field validation        | ✅     | data-validation.test.ts — 9 tests (all field types verified against real data)   |
+| Deck card reference validation | ✅     | data-validation.test.ts — 2 tests (parse + refs resolve to available sets)       |
+| Format limit consistency       | ✅     | data-validation.test.ts — 4 tests (parse + min≤max on total/champion/typeLimits) |
+| Spell meta regex               | ✅     | data-validation.test.ts — 5 tests (precedence, case, multi-tag, phase edge)      |
+| Format parsing                 | ✅     | extract-formats.test.ts — 22 tests (parseLimitBlock, parseTotalBlock, cardRefs)  |
+| Deck parsing                   | ✅     | extract-decks.test.ts — 17 tests (extractBareValue, parseDeckCardList)           |
 
 ### 5c. Low Priority
 

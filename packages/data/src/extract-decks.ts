@@ -20,7 +20,7 @@ const OUT_DIR = path.join(import.meta.dir, "..", "decks")
  * Extracts a bare-word (non-braced) TCL variable value on a single line:
  *   set varName someValue
  */
-function extractBareValue(source: string, varName: string): string {
+export function extractBareValue(source: string, varName: string): string {
   const escaped = varName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   const match = new RegExp(`set\\s+${escaped}\\s+(\\S+)`).exec(source)
   return match?.[1] ?? ""
@@ -30,7 +30,7 @@ function extractBareValue(source: string, varName: string): string {
  * Parses a tempDeck or tempAltCards block:
  *   {setId cardNumber}  {setId cardNumber}  ...
  */
-function parseDeckCardList(raw: string | null): Array<{ setId: string; cardNumber: number }> {
+export function parseDeckCardList(raw: string | null): Array<{ setId: string; cardNumber: number }> {
   if (!raw?.trim()) return []
   const result: Array<{ setId: string; cardNumber: number }> = []
 
@@ -124,4 +124,4 @@ function main() {
   }
 }
 
-main()
+if (import.meta.main) main()
