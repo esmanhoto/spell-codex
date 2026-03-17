@@ -103,7 +103,6 @@ export function Game() {
   const [wsError, setWsError] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null)
   const [rebuildTarget, setRebuildTarget] = useState<string | null>(null)
-  const [lastMoveType, setLastMoveType] = useState<string | null>(null)
   const [warningState, setWarningState] = useState<{
     message: string
     code: WarningCode
@@ -487,7 +486,6 @@ export function Game() {
       const moves = Array.isArray(m) ? m : [m]
       if (moves.length === 0) return
       setSelectedId(null)
-      setLastMoveType(moves[moves.length - 1]!.type)
 
       // Single move: apply optimistic state before sending
       if (moves.length === 1) {
