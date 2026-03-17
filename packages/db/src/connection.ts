@@ -15,3 +15,7 @@ const options = {
 }
 
 export const sql = postgres(url, options)
+
+// Shared Drizzle instance — import this instead of creating per-file `drizzle(sql)`.
+import { drizzle } from "drizzle-orm/postgres-js"
+export const db = drizzle(sql)
