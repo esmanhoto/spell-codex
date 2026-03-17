@@ -9,6 +9,19 @@ import { getGameCache } from "./state-cache.ts"
 import { resolveGame } from "./utils.ts"
 import { loadGameState, persistMoveResult } from "./game-ops.ts"
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Strip opponent's hidden information (hand, drawPile) before sending over WS. */
+export function filterStateForPlayer(state: GameState, viewerId: string): GameState {
+  const filteredPlayers = { ...state.players }
+  for (const id of Object.keys(filteredPlayers)) {
+    if (id !== viewerId) {
+      filteredPlayers[id] = { ...filteredPlayers[id]!, hand: [], drawPile: [] }
+    }
+  }
+  return { ...state, players: filteredPlayers }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ClientMessage =
@@ -304,7 +317,7 @@ export const wsHandlers = {
             type: "STATE_UPDATE",
             gameId,
             state: serializeGameState(joinState, { includeDeckImages: true }, userId),
-            rawEngineState: joinState,
+            rawEngineState: filterStateForPlayer(joinState, userId),
             sequence: joinSeq,
           })
           return
@@ -333,7 +346,7 @@ export const wsHandlers = {
               { status: syncHit.state.winner ? "finished" : "active" },
               ws.data.userId,
             ),
-            rawEngineState: syncHit.state,
+            rawEngineState: filterStateForPlayer(syncHit.state, ws.data.userId),
             sequence: syncHit.sequence,
           })
           return

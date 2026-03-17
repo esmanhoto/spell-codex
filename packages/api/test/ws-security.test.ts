@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterAll } from "bun:test"
 import type { ServerWebSocket } from "bun"
-import { wsHandlers, registry, processWsMove } from "../src/ws.ts"
+import { wsHandlers, registry, processWsMove, filterStateForPlayer } from "../src/ws.ts"
 import { setCachedState, evictCachedState } from "../src/state-cache.ts"
 import type { GameState } from "@spell/engine"
 
@@ -401,5 +401,72 @@ describe("processWsMove blocked move types", () => {
       card: { name: "Exploit" },
     })
     expect(result).toEqual({ ok: false, code: "BLOCKED_MOVE", message: "Blocked move type" })
+  })
+})
+
+// ─── filterStateForPlayer (C2 security fix) ──────────────────────────────────
+
+describe("filterStateForPlayer", () => {
+  const card = { instanceId: "c1", card: { name: "Test" } }
+  const fullState = {
+    ...STUB_STATE,
+    players: {
+      [P1]: {
+        id: P1,
+        hand: [card, card],
+        drawPile: [card, card, card],
+        discardPile: [card],
+        limbo: [],
+        abyss: [],
+        formation: { realms: [] },
+        dungeon: null,
+        pool: [],
+        lastingEffects: [],
+      },
+      [P2]: {
+        id: P2,
+        hand: [card],
+        drawPile: [card, card],
+        discardPile: [card],
+        limbo: [],
+        abyss: [],
+        formation: { realms: [] },
+        dungeon: null,
+        pool: [],
+        lastingEffects: [],
+      },
+    },
+  } as unknown as GameState
+
+  it("preserves the viewer's own hand and drawPile", () => {
+    const filtered = filterStateForPlayer(fullState, P1)
+    expect(filtered.players[P1]!.hand).toHaveLength(2)
+    expect(filtered.players[P1]!.drawPile).toHaveLength(3)
+  })
+
+  it("empties opponent hand and drawPile", () => {
+    const filtered = filterStateForPlayer(fullState, P1)
+    expect(filtered.players[P2]!.hand).toHaveLength(0)
+    expect(filtered.players[P2]!.drawPile).toHaveLength(0)
+  })
+
+  it("preserves opponent's non-hidden zones (discardPile, formation, etc.)", () => {
+    const filtered = filterStateForPlayer(fullState, P1)
+    expect(filtered.players[P2]!.discardPile).toHaveLength(1)
+    expect(filtered.players[P2]!.id).toBe(P2)
+  })
+
+  it("does not mutate the original state", () => {
+    const before = fullState.players[P2]!.hand.length
+    filterStateForPlayer(fullState, P1)
+    expect(fullState.players[P2]!.hand).toHaveLength(before)
+  })
+
+  it("works symmetrically for P2 as viewer", () => {
+    const filtered = filterStateForPlayer(fullState, P2)
+    expect(filtered.players[P2]!.hand).toHaveLength(1)
+    expect(filtered.players[P2]!.drawPile).toHaveLength(2)
+    expect(filtered.players[P1]!.hand).toHaveLength(0)
+    expect(filtered.players[P1]!.drawPile).toHaveLength(0)
   })
 })
