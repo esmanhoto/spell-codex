@@ -16,14 +16,11 @@ import {
   getGamePlayers,
   reconstructState,
   lastSequence,
-  saveAction,
   setGameStatus,
-  touchGame,
-  hashState,
 } from "@spell/db"
 import { applyMove } from "@spell/engine"
+import { persistMoveResult } from "./game-ops.ts"
 
-const TURN_DEADLINE_MS = 24 * 60 * 60 * 1000
 const CHECK_INTERVAL_MS = 60 * 1000 // check every minute
 const MAX_MISSED_TURNS = 3 // abandon after 3 consecutive misses
 
@@ -47,31 +44,25 @@ async function processExpiredGame(gameId: string): Promise<void> {
   const { state } = await reconstructState(gameId, game.seed)
   const playerId = state.activePlayer
 
-  // Count how many consecutive moves have been auto-passes for this player.
-  // We detect this by checking recent actions: if all are auto-passes we abandon.
   const players = await getGamePlayers(gameId)
   const isPlayer = players.some((p) => p.userId === playerId)
   if (!isPlayer) return
 
-  // Try to apply a PASS on behalf of the timed-out player.
   let result
   try {
     result = applyMove(state, playerId, { type: "PASS" })
   } catch {
-    // PASS not legal in current phase (e.g. awaiting manual resolution) — skip.
     console.warn(`[deadline] PASS not legal for game ${gameId}, skipping`)
     return
   }
 
   const seq = await lastSequence(gameId)
 
-  // Count consecutive missed deadlines for this player by inspecting the tail
-  // of the action log (rudimentary — good enough for MVP).
+  // Count consecutive missed deadlines (rudimentary — good enough for MVP)
   const missedKey = `auto_pass_count:${playerId}`
   const missedCount = (game as unknown as Record<string, number>)[missedKey] ?? 0
 
   if (missedCount >= MAX_MISSED_TURNS - 1) {
-    // Abandon the game — the player has repeatedly failed to move.
     await setGameStatus(gameId, "abandoned")
     console.log(
       `[deadline] Game ${gameId} abandoned — player ${playerId} missed ${MAX_MISSED_TURNS} turns`,
@@ -79,25 +70,6 @@ async function processExpiredGame(gameId: string): Promise<void> {
     return
   }
 
-  await saveAction({
-    gameId,
-    sequence: seq + 1,
-    playerId,
-    move: { type: "PASS" },
-    stateHash: hashState(result.newState),
-  })
-
-  const newStatus = result.newState.winner ? "finished" : "active"
-  const turnDeadline = result.newState.winner ? undefined : new Date(Date.now() + TURN_DEADLINE_MS)
-  const metaWrites = Promise.all([
-    setGameStatus(gameId, newStatus, result.newState.winner ?? undefined),
-    touchGame(gameId, turnDeadline),
-  ])
-  if (result.newState.winner) {
-    await metaWrites
-  } else {
-    void metaWrites
-  }
-
+  await persistMoveResult(gameId, playerId, { type: "PASS" }, result.newState, seq)
   console.log(`[deadline] Auto-PASS for player ${playerId} in game ${gameId}`)
 }

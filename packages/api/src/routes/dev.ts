@@ -1,22 +1,14 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import { z } from "zod"
-import {
-  createDevGame,
-  getGame,
-  getGameBySlug,
-  reconstructState,
-  lastSequence,
-  saveAction,
-  hashState,
-} from "@spell/db"
+import { createDevGame } from "@spell/db"
 import { applyMove } from "@spell/engine"
-import type { GameState } from "@spell/engine"
 import { authBypassEnabled } from "../auth-verify.ts"
 import { DEV_SCENARIOS } from "../dev/scenarios.ts"
 import { buildScenarioState, DEV_P1_ID, DEV_P2_ID } from "../dev/build-state.ts"
 import { lookupCard, searchCards } from "../dev/card-lookup.ts"
-import { setCachedState, getGameCache } from "../state-cache.ts"
+import { resolveGame } from "../utils.ts"
+import { loadGameState, persistMoveResult } from "../game-ops.ts"
 
 export const devRouter = new Hono()
 
@@ -88,8 +80,6 @@ const GiveCardSchema = z.object({
   cardNumber: z.number().int(),
 })
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
 devRouter.post("/games/:id/give-card", zValidator("json", GiveCardSchema), async (c) => {
   const idOrSlug = c.req.param("id")
   const { playerId, setId, cardNumber } = c.req.valid("json")
@@ -101,43 +91,25 @@ devRouter.post("/games/:id/give-card", zValidator("json", GiveCardSchema), async
     return c.json({ error: `Card not found: ${setId} #${cardNumber}` }, 404)
   }
 
-  // Resolve game by UUID or slug
-  const game = await (UUID_RE.test(idOrSlug) ? getGame(idOrSlug) : getGameBySlug(idOrSlug))
+  const game = await resolveGame(idOrSlug)
   if (!game) return c.json({ error: "Game not found" }, 404)
   const gameId = game.id
 
-  // Reconstruct state from cache or DB
-  const hit = getGameCache(gameId)
-  let state: GameState
-  let seq0: number
-
-  if (hit) {
-    state = hit.state
-    seq0 = hit.sequence
-  } else {
-    seq0 = await lastSequence(gameId)
-    const { state: reconstructed } = await reconstructState(
-      gameId,
-      game.seed,
-      (game.stateSnapshot as GameState | null) ?? null,
-    )
-    state = reconstructed
-  }
+  const loaded = await loadGameState(gameId)
+  if (!loaded) return c.json({ error: "Game not found or not active" }, 404)
 
   const instanceId = `dev-give-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
   const move = { type: "DEV_GIVE_CARD" as const, playerId, instanceId, card }
 
   let result
   try {
-    result = applyMove(state, playerId, move)
+    result = applyMove(loaded.state, playerId, move)
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Apply failed"
     return c.json({ error: msg }, 422)
   }
 
-  const stateHash = hashState(result.newState)
-  const action = await saveAction({ gameId, sequence: seq0 + 1, playerId, move, stateHash })
-  setCachedState(gameId, result.newState, action.sequence)
+  await persistMoveResult(gameId, playerId, move, result.newState, loaded.sequence)
 
   return c.json({ ok: true })
 })
