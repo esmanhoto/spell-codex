@@ -22,6 +22,7 @@ cardsRouter.get("/cardback.jpg", async (c) => {
 cardsRouter.get("/:setId/:filename", async (c) => {
   const { setId, filename } = c.req.param()
   if (!filename.endsWith(".jpg")) return c.notFound()
+  if (setId.includes("\0") || filename.includes("\0")) return c.notFound()
 
   const filePath = path.join(ASSETS_DIR, "cards", setId, filename)
   const file = Bun.file(filePath)

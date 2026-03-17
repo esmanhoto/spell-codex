@@ -76,9 +76,7 @@ describe("phase skip via END_TURN", () => {
   test("END_TURN fails when hand exceeds maxEnd", () => {
     let state = initGame(DEFAULT_CONFIG)
     // Give p1 way too many cards in hand (maxEnd is 8 for 55-card)
-    const extraCards = Array.from({ length: 10 }, (_, i) =>
-      state.players["p1"]!.drawPile[i]!,
-    )
+    const extraCards = Array.from({ length: 10 }, (_, i) => state.players["p1"]!.drawPile[i]!)
     state = {
       ...state,
       players: {
@@ -107,9 +105,7 @@ describe("PASS from PHASE_FIVE: hand size enforcement", () => {
     expect(state.phase).toBe(Phase.PhaseFive)
 
     // Stuff hand beyond limit
-    const extra = Array.from({ length: 5 }, (_, i) =>
-      state.players["p1"]!.drawPile[i]!,
-    )
+    const extra = Array.from({ length: 5 }, (_, i) => state.players["p1"]!.drawPile[i]!)
     state = {
       ...state,
       players: {

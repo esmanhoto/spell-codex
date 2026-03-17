@@ -22,7 +22,7 @@ const CANCEL_SPELL_PATTERN = /\bcancels?\b.*\bspell\b/i
 const NEGATE_WALL_PATTERN = /\bnegates?\b.*\bwall\s+spell\b/i
 const DISPEL_SPELL_PATTERN = /\bdispel\b.*\bspell\b|\bspell[s]?\b.*\bdispel\b/i
 
-function shouldTagAsCounterEvent(desc: string, typeId: number): boolean {
+export function shouldTagAsCounterEvent(desc: string, typeId: number): boolean {
   if (typeId !== TYPE_EVENT) return false
   return (
     UNDO_EVENT_PATTERN.test(desc) ||
@@ -31,7 +31,7 @@ function shouldTagAsCounterEvent(desc: string, typeId: number): boolean {
   )
 }
 
-function shouldTagAsCounterSpell(desc: string, typeId: number): boolean {
+export function shouldTagAsCounterSpell(desc: string, typeId: number): boolean {
   if (typeId !== TYPE_CLERIC_SPELL && typeId !== TYPE_WIZARD_SPELL) return false
   return (
     CANCEL_SPELL_PATTERN.test(desc) ||
@@ -55,7 +55,7 @@ function tagCard(
   return { text: patchEffectByNumber(text, card, `{"type":"${effectType}"}`), tagged: true }
 }
 
-runTaggingPipeline("counter_event / counter_spell", (cards, raw) => {
+if (import.meta.main) runTaggingPipeline("counter_event / counter_spell", (cards, raw) => {
   let text = raw
   let tagged = 0
   for (const card of cards) {

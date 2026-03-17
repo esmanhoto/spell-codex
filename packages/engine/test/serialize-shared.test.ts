@@ -1,8 +1,20 @@
 import { describe, test, expect, beforeEach } from "bun:test"
 import { _resetInstanceCounter } from "../src/utils.ts"
-import { serializeCard, serializeFormation, serializePool, serializeCombat } from "../src/serialize-shared.ts"
+import {
+  serializeCard,
+  serializeFormation,
+  serializePool,
+  serializeCombat,
+} from "../src/serialize-shared.ts"
 import type { Formation, PoolEntry } from "../src/types.ts"
-import { inst, makeChampion, makeRealm, makeHolding, makeMagicalItem, buildCombatCardPlayState } from "./scenario-builders.ts"
+import {
+  inst,
+  makeChampion,
+  makeRealm,
+  makeHolding,
+  makeMagicalItem,
+  buildCombatCardPlayState,
+} from "./scenario-builders.ts"
 
 beforeEach(() => {
   _resetInstanceCounter()
@@ -12,15 +24,18 @@ beforeEach(() => {
 
 describe("serializeCard", () => {
   test("returns expected wire-format fields", () => {
-    const champion = inst("c1", makeChampion({
-      name: "Elminster",
-      level: 8,
-      worldId: 1,
-      setId: "1st",
-      cardNumber: 20,
-      description: "Wizard.",
-      supportIds: [1, 9, "d19"],
-    }))
+    const champion = inst(
+      "c1",
+      makeChampion({
+        name: "Elminster",
+        level: 8,
+        worldId: 1,
+        setId: "1st",
+        cardNumber: 20,
+        description: "Wizard.",
+        supportIds: [1, 9, "d19"],
+      }),
+    )
 
     const result = serializeCard(champion)
 

@@ -3,7 +3,12 @@ import { findOrPromoteChampion } from "../src/utils.ts"
 import { EngineError } from "../src/errors.ts"
 import { initGame } from "../src/init.ts"
 import type { GameState, CardInstance } from "../src/types.ts"
-import { DEFAULT_CONFIG, CHAMPION_CLERIC_FR, CHAMPION_HERO_GENERIC, REALM_GENERIC } from "./fixtures.ts"
+import {
+  DEFAULT_CONFIG,
+  CHAMPION_CLERIC_FR,
+  CHAMPION_HERO_GENERIC,
+  REALM_GENERIC,
+} from "./fixtures.ts"
 
 function baseState(): GameState {
   return initGame(DEFAULT_CONFIG)
@@ -50,7 +55,9 @@ describe("findOrPromoteChampion", () => {
 
     expect(found.instanceId).toBe("hand-champ")
     expect(newState.players["p1"]!.hand.length).toBe(handBefore - 1)
-    expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "hand-champ")).toBe(true)
+    expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "hand-champ")).toBe(
+      true,
+    )
   })
 
   test("throws NOT_A_CHAMPION when hand card is not a champion type", () => {
@@ -73,6 +80,8 @@ describe("findOrPromoteChampion", () => {
 
   test("throws CHAMPION_NOT_FOUND when id is nowhere", () => {
     const state = baseState()
-    expect(() => findOrPromoteChampion(state, "p1", "nonexistent-id", "test context")).toThrow(EngineError)
+    expect(() => findOrPromoteChampion(state, "p1", "nonexistent-id", "test context")).toThrow(
+      EngineError,
+    )
   })
 })

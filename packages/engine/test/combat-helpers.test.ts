@@ -27,11 +27,17 @@ function makeCombatState(opts?: {
   const realmInstance: CardInstance = { instanceId: "realm-p2", card: realmCard }
   const attackerChamp: CardInstance = {
     instanceId: "champ-p1",
-    card: { ...CHAMPION_CLERIC_FR, worldId: (opts?.attackerWorld ?? 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9 },
+    card: {
+      ...CHAMPION_CLERIC_FR,
+      worldId: (opts?.attackerWorld ?? 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9,
+    },
   }
   const defenderChamp: CardInstance = {
     instanceId: "champ-p2",
-    card: { ...CHAMPION_HERO_GENERIC, worldId: (opts?.defenderWorld ?? 0) as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9 },
+    card: {
+      ...CHAMPION_HERO_GENERIC,
+      worldId: (opts?.defenderWorld ?? 0) as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 9,
+    },
   }
 
   const combat: CombatState = {

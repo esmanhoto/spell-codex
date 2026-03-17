@@ -41,8 +41,12 @@ describe("limbo: single champion returns", () => {
     const { state: newState, events } = advanceToPool(state, "p1")
 
     expect(newState.players["p1"]!.limbo).toHaveLength(0)
-    expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "limbo-champ")).toBe(true)
-    expect(events.some((e: any) => e.type === "CHAMPION_FROM_LIMBO" && e.instanceId === "limbo-champ")).toBe(true)
+    expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "limbo-champ")).toBe(
+      true,
+    )
+    expect(
+      events.some((e: any) => e.type === "CHAMPION_FROM_LIMBO" && e.instanceId === "limbo-champ"),
+    ).toBe(true)
   })
 
   test("champion stays in limbo when currentTurn < returnsOnTurn", () => {
@@ -64,7 +68,9 @@ describe("limbo: single champion returns", () => {
     const { state: newState } = advanceToPool(state, "p1")
 
     expect(newState.players["p1"]!.limbo).toHaveLength(1)
-    expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "limbo-champ")).toBe(false)
+    expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "limbo-champ")).toBe(
+      false,
+    )
   })
 
   test("champion returning from limbo brings attachments", () => {
@@ -86,7 +92,9 @@ describe("limbo: single champion returns", () => {
 
     const { state: newState } = advanceToPool(state, "p1")
 
-    const poolEntry = newState.players["p1"]!.pool.find((e) => e.champion.instanceId === "limbo-champ")
+    const poolEntry = newState.players["p1"]!.pool.find(
+      (e) => e.champion.instanceId === "limbo-champ",
+    )
     expect(poolEntry).toBeDefined()
     expect(poolEntry!.attachments.some((a) => a.instanceId === "limbo-item")).toBe(true)
   })
@@ -180,7 +188,9 @@ describe("limbo: duplicate champion conflict on return", () => {
     expect(newState.players["p1"]!.pool[0]!.champion.instanceId).toBe("pool-champ")
 
     // Limbo champion discarded
-    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "limbo-champ")).toBe(true)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "limbo-champ")).toBe(
+      true,
+    )
     expect(newState.players["p1"]!.limbo).toHaveLength(0)
   })
 
@@ -197,7 +207,9 @@ describe("limbo: duplicate champion conflict on return", () => {
         p1: {
           ...state.players["p1"]!,
           pool: [{ champion: poolChamp, attachments: [] }],
-          limbo: [{ champion: limboChamp, attachments: [limboItem], returnsOnTurn: state.currentTurn }],
+          limbo: [
+            { champion: limboChamp, attachments: [limboItem], returnsOnTurn: state.currentTurn },
+          ],
           discardPile: [],
         },
       },
@@ -205,14 +217,24 @@ describe("limbo: duplicate champion conflict on return", () => {
 
     const { state: newState } = advanceToPool(state, "p1")
 
-    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "limbo-champ")).toBe(true)
-    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "limbo-item")).toBe(true)
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "limbo-champ")).toBe(
+      true,
+    )
+    expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "limbo-item")).toBe(
+      true,
+    )
   })
 
   test("different name/typeId: no conflict, both stay in pool", () => {
     let state = initGame(DEFAULT_CONFIG)
-    const poolChamp = inst("pool-champ", makeChampion({ name: "Hero A", typeId: 7, cardNumber: 9001 }))
-    const limboChamp = inst("limbo-champ", makeChampion({ name: "Hero B", typeId: 7, cardNumber: 9002 }))
+    const poolChamp = inst(
+      "pool-champ",
+      makeChampion({ name: "Hero A", typeId: 7, cardNumber: 9001 }),
+    )
+    const limboChamp = inst(
+      "limbo-champ",
+      makeChampion({ name: "Hero B", typeId: 7, cardNumber: 9002 }),
+    )
 
     state = {
       ...state,

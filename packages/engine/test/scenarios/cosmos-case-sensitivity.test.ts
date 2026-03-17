@@ -3,7 +3,13 @@ import { isUniqueInPlay } from "../../src/legal-moves.ts"
 import { initGame } from "../../src/init.ts"
 import { _resetInstanceCounter } from "../../src/utils.ts"
 import type { GameState } from "../../src/types.ts"
-import { DEFAULT_CONFIG, CHAMPION_WIZARD_FR, REALM_FR, ARTIFACT_FR, HOLDING_FR } from "../fixtures.ts"
+import {
+  DEFAULT_CONFIG,
+  CHAMPION_WIZARD_FR,
+  REALM_FR,
+  ARTIFACT_FR,
+  HOLDING_FR,
+} from "../fixtures.ts"
 import { inst } from "../scenario-builders.ts"
 
 beforeEach(() => {
@@ -13,8 +19,17 @@ beforeEach(() => {
 function stateWithPoolChampion(name: string, typeId: number): GameState {
   const base = initGame(DEFAULT_CONFIG)
   const champion = inst("pool-c", {
-    setId: "test", cardNumber: 999, name, typeId, worldId: 0,
-    isAvatar: false, level: 5, description: "", attributes: [], supportIds: [], effects: [],
+    setId: "test",
+    cardNumber: 999,
+    name,
+    typeId,
+    worldId: 0,
+    isAvatar: false,
+    level: 5,
+    description: "",
+    attributes: [],
+    supportIds: [],
+    effects: [],
   })
   return {
     ...base,

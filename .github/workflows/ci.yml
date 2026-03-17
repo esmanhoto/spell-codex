@@ -51,25 +51,25 @@ jobs:
         run: bun run --cwd packages/db db:migrate
 
       - name: Lint
-        run: bun run ci:lint
+        run: bun run lint
 
       - name: Format check
-        run: bun run ci:format
+        run: bun run format:check
 
       - name: Typecheck all packages
-        run: bun run ci:typecheck
+        run: bun run typecheck
 
       - name: Run tests
-        run: bun run ci:test
+        run: bun run test
 
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
 
       - name: Run web E2E tests (auth bypass)
-        run: bun run ci:test:web
+        run: bun run test:web
 
       - name: Run web E2E tests (auth mode)
-        run: bun run ci:test:web:auth-mock
+        run: bun run test:web:auth-mock
 
       - name: Build web
-        run: bun run ci:build
+        run: bun run build

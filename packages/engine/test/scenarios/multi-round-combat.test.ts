@@ -1,12 +1,7 @@
 import { describe, test, expect, beforeEach } from "bun:test"
 import { applyMove } from "../../src/engine.ts"
 import { _resetInstanceCounter } from "../../src/utils.ts"
-import {
-  inst,
-  makeChampion,
-  makeRealm,
-  buildCombatCardPlayState,
-} from "../scenario-builders.ts"
+import { inst, makeChampion, makeRealm, buildCombatCardPlayState } from "../scenario-builders.ts"
 
 beforeEach(() => {
   _resetInstanceCounter()
@@ -103,7 +98,10 @@ describe("multi-round combat: attacker beats two champions to raze realm", () =>
   })
 
   test("second win razes realm and earns spoils", () => {
-    const att2 = inst("att2", makeChampion({ level: 10, cardNumber: 9002, name: "Second Champion" }))
+    const att2 = inst(
+      "att2",
+      makeChampion({ level: 10, cardNumber: 9002, name: "Second Champion" }),
+    )
     const def2 = inst("def2", makeChampion({ level: 3, cardNumber: 9003, name: "Second Defender" }))
     const realm = inst("realm", makeRealm())
 
@@ -158,10 +156,12 @@ describe("multi-round combat: attacker beats two champions to raze realm", () =>
       activePlayer: "p1",
     }
 
-    expect(() => applyMove(state, "p1", {
-      type: "CONTINUE_ATTACK",
-      championId: "att1",
-    })).toThrow("Cannot reuse a champion in the same battle")
+    expect(() =>
+      applyMove(state, "p1", {
+        type: "CONTINUE_ATTACK",
+        championId: "att1",
+      }),
+    ).toThrow("Cannot reuse a champion in the same battle")
   })
 
   test("END_ATTACK after first win: attacker chooses not to continue", () => {

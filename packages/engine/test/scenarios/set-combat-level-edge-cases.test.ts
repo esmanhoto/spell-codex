@@ -199,9 +199,17 @@ describe("PLAY_RULE_CARD", () => {
   test("rule card played in START_OF_TURN goes to discard", () => {
     const base = initGame(DEFAULT_CONFIG)
     const ruleCard = inst("rule1", {
-      setId: "test", cardNumber: 700, name: "Test Rule", typeId: 15,
-      worldId: 0, isAvatar: false, level: null, description: "",
-      attributes: [], supportIds: [], effects: [],
+      setId: "test",
+      cardNumber: 700,
+      name: "Test Rule",
+      typeId: 15,
+      worldId: 0,
+      isAvatar: false,
+      level: null,
+      description: "",
+      attributes: [],
+      supportIds: [],
+      effects: [],
     })
 
     const state = {
@@ -218,7 +226,9 @@ describe("PLAY_RULE_CARD", () => {
     })
 
     expect(newState.players["p1"]!.hand.every((c: any) => c.instanceId !== "rule1")).toBe(true)
-    expect(newState.players["p1"]!.discardPile.some((c: any) => c.instanceId === "rule1")).toBe(true)
+    expect(newState.players["p1"]!.discardPile.some((c: any) => c.instanceId === "rule1")).toBe(
+      true,
+    )
     expect(events.some((e: any) => e.type === "CARDS_DISCARDED")).toBe(true)
   })
 
@@ -234,8 +244,8 @@ describe("PLAY_RULE_CARD", () => {
       },
     }
 
-    expect(() =>
-      applyMove(state, "p1", { type: "PLAY_RULE_CARD", cardInstanceId: "ev1" }),
-    ).toThrow("NOT_A_RULE_CARD")
+    expect(() => applyMove(state, "p1", { type: "PLAY_RULE_CARD", cardInstanceId: "ev1" })).toThrow(
+      "NOT_A_RULE_CARD",
+    )
   })
 })

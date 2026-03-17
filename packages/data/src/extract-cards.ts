@@ -26,7 +26,7 @@ const SPELL_TAG_REGEX = /\((Off|Def)(?:\/(\d)(?:\/(\d))?)?\)/i
 
 // ─── Field parsers ────────────────────────────────────────────────────────────
 
-function parseLevel(raw: string): CardLevel {
+export function parseLevel(raw: string): CardLevel {
   if (!raw) return null
   // Keep explicit sign (+/-) or slash notation as strings
   if (raw.startsWith("+") || raw.startsWith("-") || raw.includes("/")) return raw
@@ -34,7 +34,7 @@ function parseLevel(raw: string): CardLevel {
   return isNaN(n) ? raw : n
 }
 
-function parseRarity(raw: string): CardRarity {
+export function parseRarity(raw: string): CardRarity {
   const valid: CardRarity[] = ["M", "C", "UC", "R", "VR", "S", "V"]
   return valid.includes(raw as CardRarity) ? (raw as CardRarity) : "C"
 }
@@ -45,7 +45,7 @@ function parseRarity(raw: string): CardRarity {
  * Example: "Dwarf. Flyer." → ["Dwarf", "Flyer"]
  * Example: "Elf (drow)." → ["Elf (drow)"]
  */
-function parseAttributes(raw: string): string[] {
+export function parseAttributes(raw: string): string[] {
   if (!raw.trim()) return []
   return raw
     .split(/\.\s+/)
@@ -57,7 +57,7 @@ function parseAttributes(raw: string): string[] {
  * Parses the supportIds field.
  * Example: "1 2 d9 o9 d19 o19" → [1, 2, "d9", "o9", "d19", "o19"]
  */
-function parseRefList(raw: string): SupportRef[] {
+export function parseRefList(raw: string): SupportRef[] {
   return parseTclList(raw)
     .filter((s) => s.length > 0)
     .map((s) => {
@@ -66,7 +66,7 @@ function parseRefList(raw: string): SupportRef[] {
     })
 }
 
-function parseSpellMeta(
+export function parseSpellMeta(
   typeId: number,
   description: string,
   attributes: string[],
@@ -97,7 +97,7 @@ function parseSpellMeta(
 
 // ─── Card record parser ───────────────────────────────────────────────────────
 
-function parseCardRecord(record: string): Card | null {
+export function parseCardRecord(record: string): Card | null {
   const fields = parseTclList(record)
 
   // Each card record must have exactly 13 fields
@@ -224,4 +224,4 @@ function main() {
   console.log(`\nTotal cards extracted: ${totalCards}`)
 }
 
-main()
+if (import.meta.main) main()

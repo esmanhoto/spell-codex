@@ -25,7 +25,7 @@ const OUT_DIR = path.join(import.meta.dir, "..", "formats")
  *   {Type Name}  min  max  maxCopies
  * into a Record<string, TypeLimit>
  */
-function parseLimitBlock(raw: string | null): Record<string, TypeLimit> {
+export function parseLimitBlock(raw: string | null): Record<string, TypeLimit> {
   if (!raw) return {}
   const result: Record<string, TypeLimit> = {}
   const elements = parseTclList(raw)
@@ -52,7 +52,7 @@ function parseLimitBlock(raw: string | null): Record<string, TypeLimit> {
  *   Champions     1   20
  *   Levels        0   90
  */
-function parseTotalBlock(raw: string | null): {
+export function parseTotalBlock(raw: string | null): {
   total: { min: number; max: number }
   championCount: { min: number; max: number }
   maxChampionLevels: number
@@ -89,7 +89,7 @@ function parseTotalBlock(raw: string | null): {
  * Parses banned/allowed card lists:
  *   {setId cardNumber}  {setId cardNumber}  ...
  */
-function parseCardRefList(raw: string | null): Array<{ setId: string; cardNumber: number }> {
+export function parseCardRefList(raw: string | null): Array<{ setId: string; cardNumber: number }> {
   if (!raw?.trim()) return []
   const elements = parseTclList(raw)
   const result: Array<{ setId: string; cardNumber: number }> = []
@@ -174,4 +174,4 @@ function main() {
   }
 }
 
-main()
+if (import.meta.main) main()

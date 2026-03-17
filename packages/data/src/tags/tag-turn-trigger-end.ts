@@ -12,20 +12,20 @@ const END_PATTERN = /\b(at the end of|end of) (his|the player'?s) turn\b/i
 const EXCLUDE_UNTIL = /\buntil the end of\b/i
 const EXCLUDE_EACH = /\bend of each player'?s turn\b/i
 
-function shouldTag(desc: string): boolean {
+export function shouldTagTurnEnd(desc: string): boolean {
   if (EXCLUDE_UNTIL.test(desc)) return false
   if (EXCLUDE_EACH.test(desc)) return false
   return END_PATTERN.test(desc)
 }
 
-runTaggingPipeline('"turn_trigger / end"', (cards, raw) => {
+if (import.meta.main) runTaggingPipeline('"turn_trigger / end"', (cards, raw) => {
   let text = raw
   let tagged = 0
   for (const card of cards) {
     if (!card.description) continue
     if (card.effects.some((e: EffectTag) => e.type === "turn_trigger" && e.timing === "end"))
       continue
-    if (!shouldTag(card.description)) continue
+    if (!shouldTagTurnEnd(card.description)) continue
     tagged++
     console.log(`  [+] #${card.cardNumber} ${card.name}: "${card.description.slice(0, 80)}..."`)
     text = patchEffectByName(text, card, EFFECT_JSON)
