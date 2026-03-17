@@ -13,7 +13,7 @@ const RESTORE_RAZED = /\brestore[sd]?\b.*\brazed\b/i
 const NEGATION_PATTERN = /\b(cannot|can't|no\s+player\s+can|prevent)\b.*\brebuild\b/i
 const TRIGGER_PATTERN = /\b(when|if)\b.*\brebuilt\b/i
 
-function shouldTag(desc: string): boolean {
+export function shouldTag(desc: string): boolean {
   const lower = desc.toLowerCase()
   if (NEGATION_PATTERN.test(lower)) return false
   if (
@@ -27,7 +27,7 @@ function shouldTag(desc: string): boolean {
   return false
 }
 
-runTaggingPipeline(`"${EFFECT_TYPE}"`, (cards, raw) => {
+if (import.meta.main) runTaggingPipeline(`"${EFFECT_TYPE}"`, (cards, raw) => {
   let text = raw
   let tagged = 0
   for (const card of cards) {
