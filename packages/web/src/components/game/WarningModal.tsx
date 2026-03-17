@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import base from "./modal-base.module.css"
 import styles from "./WarningModal.module.css"
 
 export function WarningModal({
@@ -25,10 +26,10 @@ export function WarningModal({
   }, [onCancel, suppress])
 
   return (
-    <div className={styles.backdrop} data-testid="warning-modal" onClick={() => onCancel(suppress)}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.title}>Warning</div>
-        <div className={styles.message}>{message}</div>
+    <div className={base.backdrop} data-testid="warning-modal" onClick={() => onCancel(suppress)}>
+      <div className={base.modal} onClick={(e) => e.stopPropagation()}>
+        <div className={base.title}>Warning</div>
+        <div className={`${base.message} ${styles.messagePreWrap}`}>{message}</div>
         {suppressible && (
           <label className={styles.checkboxRow}>
             <input
@@ -40,10 +41,10 @@ export function WarningModal({
             <span>Don&apos;t show this warning again</span>
           </label>
         )}
-        <div className={styles.actions}>
+        <div className={base.actions}>
           {onProceed && (
             <button
-              className={styles.button}
+              className={base.button}
               data-testid="warning-cancel"
               onClick={() => onCancel(suppress)}
             >
@@ -51,7 +52,7 @@ export function WarningModal({
             </button>
           )}
           <button
-            className={styles.button}
+            className={base.button}
             data-testid={onProceed ? "warning-proceed" : "warning-ok"}
             onClick={() => (onProceed ? onProceed(suppress) : onCancel(suppress))}
           >

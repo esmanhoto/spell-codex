@@ -1,14 +1,10 @@
-import { useEffect } from "react"
+import { useCallback } from "react"
 import type { CardInfo } from "../../api.ts"
 import { cardImageUrl } from "../../utils/card-helpers.ts"
+import { isChampion } from "../../utils/type-labels.ts"
+import { useEscapeKey } from "../../hooks/useEscapeKey.ts"
 import { useMoves } from "../../context/MovesContext.tsx"
 import styles from "./DiscardPileModal.module.css"
-
-const CHAMPION_TYPE_IDS = new Set([5, 7, 10, 12, 14, 16, 20])
-
-function isChampion(card: CardInfo) {
-  return CHAMPION_TYPE_IDS.has(card.typeId)
-}
 
 export function DiscardPileModal({
   ownerId,
@@ -20,14 +16,7 @@ export function DiscardPileModal({
   onClose: () => void
 }) {
   const { onMove } = useMoves()
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
+  useEscapeKey(useCallback(() => onClose(), [onClose]))
 
   return (
     <div className={styles.backdrop} onClick={onClose}>
@@ -79,7 +68,7 @@ export function DiscardPileModal({
                   >
                     Deck
                   </button>
-                  {isChampion(card) && (
+                  {isChampion(card.typeId) && (
                     <button
                       className={styles.btn}
                       onClick={() => {
