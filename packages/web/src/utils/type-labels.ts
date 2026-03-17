@@ -29,12 +29,10 @@ const TYPE_MAP: Record<number, TypeInfo> = {
   21: { label: "DUNGEON", color: "#8a8" },
 }
 
-const CHAMPION_TYPE_IDS = new Set([5, 7, 10, 12, 14, 16, 20])
+import { isChampionType } from "@spell/engine"
 
 export function getTypeInfo(typeId: number): TypeInfo {
   return TYPE_MAP[typeId] ?? { label: `TYPE ${typeId}`, color: "#888" }
 }
 
-export function isChampion(typeId: number): boolean {
-  return CHAMPION_TYPE_IDS.has(typeId)
-}
+export { isChampionType as isChampion }

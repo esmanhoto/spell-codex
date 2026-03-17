@@ -3,6 +3,7 @@ import { useBoard } from "../../context/BoardContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
 import type { PoolEntry as PoolEntryType, CardInfo } from "../../api.ts"
+import { findHandCard } from "../../utils/card-helpers.ts"
 import { resolveHandDropMove } from "../../utils/manual-actions.ts"
 import { PoolEntry } from "./PoolEntry.tsx"
 import { CardComponent } from "./CardComponent.tsx"
@@ -39,19 +40,11 @@ export function Pool({
     }
   }, [])
 
-  function findDraggedHandCard(instanceId: string) {
-    for (const board of Object.values(allBoards)) {
-      const c = board.hand.find((card) => card.instanceId === instanceId)
-      if (c) return c
-    }
-    return undefined
-  }
-
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     setDragOver(false)
     const id = e.dataTransfer.getData("drag-id")
-    const card = findDraggedHandCard(id)
+    const card = findHandCard(allBoards, id)
     const move = resolveHandDropMove({
       legalMoves,
       cardInstanceId: id,

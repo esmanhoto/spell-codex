@@ -92,16 +92,26 @@ export function NewGame() {
     return cards
   }
 
-  async function handleCreate() {
+  async function withLoading(fallbackMsg: string, fn: () => Promise<void>) {
     setError(null)
     setInfo(null)
     setLoading(true)
     try {
       if (!identity) throw new Error("You are not authenticated.")
+      await fn()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : fallbackMsg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleCreate() {
+    return withLoading("Failed to create game", async () => {
       const cards = await hydrateSelectedDeck(createDeck)
       const seed = Math.floor(Math.random() * 0x7fffffff)
       const { gameId, slug } = await createLobbyGame({
-        identity,
+        identity: identity!,
         seed,
         deck: cards,
       })
@@ -109,25 +119,16 @@ export function NewGame() {
       setWaitingSlug(slug)
       setMode(null)
       setInfo("Game created. Share this Game ID so your friend can join.")
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to create game")
-    } finally {
-      setLoading(false)
-    }
+    })
   }
 
-  async function handleJoin() {
-    setError(null)
-    setInfo(null)
-    setLoading(true)
-    try {
-      if (!identity) throw new Error("You are not authenticated.")
+  function handleJoin() {
+    return withLoading("Failed to join game", async () => {
       const gameIdentifier = joinGameId.trim()
       if (!gameIdentifier) throw new Error("Please enter a Game ID.")
-
       const cards = await hydrateSelectedDeck(joinDeck)
       const result = await joinLobbyGame({
-        identity,
+        identity: identity!,
         gameId: gameIdentifier,
         deck: cards,
       })
@@ -135,11 +136,7 @@ export function NewGame() {
         throw new Error("Game is not ready yet.")
       }
       navigate(`/game/${gameIdentifier}`)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to join game")
-    } finally {
-      setLoading(false)
-    }
+    })
   }
 
   async function copyGameId() {
@@ -172,6 +169,29 @@ export function NewGame() {
 
   const decks = deckList?.decks ?? []
   const customDecks = getCustomDecks()
+
+  function DeckOptions() {
+    return (
+      <>
+        {customDecks.length > 0 && (
+          <optgroup label="Custom Decks">
+            {customDecks.map((d) => (
+              <option key={`custom:${d.name}`} value={`custom:${d.name}`}>
+                {d.name} ({d.cards.length} cards)
+              </option>
+            ))}
+          </optgroup>
+        )}
+        <optgroup label="Pre-built Decks">
+          {decks.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </optgroup>
+      </>
+    )
+  }
 
   return (
     <div className={styles.lobbyPage} data-testid="lobby-page">
@@ -365,22 +385,7 @@ export function NewGame() {
                     value={createDeck}
                     onChange={(e) => setCreateDeck(e.target.value)}
                   >
-                    {customDecks.length > 0 && (
-                      <optgroup label="Custom Decks">
-                        {customDecks.map((d) => (
-                          <option key={`custom:${d.name}`} value={`custom:${d.name}`}>
-                            {d.name} ({d.cards.length} cards)
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    <optgroup label="Pre-built Decks">
-                      {decks.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </optgroup>
+                    <DeckOptions />
                   </select>
                 </label>
 
@@ -424,22 +429,7 @@ export function NewGame() {
                     value={joinDeck}
                     onChange={(e) => setJoinDeck(e.target.value)}
                   >
-                    {customDecks.length > 0 && (
-                      <optgroup label="Custom Decks">
-                        {customDecks.map((d) => (
-                          <option key={`custom:${d.name}`} value={`custom:${d.name}`}>
-                            {d.name} ({d.cards.length} cards)
-                          </option>
-                        ))}
-                      </optgroup>
-                    )}
-                    <optgroup label="Pre-built Decks">
-                      {decks.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </optgroup>
+                    <DeckOptions />
                   </select>
                 </label>
 
