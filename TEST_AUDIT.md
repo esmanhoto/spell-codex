@@ -12,10 +12,10 @@
 | api     | 15    | 19              | ~90%     | **Phase 2 DONE** — 190 tests |
 | db      | 10    | 8               | ~80%     | **Phase 3 DONE** — 72 tests  |
 | web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows  |
-| data    | 15    | 6               | ~50%     | **Phase 5b DONE** — 175 tests |
+| data    | 15    | 8               | ~60%     | **Phase 5 DONE** — 195 tests  |
 
-**Total test files**: 74 (27 engine + 19 api + 8 db + 4 web unit + 10 web e2e + 6 data)
-**Total test count**: ~935+ (415 engine + 190 api + 72 db + 83 web + 175 data)
+**Total test files**: 76 (27 engine + 19 api + 8 db + 4 web unit + 10 web e2e + 8 data)
+**Total test count**: ~955+ (415 engine + 190 api + 72 db + 83 web + 195 data)
 
 ### New Dependencies Required
 
@@ -234,7 +234,7 @@
 
 ---
 
-## Phase 5: packages/data — 6 test files — IN PROGRESS
+## Phase 5: packages/data — 8 test files — ✅ COMPLETE (195 tests)
 
 ### What's tested
 
@@ -244,6 +244,8 @@
 - Format parsing: `parseLimitBlock`, `parseTotalBlock`, `parseCardRefList`
 - Deck parsing: `extractBareValue`, `parseDeckCardList`
 - Data validation: duplicate detection, schema fields, deck refs, format min≤max, spell meta edge cases
+- Sets/worlds output: sets.json integrity (no dupes, field types, card counts), worlds.json (all 9 IDs, no ID 8)
+- Image pipeline: leading-zero stripping logic (001→1, non-numeric rejection)
 
 ### 5a. High Priority — ✅ DONE (112 tests in 3 files)
 
@@ -266,13 +268,13 @@
 | Format parsing                 | ✅     | extract-formats.test.ts — 22 tests (parseLimitBlock, parseTotalBlock, cardRefs)  |
 | Deck parsing                   | ✅     | extract-decks.test.ts — 17 tests (extractBareValue, parseDeckCardList)           |
 
-### 5c. Low Priority
+### 5c. Low Priority — ✅ DONE (20 tests in 2 files)
 
-| Gap                         | Impact                                              |
-| --------------------------- | --------------------------------------------------- |
-| extract-sets.ts aggregation | Assumes cards/ exists; no validation of card counts |
-| copy-images.ts              | Assumes SRC_DIR exists; skips failures silently     |
-| index.ts orchestrator       | CLI entry point; Bun.spawnSync error handling       |
+| Gap                         | Status | Tests                                                                          |
+| --------------------------- | ------ | ------------------------------------------------------------------------------ |
+| extract-sets.ts aggregation | ✅     | extract-sets.test.ts — 12 tests (sets.json + worlds.json integrity, counts)    |
+| copy-images.ts              | ✅     | copy-images.test.ts — 8 tests (leading-zero stripping, edge cases)             |
+| index.ts orchestrator       | ⚠️     | Not unit-testable (Bun.spawnSync orchestrator) — covered by manual `bun run extract` |
 
 ---
 
