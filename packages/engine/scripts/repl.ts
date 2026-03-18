@@ -6,18 +6,17 @@
  */
 
 import { initGame, applyMove, getLegalMoves } from "../src/index.ts"
-import type { GameState, Move } from "../src/index.ts"
-import { Phase } from "../src/index.ts"
+import type { GameState, GameConfig, Move, CardData } from "../src/index.ts"
 import { HAND_SIZES } from "../src/constants.ts"
 
 // ─── Minimal card data matching the real 1st Edition cards ───────────────────
 
-const WATERDEEP = {
+const WATERDEEP: CardData = {
   setId: "1st",
   cardNumber: 1,
   name: "Waterdeep",
   typeId: 13,
-  worldId: 1 as const,
+  worldId: 1,
   isAvatar: false,
   level: null,
   description: "Any champion can use wizard spells when defending Waterdeep.",
@@ -25,12 +24,12 @@ const WATERDEEP = {
   supportIds: ["d19", "o19"],
   effects: [],
 }
-const VILLAGE = {
+const VILLAGE: CardData = {
   setId: "1st",
   cardNumber: 50,
   name: "Village",
   typeId: 13,
-  worldId: 0 as const,
+  worldId: 0,
   isAvatar: false,
   level: null,
   description: "",
@@ -38,12 +37,12 @@ const VILLAGE = {
   supportIds: [],
   effects: [],
 }
-const ELMINSTER = {
+const ELMINSTER: CardData = {
   setId: "1st",
   cardNumber: 20,
   name: "Elminster",
   typeId: 20,
-  worldId: 1 as const,
+  worldId: 1,
   isAvatar: false,
   level: 8,
   description: "Elminster can use wizard spells.",
@@ -51,12 +50,12 @@ const ELMINSTER = {
   supportIds: [1, 2, 9, "d19", "o19"],
   effects: [],
 }
-const ALUSTRIEL = {
+const ALUSTRIEL: CardData = {
   setId: "1st",
   cardNumber: 10,
   name: "Alustriel",
   typeId: 5,
-  worldId: 1 as const,
+  worldId: 1,
   isAvatar: false,
   level: 6,
   description: "Cleric champion.",
@@ -64,12 +63,12 @@ const ALUSTRIEL = {
   supportIds: [1, 2, 4, 9],
   effects: [],
 }
-const DRIZZT = {
+const DRIZZT: CardData = {
   setId: "1st",
   cardNumber: 30,
   name: "Drizzt",
   typeId: 7,
-  worldId: 1 as const,
+  worldId: 1,
   isAvatar: false,
   level: 9,
   description: "Hero of Faerûn.",
@@ -77,12 +76,12 @@ const DRIZZT = {
   supportIds: [1, 9],
   effects: [],
 }
-const DWARF_AXE = {
+const DWARF_AXE: CardData = {
   setId: "1st",
   cardNumber: 100,
   name: "Dwarven Axemen",
   typeId: 1,
-  worldId: 0 as const,
+  worldId: 0,
   isAvatar: false,
   level: "+4",
   description: "+4 to champion.",
@@ -90,12 +89,12 @@ const DWARF_AXE = {
   supportIds: [],
   effects: [],
 }
-const SWORD = {
+const SWORD: CardData = {
   setId: "1st",
   cardNumber: 200,
   name: "Sword of Valor",
   typeId: 9,
-  worldId: 0 as const,
+  worldId: 0,
   isAvatar: false,
   level: null,
   description: "+2/+1 to bearer in combat.",
@@ -104,13 +103,13 @@ const SWORD = {
   effects: [],
 }
 
-function makeDeck(cards: (typeof WATERDEEP)[], total = 55) {
+function makeDeck(cards: CardData[], total = 55) {
   const deck = []
   for (let i = 0; deck.length < total; i++) deck.push(cards[i % cards.length]!)
   return deck
 }
 
-const config = {
+const config: GameConfig = {
   gameId: "repl-game",
   players: [
     {
@@ -118,7 +117,7 @@ const config = {
       deckCards: makeDeck([WATERDEEP, VILLAGE, ELMINSTER, ALUSTRIEL, DWARF_AXE, SWORD]),
     },
     { id: "Bob", deckCards: makeDeck([VILLAGE, WATERDEEP, DRIZZT, ALUSTRIEL, DWARF_AXE, SWORD]) },
-  ] as [(typeof config)["players"][0], (typeof config)["players"][0]],
+  ],
   seed: 42,
 }
 
@@ -164,23 +163,6 @@ function printState(state: GameState) {
   console.log()
 }
 
-function printMoves(moves: Move[]) {
-  if (moves.length === 0) {
-    console.log("  (no legal moves)")
-    return
-  }
-  moves.forEach((m, i) => {
-    const detail =
-      "cardInstanceId" in m
-        ? ` [${(m as { cardInstanceId: string }).cardInstanceId}]`
-        : "championId" in m
-          ? ` [champ: ${(m as { championId: string }).championId}]`
-          : "slot" in m
-            ? ` [slot: ${(m as { slot: string }).slot}]`
-            : ""
-    console.log(`  ${i}: ${m.type}${detail}`)
-  })
-}
 
 // ─── Auto-play helper (picks the first legal move greedily) ──────────────────
 
