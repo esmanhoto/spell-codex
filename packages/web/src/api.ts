@@ -398,9 +398,11 @@ export type WsClientMessage =
       type: "STATE_UPDATE"
       gameId: string
       state: GameState
-      /** Full engine GameState for client-side engine init */
+      /** Filtered engine GameState for client-side engine init */
       rawEngineState?: unknown
       sequence?: number
+      /** Per-player filtered state hash for reconciliation */
+      stateHash?: string
     }
   | {
       type: "MOVE_APPLIED"

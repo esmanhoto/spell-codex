@@ -167,8 +167,10 @@ describe("Full move lifecycle (api + db + engine)", () => {
     expect(msgA).toBeDefined()
     expect(msgB).toBeDefined()
 
-    // Both get identical delta
-    expect(msgA["stateHash"]).toBe(msgB["stateHash"])
+    // Hashes are per-player (filtered view), so they differ
+    expect(typeof msgA["stateHash"]).toBe("string")
+    expect(typeof msgB["stateHash"]).toBe("string")
+    expect(msgA["stateHash"]).not.toBe(msgB["stateHash"])
     expect(msgA["sequence"]).toBe(msgB["sequence"])
     expect(msgA["playerId"]).toBe(PLAYER_A)
     expect(msgA["move"]).toEqual({ type: "PASS", playerId: PLAYER_A })

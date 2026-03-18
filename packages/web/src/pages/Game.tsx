@@ -50,6 +50,17 @@ import { DevGiveCardPanel } from "../components/game/DevGiveCardPanel.tsx"
 import { useChat } from "../hooks/useChat.ts"
 import "../styles/game-vars.css"
 
+/** Zero-out opponent hidden zones to match server-side filterStateForPlayer. */
+function filterLocalState(state: EngineGameState, viewerId: string): EngineGameState {
+  const players = { ...state.players }
+  for (const id of Object.keys(players)) {
+    if (id !== viewerId) {
+      players[id] = { ...players[id]!, hand: [], drawPile: [] }
+    }
+  }
+  return { ...state, players }
+}
+
 type Phase3SpellCastEvent = {
   type: "PHASE3_SPELL_CAST"
   playerId: string
@@ -395,8 +406,9 @@ export function Game() {
         if (state.events?.length) processIncomingEvents(state.events)
       } else if (msg.type === "MOVE_APPLIED") {
         const engineState = localEngineStateRef.current
-        if (!engineState) {
-          // No local engine state — request full sync
+        // Opponent moves: can't replay locally (we don't have their hand/drawPile),
+        // so request an authoritative sync from the server instead.
+        if (!engineState || msg.playerId !== myPlayerId) {
           wsRef.current?.sendSyncRequest(msg.gameId)
           return
         }
@@ -410,8 +422,9 @@ export function Game() {
           wsRef.current?.sendSyncRequest(msg.gameId)
           return
         }
-        // Hash reconciliation — async, non-blocking
-        void hashEngineState(newEngineState).then((clientHash) => {
+        // Hash reconciliation — hash the filtered view (opponent hand/drawPile hidden)
+        const filteredForHash = filterLocalState(newEngineState, myPlayerId)
+        void hashEngineState(filteredForHash).then((clientHash) => {
           if (clientHash !== msg.stateHash) {
             console.warn(
               `[phase6] hash mismatch (client=${clientHash.slice(0, 8)} server=${msg.stateHash.slice(0, 8)}) — requesting sync`,

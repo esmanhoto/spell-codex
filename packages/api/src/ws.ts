@@ -1,5 +1,5 @@
 import type { ServerWebSocket } from "bun"
-import { getGamePlayers, lastSequence, reconstructState } from "@spell/db"
+import { getGamePlayers, lastSequence, reconstructState, hashState } from "@spell/db"
 // lastSequence + reconstructState needed for JOIN_GAME fallback on finished games
 import { applyMove, EngineError } from "@spell/engine"
 import type { GameState } from "@spell/engine"
@@ -37,9 +37,11 @@ export type ServerMessage =
       type: "STATE_UPDATE"
       gameId: string
       state: unknown
-      /** Full engine GameState — sent on JOIN_GAME and SYNC_REQUEST for client-side engine init */
+      /** Filtered engine GameState — sent on JOIN_GAME and SYNC_REQUEST for client-side engine init */
       rawEngineState?: GameState
       sequence?: number
+      /** Per-player filtered state hash for reconciliation */
+      stateHash?: string
     }
   | {
       /** Delta update — replaces STATE_UPDATE in the move broadcast path */
@@ -161,30 +163,30 @@ export async function processWsMove(
   const tHashStart = performance.now()
   const {
     sequence: seq,
-    stateHash,
     turnDeadline,
   } = await persistMoveResult(gameId, userId, safeMove, result.newState, seq0)
   const tHashEnd = performance.now()
 
-  // Broadcast delta update to all players — client applies via local engine
+  // Broadcast delta update to each player with per-player filtered hash
   const sockets = registry.get(gameId)
   let broadcastBytes = 0
   const tSerializeStart = performance.now()
   if (sockets) {
-    const msg: ServerMessage = {
-      type: "MOVE_APPLIED",
-      gameId,
-      playerId: userId,
-      move: safeMove,
-      stateHash,
-      sequence: seq,
-      turnDeadline: turnDeadline ? turnDeadline.toISOString() : null,
-      status: result.newState.winner ? "finished" : "active",
-      winner: result.newState.winner ?? null,
-    }
-    const encoded = JSON.stringify(msg)
-    broadcastBytes = encoded.length * sockets.size
-    for (const socket of sockets.values()) {
+    for (const [viewerId, socket] of sockets.entries()) {
+      const filteredHash = hashState(filterStateForPlayer(result.newState, viewerId))
+      const msg: ServerMessage = {
+        type: "MOVE_APPLIED",
+        gameId,
+        playerId: userId,
+        move: safeMove,
+        stateHash: filteredHash,
+        sequence: seq,
+        turnDeadline: turnDeadline ? turnDeadline.toISOString() : null,
+        status: result.newState.winner ? "finished" : "active",
+        winner: result.newState.winner ?? null,
+      }
+      const encoded = JSON.stringify(msg)
+      broadcastBytes += encoded.length
       try {
         socket.send(encoded)
       } catch {
@@ -328,12 +330,14 @@ export const wsHandlers = {
             )
             joinState = reconstructed
           }
+          const filteredJoin = filterStateForPlayer(joinState, userId)
           send(ws, {
             type: "STATE_UPDATE",
             gameId,
             state: serializeGameState(joinState, { includeDeckImages: true }, userId),
-            rawEngineState: filterStateForPlayer(joinState, userId),
+            rawEngineState: filteredJoin,
             sequence: joinSeq,
+            stateHash: hashState(filteredJoin),
           })
           return
         }
@@ -353,6 +357,7 @@ export const wsHandlers = {
             send(ws, { type: "ERROR", code: "FORBIDDEN", message: "Not a participant" })
             return
           }
+          const filteredSync = filterStateForPlayer(syncHit.state, ws.data.userId)
           send(ws, {
             type: "STATE_UPDATE",
             gameId: syncGameId,
@@ -361,8 +366,9 @@ export const wsHandlers = {
               { status: syncHit.state.winner ? "finished" : "active" },
               ws.data.userId,
             ),
-            rawEngineState: filterStateForPlayer(syncHit.state, ws.data.userId),
+            rawEngineState: filteredSync,
             sequence: syncHit.sequence,
+            stateHash: hashState(filteredSync),
           })
           return
         }
