@@ -78,7 +78,6 @@ describe("Hash parity (db hashState vs web hashEngineState)", () => {
     const webHash = await hashEngineState(result.newState)
     expect(webHash).toBe(dbHash)
   })
-
 })
 
 // ─── Client serialization shape ──────────────────────────────────────────────

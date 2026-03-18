@@ -1,4 +1,10 @@
-import { useRef, useEffect, useState, useCallback, type PointerEvent as ReactPointerEvent } from "react"
+import {
+  useRef,
+  useEffect,
+  useState,
+  useCallback,
+  type PointerEvent as ReactPointerEvent,
+} from "react"
 import type { ChatEntry } from "../../hooks/useChat.ts"
 import styles from "./ChatPanel.module.css"
 

@@ -26,7 +26,10 @@ profileRouter.patch(
         .string()
         .min(1)
         .max(30)
-        .regex(/^[a-zA-Z0-9 _-]+$/, "Alphanumeric characters, spaces, hyphens, and underscores only"),
+        .regex(
+          /^[a-zA-Z0-9 _-]+$/,
+          "Alphanumeric characters, spaces, hyphens, and underscores only",
+        ),
     }),
   ),
   async (c) => {

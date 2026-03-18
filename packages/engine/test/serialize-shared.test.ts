@@ -73,7 +73,6 @@ describe("serializeCard", () => {
     expect(result.spellNature).toBe("offensive")
     expect(result.castPhases).toEqual([4])
   })
-
 })
 
 // ─── serializeFormation ──────────────────────────────────────────────────────
@@ -152,15 +151,36 @@ describe("serializeFormation", () => {
   })
 
   test("formation size determines slot keys: 6→A-F, 8→A-H, 10→A-J", () => {
-    expect(Object.keys(serializeFormation({ size: 6, slots: {} }, "p1"))).toEqual(
-      ["A", "B", "C", "D", "E", "F"],
-    )
-    expect(Object.keys(serializeFormation({ size: 8, slots: {} }, "p1"))).toEqual(
-      ["A", "B", "C", "D", "E", "F", "G", "H"],
-    )
-    expect(Object.keys(serializeFormation({ size: 10, slots: {} }, "p1"))).toEqual(
-      ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
-    )
+    expect(Object.keys(serializeFormation({ size: 6, slots: {} }, "p1"))).toEqual([
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+    ])
+    expect(Object.keys(serializeFormation({ size: 8, slots: {} }, "p1"))).toEqual([
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+    ])
+    expect(Object.keys(serializeFormation({ size: 10, slots: {} }, "p1"))).toEqual([
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+    ])
   })
 
   test("no viewerPlayerId: holdings are hidden (not owner view)", () => {

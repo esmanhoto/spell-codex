@@ -170,7 +170,13 @@ describe("CHAT_MSG", () => {
   })
 
   it("rejects if socket has not joined a game", async () => {
-    const s1 = mockSocket({ gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer: null })
+    const s1 = mockSocket({
+      gameId: null,
+      userId: null,
+      displayName: null,
+      lastChatTs: 0,
+      idleTimer: null,
+    })
 
     await wsHandlers.message(
       s1 as unknown as ServerWebSocket<WsData>,
@@ -269,7 +275,13 @@ describe("CHAT_EMOTE", () => {
   })
 
   it("rejects if socket has not joined a game", async () => {
-    const s1 = mockSocket({ gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer: null })
+    const s1 = mockSocket({
+      gameId: null,
+      userId: null,
+      displayName: null,
+      lastChatTs: 0,
+      idleTimer: null,
+    })
 
     await wsHandlers.message(
       s1 as unknown as ServerWebSocket<WsData>,

@@ -30,7 +30,9 @@ export function extractBareValue(source: string, varName: string): string {
  * Parses a tempDeck or tempAltCards block:
  *   {setId cardNumber}  {setId cardNumber}  ...
  */
-export function parseDeckCardList(raw: string | null): Array<{ setId: string; cardNumber: number }> {
+export function parseDeckCardList(
+  raw: string | null,
+): Array<{ setId: string; cardNumber: number }> {
   if (!raw?.trim()) return []
   const result: Array<{ setId: string; cardNumber: number }> = []
 

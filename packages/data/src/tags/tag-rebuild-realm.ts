@@ -27,18 +27,19 @@ export function shouldTag(desc: string): boolean {
   return false
 }
 
-if (import.meta.main) runTaggingPipeline(`"${EFFECT_TYPE}"`, (cards, raw) => {
-  let text = raw
-  let tagged = 0
-  for (const card of cards) {
-    if (!card.description) continue
-    if (card.effects.some((e: EffectTag) => e.type === EFFECT_TYPE)) continue
-    if (!shouldTag(card.description)) continue
-    tagged++
-    console.log(
-      `  [+] #${card.cardNumber} ${card.name} (type ${card.typeId}): "${card.description.slice(0, 80)}..."`,
-    )
-    text = patchEffectByName(text, card, `{"type":"${EFFECT_TYPE}"}`)
-  }
-  return { text, tagged }
-})
+if (import.meta.main)
+  runTaggingPipeline(`"${EFFECT_TYPE}"`, (cards, raw) => {
+    let text = raw
+    let tagged = 0
+    for (const card of cards) {
+      if (!card.description) continue
+      if (card.effects.some((e: EffectTag) => e.type === EFFECT_TYPE)) continue
+      if (!shouldTag(card.description)) continue
+      tagged++
+      console.log(
+        `  [+] #${card.cardNumber} ${card.name} (type ${card.typeId}): "${card.description.slice(0, 80)}..."`,
+      )
+      text = patchEffectByName(text, card, `{"type":"${EFFECT_TYPE}"}`)
+    }
+    return { text, tagged }
+  })

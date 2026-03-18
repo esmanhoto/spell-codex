@@ -6,14 +6,14 @@
 
 ## Executive Summary
 
-| Package | Files | Tested          | Coverage | Verdict                      |
-| ------- | ----- | --------------- | -------- | ---------------------------- |
-| engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 417 tests |
+| Package | Files | Tested          | Coverage | Verdict                                |
+| ------- | ----- | --------------- | -------- | -------------------------------------- |
+| engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 417 tests           |
 | api     | 15    | 24              | ~92%     | **Phase 2 DONE** + Phase 6 — 228 tests |
-| db      | 10    | 8               | ~80%     | **Phase 3 DONE** — 72 tests  |
-| web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows  |
-| data    | 15    | 8               | ~60%     | **Phase 5 DONE** — 195 tests  |
-| cross   | —     | 5               | —        | **Phase 6 DONE** — 31 tests   |
+| db      | 10    | 8               | ~80%     | **Phase 3 DONE** — 72 tests            |
+| web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows            |
+| data    | 15    | 8               | ~60%     | **Phase 5 DONE** — 195 tests           |
+| cross   | —     | 5               | —        | **Phase 6 DONE** — 31 tests            |
 
 **Total test files**: 81 (27 engine + 24 api + 8 db + 4 web unit + 10 web e2e + 8 data)
 **Total test count**: ~995+ (417 engine + 228 api + 72 db + 83 web + 195 data)
@@ -104,19 +104,19 @@
 
 ### 2a. High Priority (Security) — ✅ DONE (53 tests in 4 files)
 
-| Gap                                   | Status | Tests                                                                         |
-| ------------------------------------- | ------ | ----------------------------------------------------------------------------- |
-| WS JOIN_GAME auth                     | ✅     | ws-security.test.ts (6 auth tests) + ws-game.test.ts (8 join tests)           |
-| WS SUBMIT_MOVE                        | ✅     | ws-game.test.ts — 4 tests (broadcast, invalid move, wrong player, concurrent) |
-| WS SYNC_REQUEST                       | ✅     | ws-security.test.ts (3 cache tests) + ws-game.test.ts (1 integration)         |
-| Path traversal on /cards/:setId/:file | ✅     | cards-security.test.ts — 9 tests                                              |
-| Move payload size                     | ✅     | ws-security.test.ts — large garbage payload test                              |
-| Auth header precedence                | ✅     | auth-precedence.test.ts — 3 tests                                             |
-| SUBMIT_MOVE rate limiting             | ⚠️     | No rate limiting exists — documented gap (only chat is throttled)             |
-| Concurrent move race                  | ✅     | ws-game.test.ts — enqueueMove serialization test                              |
-| Malformed WS JSON                     | ✅     | ws-security.test.ts — 4 tests (invalid JSON, empty, binary, large)            |
+| Gap                                   | Status | Tests                                                                                                            |
+| ------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| WS JOIN_GAME auth                     | ✅     | ws-security.test.ts (6 auth tests) + ws-game.test.ts (8 join tests)                                              |
+| WS SUBMIT_MOVE                        | ✅     | ws-game.test.ts — 4 tests (broadcast, invalid move, wrong player, concurrent)                                    |
+| WS SYNC_REQUEST                       | ✅     | ws-security.test.ts (3 cache tests) + ws-game.test.ts (1 integration)                                            |
+| Path traversal on /cards/:setId/:file | ✅     | cards-security.test.ts — 9 tests                                                                                 |
+| Move payload size                     | ✅     | ws-security.test.ts — large garbage payload test                                                                 |
+| Auth header precedence                | ✅     | auth-precedence.test.ts — 3 tests                                                                                |
+| SUBMIT_MOVE rate limiting             | ⚠️     | No rate limiting exists — documented gap (only chat is throttled)                                                |
+| Concurrent move race                  | ✅     | ws-game.test.ts — enqueueMove serialization test                                                                 |
+| Malformed WS JSON                     | ✅     | ws-security.test.ts — 4 tests (invalid JSON, empty, binary, large)                                               |
 | DEV_GIVE_CARD blocked                 | ✅     | games.test.ts — 1 test (HTTP 400) + ws-security.test.ts — 1 test (WS blocked) + engine — 2 tests (devMode guard) |
-| rawEngineState filtering              | ✅     | ws-security.test.ts — 5 tests (viewer preserved, opponent hidden, non-hidden zones, no mutation, symmetric) |
+| rawEngineState filtering              | ✅     | ws-security.test.ts — 5 tests (viewer preserved, opponent hidden, non-hidden zones, no mutation, symmetric)      |
 
 ### 2b. Medium Priority (Reliability) — ✅ DONE (51 tests in 5 files)
 
@@ -254,10 +254,10 @@
 
 | Gap                                            | Status | Tests                                                                 |
 | ---------------------------------------------- | ------ | --------------------------------------------------------------------- |
-| TCL parser (parseTclList, extractTclBlock)     | ✅     | tcl-parser.test.ts — 27 tests (braces, quotes, escapes, nesting)     |
+| TCL parser (parseTclList, extractTclBlock)     | ✅     | tcl-parser.test.ts — 27 tests (braces, quotes, escapes, nesting)      |
 | Card record parsing (parseCardRecord)          | ✅     | extract-cards.test.ts — 45 tests (field parsers, records, spell meta) |
-| Effect tagging regexes (5 shouldTag functions) | ✅     | effect-tagging.test.ts — 40 tests (all 5 shouldTag + patch utils)    |
-| Schema validation                              | ⚠️     | No runtime validation exists — documented gap (type-only safety)     |
+| Effect tagging regexes (5 shouldTag functions) | ✅     | effect-tagging.test.ts — 40 tests (all 5 shouldTag + patch utils)     |
+| Schema validation                              | ⚠️     | No runtime validation exists — documented gap (type-only safety)      |
 
 ### 5b. Medium Priority — ✅ DONE (63 tests in 3 files)
 
@@ -273,10 +273,10 @@
 
 ### 5c. Low Priority — ✅ DONE (20 tests in 2 files)
 
-| Gap                         | Status | Tests                                                                          |
-| --------------------------- | ------ | ------------------------------------------------------------------------------ |
-| extract-sets.ts aggregation | ✅     | extract-sets.test.ts — 12 tests (sets.json + worlds.json integrity, counts)    |
-| copy-images.ts              | ✅     | copy-images.test.ts — 8 tests (leading-zero stripping, edge cases)             |
+| Gap                         | Status | Tests                                                                                |
+| --------------------------- | ------ | ------------------------------------------------------------------------------------ |
+| extract-sets.ts aggregation | ✅     | extract-sets.test.ts — 12 tests (sets.json + worlds.json integrity, counts)          |
+| copy-images.ts              | ✅     | copy-images.test.ts — 8 tests (leading-zero stripping, edge cases)                   |
 | index.ts orchestrator       | ⚠️     | Not unit-testable (Bun.spawnSync orchestrator) — covered by manual `bun run extract` |
 
 ---
@@ -293,20 +293,20 @@
 
 ### 6a. High Priority — ✅ DONE (10 tests in 2 files)
 
-| Gap                 | Status | Tests                                                                                       |
-| ------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| Gap                 | Status | Tests                                                                                                                     |
+| ------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------- |
 | Full move lifecycle | ✅     | cross-move-lifecycle.test.ts — 6 tests (persist+hash, broadcast, reconstruct, multi-move, invalid/wrong-player rejection) |
-| Deadline expiration | ✅     | cross-deadline-lifecycle.test.ts — 4 tests (auto-PASS hash, reconstruct, skip non-active, multi-game) |
+| Deadline expiration | ✅     | cross-deadline-lifecycle.test.ts — 4 tests (auto-PASS hash, reconstruct, skip non-active, multi-game)                     |
 
 ### 6b. Medium Priority — ✅ DONE (15 tests in 2 files)
 
-| Gap                   | Status | Tests                                                                                      |
-| --------------------- | ------ | ------------------------------------------------------------------------------------------ |
-| State cache coherence | ✅     | cross-cache-coherence.test.ts — 6 tests (miss→hit, move+evict, multi-move parity, sequence, playerIds, full reconstruct) |
+| Gap                   | Status | Tests                                                                                                                                   |
+| --------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| State cache coherence | ✅     | cross-cache-coherence.test.ts — 6 tests (miss→hit, move+evict, multi-move parity, sequence, playerIds, full reconstruct)                |
 | Client delta pipeline | ✅     | cross-client-delta.test.ts — 9 tests (hash parity initial+post-move+different+events, serialize shape+hand+legal+perspective+post-move) |
 
 ### 6c. Low Priority — ✅ DONE (6 tests in 1 file)
 
-| Gap               | Status | Tests                                                                                      |
-| ----------------- | ------ | ------------------------------------------------------------------------------------------ |
+| Gap               | Status | Tests                                                                                                                        |
+| ----------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
 | Dev scenario load | ✅     | cross-dev-scenario.test.ts — 6 tests (snapshot in DB, reconstruct, WS join, move persist, reconstruct after move, give-card) |

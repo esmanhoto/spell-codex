@@ -208,49 +208,42 @@ describe("parseCardRecord", () => {
   })
 
   test("returns null for non-numeric cardNumber", () => {
-    const record =
-      "1st abc 6 7 1 0 {Name} {Desc} R {} {} {} 5"
+    const record = "1st abc 6 7 1 0 {Name} {Desc} R {} {} {} 5"
     expect(parseCardRecord(record)).toBeNull()
   })
 
   test("returns null for non-numeric typeId", () => {
-    const record =
-      "1st 42 6 bad 1 0 {Name} {Desc} R {} {} {} 5"
+    const record = "1st 42 6 bad 1 0 {Name} {Desc} R {} {} {} 5"
     expect(parseCardRecord(record)).toBeNull()
   })
 
   test("invalid worldId defaults to 0", () => {
-    const record =
-      "1st 42 6 7 {} 0 {Name} {Desc} R {} {} {} 5"
+    const record = "1st 42 6 7 {} 0 {Name} {Desc} R {} {} {} 5"
     const card = parseCardRecord(record)
     expect(card).not.toBeNull()
     expect(card!.worldId).toBe(0)
   })
 
   test("isAvatar true when field is '1'", () => {
-    const record =
-      "1st 42 6 7 1 1 {Name} {Desc} R {} {} {} 5"
+    const record = "1st 42 6 7 1 1 {Name} {Desc} R {} {} {} 5"
     const card = parseCardRecord(record)
     expect(card!.isAvatar).toBe(true)
   })
 
   test("isAvatar false for any other value", () => {
-    const record =
-      "1st 42 6 7 1 0 {Name} {Desc} R {} {} {} 5"
+    const record = "1st 42 6 7 1 0 {Name} {Desc} R {} {} {} 5"
     const card = parseCardRecord(record)
     expect(card!.isAvatar).toBe(false)
   })
 
   test("non-numeric weight returns null weight", () => {
-    const record =
-      "1st 42 6 7 1 0 {Name} {Desc} R {} {} {} {}"
+    const record = "1st 42 6 7 1 0 {Name} {Desc} R {} {} {} {}"
     const card = parseCardRecord(record)
     expect(card!.weight).toBeNull()
   })
 
   test("spell card gets spellNature and castPhases", () => {
-    const record =
-      "1st 42 {} 19 0 0 {Fireball} {Deals damage (Off/3/5)} R {} {} {} 5"
+    const record = "1st 42 {} 19 0 0 {Fireball} {Deals damage (Off/3/5)} R {} {} {} 5"
     const card = parseCardRecord(record)
     expect(card).not.toBeNull()
     expect(card!.spellNature).toBe("offensive")
@@ -263,8 +256,7 @@ describe("parseCardRecord", () => {
   })
 
   test("trims name and setId whitespace", () => {
-    const record =
-      " 1st  42 6 7 1 0 { Padded Name } {Desc} R {} {} {} 5"
+    const record = " 1st  42 6 7 1 0 { Padded Name } {Desc} R {} {} {} 5"
     const card = parseCardRecord(record)
     expect(card!.setId).toBe("1st")
     expect(card!.name).toBe("Padded Name")

@@ -18,17 +18,18 @@ export function shouldTagTurnEnd(desc: string): boolean {
   return END_PATTERN.test(desc)
 }
 
-if (import.meta.main) runTaggingPipeline('"turn_trigger / end"', (cards, raw) => {
-  let text = raw
-  let tagged = 0
-  for (const card of cards) {
-    if (!card.description) continue
-    if (card.effects.some((e: EffectTag) => e.type === "turn_trigger" && e.timing === "end"))
-      continue
-    if (!shouldTagTurnEnd(card.description)) continue
-    tagged++
-    console.log(`  [+] #${card.cardNumber} ${card.name}: "${card.description.slice(0, 80)}..."`)
-    text = patchEffectByName(text, card, EFFECT_JSON)
-  }
-  return { text, tagged }
-})
+if (import.meta.main)
+  runTaggingPipeline('"turn_trigger / end"', (cards, raw) => {
+    let text = raw
+    let tagged = 0
+    for (const card of cards) {
+      if (!card.description) continue
+      if (card.effects.some((e: EffectTag) => e.type === "turn_trigger" && e.timing === "end"))
+        continue
+      if (!shouldTagTurnEnd(card.description)) continue
+      tagged++
+      console.log(`  [+] #${card.cardNumber} ${card.name}: "${card.description.slice(0, 80)}..."`)
+      text = patchEffectByName(text, card, EFFECT_JSON)
+    }
+    return { text, tagged }
+  })

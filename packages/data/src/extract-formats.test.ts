@@ -103,4 +103,3 @@ describe("parseTotalBlock", () => {
     expect(result.championCount).toEqual({ min: 1, max: 20 })
   })
 })
-
