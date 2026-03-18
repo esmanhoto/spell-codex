@@ -21,7 +21,7 @@ import {
   PROTECTED_BY,
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
-import { getLosingPlayer, getPoolAttachments, getCombatLevels } from "./combat.ts"
+import { getPoolAttachments, getCombatLevels } from "./combat.ts"
 import {
   canChampionUseSpell,
   canCastWithSupport,
@@ -404,6 +404,10 @@ function getStartOfTurnMoves(state: GameState, playerId: PlayerId): Move[] {
   // Allow realm/holding plays during draw phase — engine will auto-draw when applied
   moves.push(...getRealmOnlyMoves(state, playerId))
   moves.push(...getRazeOwnRealmMoves(player, playerId))
+  // Forward-phase moves: pool, discard, combat declaration
+  moves.push(...getPoolOnlyMoves(state, player))
+  moves.push(...getDiscardMoves(player))
+  moves.push(...getCombatDeclOnlyMoves(state, playerId))
 
   return moves
 }
@@ -686,14 +690,9 @@ function getDefenderMoves(state: GameState, playerId: PlayerId, combat: CombatSt
 }
 
 function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatState): Move[] {
-  // Determine who is losing to know who may play freely
   const isAttacker = playerId === combat.attackingPlayer
   const isDefender = playerId === combat.defendingPlayer
   if (!isAttacker && !isDefender) return []
-
-  const { attackerLevel, defenderLevel } = getCombatLevels(state, combat)
-  const losingPlayer = getLosingPlayer(attackerLevel, defenderLevel, combat)
-  const isLosing = playerId === losingPlayer
 
   const moves: Move[] = []
 
@@ -701,32 +700,31 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
   const combatRealmSlot =
     state.players[combat.defendingPlayer]!.formation.slots[combat.targetRealmSlot]
 
-  if (isLosing) {
-    // Losing player can play any combat-legal support card
-    const activeChampion = isAttacker ? combat.attacker : combat.defender
+  // Both players can play combat-legal support cards (trust players to follow rules)
+  const activeChampion = isAttacker ? combat.attacker : combat.defender
 
-    // Build spell-casting context: attachments always; defending realm only for the defender
-    const activePoolEntry = activeChampion
-      ? player.pool.find((e) => e.champion.instanceId === activeChampion.instanceId)
-      : null
-    let spellContext: SpellCastContext = {
-      attachments: activePoolEntry?.attachments.map((a) => a.card) ?? [],
-    }
-    if (!isAttacker && activeChampion) {
-      if (combatRealmSlot) {
-        spellContext = {
-          ...spellContext,
-          defendingRealm: combatRealmSlot.realm.card,
-          holdingsOnRealm: combatRealmSlot.holdings.map((h) => h.card),
-        }
+  const activePoolEntry = activeChampion
+    ? player.pool.find((e) => e.champion.instanceId === activeChampion.instanceId)
+    : null
+  let spellContext: SpellCastContext = {
+    attachments: activePoolEntry?.attachments.map((a) => a.card) ?? [],
+  }
+  if (!isAttacker && activeChampion) {
+    if (combatRealmSlot) {
+      spellContext = {
+        ...spellContext,
+        defendingRealm: combatRealmSlot.realm.card,
+        holdingsOnRealm: combatRealmSlot.holdings.map((h) => h.card),
       }
     }
+  }
 
-    for (const card of player.hand) {
-      if (canPlayInCombat(card, activeChampion, spellContext)) {
-        moves.push({ type: "PLAY_COMBAT_CARD", cardInstanceId: card.instanceId })
-      }
+  for (const card of player.hand) {
+    if (canPlayInCombat(card, activeChampion, spellContext)) {
+      moves.push({ type: "PLAY_COMBAT_CARD", cardInstanceId: card.instanceId })
     }
+  }
+  if (!combat.stoppedPlayers.includes(playerId)) {
     moves.push({ type: "STOP_PLAYING" })
   }
   // Both players may play events during card play
@@ -739,6 +737,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
   }
 
   // Either combat participant may set level, switch or discard card sides during CARD_PLAY
+  const { attackerLevel, defenderLevel } = getCombatLevels(state, combat)
   if (isAttacker || isDefender) {
     moves.push({
       type: "SET_COMBAT_LEVEL",
