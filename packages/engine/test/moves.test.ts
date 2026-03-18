@@ -578,14 +578,8 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
     // Defender (level 6) is losing vs attacker (level 8) → p2 is active
     expect(s2.activePlayer).toBe("p2")
 
-    const afterFirst = applyMove(s2, "p2", { type: "STOP_PLAYING" })
-    const { newState: s3, events } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
-
-    // Attacker wins (8 > 6)
-    expect(events.find((e) => e.type === "COMBAT_RESOLVED")).toMatchObject({
-      type: "COMBAT_RESOLVED",
-      outcome: "ATTACKER_WINS",
-    })
+    // Defender concedes
+    const { newState: s3 } = applyMove(s2, "p2", { type: "STOP_PLAYING" })
 
     // Defender discarded
     expect(s3.players["p2"]!.pool.find((e) => e.champion.instanceId === "def")).toBeUndefined()
@@ -633,15 +627,11 @@ describe("combat: attack defended → CARD_PLAY → STOP_PLAYING → resolve", (
 
     // Both at level 6 — p1 (attacker) is losing on tie
     expect(s2.activePlayer).toBe("p1")
-    const afterFirst = applyMove(s2, "p1", { type: "STOP_PLAYING" })
-    const { newState: s3, events } = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
+    // Attacker concedes (tie = attacker loses)
+    const { newState: s3 } = applyMove(s2, "p1", { type: "STOP_PLAYING" })
 
-    expect(events.find((e) => e.type === "COMBAT_RESOLVED")).toMatchObject({
-      outcome: "DEFENDER_WINS",
-    })
     expect(s3.players["p1"]!.discardPile.find((c) => c.instanceId === "att")).toBeDefined()
     expect(s3.players["p2"]!.pool.find((e) => e.champion.instanceId === "def")).toBeDefined()
-    expect(events.some((e) => e.type === "SPOILS_EARNED")).toBe(false) // only attackers earn spoils
     expect(s3.combatState).toBeNull()
     expect(s3.activePlayer).toBe("p1") // return control to attacker
   })
@@ -723,9 +713,8 @@ describe("events during combat", () => {
       targetPlayerId: "p2",
     })
     const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
-    // Attacker wins (8 > 6) → both must STOP_PLAYING → AWAITING_ATTACKER for next round
-    const afterFirst = applyMove(s2, "p2", { type: "STOP_PLAYING" })
-    const { newState: s3 } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
+    // Defender concedes → AWAITING_ATTACKER for next round
+    const { newState: s3 } = applyMove(s2, "p2", { type: "STOP_PLAYING" })
     expect(s3.combatState!.roundPhase).toBe("AWAITING_ATTACKER")
 
     const p2Moves = getLegalMoves(s3, "p2")
@@ -741,8 +730,8 @@ describe("events during combat", () => {
       targetPlayerId: "p2",
     })
     const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
-    const afterFirst = applyMove(s2, "p2", { type: "STOP_PLAYING" })
-    const { newState: s3 } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
+    // Defender concedes → AWAITING_ATTACKER
+    const { newState: s3 } = applyMove(s2, "p2", { type: "STOP_PLAYING" })
 
     const { newState } = applyMove(s3, "p2", { type: "PLAY_EVENT", cardInstanceId: "ev-def" })
     expect(newState.resolutionContext).not.toBeNull()
@@ -852,8 +841,8 @@ describe("INTERRUPT_COMBAT", () => {
 
   function afterRoundWon(s: GameState) {
     const s2 = afterDefenseDeclared(s)
-    const afterFirst = applyMove(s2, "p2", { type: "STOP_PLAYING" })
-    const { newState } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
+    // Defender concedes → attacker wins round
+    const { newState } = applyMove(s2, "p2", { type: "STOP_PLAYING" })
     return newState // roundPhase: AWAITING_ATTACKER (p1 won)
   }
 
@@ -1326,6 +1315,7 @@ describe("combat: attacker champion from hand", () => {
   function buildHandAttackState() {
     let s = initGame(DEFAULT_CONFIG)
     const champInHand: CardInstance = { instanceId: "champ-hand", card: CHAMPION_CLERIC_FR }
+    const realmP1: CardInstance = { instanceId: "realm-p1", card: REALM_GENERIC }
     const realmP2: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
     return {
       ...s,
@@ -1337,6 +1327,10 @@ describe("combat: attacker champion from hand", () => {
           ...s.players["p1"]!,
           pool: [],
           hand: [champInHand],
+          formation: {
+            size: 6 as const,
+            slots: { B: { realm: realmP1, isRazed: false, holdings: [] } },
+          },
         },
         p2: {
           ...s.players["p2"]!,

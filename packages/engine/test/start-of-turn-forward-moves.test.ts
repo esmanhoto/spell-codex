@@ -48,7 +48,13 @@ function buildStartOfTurn(opts: {
         ...base.players["p2"]!,
         formation: opts.opponentFormation ?? {
           size: 6,
-          slots: { A: { realm: { instanceId: "opp-realm", card: REALM_GENERIC }, isRazed: false, holdings: [] } },
+          slots: {
+            A: {
+              realm: { instanceId: "opp-realm", card: REALM_GENERIC },
+              isRazed: false,
+              holdings: [],
+            },
+          },
         },
       },
     },
@@ -64,7 +70,9 @@ describe("StartOfTurn includes forward-phase moves", () => {
       hand: [champ],
       formation: {
         size: 6,
-        slots: { A: { realm: { instanceId: "r1", card: REALM_GENERIC }, isRazed: false, holdings: [] } },
+        slots: {
+          A: { realm: { instanceId: "r1", card: REALM_GENERIC }, isRazed: false, holdings: [] },
+        },
       },
     })
 
@@ -118,6 +126,16 @@ describe("StartOfTurn includes forward-phase moves", () => {
     const champ: CardInstance = { instanceId: "att", card: CHAMPION_HERO_GENERIC }
     const state = buildStartOfTurn({
       pool: [{ champion: champ, attachments: [] }],
+      formation: {
+        size: 6,
+        slots: {
+          A: {
+            realm: { instanceId: "p1-realm", card: REALM_GENERIC },
+            isRazed: false,
+            holdings: [],
+          },
+        },
+      },
       currentTurn: 3,
     })
 
@@ -135,6 +153,16 @@ describe("StartOfTurn includes forward-phase moves", () => {
     const champ: CardInstance = { instanceId: "att", card: CHAMPION_HERO_GENERIC }
     const state = buildStartOfTurn({
       pool: [{ champion: champ, attachments: [] }],
+      formation: {
+        size: 6,
+        slots: {
+          A: {
+            realm: { instanceId: "p1-realm", card: REALM_GENERIC },
+            isRazed: false,
+            holdings: [],
+          },
+        },
+      },
       currentTurn: 1,
     })
 
@@ -158,7 +186,9 @@ describe("applyMove from StartOfTurn auto-advances phase", () => {
       hand: [champ],
       formation: {
         size: 6,
-        slots: { A: { realm: { instanceId: "r1", card: REALM_GENERIC }, isRazed: false, holdings: [] } },
+        slots: {
+          A: { realm: { instanceId: "r1", card: REALM_GENERIC }, isRazed: false, holdings: [] },
+        },
       },
     })
 
@@ -193,6 +223,16 @@ describe("applyMove from StartOfTurn auto-advances phase", () => {
     const champ: CardInstance = { instanceId: "att", card: CHAMPION_HERO_GENERIC }
     const state = buildStartOfTurn({
       pool: [{ champion: champ, attachments: [] }],
+      formation: {
+        size: 6,
+        slots: {
+          A: {
+            realm: { instanceId: "p1-realm", card: REALM_GENERIC },
+            isRazed: false,
+            holdings: [],
+          },
+        },
+      },
       currentTurn: 3,
     })
 
