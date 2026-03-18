@@ -84,7 +84,7 @@ describe("parseTclList", () => {
   })
 
   test("handles card description with special characters", () => {
-    const input = "{Can't be discarded. Rebuilds razed realms.}"
+    const input = '{Can\'t be discarded. Rebuilds razed realms.}'
     const result = parseTclList(input)
     expect(result).toEqual(["Can't be discarded. Rebuilds razed realms."])
   })
@@ -101,7 +101,7 @@ describe("parseTclList", () => {
 
 describe("extractTclBlock", () => {
   test("extracts simple variable body", () => {
-    const source = "set myVar {\n  some content\n}"
+    const source = 'set myVar {\n  some content\n}'
     expect(extractTclBlock(source, "myVar")).toBe("\n  some content\n")
   })
 
@@ -111,7 +111,7 @@ describe("extractTclBlock", () => {
   })
 
   test("handles namespace separators (::)", () => {
-    const source = "set CrossFire::cardDataBase {\n  card data here\n}"
+    const source = 'set CrossFire::cardDataBase {\n  card data here\n}'
     expect(extractTclBlock(source, "CrossFire::cardDataBase")).toBe("\n  card data here\n")
   })
 

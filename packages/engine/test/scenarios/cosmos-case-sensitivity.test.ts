@@ -43,19 +43,9 @@ function stateWithPoolChampion(name: string, typeId: number): GameState {
 describe("cosmos: case sensitivity of name matching", () => {
   const cases: Array<{ poolName: string; poolTypeId: number; expected: boolean; label: string }> = [
     { poolName: "Elminster", poolTypeId: 20, expected: false, label: "exact match blocks play" },
-    {
-      poolName: "ELMINSTER",
-      poolTypeId: 20,
-      expected: true,
-      label: "different case is NOT blocked",
-    },
+    { poolName: "ELMINSTER", poolTypeId: 20, expected: true, label: "different case is NOT blocked" },
     { poolName: "elminster", poolTypeId: 20, expected: true, label: "lowercase is NOT blocked" },
-    {
-      poolName: "Elminster",
-      poolTypeId: 7,
-      expected: true,
-      label: "same name different typeId is NOT blocked",
-    },
+    { poolName: "Elminster", poolTypeId: 7, expected: true, label: "same name different typeId is NOT blocked" },
   ]
 
   for (const { poolName, poolTypeId, expected, label } of cases) {

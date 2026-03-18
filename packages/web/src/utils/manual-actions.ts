@@ -1,13 +1,7 @@
 import type { CardInfo, CombatInfo, Move, PlayerBoard, SlotState } from "../api.ts"
 import type { ContextMenuAction } from "../context/types.ts"
 import { isChampionType } from "@spell/engine"
-import {
-  isSpellCard,
-  spellCastersInPool,
-  spellCasterInCombat,
-  getCastPhases,
-  phaseToCastPhase,
-} from "./spell-casting.ts"
+import { isSpellCard, spellCastersInPool, spellCasterInCombat, getCastPhases, phaseToCastPhase } from "./spell-casting.ts"
 
 function findCardMove(legalMoves: Move[], type: Move["type"], cardInstanceId: string): Move | null {
   return (
@@ -47,18 +41,7 @@ export function buildHandContextActions(args: {
   allBoards: Record<string, PlayerBoard>
   phase: string
 }): ContextMenuAction[] {
-  const {
-    card,
-    isOpponent,
-    legalMoves,
-    requestSpellCast,
-    combat,
-    openTargetPicker,
-    myBoard,
-    myPlayerId,
-    allBoards,
-    phase,
-  } = args
+  const { card, isOpponent, legalMoves, requestSpellCast, combat, openTargetPicker, myBoard, myPlayerId, allBoards, phase } = args
   if (isOpponent) return []
 
   const inCombat = !!combat
@@ -86,9 +69,7 @@ export function buildHandContextActions(args: {
   // ─── Combat support: Play in Combat ────────────────────────────────────
   if (COMBAT_SUPPORT_TYPES.has(card.typeId) || isSpellCard(card)) {
     const move = findCardMove(legalMoves, "PLAY_COMBAT_CARD", id)
-    actions.push(
-      move ? { label: "Play in Combat", move } : { label: "Play in Combat", disabled: true },
-    )
+    actions.push(move ? { label: "Play in Combat", move } : { label: "Play in Combat", disabled: true })
   }
 
   // ─── Event cards: Play Event (events work in and out of combat) ─────────
@@ -101,9 +82,7 @@ export function buildHandContextActions(args: {
   if (isChampionType(card.typeId)) {
     const move = findCardMove(legalMoves, "PLACE_CHAMPION", id)
     const disabled = !move || inCombat
-    actions.push(
-      disabled ? { label: "Place in Pool", disabled: true } : { label: "Place in Pool", move },
-    )
+    actions.push(disabled ? { label: "Place in Pool", disabled: true } : { label: "Place in Pool", move })
   }
 
   // ─── Realm cards: Play Realm ───────────────────────────────────────────
@@ -118,10 +97,7 @@ export function buildHandContextActions(args: {
         const slot = (m as { slot: string }).slot
         return { label: `Slot ${slot}`, move: m }
       })
-      actions.push({
-        label: "Play Realm...",
-        action: () => openTargetPicker("Play Realm in slot", targets),
-      })
+      actions.push({ label: "Play Realm...", action: () => openTargetPicker("Play Realm in slot", targets) })
     } else {
       // fallback: use first move
       actions.push({ label: "Play Realm", move: moves[0] })
@@ -141,10 +117,7 @@ export function buildHandContextActions(args: {
         const realmName = myBoard?.formation[realmSlot]?.realm.name ?? realmSlot
         return { label: realmName, move: m }
       })
-      actions.push({
-        label: "Play Holding...",
-        action: () => openTargetPicker("Attach Holding to", targets),
-      })
+      actions.push({ label: "Play Holding...", action: () => openTargetPicker("Attach Holding to", targets) })
     } else {
       actions.push({ label: "Play Holding", move: moves[0] })
     }
@@ -160,15 +133,10 @@ export function buildHandContextActions(args: {
     } else if (openTargetPicker) {
       const targets = moves.map((m) => {
         const championId = (m as { championId: string }).championId
-        const champName =
-          myBoard?.pool.find((e) => e.champion.instanceId === championId)?.champion.name ??
-          championId
+        const champName = myBoard?.pool.find((e) => e.champion.instanceId === championId)?.champion.name ?? championId
         return { label: champName, move: m }
       })
-      actions.push({
-        label: "Attach to Champion...",
-        action: () => openTargetPicker("Attach to", targets),
-      })
+      actions.push({ label: "Attach to Champion...", action: () => openTargetPicker("Attach to", targets) })
     } else {
       // fallback: use first move
       actions.push({ label: "Attach to Champion", move: moves[0] })
@@ -178,11 +146,7 @@ export function buildHandContextActions(args: {
   // ─── Discard (always shown, disabled during combat) ────────────────────
   const discardMove = findCardMove(legalMoves, "DISCARD_CARD", id)
   const discardDisabled = !discardMove || inCombat
-  actions.push(
-    discardDisabled
-      ? { label: "Discard", disabled: true }
-      : { label: "Discard", move: discardMove },
-  )
+  actions.push(discardDisabled ? { label: "Discard", disabled: true } : { label: "Discard", move: discardMove })
 
   return actions
 }

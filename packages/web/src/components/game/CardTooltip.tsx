@@ -72,7 +72,9 @@ export function CardTooltip({
                 </div>
               </div>
             ))}
-            {hasHiddenHolding && <div className={styles.hiddenHoldingNote}>* has a holding</div>}
+            {hasHiddenHolding && (
+              <div className={styles.hiddenHoldingNote}>* has a holding</div>
+            )}
           </div>,
           document.body,
         )}

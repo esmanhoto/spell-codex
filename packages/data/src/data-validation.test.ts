@@ -113,9 +113,7 @@ describe("format limit consistency", () => {
     for (const f of formatFiles) {
       const fmt = JSON.parse(readFileSync(path.join(FORMATS_DIR, f), "utf-8"))
       if (fmt.championCount.min > fmt.championCount.max) {
-        violations.push(
-          `${f}: champion min=${fmt.championCount.min} > max=${fmt.championCount.max}`,
-        )
+        violations.push(`${f}: champion min=${fmt.championCount.min} > max=${fmt.championCount.max}`)
       }
     }
     expect(violations).toEqual([])

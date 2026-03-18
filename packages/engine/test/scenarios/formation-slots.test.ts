@@ -19,12 +19,7 @@ function formation(size: 6 | 8 | 10, filled: string[]): Formation {
 }
 
 describe("getLegalRealmSlots", () => {
-  const cases: Array<{
-    size: 6 | 8 | 10
-    filled: string[]
-    expected: FormationSlot[]
-    label: string
-  }> = [
+  const cases: Array<{ size: 6 | 8 | 10; filled: string[]; expected: FormationSlot[]; label: string }> = [
     // Size 6
     { size: 6, filled: [], expected: ["A"], label: "size 6: empty → only A" },
     { size: 6, filled: ["A"], expected: ["B", "C"], label: "size 6: A → B,C" },
@@ -32,31 +27,11 @@ describe("getLegalRealmSlots", () => {
     { size: 6, filled: ["A", "B", "C"], expected: ["D", "E", "F"], label: "size 6: A+B+C → D,E,F" },
     { size: 6, filled: ["A", "B", "C", "D", "E", "F"], expected: [], label: "size 6: full → none" },
     // Size 8
-    {
-      size: 8,
-      filled: ["A", "B", "C", "D", "E", "F"],
-      expected: ["G", "H"],
-      label: "size 8: D+E+F filled → G,H",
-    },
-    {
-      size: 8,
-      filled: ["A", "B", "C", "D", "E", "F", "G", "H"],
-      expected: [],
-      label: "size 8: full → none",
-    },
+    { size: 8, filled: ["A", "B", "C", "D", "E", "F"], expected: ["G", "H"], label: "size 8: D+E+F filled → G,H" },
+    { size: 8, filled: ["A", "B", "C", "D", "E", "F", "G", "H"], expected: [], label: "size 8: full → none" },
     // Size 10
-    {
-      size: 10,
-      filled: ["A", "B", "C", "D", "E", "F", "G", "H"],
-      expected: ["I", "J"],
-      label: "size 10: G+H filled → I,J",
-    },
-    {
-      size: 10,
-      filled: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
-      expected: [],
-      label: "size 10: full → none",
-    },
+    { size: 10, filled: ["A", "B", "C", "D", "E", "F", "G", "H"], expected: ["I", "J"], label: "size 10: G+H filled → I,J" },
+    { size: 10, filled: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"], expected: [], label: "size 10: full → none" },
   ]
 
   for (const { size, filled, expected, label } of cases) {

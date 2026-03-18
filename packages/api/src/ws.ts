@@ -161,13 +161,10 @@ export async function processWsMove(
   const t2 = performance.now()
 
   const tHashStart = performance.now()
-  const { sequence: seq, turnDeadline } = await persistMoveResult(
-    gameId,
-    userId,
-    safeMove,
-    result.newState,
-    seq0,
-  )
+  const {
+    sequence: seq,
+    turnDeadline,
+  } = await persistMoveResult(gameId, userId, safeMove, result.newState, seq0)
   const tHashEnd = performance.now()
 
   // Broadcast delta update to each player with per-player filtered hash
@@ -406,10 +403,7 @@ export const wsHandlers = {
             return
           }
           ws.data.lastChatTs = now
-          const text = msg.text
-            .trim()
-            .slice(0, 500)
-            .replace(/<[^>]*>/g, "")
+          const text = msg.text.trim().slice(0, 500).replace(/<[^>]*>/g, "")
           if (!text) return
           broadcastToGame(ws.data.gameId, {
             type: "CHAT_MSG",

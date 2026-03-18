@@ -147,9 +147,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
                 (m as { cardInstanceId: string }).cardInstanceId === c.instanceId,
             )
             contextActions.push(
-              discardMove
-                ? { label: "Discard", move: discardMove }
-                : { label: "Discard", disabled: true },
+              discardMove ? { label: "Discard", move: discardMove } : { label: "Discard", disabled: true },
             )
 
             // Defend
@@ -175,8 +173,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
                   targetPlayerId: string
                 }
                 const realmName =
-                  allBoards[targetPlayerId]?.formation[targetRealmSlot]?.realm.name ??
-                  targetRealmSlot
+                  allBoards[targetPlayerId]?.formation[targetRealmSlot]?.realm.name ?? targetRealmSlot
                 contextActions.push({ label: `Attack ${realmName}`, move: m })
               } else if (attackMoves.length > 1) {
                 const targets = attackMoves.map((m) => {
@@ -185,8 +182,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
                     targetPlayerId: string
                   }
                   const realmName =
-                    allBoards[targetPlayerId]?.formation[targetRealmSlot]?.realm.name ??
-                    targetRealmSlot
+                    allBoards[targetPlayerId]?.formation[targetRealmSlot]?.realm.name ?? targetRealmSlot
                   return { label: realmName, move: m }
                 })
                 contextActions.push({

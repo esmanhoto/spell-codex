@@ -55,41 +55,40 @@ function tagCard(
   return { text: patchEffectByNumber(text, card, `{"type":"${effectType}"}`), tagged: true }
 }
 
-if (import.meta.main)
-  runTaggingPipeline("counter_event / counter_spell", (cards, raw) => {
-    let text = raw
-    let tagged = 0
-    for (const card of cards) {
-      const desc = card.description ?? ""
+if (import.meta.main) runTaggingPipeline("counter_event / counter_spell", (cards, raw) => {
+  let text = raw
+  let tagged = 0
+  for (const card of cards) {
+    const desc = card.description ?? ""
 
-      if (shouldTagAsCounterEvent(desc, card.typeId)) {
-        const r = tagCard(
-          text,
-          card,
-          "counter_event",
-          ` — "${desc.slice(0, 80)}${desc.length > 80 ? "..." : ""}"`,
-        )
-        text = r.text
-        if (r.tagged) tagged++
-      }
-
-      if (shouldTagAsCounterSpell(desc, card.typeId)) {
-        const r = tagCard(
-          text,
-          card,
-          "counter_spell",
-          ` — "${desc.slice(0, 80)}${desc.length > 80 ? "..." : ""}"`,
-        )
-        text = r.text
-        if (r.tagged) tagged++
-      }
-
-      const knownEffect = KNOWN_COUNTER_CARDS.get(card.cardNumber)
-      if (knownEffect) {
-        const r = tagCard(text, card, knownEffect, " [known override]")
-        text = r.text
-        if (r.tagged) tagged++
-      }
+    if (shouldTagAsCounterEvent(desc, card.typeId)) {
+      const r = tagCard(
+        text,
+        card,
+        "counter_event",
+        ` — "${desc.slice(0, 80)}${desc.length > 80 ? "..." : ""}"`,
+      )
+      text = r.text
+      if (r.tagged) tagged++
     }
-    return { text, tagged }
-  })
+
+    if (shouldTagAsCounterSpell(desc, card.typeId)) {
+      const r = tagCard(
+        text,
+        card,
+        "counter_spell",
+        ` — "${desc.slice(0, 80)}${desc.length > 80 ? "..." : ""}"`,
+      )
+      text = r.text
+      if (r.tagged) tagged++
+    }
+
+    const knownEffect = KNOWN_COUNTER_CARDS.get(card.cardNumber)
+    if (knownEffect) {
+      const r = tagCard(text, card, knownEffect, " [known override]")
+      text = r.text
+      if (r.tagged) tagged++
+    }
+  }
+  return { text, tagged }
+})

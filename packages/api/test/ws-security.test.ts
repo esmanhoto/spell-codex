@@ -56,13 +56,7 @@ function mockSocket(data: WsData): MockSocket {
 }
 
 function notJoinedSocket(): MockSocket {
-  return mockSocket({
-    gameId: null,
-    userId: null,
-    displayName: null,
-    lastChatTs: 0,
-    idleTimer: null,
-  })
+  return mockSocket({ gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer: null })
 }
 
 function joinedSocket(gameId: string, userId: string): MockSocket {

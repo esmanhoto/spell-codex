@@ -24,15 +24,9 @@ function makeCard(overrides: Partial<CardInfo> = {}): CardInfo {
 const noopSpellCast = () => {}
 
 const EMPTY_BOARD: PlayerBoard = {
-  hand: [],
-  handCount: 0,
-  handHidden: false,
-  formation: {},
-  pool: [],
-  drawPileCount: 0,
-  discardCount: 0,
-  discardPile: [],
-  lastingEffects: [],
+  hand: [], handCount: 0, handHidden: false,
+  formation: {}, pool: [],
+  drawPileCount: 0, discardCount: 0, discardPile: [], lastingEffects: [],
 }
 
 /** Default required args for buildHandContextActions (no casters, pool phase). */
@@ -44,12 +38,7 @@ const BASE_ARGS = {
 } as const
 
 /** Board with a wizard champion that can cast wizard+cleric spells in pool. */
-const WIZARD_CHAMP = makeCard({
-  instanceId: "wiz-pool",
-  typeId: 20,
-  name: "Wizard",
-  supportIds: [1, 4, 9, "d4", "o4", "d19", "o19"],
-})
+const WIZARD_CHAMP = makeCard({ instanceId: "wiz-pool", typeId: 20, name: "Wizard", supportIds: [1, 4, 9, "d4", "o4", "d19", "o19"] })
 const BOARD_WITH_CASTER: PlayerBoard = {
   ...EMPTY_BOARD,
   pool: [{ champion: WIZARD_CHAMP, attachments: [] }],
@@ -68,7 +57,7 @@ const CASTER_ARGS = {
 describe("buildHandContextActions — always returns all applicable actions", () => {
   it("opponent cards → empty array", () => {
     const actions = buildHandContextActions({
-      ...BASE_ARGS,
+        ...BASE_ARGS,
       card: makeCard(),
       isOpponent: true,
       legalMoves: [],
@@ -277,9 +266,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
         card: spell,
         isOpponent: false,
         legalMoves: [],
-        requestSpellCast: (id) => {
-          castId = id
-        },
+        requestSpellCast: (id) => { castId = id },
       })
       const cast = actions.find((a) => a.label === "Cast Spell")
       expect(cast).toBeDefined()
@@ -505,11 +492,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
     })
 
     it("Cast Spell is enabled during combat when fighting wizard", () => {
-      const wizAttacker = makeCard({
-        instanceId: "wiz-att",
-        typeId: 20,
-        supportIds: [1, 9, "d19", "o19"],
-      })
+      const wizAttacker = makeCard({ instanceId: "wiz-att", typeId: 20, supportIds: [1, 9, "d19", "o19"] })
       const wizCombat: CombatInfo = { ...combat, attacker: wizAttacker }
       const wizBoard: PlayerBoard = {
         ...EMPTY_BOARD,
@@ -562,7 +545,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
       it(`typeId ${typeId} (champion) → Place in Pool + Discard`, () => {
         const card = makeCard({ typeId, instanceId: `champ-${typeId}` })
         const actions = buildHandContextActions({
-          ...BASE_ARGS,
+        ...BASE_ARGS,
           card,
           isOpponent: false,
           legalMoves: [],
@@ -582,7 +565,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
       it(`typeId ${typeId} (spell) → Cast Spell + Play in Combat + Discard`, () => {
         const card = makeCard({ typeId, instanceId: `spell-${typeId}` })
         const actions = buildHandContextActions({
-          ...BASE_ARGS,
+        ...BASE_ARGS,
           card,
           isOpponent: false,
           legalMoves: [],
@@ -682,7 +665,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
       it(`typeId ${typeId} → only Discard`, () => {
         const card = makeCard({ typeId, instanceId: `card-${typeId}` })
         const actions = buildHandContextActions({
-          ...BASE_ARGS,
+        ...BASE_ARGS,
           card,
           isOpponent: false,
           legalMoves: [],
@@ -711,23 +694,14 @@ describe("buildHandContextActions — always returns all applicable actions", ()
           { type: "ATTACH_ITEM", cardInstanceId: "art1", championId: "c2" },
         ],
         requestSpellCast: noopSpellCast,
-        openTargetPicker: (title, targets) => {
-          pickerTitle = title
-          pickerTargets = targets
-        },
+        openTargetPicker: (title, targets) => { pickerTitle = title; pickerTargets = targets },
         myBoard: {
-          hand: [],
-          handCount: 0,
-          handHidden: false,
-          formation: {},
+          hand: [], handCount: 0, handHidden: false, formation: {},
           pool: [
             { champion: makeCard({ instanceId: "c1", name: "Sir Roland" }), attachments: [] },
             { champion: makeCard({ instanceId: "c2", name: "Elminster" }), attachments: [] },
           ],
-          drawPileCount: 0,
-          discardCount: 0,
-          discardPile: [],
-          lastingEffects: [],
+          drawPileCount: 0, discardCount: 0, discardPile: [], lastingEffects: [],
         },
       })
       const attach = actions.find((a) => a.label === "Attach to Champion...")
@@ -752,11 +726,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
       })
       const attach = actions.find((a) => a.label === "Attach to Champion")
       expect(attach).toBeDefined()
-      expect(attach!.move).toEqual({
-        type: "ATTACH_ITEM",
-        cardInstanceId: "art1",
-        championId: "c1",
-      })
+      expect(attach!.move).toEqual({ type: "ATTACH_ITEM", cardInstanceId: "art1", championId: "c1" })
       expect(attach!.action).toBeUndefined()
     })
 
@@ -774,10 +744,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
           { type: "PLAY_REALM", cardInstanceId: "r1", slot: "C" },
         ],
         requestSpellCast: noopSpellCast,
-        openTargetPicker: (title, targets) => {
-          pickerTitle = title
-          pickerTargets = targets
-        },
+        openTargetPicker: (title, targets) => { pickerTitle = title; pickerTargets = targets },
       })
       const play = actions.find((a) => a.label === "Play Realm...")
       expect(play).toBeDefined()
@@ -814,34 +781,14 @@ describe("buildHandContextActions — always returns all applicable actions", ()
           { type: "PLAY_HOLDING", cardInstanceId: "h1", realmSlot: "B" },
         ],
         requestSpellCast: noopSpellCast,
-        openTargetPicker: (_, targets) => {
-          pickerTargets = targets
-        },
+        openTargetPicker: (_, targets) => { pickerTargets = targets },
         myBoard: {
-          hand: [],
-          handCount: 0,
-          handHidden: false,
+          hand: [], handCount: 0, handHidden: false,
           formation: {
-            A: {
-              realm: makeCard({ instanceId: "ra", name: "Waterdeep" }),
-              holdings: [],
-              holdingCount: 0,
-              isRazed: false,
-              holdingRevealedToAll: false,
-            },
-            B: {
-              realm: makeCard({ instanceId: "rb", name: "Village" }),
-              holdings: [],
-              holdingCount: 0,
-              isRazed: false,
-              holdingRevealedToAll: false,
-            },
+            A: { realm: makeCard({ instanceId: "ra", name: "Waterdeep" }), holdings: [], holdingCount: 0, isRazed: false, holdingRevealedToAll: false },
+            B: { realm: makeCard({ instanceId: "rb", name: "Village" }), holdings: [], holdingCount: 0, isRazed: false, holdingRevealedToAll: false },
           },
-          pool: [],
-          drawPileCount: 0,
-          discardCount: 0,
-          discardPile: [],
-          lastingEffects: [],
+          pool: [], drawPileCount: 0, discardCount: 0, discardPile: [], lastingEffects: [],
         },
       })
       const play = actions.find((a) => a.label === "Play Holding...")
@@ -878,9 +825,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
         card: clericSpell,
         isOpponent: false,
         legalMoves: [],
-        requestSpellCast: (id) => {
-          castId = id
-        },
+        requestSpellCast: (id) => { castId = id },
       })
       actions.find((a) => a.label === "Cast Spell")!.action!()
       expect(castId).toBe("cs1")
@@ -893,25 +838,14 @@ describe("buildHandContextActions — always returns all applicable actions", ()
     const wizardSpell = makeCard({ typeId: 19, instanceId: "ws1", name: "Fireball" })
     const clericSpell = makeCard({ typeId: 4, instanceId: "cs1", name: "Healing Word" })
     const emptyBoard: PlayerBoard = {
-      hand: [],
-      handCount: 0,
-      handHidden: false,
-      formation: {},
-      pool: [],
-      drawPileCount: 0,
-      discardCount: 0,
-      discardPile: [],
-      lastingEffects: [],
+      hand: [], handCount: 0, handHidden: false,
+      formation: {}, pool: [],
+      drawPileCount: 0, discardCount: 0, discardPile: [], lastingEffects: [],
     }
 
     it("disabled when no pool caster supports the spell (phase 3)", () => {
       // Hero has supportIds [1, 9] — no wizard spell support
-      const phase3Spell = makeCard({
-        typeId: 19,
-        instanceId: "ws1",
-        name: "Fireball",
-        castPhases: [3, 4],
-      })
+      const phase3Spell = makeCard({ typeId: 19, instanceId: "ws1", name: "Fireball", castPhases: [3, 4] })
       const heroChamp = makeCard({ instanceId: "hero", typeId: 7, supportIds: [1, 9] })
       const board: PlayerBoard = {
         ...emptyBoard,
@@ -934,12 +868,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
     })
 
     it("enabled when pool champion supports wizard spells (phase 3)", () => {
-      const phase3Spell = makeCard({
-        typeId: 19,
-        instanceId: "ws1",
-        name: "Fireball",
-        castPhases: [3, 4],
-      })
+      const phase3Spell = makeCard({ typeId: 19, instanceId: "ws1", name: "Fireball", castPhases: [3, 4] })
       const wizChamp = makeCard({ instanceId: "wiz", typeId: 20, supportIds: [1, 9, "d19", "o19"] })
       const board: PlayerBoard = {
         ...emptyBoard,
@@ -962,12 +891,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
     })
 
     it("enabled when champion has attachment that grants spell support", () => {
-      const phase3Spell = makeCard({
-        typeId: 19,
-        instanceId: "ws1",
-        name: "Fireball",
-        castPhases: [3, 4],
-      })
+      const phase3Spell = makeCard({ typeId: 19, instanceId: "ws1", name: "Fireball", castPhases: [3, 4] })
       const hero = makeCard({ instanceId: "hero", typeId: 7, supportIds: [1, 9] })
       const tomeOfMagic = makeCard({ instanceId: "tome", typeId: 9, supportIds: ["d19", "o19"] })
       const board: PlayerBoard = {
@@ -1143,5 +1067,6 @@ describe("buildHandContextActions — always returns all applicable actions", ()
       const cast = actions.find((a) => a.label === "Cast Spell")
       expect(cast!.disabled).toBe(true)
     })
+
   })
 })

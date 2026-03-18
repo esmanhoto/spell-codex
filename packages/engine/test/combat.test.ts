@@ -5,7 +5,11 @@ import {
   resolveCombatRound,
   getLosingPlayer,
 } from "../src/combat.ts"
-import { parseMagicalItemBonus, createInstance, _resetInstanceCounter } from "../src/utils.ts"
+import {
+  parseMagicalItemBonus,
+  createInstance,
+  _resetInstanceCounter,
+} from "../src/utils.ts"
 import type { CardData, CombatState } from "../src/types.ts"
 import {
   CHAMPION_CLERIC_FR,

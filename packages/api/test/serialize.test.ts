@@ -173,14 +173,13 @@ describe("peek context visibility", () => {
 
   it("returns null peekContext when trigger has none", () => {
     const state = makeState()
-    state.pendingTriggers = [
-      {
-        id: "t1",
-        sourceCardInstanceId: "card-1",
-        owningPlayerId: P1,
-        effect: { type: "turn_trigger" as const, timing: "end" as const },
-      },
-    ]
+    state.pendingTriggers = [{
+      id: "t1",
+      sourceCardInstanceId: "card-1",
+      owningPlayerId: P1,
+      effect: { type: "turn_trigger" as const, timing: "end" as const },
+    }]
     expect(serializeGameState(state, undefined, P1).pendingTriggers[0]!.peekContext).toBeNull()
   })
 })
+
