@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "react"
+import { useRef, useEffect, useState, useCallback, type PointerEvent as ReactPointerEvent } from "react"
 import type { ChatEntry } from "../../hooks/useChat.ts"
 import styles from "./ChatPanel.module.css"
 
@@ -20,8 +20,33 @@ interface ChatPanelProps {
 
 export function ChatPanel({ messages, myPlayerId, playerIds, onSend, onClose }: ChatPanelProps) {
   const [input, setInput] = useState("")
+  const [size, setSize] = useState({ w: 340, h: 400 })
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  function handleResizeStart(e: ReactPointerEvent) {
+    e.preventDefault()
+    const startX = e.clientX
+    const startY = e.clientY
+    const startW = size.w
+    const startH = size.h
+
+    function onMove(ev: globalThis.PointerEvent) {
+      const dw = ev.clientX - startX
+      const dh = startY - ev.clientY // top-right: up = taller
+      setSize({
+        w: Math.max(260, Math.min(startW + dw, window.innerWidth - 100)),
+        h: Math.max(250, Math.min(startH + dh, window.innerHeight * 0.85)),
+      })
+    }
+    function onUp() {
+      document.removeEventListener("pointermove", onMove)
+      document.removeEventListener("pointerup", onUp)
+    }
+    document.addEventListener("pointermove", onMove)
+    document.addEventListener("pointerup", onUp)
+  }
 
   const playerColor = useCallback(
     (playerId: string) => {
@@ -52,7 +77,8 @@ export function ChatPanel({ messages, myPlayerId, playerIds, onSend, onClose }: 
   }
 
   return (
-    <div className={styles.panel}>
+    <div ref={panelRef} className={styles.panel} style={{ width: size.w, height: size.h }}>
+      <div className={styles.resizeHandle} onPointerDown={handleResizeStart} />
       <div className={styles.header}>
         <span className={styles.title}>CHAT</span>
         <button className={styles.closeBtn} onClick={onClose} title="Close chat">
