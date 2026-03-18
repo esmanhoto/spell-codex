@@ -67,11 +67,6 @@ export function createInstance(card: CardData, instanceId: string): CardInstance
 /** @deprecated No-op. Instance IDs are now deterministic; no counter to reset. */
 export function _resetInstanceCounter(): void {}
 
-/** @deprecated Use createInstance(card, id) directly. */
-export function createInstanceId(prefix: string, idx: number): CardInstanceId {
-  return `${prefix}-${idx}`
-}
-
 // ─── Level Parsing ────────────────────────────────────────────────────────────
 
 /**

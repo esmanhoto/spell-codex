@@ -26,7 +26,6 @@ export {
 export {
   seededShuffle,
   createInstance,
-  createInstanceId,
   _resetInstanceCounter,
   parseLevel,
   parseMagicalItemBonus,
