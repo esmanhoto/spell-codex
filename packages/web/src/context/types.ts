@@ -4,6 +4,7 @@ export interface ContextMenuAction {
   label: string
   move?: Move
   action?: () => void
+  disabled?: boolean
 }
 
 export interface ContextMenuState {

@@ -30,6 +30,12 @@
   opacity: 1;
 }
 
+.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .cancel {
   color: #555;
   border-top: 1px solid #2a3a5a;

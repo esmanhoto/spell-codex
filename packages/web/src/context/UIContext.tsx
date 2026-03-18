@@ -1,6 +1,12 @@
 import React from "react"
+import type { Move } from "../api.ts"
 import type { ContextMenuAction, ContextMenuState } from "./types.ts"
 import type { WarningCode } from "../utils/warnings.ts"
+
+export interface TargetPickerState {
+  title: string
+  targets: { label: string; move: Move }[]
+}
 
 export interface UIContextType {
   selectedId: string | null
@@ -8,6 +14,9 @@ export interface UIContextType {
   contextMenu: ContextMenuState | null
   openContextMenu: (x: number, y: number, actions: ContextMenuAction[]) => void
   closeContextMenu: () => void
+  targetPicker: TargetPickerState | null
+  openTargetPicker: (title: string, targets: { label: string; move: Move }[]) => void
+  closeTargetPicker: () => void
   warningMessage: string | null
   warningCode: WarningCode | null
   warningSuppressible: boolean
@@ -40,6 +49,9 @@ export const UIContext = React.createContext<UIContextType>({
   contextMenu: null,
   openContextMenu: () => {},
   closeContextMenu: () => {},
+  targetPicker: null,
+  openTargetPicker: () => {},
+  closeTargetPicker: () => {},
   warningMessage: null,
   warningCode: null,
   warningSuppressible: true,

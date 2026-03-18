@@ -11,6 +11,7 @@ import { CombatZone } from "./CombatZone.tsx"
 import { EventLog } from "./EventLog.tsx"
 import { MovePanel } from "./MovePanel.tsx"
 import { CardContextMenu } from "./CardContextMenu.tsx"
+import { TargetPickerModal } from "./TargetPickerModal.tsx"
 import { WarningModal } from "./WarningModal.tsx"
 import styles from "./GameBoard.module.css"
 
@@ -145,6 +146,8 @@ export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: s
   const {
     contextMenu,
     closeContextMenu,
+    targetPicker,
+    closeTargetPicker,
     warningMessage,
     warningCode,
     warningSuppressible,
@@ -241,6 +244,16 @@ export function GameBoard({ events, wsError }: { events: GameEvent[]; wsError: s
             actions={contextMenu.actions}
             onAction={onMove}
             onClose={closeContextMenu}
+          />
+        )}
+
+        {/* Target picker modal */}
+        {targetPicker && (
+          <TargetPickerModal
+            title={targetPicker.title}
+            targets={targetPicker.targets}
+            onSelect={onMove}
+            onClose={closeTargetPicker}
           />
         )}
 

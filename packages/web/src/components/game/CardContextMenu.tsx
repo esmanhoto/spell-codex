@@ -39,8 +39,10 @@ export function CardContextMenu({
       {actions.map((a, i) => (
         <button
           key={i}
-          className={styles.item}
+          className={`${styles.item} ${a.disabled ? styles.disabled : ""}`}
+          disabled={!!a.disabled}
           onClick={() => {
+            if (a.disabled) return
             if (a.action) a.action()
             else if (a.move) onAction(a.move)
             onClose()
