@@ -23,7 +23,8 @@ describe("multi-round combat: attacker beats two champions to raze realm", () =>
     // p2 (defender side) is losing → active player, STOP_PLAYING resolves combat
     const tweaked = { ...state, activePlayer: "p2" as const }
 
-    const { newState, events } = applyMove(tweaked, "p2", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(tweaked, "p2", { type: "STOP_PLAYING" })
+    const { newState, events } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
 
     // Defender champion discarded
     expect(newState.players["p2"]!.pool.some((e) => e.champion.instanceId === "def1")).toBe(false)
@@ -120,7 +121,8 @@ describe("multi-round combat: attacker beats two champions to raze realm", () =>
       },
     }
 
-    const { newState, events } = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    const { newState, events } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
 
     // Realm is razed
     const realmSlot = newState.players["p2"]!.formation.slots["A"]
@@ -225,7 +227,8 @@ describe("multi-round combat: realm self-defense then champion", () => {
       },
     }
 
-    const { newState } = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    const { newState } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
 
     expect(newState.combatState).not.toBeNull()
     expect(newState.combatState!.attackerWins).toBe(1)

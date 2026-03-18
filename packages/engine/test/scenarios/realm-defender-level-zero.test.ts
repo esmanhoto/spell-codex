@@ -27,7 +27,8 @@ describe("realm defender at level 0 (null level)", () => {
     // Realm (level 0) is losing, p2 is active
     const tweaked = { ...state, activePlayer: "p2" as const }
 
-    const { newState, events } = applyMove(tweaked, "p2", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(tweaked, "p2", { type: "STOP_PLAYING" })
+    const { newState, events } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
 
     // Attacker wins
     expect(events.some((e) => e.type === "COMBAT_RESOLVED" && e.outcome === "ATTACKER_WINS")).toBe(
@@ -45,7 +46,8 @@ describe("realm defender at level 0 (null level)", () => {
     const state = buildRealmSelfDefenseState({ attacker, targetRealm: realm })
     const tweaked = { ...state, activePlayer: "p2" as const }
 
-    const { events } = applyMove(tweaked, "p2", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(tweaked, "p2", { type: "STOP_PLAYING" })
+    const { events } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
     expect(events.some((e) => e.type === "COMBAT_RESOLVED" && e.outcome === "ATTACKER_WINS")).toBe(
       true,
     )
@@ -58,7 +60,8 @@ describe("realm defender at level 0 (null level)", () => {
     const state = buildRealmSelfDefenseState({ attacker, targetRealm: realm })
     // At level 0 vs 0, attacker is losing (ties → defender wins)
     // So p1 (attacker) is active (they're the losing side)
-    const { newState, events } = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const { newState, events } = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
 
     expect(events.some((e) => e.type === "COMBAT_RESOLVED" && e.outcome === "DEFENDER_WINS")).toBe(
       true,
