@@ -16,7 +16,7 @@ const WORLD_WILDCARD = new Set([0, 9])
 export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOpponent?: boolean }) {
   const { allBoards } = useBoard()
   const { legalMoves, onMove, phase } = useMoves()
-  const { selectedId, onSelect, showWarning, requestSpellCast } = useGameUI()
+  const { selectedId, onSelect, showWarning, requestSpellCast, openTargetPicker } = useGameUI()
   const [attachDragOver, setAttachDragOver] = useState(false)
 
   useEffect(() => {
@@ -132,14 +132,58 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
           const contextActions: ContextMenuAction[] = []
 
           if (!isOpponent) {
+            // Discard
             const discardMove = legalMoves.find(
               (m) =>
                 m.type === "DISCARD_CARD" &&
                 (m as { cardInstanceId: string }).cardInstanceId === c.instanceId,
             )
-            if (discardMove) contextActions.push({ label: "Discard", move: discardMove })
-            if (isChampion && defendMove) {
-              contextActions.push({ label: "Join combat as defender", move: defendMove })
+            contextActions.push(
+              discardMove ? { label: "Discard", move: discardMove } : { label: "Discard", disabled: true },
+            )
+
+            // Defend
+            if (isChampion) {
+              contextActions.push(
+                defendMove
+                  ? { label: "Join combat as defender", move: defendMove }
+                  : { label: "Join combat as defender", disabled: true },
+              )
+            }
+
+            // Attack (champion only) — one entry per target realm
+            if (isChampion) {
+              const attackMoves = legalMoves.filter(
+                (m) =>
+                  m.type === "DECLARE_ATTACK" &&
+                  (m as { championId: string }).championId === c.instanceId,
+              )
+              if (attackMoves.length === 1) {
+                const m = attackMoves[0]!
+                const { targetRealmSlot, targetPlayerId } = m as {
+                  targetRealmSlot: string
+                  targetPlayerId: string
+                }
+                const realmName =
+                  allBoards[targetPlayerId]?.formation[targetRealmSlot]?.realm.name ?? targetRealmSlot
+                contextActions.push({ label: `Attack ${realmName}`, move: m })
+              } else if (attackMoves.length > 1) {
+                const targets = attackMoves.map((m) => {
+                  const { targetRealmSlot, targetPlayerId } = m as {
+                    targetRealmSlot: string
+                    targetPlayerId: string
+                  }
+                  const realmName =
+                    allBoards[targetPlayerId]?.formation[targetRealmSlot]?.realm.name ?? targetRealmSlot
+                  return { label: realmName, move: m }
+                })
+                contextActions.push({
+                  label: "Attack...",
+                  action: () => openTargetPicker("Attack target", targets),
+                })
+              } else {
+                contextActions.push({ label: "Attack", disabled: true })
+              }
             }
           }
 
@@ -161,7 +205,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
                 showLabel={false}
                 draggable={isChampion && !isOpponent}
                 dragSource="pool"
-                {...(contextActions.length > 0 ? { contextActions } : {})}
+                contextActions={!isOpponent ? contextActions : undefined}
               />
             </div>
           )

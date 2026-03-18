@@ -1,6 +1,7 @@
-import type { CardInfo, Move, SlotState } from "../api.ts"
+import type { CardInfo, CombatInfo, Move, PlayerBoard, SlotState } from "../api.ts"
 import type { ContextMenuAction } from "../context/types.ts"
-import { isSpellCard } from "./spell-casting.ts"
+import { isChampionType } from "@spell/engine"
+import { isSpellCard, spellCastersInPool, spellCasterInCombat, getCastPhases, phaseToCastPhase } from "./spell-casting.ts"
 
 function findCardMove(legalMoves: Move[], type: Move["type"], cardInstanceId: string): Move | null {
   return (
@@ -11,38 +12,141 @@ function findCardMove(legalMoves: Move[], type: Move["type"], cardInstanceId: st
   )
 }
 
+function findAllCardMoves(legalMoves: Move[], type: Move["type"], cardInstanceId: string): Move[] {
+  return legalMoves.filter(
+    (m) => m.type === type && (m as { cardInstanceId?: string }).cardInstanceId === cardInstanceId,
+  )
+}
+
+// Card type IDs
+const TYPE_REALM = 13
+const TYPE_HOLDING = 8
+const TYPE_ARTIFACT = 2
+const TYPE_MAGICAL_ITEM = 9
+const TYPE_EVENT = 6
+const TYPE_ALLY = 1
+
+// Types that can be played as combat support cards
+const COMBAT_SUPPORT_TYPES = new Set([TYPE_ALLY, TYPE_ARTIFACT, TYPE_MAGICAL_ITEM])
+
 export function buildHandContextActions(args: {
   card: CardInfo
   isOpponent: boolean
   legalMoves: Move[]
   requestSpellCast: (spellInstanceId: string) => void
+  combat?: CombatInfo | null
+  openTargetPicker?: (title: string, targets: { label: string; move: Move }[]) => void
+  myBoard: PlayerBoard
+  myPlayerId: string
+  allBoards: Record<string, PlayerBoard>
+  phase: string
 }): ContextMenuAction[] {
-  const { card, isOpponent, legalMoves, requestSpellCast } = args
+  const { card, isOpponent, legalMoves, requestSpellCast, combat, openTargetPicker, myBoard, myPlayerId, allBoards, phase } = args
   if (isOpponent) return []
 
-  const discardMove = findCardMove(legalMoves, "DISCARD_CARD", card.instanceId)
-  const combatCardMove = findCardMove(legalMoves, "PLAY_COMBAT_CARD", card.instanceId)
-  const playEventMove = findCardMove(legalMoves, "PLAY_EVENT", card.instanceId)
+  const inCombat = !!combat
   const actions: ContextMenuAction[] = []
+  const id = card.instanceId
 
-  if (combatCardMove) {
-    actions.push({ label: "Play in Combat", move: combatCardMove })
-  }
-
-  if (playEventMove) {
-    actions.push({ label: "Play Event", move: playEventMove })
-  }
-
-  if (discardMove) {
-    actions.push({ label: "Discard", move: discardMove })
-  }
-
+  // ─── Spell cards: Cast Spell (disabled when no caster available) ───────
   if (isSpellCard(card)) {
-    actions.unshift({
-      label: "Cast Spell",
-      action: () => requestSpellCast(card.instanceId),
-    })
+    let canCast: boolean
+    if (inCombat) {
+      canCast = spellCasterInCombat(card, combat!, myPlayerId, myBoard, allBoards).length > 0
+    } else {
+      const hasCaster = spellCastersInPool(card, myBoard).length > 0
+      const castPhase = phaseToCastPhase(phase)
+      const validPhase = castPhase != null && getCastPhases(card).includes(castPhase)
+      canCast = hasCaster && validPhase
+    }
+    actions.push(
+      canCast
+        ? { label: "Cast Spell", action: () => requestSpellCast(id) }
+        : { label: "Cast Spell", disabled: true },
+    )
   }
+
+  // ─── Combat support: Play in Combat ────────────────────────────────────
+  if (COMBAT_SUPPORT_TYPES.has(card.typeId) || isSpellCard(card)) {
+    const move = findCardMove(legalMoves, "PLAY_COMBAT_CARD", id)
+    actions.push(move ? { label: "Play in Combat", move } : { label: "Play in Combat", disabled: true })
+  }
+
+  // ─── Event cards: Play Event (events work in and out of combat) ─────────
+  if (card.typeId === TYPE_EVENT) {
+    const move = findCardMove(legalMoves, "PLAY_EVENT", id)
+    actions.push(move ? { label: "Play Event", move } : { label: "Play Event", disabled: true })
+  }
+
+  // ─── Champion cards: Place in Pool ─────────────────────────────────────
+  if (isChampionType(card.typeId)) {
+    const move = findCardMove(legalMoves, "PLACE_CHAMPION", id)
+    const disabled = !move || inCombat
+    actions.push(disabled ? { label: "Place in Pool", disabled: true } : { label: "Place in Pool", move })
+  }
+
+  // ─── Realm cards: Play Realm ───────────────────────────────────────────
+  if (card.typeId === TYPE_REALM) {
+    const moves = findAllCardMoves(legalMoves, "PLAY_REALM", id)
+    if (inCombat || moves.length === 0) {
+      actions.push({ label: "Play Realm", disabled: true })
+    } else if (moves.length === 1) {
+      actions.push({ label: "Play Realm", move: moves[0] })
+    } else if (openTargetPicker) {
+      const targets = moves.map((m) => {
+        const slot = (m as { slot: string }).slot
+        return { label: `Slot ${slot}`, move: m }
+      })
+      actions.push({ label: "Play Realm...", action: () => openTargetPicker("Play Realm in slot", targets) })
+    } else {
+      // fallback: use first move
+      actions.push({ label: "Play Realm", move: moves[0] })
+    }
+  }
+
+  // ─── Holding cards: Play Holding ───────────────────────────────────────
+  if (card.typeId === TYPE_HOLDING) {
+    const moves = findAllCardMoves(legalMoves, "PLAY_HOLDING", id)
+    if (inCombat || moves.length === 0) {
+      actions.push({ label: "Play Holding", disabled: true })
+    } else if (moves.length === 1) {
+      actions.push({ label: "Play Holding", move: moves[0] })
+    } else if (openTargetPicker) {
+      const targets = moves.map((m) => {
+        const realmSlot = (m as { realmSlot: string }).realmSlot
+        const realmName = myBoard?.formation[realmSlot]?.realm.name ?? realmSlot
+        return { label: realmName, move: m }
+      })
+      actions.push({ label: "Play Holding...", action: () => openTargetPicker("Attach Holding to", targets) })
+    } else {
+      actions.push({ label: "Play Holding", move: moves[0] })
+    }
+  }
+
+  // ─── Artifact / Magical Item: Attach to Champion ───────────────────────
+  if (card.typeId === TYPE_ARTIFACT || card.typeId === TYPE_MAGICAL_ITEM) {
+    const moves = findAllCardMoves(legalMoves, "ATTACH_ITEM", id)
+    if (inCombat || moves.length === 0) {
+      actions.push({ label: "Attach to Champion", disabled: true })
+    } else if (moves.length === 1) {
+      actions.push({ label: "Attach to Champion", move: moves[0] })
+    } else if (openTargetPicker) {
+      const targets = moves.map((m) => {
+        const championId = (m as { championId: string }).championId
+        const champName = myBoard?.pool.find((e) => e.champion.instanceId === championId)?.champion.name ?? championId
+        return { label: champName, move: m }
+      })
+      actions.push({ label: "Attach to Champion...", action: () => openTargetPicker("Attach to", targets) })
+    } else {
+      // fallback: use first move
+      actions.push({ label: "Attach to Champion", move: moves[0] })
+    }
+  }
+
+  // ─── Discard (always shown, disabled during combat) ────────────────────
+  const discardMove = findCardMove(legalMoves, "DISCARD_CARD", id)
+  const discardDisabled = !discardMove || inCombat
+  actions.push(discardDisabled ? { label: "Discard", disabled: true } : { label: "Discard", move: discardMove })
 
   return actions
 }

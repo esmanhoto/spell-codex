@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useBoard } from "../../context/BoardContext.tsx"
+import { useCombat } from "../../context/CombatContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
 import type { CardInfo } from "../../api.ts"
@@ -28,13 +29,15 @@ export function PlayerHand({
   discardPile: CardInfo[]
   isOpponent: boolean
 }) {
-  const { allBoards } = useBoard()
-  const { legalMoves } = useMoves()
+  const { allBoards, myPlayerId } = useBoard()
+  const { combat } = useCombat()
+  const { legalMoves, phase } = useMoves()
   const {
     selectedId,
     onSelect,
     openContextMenu,
     requestSpellCast,
+    openTargetPicker,
     rebuildTarget,
     setRebuildTarget,
     submitRebuild,
@@ -56,11 +59,18 @@ export function PlayerHand({
   }
 
   function buildContextActions(card: CardInfo): ContextMenuAction[] {
+    const myBoard = allBoards[myPlayerId] ?? null
     const actions = buildHandContextActions({
       card,
       isOpponent,
       legalMoves,
       requestSpellCast,
+      combat,
+      openTargetPicker,
+      myBoard,
+      myPlayerId,
+      allBoards,
+      phase,
     })
 
     if (!isOpponent) {
@@ -152,14 +162,10 @@ export function PlayerHand({
                       }
                 }
                 onClick={handleClick}
-                onContextMenu={
-                  contextActions.length
-                    ? (e) => {
-                        e.preventDefault()
-                        openContextMenu(e.clientX, e.clientY, contextActions)
-                      }
-                    : undefined
-                }
+                onContextMenu={(e) => {
+                  e.preventDefault()
+                  openContextMenu(e.clientX, e.clientY, contextActions)
+                }}
               >
                 <div className={styles.cardWrap}>
                   <img
