@@ -35,6 +35,7 @@ export function serializeFormation(f: Formation, ownerPlayerId: string, viewerPl
         {
           realm: serializeCard(slot.realm),
           holdings: canSeeHoldings ? slot.holdings.map(serializeCard) : [],
+          holdingCount: slot.holdings.length,
           isRazed: slot.isRazed,
           holdingRevealedToAll: revealedToAll,
         },

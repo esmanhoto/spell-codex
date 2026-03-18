@@ -161,6 +161,14 @@
   color: #7ec8e3;
 }
 
+.hiddenHoldingImg {
+  border: 2px solid rgba(100, 180, 220, 0.8);
+  box-shadow:
+    0 0 4px rgba(100, 180, 220, 0.6),
+    0 0 10px rgba(100, 180, 220, 0.3),
+    0 0 18px rgba(100, 180, 220, 0.12);
+}
+
 .emptyLabel {
   font-size: 10px;
   color: #444;

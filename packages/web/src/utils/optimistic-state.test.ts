@@ -137,7 +137,7 @@ describe("applyOptimisticMove", () => {
       const holding = makeCard("holding-1")
       const state = makeState({
         hand: [holding],
-        formation: { A: { realm, holdings: [], isRazed: false, holdingRevealedToAll: false } },
+        formation: { A: { realm, holdings: [], holdingCount: 0, isRazed: false, holdingRevealedToAll: false } },
       })
       const result = applyOptimisticMove(state, "p1", {
         type: "PLAY_HOLDING",

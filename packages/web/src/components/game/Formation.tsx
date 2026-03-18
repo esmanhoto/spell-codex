@@ -321,6 +321,7 @@ export function Formation({
               const tooltipCards = s ? [s.realm, ...s.holdings] : []
               const showHoldingStack = !!(s && s.holdings.length > 0 && s.holdingRevealedToAll)
               const holdingForStack = showHoldingStack ? s.holdings[0] : null
+              const hasHiddenHolding = !!(isOpponent && s && s.holdingCount > 0 && !s.holdingRevealedToAll)
 
               return (
                 <div
@@ -365,7 +366,7 @@ export function Formation({
                           </div>
                         </CardTooltip>
                       ) : (
-                        <CardTooltip cards={tooltipCards}>
+                        <CardTooltip cards={tooltipCards} hasHiddenHolding={hasHiddenHolding}>
                           <div className={styles.realmStack}>
                             {holdingForStack && (
                               <div className={styles.holdingPeekWrap}>
@@ -382,7 +383,7 @@ export function Formation({
                                 />
                               </div>
                             )}
-                            <div className={styles.realmImgWrap}>
+                            <div className={`${styles.realmImgWrap} ${hasHiddenHolding ? styles.hiddenHoldingImg : ""}`}>
                               <img
                                 src={cardImageUrl(s.realm.setId, s.realm.cardNumber)}
                                 alt={s.realm.name}

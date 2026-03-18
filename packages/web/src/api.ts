@@ -28,6 +28,7 @@ export interface CardInfo {
 export interface SlotState {
   realm: CardInfo
   holdings: CardInfo[]
+  holdingCount: number
   isRazed: boolean
   holdingRevealedToAll: boolean
 }
