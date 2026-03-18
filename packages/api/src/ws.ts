@@ -1,5 +1,5 @@
 import type { ServerWebSocket } from "bun"
-import { getGamePlayers, lastSequence, reconstructState } from "@spell/db"
+import { getGamePlayers, lastSequence, reconstructState, hashState } from "@spell/db"
 // lastSequence + reconstructState needed for JOIN_GAME fallback on finished games
 import { applyMove, EngineError } from "@spell/engine"
 import type { GameState } from "@spell/engine"
@@ -8,6 +8,19 @@ import { authBypassEnabled, verifySupabaseAccessTokenFull } from "./auth-verify.
 import { getGameCache } from "./state-cache.ts"
 import { resolveGame } from "./utils.ts"
 import { loadGameState, persistMoveResult } from "./game-ops.ts"
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Strip opponent's hidden information (hand, drawPile) before sending over WS. */
+export function filterStateForPlayer(state: GameState, viewerId: string): GameState {
+  const filteredPlayers = { ...state.players }
+  for (const id of Object.keys(filteredPlayers)) {
+    if (id !== viewerId) {
+      filteredPlayers[id] = { ...filteredPlayers[id]!, hand: [], drawPile: [] }
+    }
+  }
+  return { ...state, players: filteredPlayers }
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,9 +37,11 @@ export type ServerMessage =
       type: "STATE_UPDATE"
       gameId: string
       state: unknown
-      /** Full engine GameState — sent on JOIN_GAME and SYNC_REQUEST for client-side engine init */
+      /** Filtered engine GameState — sent on JOIN_GAME and SYNC_REQUEST for client-side engine init */
       rawEngineState?: GameState
       sequence?: number
+      /** Per-player filtered state hash for reconciliation */
+      stateHash?: string
     }
   | {
       /** Delta update — replaces STATE_UPDATE in the move broadcast path */
@@ -79,11 +94,14 @@ function enqueueMove(gameId: string, fn: () => Promise<void>): Promise<void> {
   return next
 }
 
+const WS_IDLE_TIMEOUT_MS = 5_000
+
 interface WsData {
   gameId: string | null
   userId: string | null
   displayName: string | null
   lastChatTs: number
+  idleTimer: ReturnType<typeof setTimeout> | null
 }
 
 // ─── Broadcast helpers ────────────────────────────────────────────────────────
@@ -106,11 +124,18 @@ export function broadcastToGame(gameId: string, msg: ServerMessage): void {
 
 // ─── Move processing ──────────────────────────────────────────────────────────
 
+const BLOCKED_MOVE_TYPES = new Set(["DEV_GIVE_CARD"])
+
 export async function processWsMove(
   gameId: string,
   userId: string,
   move: { type: string; [key: string]: unknown },
 ): Promise<{ ok: true } | { ok: false; code: string; message: string }> {
+  if (BLOCKED_MOVE_TYPES.has(move.type)) {
+    return { ok: false, code: "BLOCKED_MOVE", message: "Blocked move type" }
+  }
+  // Overwrite playerId with authenticated userId to prevent forging
+  const safeMove = { ...move, playerId: userId }
   const t0 = performance.now()
 
   const loaded = await loadGameState(gameId)
@@ -125,7 +150,7 @@ export async function processWsMove(
   let result
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    result = applyMove(state, userId, move as any)
+    result = applyMove(state, userId, safeMove as any)
   } catch (err) {
     if (err instanceof EngineError) {
       return { ok: false, code: err.code, message: err.message }
@@ -138,30 +163,30 @@ export async function processWsMove(
   const tHashStart = performance.now()
   const {
     sequence: seq,
-    stateHash,
     turnDeadline,
-  } = await persistMoveResult(gameId, userId, move, result.newState, seq0)
+  } = await persistMoveResult(gameId, userId, safeMove, result.newState, seq0)
   const tHashEnd = performance.now()
 
-  // Broadcast delta update to all players — client applies via local engine
+  // Broadcast delta update to each player with per-player filtered hash
   const sockets = registry.get(gameId)
   let broadcastBytes = 0
   const tSerializeStart = performance.now()
   if (sockets) {
-    const msg: ServerMessage = {
-      type: "MOVE_APPLIED",
-      gameId,
-      playerId: userId,
-      move,
-      stateHash,
-      sequence: seq,
-      turnDeadline: turnDeadline ? turnDeadline.toISOString() : null,
-      status: result.newState.winner ? "finished" : "active",
-      winner: result.newState.winner ?? null,
-    }
-    const encoded = JSON.stringify(msg)
-    broadcastBytes = encoded.length * sockets.size
-    for (const socket of sockets.values()) {
+    for (const [viewerId, socket] of sockets.entries()) {
+      const filteredHash = hashState(filterStateForPlayer(result.newState, viewerId))
+      const msg: ServerMessage = {
+        type: "MOVE_APPLIED",
+        gameId,
+        playerId: userId,
+        move: safeMove,
+        stateHash: filteredHash,
+        sequence: seq,
+        turnDeadline: turnDeadline ? turnDeadline.toISOString() : null,
+        status: result.newState.winner ? "finished" : "active",
+        winner: result.newState.winner ?? null,
+      }
+      const encoded = JSON.stringify(msg)
+      broadcastBytes += encoded.length
       try {
         socket.send(encoded)
       } catch {
@@ -200,7 +225,16 @@ export async function processWsMove(
 
 export const wsHandlers = {
   open(ws: ServerWebSocket<WsData>) {
-    ws.data = { gameId: null, userId: null, displayName: null, lastChatTs: 0 }
+    const idleTimer = setTimeout(() => {
+      if (!ws.data.userId) {
+        try {
+          ws.close(4001, "Idle timeout — authenticate within 5 seconds")
+        } catch {
+          // Socket may already be closed
+        }
+      }
+    }, WS_IDLE_TIMEOUT_MS)
+    ws.data = { gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer }
   },
 
   async message(ws: ServerWebSocket<WsData>, raw: string | Buffer) {
@@ -235,7 +269,7 @@ export const wsHandlers = {
           } else if (
             authBypassEnabled() &&
             typeof msg.playerId === "string" &&
-            msg.playerId.length > 0
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(msg.playerId)
           ) {
             userId = msg.playerId
             displayName = null
@@ -273,7 +307,8 @@ export const wsHandlers = {
             }
           }
 
-          ws.data = { gameId, userId, displayName, lastChatTs: ws.data.lastChatTs }
+          if (ws.data.idleTimer) clearTimeout(ws.data.idleTimer)
+          ws.data = { gameId, userId, displayName, lastChatTs: ws.data.lastChatTs, idleTimer: null }
           if (!registry.has(gameId)) registry.set(gameId, new Map())
           registry.get(gameId)!.set(userId, ws)
 
@@ -295,12 +330,14 @@ export const wsHandlers = {
             )
             joinState = reconstructed
           }
+          const filteredJoin = filterStateForPlayer(joinState, userId)
           send(ws, {
             type: "STATE_UPDATE",
             gameId,
             state: serializeGameState(joinState, { includeDeckImages: true }, userId),
-            rawEngineState: joinState,
+            rawEngineState: filteredJoin,
             sequence: joinSeq,
+            stateHash: hashState(filteredJoin),
           })
           return
         }
@@ -320,6 +357,7 @@ export const wsHandlers = {
             send(ws, { type: "ERROR", code: "FORBIDDEN", message: "Not a participant" })
             return
           }
+          const filteredSync = filterStateForPlayer(syncHit.state, ws.data.userId)
           send(ws, {
             type: "STATE_UPDATE",
             gameId: syncGameId,
@@ -328,8 +366,9 @@ export const wsHandlers = {
               { status: syncHit.state.winner ? "finished" : "active" },
               ws.data.userId,
             ),
-            rawEngineState: syncHit.state,
+            rawEngineState: filteredSync,
             sequence: syncHit.sequence,
+            stateHash: hashState(filteredSync),
           })
           return
         }
@@ -364,7 +403,7 @@ export const wsHandlers = {
             return
           }
           ws.data.lastChatTs = now
-          const text = msg.text.trim().slice(0, 500)
+          const text = msg.text.trim().slice(0, 500).replace(/<[^>]*>/g, "")
           if (!text) return
           broadcastToGame(ws.data.gameId, {
             type: "CHAT_MSG",
@@ -406,8 +445,12 @@ export const wsHandlers = {
           send(ws, { type: "ERROR", code: "UNKNOWN_MSG", message: "Unknown message type" })
       }
     } catch (err) {
-      console.error("[ws] Unhandled error in message handler:", err)
       const message = err instanceof Error ? err.message : String(err)
+      if (process.env["NODE_ENV"] === "production") {
+        console.error(JSON.stringify({ error: message, context: "ws_message_handler" }))
+      } else {
+        console.error("[ws] Unhandled error in message handler:", err)
+      }
       if (message.includes("ECONNREFUSED")) {
         send(ws, {
           type: "ERROR",
@@ -421,6 +464,7 @@ export const wsHandlers = {
   },
 
   close(ws: ServerWebSocket<WsData>) {
+    if (ws.data.idleTimer) clearTimeout(ws.data.idleTimer)
     if (ws.data.gameId && ws.data.userId) {
       const players = registry.get(ws.data.gameId)
       if (players?.get(ws.data.userId) === ws) {

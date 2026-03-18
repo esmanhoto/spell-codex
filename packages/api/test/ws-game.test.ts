@@ -18,6 +18,7 @@ interface WsData {
   userId: string | null
   displayName: string | null
   lastChatTs: number
+  idleTimer: ReturnType<typeof setTimeout> | null
 }
 
 interface MockSocket extends ServerWebSocket<WsData> {
@@ -27,7 +28,7 @@ interface MockSocket extends ServerWebSocket<WsData> {
 function mockSocket(data?: Partial<WsData>): MockSocket {
   const received: unknown[] = []
   return {
-    data: { gameId: null, userId: null, displayName: null, lastChatTs: 0, ...data },
+    data: { gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer: null, ...data },
     received,
     send(msg: string | Buffer) {
       received.push(JSON.parse(msg.toString()))
@@ -257,7 +258,7 @@ describe("SUBMIT_MOVE", () => {
     expect(moveA).toBeDefined()
     expect(moveB).toBeDefined()
     expect(moveA!["playerId"]).toBe(PLAYER_A)
-    expect(moveA!["move"]).toEqual({ type: "PASS" })
+    expect(moveA!["move"]).toEqual({ type: "PASS", playerId: PLAYER_A })
     expect(typeof moveA!["stateHash"]).toBe("string")
     expect(typeof moveA!["sequence"]).toBe("number")
   })

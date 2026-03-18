@@ -18,11 +18,14 @@ cardsRouter.get("/cardback.jpg", async (c) => {
   })
 })
 
+// Allowlist: setId is alphanumeric (e.g. "1st", "2nd"), filename is digits + .jpg
+const SAFE_SET_ID = /^[a-zA-Z0-9_-]+$/
+const SAFE_FILENAME = /^[a-zA-Z0-9_-]+\.jpg$/
+
 /** GET /cards/:setId/:cardNumber.jpg */
 cardsRouter.get("/:setId/:filename", async (c) => {
   const { setId, filename } = c.req.param()
-  if (!filename.endsWith(".jpg")) return c.notFound()
-  if (setId.includes("\0") || filename.includes("\0")) return c.notFound()
+  if (!SAFE_SET_ID.test(setId) || !SAFE_FILENAME.test(filename)) return c.notFound()
 
   const filePath = path.join(ASSETS_DIR, "cards", setId, filename)
   const file = Bun.file(filePath)

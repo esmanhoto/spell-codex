@@ -14,9 +14,7 @@ describe("CORS headers", () => {
     })
     expect(res.status).toBe(200)
     const acao = res.headers.get("Access-Control-Allow-Origin")
-    expect(acao).toBeDefined()
-    // Hono cors() defaults to "*"
-    expect(acao).toBe("*")
+    expect(acao).toBe("http://localhost:5173")
   })
 
   it("responds to OPTIONS preflight with CORS headers", async () => {
@@ -30,7 +28,7 @@ describe("CORS headers", () => {
     })
     // Preflight should return 204 or 200
     expect([200, 204]).toContain(res.status)
-    expect(res.headers.get("Access-Control-Allow-Origin")).toBeDefined()
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("http://localhost:5173")
     expect(res.headers.get("Access-Control-Allow-Methods")).toBeDefined()
   })
 
@@ -39,20 +37,20 @@ describe("CORS headers", () => {
       method: "POST",
       headers: {
         Origin: "http://localhost:5173",
-        "X-User-Id": "test-user",
+        "X-User-Id": "00000000-0000-0000-0000-000000000001",
       },
     })
     // Request will fail validation (400) but CORS headers should still be present
     const acao = res.headers.get("Access-Control-Allow-Origin")
-    expect(acao).toBe("*")
+    expect(acao).toBe("http://localhost:5173")
   })
 
-  it("includes CORS headers on public routes", async () => {
-    const res = await app.request("/cards/cardback.jpg", {
-      headers: { Origin: "http://example.com" },
+  it("rejects CORS from disallowed origins", async () => {
+    const res = await app.request("/health", {
+      headers: { Origin: "http://evil.com" },
     })
-    // May 404 if file doesn't exist, but CORS headers should be present
+    expect(res.status).toBe(200)
     const acao = res.headers.get("Access-Control-Allow-Origin")
-    expect(acao).toBe("*")
+    expect(acao).toBeNull()
   })
 })

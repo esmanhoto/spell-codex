@@ -8,11 +8,15 @@ const CARDS_DIR = path.join(DATA_DIR, "cards")
 
 export const decksRouter = new Hono()
 
+// Allowlist: setId/deck names are alphanumeric with hyphens/underscores
+const SAFE_PARAM = /^[a-zA-Z0-9_-]+$/
+
 // Cache cards per set so we don't re-read the file on every request
 const cardCache = new Map<string, Map<number, object>>()
 
 async function getCardsForSet(setId: string): Promise<Map<number, object>> {
   if (cardCache.has(setId)) return cardCache.get(setId)!
+  if (!SAFE_PARAM.test(setId)) return new Map()
   const filePath = path.join(CARDS_DIR, `${setId}.json`)
   const file = Bun.file(filePath)
   if (!(await file.exists())) return new Map()
@@ -25,6 +29,7 @@ async function getCardsForSet(setId: string): Promise<Map<number, object>> {
 type DeckRef = { setId: string; cardNumber: number }
 
 async function loadDeckRefs(name: string): Promise<DeckRef[] | null> {
+  if (!SAFE_PARAM.test(name)) return null
   const file = Bun.file(path.join(DECKS_DIR, `${name}.json`))
   if (!(await file.exists())) return null
   const raw: { cards?: DeckRef[] } | DeckRef[] = await file.json()
@@ -44,6 +49,7 @@ async function hydrateDeck(refs: DeckRef[]): Promise<object[]> {
 /** GET /decks/cards/:setId — all cards for a given set */
 decksRouter.get("/cards/:setId", async (c) => {
   const setId = c.req.param("setId")
+  if (!SAFE_PARAM.test(setId)) return c.notFound()
   const filePath = path.join(CARDS_DIR, `${setId}.json`)
   const file = Bun.file(filePath)
   if (!(await file.exists())) return c.notFound()
@@ -75,6 +81,7 @@ decksRouter.get("/", async (c) => {
 /** GET /decks/:name — hydrated deck with full card data */
 decksRouter.get("/:name", async (c) => {
   const name = c.req.param("name")
+  if (!SAFE_PARAM.test(name)) return c.notFound()
   const refs = await loadDeckRefs(name)
   if (!refs) return c.notFound()
 

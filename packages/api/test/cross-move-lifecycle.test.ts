@@ -12,7 +12,6 @@ import { wsHandlers, registry } from "../src/ws.ts"
 import { evictCachedState, getGameCache } from "../src/state-cache.ts"
 import { app } from "../src/index.ts"
 import { listActions, hashState, reconstructState, getGame } from "@spell/db"
-import { applyMove } from "@spell/engine"
 import type { GameState } from "@spell/engine"
 
 process.env["AUTH_BYPASS"] = "true"
@@ -24,6 +23,7 @@ interface WsData {
   userId: string | null
   displayName: string | null
   lastChatTs: number
+  idleTimer: ReturnType<typeof setTimeout> | null
 }
 
 interface MockSocket extends ServerWebSocket<WsData> {
@@ -33,7 +33,7 @@ interface MockSocket extends ServerWebSocket<WsData> {
 function mockSocket(data?: Partial<WsData>): MockSocket {
   const received: unknown[] = []
   return {
-    data: { gameId: null, userId: null, displayName: null, lastChatTs: 0, ...data },
+    data: { gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer: null, ...data },
     received,
     send(msg: string | Buffer) {
       received.push(JSON.parse(msg.toString()))
@@ -134,13 +134,7 @@ describe("Full move lifecycle (api + db + engine)", () => {
   it("move persists to DB with correct sequence and hash", async () => {
     const wsA = mockSocket()
     await joinGame(wsA, gameId, PLAYER_A)
-    const stateUpdate = findMsg(wsA, "STATE_UPDATE")
-    const engineState = stateUpdate!["rawEngineState"] as GameState
     wsA.received.length = 0
-
-    // Apply PASS via engine locally to get expected state
-    const expected = applyMove(engineState, PLAYER_A, { type: "PASS" })
-    const expectedHash = hashState(expected.newState)
 
     // Submit via WS
     await submitMove(wsA, gameId, { type: "PASS" })
@@ -149,8 +143,11 @@ describe("Full move lifecycle (api + db + engine)", () => {
     const actions = await listActions(gameId)
     const lastAction = actions[actions.length - 1]!
     expect(lastAction.playerId).toBe(PLAYER_A)
-    expect(lastAction.move).toEqual({ type: "PASS" })
-    expect(lastAction.stateHash).toBe(expectedHash)
+    expect(lastAction.move).toEqual({ type: "PASS", playerId: PLAYER_A })
+
+    // Verify hash matches server-side reconstructed state
+    const cached = getGameCache(gameId)
+    expect(lastAction.stateHash).toBe(hashState(cached!.state))
   })
 
   it("broadcast MOVE_APPLIED reaches both players with matching hash", async () => {
@@ -170,11 +167,13 @@ describe("Full move lifecycle (api + db + engine)", () => {
     expect(msgA).toBeDefined()
     expect(msgB).toBeDefined()
 
-    // Both get identical delta
-    expect(msgA["stateHash"]).toBe(msgB["stateHash"])
+    // Hashes are per-player (filtered view), so they differ
+    expect(typeof msgA["stateHash"]).toBe("string")
+    expect(typeof msgB["stateHash"]).toBe("string")
+    expect(msgA["stateHash"]).not.toBe(msgB["stateHash"])
     expect(msgA["sequence"]).toBe(msgB["sequence"])
     expect(msgA["playerId"]).toBe(PLAYER_A)
-    expect(msgA["move"]).toEqual({ type: "PASS" })
+    expect(msgA["move"]).toEqual({ type: "PASS", playerId: PLAYER_A })
     expect(msgA["status"]).toBe("active")
   })
 

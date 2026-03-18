@@ -39,6 +39,9 @@ export const auth = createMiddleware<{ Variables: AppVariables }>(
     if (authBypassEnabled()) {
       const userId = c.req.header("X-User-Id")
       if (!userId) return c.json({ error: "Missing X-User-Id header (AUTH_BYPASS=true)" }, 401)
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+        return c.json({ error: "Invalid user ID format" }, 400)
+      }
       c.set("userId", userId)
       c.set("email", null)
       await next()

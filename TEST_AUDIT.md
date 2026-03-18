@@ -8,15 +8,15 @@
 
 | Package | Files | Tested          | Coverage | Verdict                      |
 | ------- | ----- | --------------- | -------- | ---------------------------- |
-| engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 415 tests |
-| api     | 15    | 24              | ~92%     | **Phase 2 DONE** + Phase 6 — 221 tests |
+| engine  | 27    | 27              | ~95%     | **Phase 1 DONE** — 417 tests |
+| api     | 15    | 24              | ~92%     | **Phase 2 DONE** + Phase 6 — 228 tests |
 | db      | 10    | 8               | ~80%     | **Phase 3 DONE** — 72 tests  |
 | web     | 72    | 4 unit + 10 e2e | ~6% unit | Low unit — E2E covers flows  |
 | data    | 15    | 8               | ~60%     | **Phase 5 DONE** — 195 tests  |
 | cross   | —     | 5               | —        | **Phase 6 DONE** — 31 tests   |
 
 **Total test files**: 81 (27 engine + 24 api + 8 db + 4 web unit + 10 web e2e + 8 data)
-**Total test count**: ~986+ (415 engine + 221 api + 72 db + 83 web + 195 data)
+**Total test count**: ~995+ (417 engine + 228 api + 72 db + 83 web + 195 data)
 
 ### New Dependencies Required
 
@@ -33,7 +33,7 @@
 
 ---
 
-## Phase 1: packages/engine — ✅ COMPLETE (415 tests across 27 files)
+## Phase 1: packages/engine — ✅ COMPLETE (417 tests across 27 files)
 
 ### What's tested
 
@@ -89,7 +89,7 @@
 - Game lifecycle: create, get, lobby, join, slugs, nicknames (games.test.ts)
 - Profile: GET/PATCH /me/nickname with validation (profile.test.ts)
 - Chat WS: broadcast, emotes, rate limiting, truncation (chat-ws.test.ts)
-- WS security: malformed JSON, unknown types, auth guards, SYNC_REQUEST cache, socket lifecycle (ws-security.test.ts — 21 tests)
+- WS security: malformed JSON, unknown types, auth guards, SYNC_REQUEST cache, socket lifecycle, blocked move types, state filtering (ws-security.test.ts — 27 tests)
 - WS game flow: JOIN_GAME, SUBMIT_MOVE, SYNC_REQUEST integration (ws-game.test.ts — 13 tests)
 - Cards security: path traversal, extension validation, null bytes (cards-security.test.ts — 9 tests)
 - Routing: /api prefix, /ws upgrade, SPA fallback (routing.test.ts)
@@ -102,7 +102,7 @@
 - Deadline: processExpiredGames, findExpiredGames (deadline.test.ts — 4 tests)
 - Deck validation: min/max cards, float values, join validation, slug format (deck-validation.test.ts — 12 tests)
 
-### 2a. High Priority (Security) — ✅ DONE (46 tests in 4 files)
+### 2a. High Priority (Security) — ✅ DONE (53 tests in 4 files)
 
 | Gap                                   | Status | Tests                                                                         |
 | ------------------------------------- | ------ | ----------------------------------------------------------------------------- |
@@ -115,6 +115,8 @@
 | SUBMIT_MOVE rate limiting             | ⚠️     | No rate limiting exists — documented gap (only chat is throttled)             |
 | Concurrent move race                  | ✅     | ws-game.test.ts — enqueueMove serialization test                              |
 | Malformed WS JSON                     | ✅     | ws-security.test.ts — 4 tests (invalid JSON, empty, binary, large)            |
+| DEV_GIVE_CARD blocked                 | ✅     | games.test.ts — 1 test (HTTP 400) + ws-security.test.ts — 1 test (WS blocked) + engine — 2 tests (devMode guard) |
+| rawEngineState filtering              | ✅     | ws-security.test.ts — 5 tests (viewer preserved, opponent hidden, non-hidden zones, no mutation, symmetric) |
 
 ### 2b. Medium Priority (Reliability) — ✅ DONE (51 tests in 5 files)
 

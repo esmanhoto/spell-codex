@@ -3,6 +3,7 @@ import { logger } from "hono/logger"
 import { cors } from "hono/cors"
 import { join } from "path"
 import { auth } from "./auth.ts"
+import { rateLimiter } from "./rate-limit.ts"
 import { gamesRouter } from "./routes/games.ts"
 import { movesRouter } from "./routes/moves.ts"
 import { cardsRouter } from "./routes/cards.ts"
@@ -16,7 +17,22 @@ const app = new Hono()
 // ─── Global middleware ────────────────────────────────────────────────────────
 
 app.use(logger())
-app.use(cors())
+app.use(async (c, next) => {
+  await next()
+  c.header("X-Content-Type-Options", "nosniff")
+  c.header("X-Frame-Options", "DENY")
+  c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+})
+const CORS_ORIGINS = process.env["CORS_ORIGINS"]
+  ? process.env["CORS_ORIGINS"].split(",").map((o) => o.trim())
+  : ["http://localhost:5173", "http://localhost:5174"]
+
+app.use(
+  cors({
+    origin: CORS_ORIGINS,
+    credentials: true,
+  }),
+)
 
 app.onError((err, c) => {
   const message = err instanceof Error ? err.message : String(err)
@@ -37,7 +53,11 @@ app.onError((err, c) => {
     )
   }
 
-  console.error(err)
+  if (process.env["NODE_ENV"] === "production") {
+    console.error(JSON.stringify({ error: message, code }))
+  } else {
+    console.error(err)
+  }
   return c.json({ error: "Internal server error" }, 500)
 })
 
@@ -54,10 +74,12 @@ app.route("/dev", devRouter)
 // ─── Authenticated routes ─────────────────────────────────────────────────────
 
 app.use("/games/*", auth)
+app.use("/games/*", rateLimiter({ windowMs: 60_000, limit: 60 }))
 app.route("/games", gamesRouter)
 app.route("/games", movesRouter)
 app.use("/me", auth)
 app.use("/me/*", auth)
+app.use("/me/*", rateLimiter({ windowMs: 60_000, limit: 30 }))
 app.route("/", profileRouter)
 
 // ─── Export app for tests ─────────────────────────────────────────────────────

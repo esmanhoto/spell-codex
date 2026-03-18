@@ -1,6 +1,10 @@
 const BASE = "/api"
 const WS_BASE = (() => {
-  const proto = window.location.protocol === "https:" ? "wss:" : "ws:"
+  const proto = import.meta.env.PROD
+    ? "wss:"
+    : window.location.protocol === "https:"
+      ? "wss:"
+      : "ws:"
   // In dev, Vite proxies /ws → localhost:3001/ws.
   return `${proto}//${window.location.host}`
 })()
@@ -394,9 +398,11 @@ export type WsClientMessage =
       type: "STATE_UPDATE"
       gameId: string
       state: GameState
-      /** Full engine GameState for client-side engine init */
+      /** Filtered engine GameState for client-side engine init */
       rawEngineState?: unknown
       sequence?: number
+      /** Per-player filtered state hash for reconciliation */
+      stateHash?: string
     }
   | {
       type: "MOVE_APPLIED"

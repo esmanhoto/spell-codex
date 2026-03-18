@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterAll } from "bun:test"
 import type { ServerWebSocket } from "bun"
-import { wsHandlers, registry } from "../src/ws.ts"
+import { wsHandlers, registry, processWsMove, filterStateForPlayer } from "../src/ws.ts"
 import { setCachedState, evictCachedState } from "../src/state-cache.ts"
 import type { GameState } from "@spell/engine"
 
@@ -17,6 +17,7 @@ interface WsData {
   userId: string | null
   displayName: string | null
   lastChatTs: number
+  idleTimer: ReturnType<typeof setTimeout> | null
 }
 
 interface MockSocket extends ServerWebSocket<WsData> {
@@ -55,11 +56,11 @@ function mockSocket(data: WsData): MockSocket {
 }
 
 function notJoinedSocket(): MockSocket {
-  return mockSocket({ gameId: null, userId: null, displayName: null, lastChatTs: 0 })
+  return mockSocket({ gameId: null, userId: null, displayName: null, lastChatTs: 0, idleTimer: null })
 }
 
 function joinedSocket(gameId: string, userId: string): MockSocket {
-  return mockSocket({ gameId, userId, displayName: null, lastChatTs: 0 })
+  return mockSocket({ gameId, userId, displayName: null, lastChatTs: 0, idleTimer: null })
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -381,11 +382,94 @@ describe("socket open", () => {
       userId: "stale",
       displayName: "stale",
       lastChatTs: 999,
+      idleTimer: null,
     })
     wsHandlers.open(ws as unknown as ServerWebSocket<WsData>)
     expect(ws.data.gameId).toBeNull()
     expect(ws.data.userId).toBeNull()
     expect(ws.data.displayName).toBeNull()
     expect(ws.data.lastChatTs).toBe(0)
+    expect(ws.data.idleTimer).not.toBeNull()
+  })
+})
+
+// ─── Blocked move types ──────────────────────────────────────────────────────
+
+describe("processWsMove blocked move types", () => {
+  it("rejects DEV_GIVE_CARD without hitting DB or engine", async () => {
+    const result = await processWsMove(GAME, P1, {
+      type: "DEV_GIVE_CARD",
+      playerId: P1,
+      instanceId: "exploit-1",
+      card: { name: "Exploit" },
+    })
+    expect(result).toEqual({ ok: false, code: "BLOCKED_MOVE", message: "Blocked move type" })
+  })
+})
+
+// ─── filterStateForPlayer ────────────────────────────────────────────────────
+
+describe("filterStateForPlayer", () => {
+  const card = { instanceId: "c1", card: { name: "Test" } }
+  const fullState = {
+    ...STUB_STATE,
+    players: {
+      [P1]: {
+        id: P1,
+        hand: [card, card],
+        drawPile: [card, card, card],
+        discardPile: [card],
+        limbo: [],
+        abyss: [],
+        formation: { realms: [] },
+        dungeon: null,
+        pool: [],
+        lastingEffects: [],
+      },
+      [P2]: {
+        id: P2,
+        hand: [card],
+        drawPile: [card, card],
+        discardPile: [card],
+        limbo: [],
+        abyss: [],
+        formation: { realms: [] },
+        dungeon: null,
+        pool: [],
+        lastingEffects: [],
+      },
+    },
+  } as unknown as GameState
+
+  it("preserves the viewer's own hand and drawPile", () => {
+    const filtered = filterStateForPlayer(fullState, P1)
+    expect(filtered.players[P1]!.hand).toHaveLength(2)
+    expect(filtered.players[P1]!.drawPile).toHaveLength(3)
+  })
+
+  it("empties opponent hand and drawPile", () => {
+    const filtered = filterStateForPlayer(fullState, P1)
+    expect(filtered.players[P2]!.hand).toHaveLength(0)
+    expect(filtered.players[P2]!.drawPile).toHaveLength(0)
+  })
+
+  it("preserves opponent's non-hidden zones (discardPile, formation, etc.)", () => {
+    const filtered = filterStateForPlayer(fullState, P1)
+    expect(filtered.players[P2]!.discardPile).toHaveLength(1)
+    expect(filtered.players[P2]!.id).toBe(P2)
+  })
+
+  it("does not mutate the original state", () => {
+    const before = fullState.players[P2]!.hand.length
+    filterStateForPlayer(fullState, P1)
+    expect(fullState.players[P2]!.hand).toHaveLength(before)
+  })
+
+  it("works symmetrically for P2 as viewer", () => {
+    const filtered = filterStateForPlayer(fullState, P2)
+    expect(filtered.players[P2]!.hand).toHaveLength(1)
+    expect(filtered.players[P2]!.drawPile).toHaveLength(2)
+    expect(filtered.players[P1]!.hand).toHaveLength(0)
+    expect(filtered.players[P1]!.drawPile).toHaveLength(0)
   })
 })

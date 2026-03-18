@@ -19,7 +19,16 @@ profileRouter.get("/me", async (c) => {
 
 profileRouter.patch(
   "/me/nickname",
-  zValidator("json", z.object({ nickname: z.string().min(1).max(30) })),
+  zValidator(
+    "json",
+    z.object({
+      nickname: z
+        .string()
+        .min(1)
+        .max(30)
+        .regex(/^[a-zA-Z0-9 _-]+$/, "Alphanumeric characters, spaces, hyphens, and underscores only"),
+    }),
+  ),
   async (c) => {
     const userId = c.get("userId")
     const { nickname } = c.req.valid("json")

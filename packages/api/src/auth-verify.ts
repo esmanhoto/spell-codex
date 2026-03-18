@@ -15,7 +15,7 @@ function getSupabaseAnonKey(): string {
 }
 
 export function authBypassEnabled(): boolean {
-  return process.env["AUTH_BYPASS"] === "true"
+  return process.env["AUTH_BYPASS"] === "true" && process.env["NODE_ENV"] !== "production"
 }
 
 export async function verifySupabaseAccessToken(token: string): Promise<string> {
