@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useBoard } from "../../context/BoardContext.tsx"
+import { useCombat } from "../../context/CombatContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
 import type { PoolEntry as PoolEntryType } from "../../api.ts"
@@ -15,9 +16,16 @@ const WORLD_WILDCARD = new Set([0, 9])
 
 export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOpponent?: boolean }) {
   const { allBoards } = useBoard()
+  const { combat } = useCombat()
   const { legalMoves, onMove, phase } = useMoves()
   const { selectedId, onSelect, showWarning, requestSpellCast, openTargetPicker } = useGameUI()
   const [attachDragOver, setAttachDragOver] = useState(false)
+
+  const championInCombat = !!(
+    combat &&
+    (combat.attacker?.instanceId === entry.champion.instanceId ||
+      combat.defender?.instanceId === entry.champion.instanceId)
+  )
 
   useEffect(() => {
     const clear = () => setAttachDragOver(false)
@@ -105,7 +113,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
 
   return (
     <div
-      className={`${styles.entry} ${attachDragOver ? styles.dragOver : ""}`}
+      className={`${styles.entry} ${attachDragOver ? styles.dragOver : ""} ${championInCombat ? styles.inCombat : ""}`}
       onDragOver={(e) => {
         e.preventDefault()
         setAttachDragOver(true)
@@ -211,6 +219,7 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
           )
         })}
       </div>
+      {championInCombat && <span className={styles.combatBadge}>IN COMBAT</span>}
     </div>
   )
 }
