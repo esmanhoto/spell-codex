@@ -59,8 +59,12 @@ jobs:
       - name: Typecheck all packages
         run: bun run typecheck
 
-      - name: Run tests
-        run: bun run test
+      - name: Run tests with coverage
+        run: |
+          bun test --cwd packages/engine --coverage
+          bun test --cwd packages/data --coverage
+          bun --env-file=.env test --cwd packages/db --coverage
+          bun --env-file=.env test --cwd packages/api --coverage
 
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium

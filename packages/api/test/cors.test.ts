@@ -26,10 +26,9 @@ describe("CORS headers", () => {
         "Access-Control-Request-Headers": "Content-Type, Authorization",
       },
     })
-    // Preflight should return 204 or 200
-    expect([200, 204]).toContain(res.status)
+    expect(res.status).toBe(204)
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe("http://localhost:5173")
-    expect(res.headers.get("Access-Control-Allow-Methods")).toBeDefined()
+    expect(res.headers.get("Access-Control-Allow-Methods")).toBeString()
   })
 
   it("includes CORS headers on authenticated routes", async () => {

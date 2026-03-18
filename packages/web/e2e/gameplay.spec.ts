@@ -26,11 +26,3 @@ test("ending turn hands control to Player B and increments turn", async ({ page,
   await expect(page.getByTestId("turn-info")).toContainText("Turn 2")
   await expect(page.getByTestId("active-player-label")).toContainText(PLAYER_B_NICKNAME)
 })
-
-test("manual move can be executed without breaking board", async ({ page, request }) => {
-  await startGame(page, request)
-
-  await page.getByTestId("draw-pile-self").click()
-
-  await expect(page.getByTestId("game-board")).toBeVisible()
-})

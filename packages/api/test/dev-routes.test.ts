@@ -183,27 +183,24 @@ describe("dev routes (AUTH_BYPASS=false)", () => {
     process.env["AUTH_BYPASS"] = savedBypass
   })
 
-  it("GET /dev/scenarios returns 404", async () => {
-    const res = await app.request("/dev/scenarios")
-    expect(res.status).toBe(404)
-  })
+  it("all dev endpoints return 404", async () => {
+    const endpoints: Array<{ path: string; method?: string; body?: string }> = [
+      { path: "/dev/scenarios" },
+      { path: "/dev/cards?q=dragon" },
+      { path: "/dev/scenarios/some-id/load", method: "POST" },
+      {
+        path: "/dev/games/some-id/give-card",
+        method: "POST",
+        body: JSON.stringify({ playerId: "p1", setId: "01", cardNumber: 1 }),
+      },
+    ]
 
-  it("GET /dev/cards returns 404", async () => {
-    const res = await app.request("/dev/cards?q=dragon")
-    expect(res.status).toBe(404)
-  })
-
-  it("POST /dev/scenarios/:id/load returns 404", async () => {
-    const res = await app.request("/dev/scenarios/some-id/load", { method: "POST" })
-    expect(res.status).toBe(404)
-  })
-
-  it("POST /dev/games/:id/give-card returns 404", async () => {
-    const res = await app.request("/dev/games/some-id/give-card", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playerId: "p1", setId: "01", cardNumber: 1 }),
-    })
-    expect(res.status).toBe(404)
+    for (const { path, method, body } of endpoints) {
+      const res = await app.request(path, {
+        method: method ?? "GET",
+        ...(body ? { headers: { "Content-Type": "application/json" }, body } : {}),
+      })
+      expect(res.status).toBe(404)
+    }
   })
 })

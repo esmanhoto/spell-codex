@@ -167,8 +167,8 @@ describe("perf: reconstruction scaling", () => {
     record("reconstruct_50_actions_events", state.events?.length ?? 0)
     console.log(`[perf] reconstruct 50 actions: ${elapsed.toFixed(2)}ms (${errors.length} errors)`)
 
-    // Regression guard: 50 actions should reconstruct in under 2 seconds locally
-    expect(elapsed).toBeLessThan(2000)
+    // Regression guard: 50 actions should reconstruct in under 500ms
+    expect(elapsed).toBeLessThan(500)
   })
 
   it("reconstructs a game with ~100 actions", async () => {
@@ -180,7 +180,8 @@ describe("perf: reconstruction scaling", () => {
     record("reconstruct_100_actions_events", state.events?.length ?? 0)
     console.log(`[perf] reconstruct 100 actions: ${elapsed.toFixed(2)}ms (${errors.length} errors)`)
 
-    expect(elapsed).toBeLessThan(5000)
+    // Regression guard: 100 actions should reconstruct in under 1 second
+    expect(elapsed).toBeLessThan(1000)
   })
 
   it("reconstructs a game with ~200 actions", async () => {
@@ -192,7 +193,8 @@ describe("perf: reconstruction scaling", () => {
     record("reconstruct_200_actions_events", state.events?.length ?? 0)
     console.log(`[perf] reconstruct 200 actions: ${elapsed.toFixed(2)}ms (${errors.length} errors)`)
 
-    expect(elapsed).toBeLessThan(15000)
+    // Regression guard: 200 actions should reconstruct in under 3 seconds
+    expect(elapsed).toBeLessThan(3000)
   })
 })
 

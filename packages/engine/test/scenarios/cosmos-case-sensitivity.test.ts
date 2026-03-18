@@ -41,27 +41,19 @@ function stateWithPoolChampion(name: string, typeId: number): GameState {
 }
 
 describe("cosmos: case sensitivity of name matching", () => {
-  test("exact name match blocks play", () => {
-    const state = stateWithPoolChampion("Elminster", 20)
-    expect(isUniqueInPlay(CHAMPION_WIZARD_FR, state)).toBe(false) // "Elminster", typeId 20
-  })
+  const cases: Array<{ poolName: string; poolTypeId: number; expected: boolean; label: string }> = [
+    { poolName: "Elminster", poolTypeId: 20, expected: false, label: "exact match blocks play" },
+    { poolName: "ELMINSTER", poolTypeId: 20, expected: true, label: "different case is NOT blocked" },
+    { poolName: "elminster", poolTypeId: 20, expected: true, label: "lowercase is NOT blocked" },
+    { poolName: "Elminster", poolTypeId: 7, expected: true, label: "same name different typeId is NOT blocked" },
+  ]
 
-  test("different case is NOT blocked (case-sensitive)", () => {
-    const state = stateWithPoolChampion("ELMINSTER", 20)
-    // "ELMINSTER" !== "Elminster" — different case passes cosmos check
-    expect(isUniqueInPlay(CHAMPION_WIZARD_FR, state)).toBe(true)
-  })
-
-  test("lowercase variant is NOT blocked", () => {
-    const state = stateWithPoolChampion("elminster", 20)
-    expect(isUniqueInPlay(CHAMPION_WIZARD_FR, state)).toBe(true)
-  })
-
-  test("same name but different typeId is NOT blocked (both must match)", () => {
-    const state = stateWithPoolChampion("Elminster", 7) // Hero, not Wizard(20)
-    // nameAndTypeMatch requires BOTH name AND typeId to match
-    expect(isUniqueInPlay(CHAMPION_WIZARD_FR, state)).toBe(true)
-  })
+  for (const { poolName, poolTypeId, expected, label } of cases) {
+    test(label, () => {
+      const state = stateWithPoolChampion(poolName, poolTypeId)
+      expect(isUniqueInPlay(CHAMPION_WIZARD_FR, state)).toBe(expected)
+    })
+  }
 })
 
 describe("cosmos: checks across all zones", () => {
@@ -75,7 +67,6 @@ describe("cosmos: checks across all zones", () => {
         p2: { ...base.players["p2"]!, pool: [{ champion, attachments: [] }] },
       },
     }
-    // p1 tries to play same champion — blocked
     expect(isUniqueInPlay(CHAMPION_WIZARD_FR, state)).toBe(false)
   })
 

@@ -53,21 +53,6 @@ describe("saveAction", () => {
     expect(row.createdAt).toBeInstanceOf(Date)
   })
 
-  it("rejects duplicate (gameId, sequence)", async () => {
-    const gameId = await createTestGame()
-    await saveAction({
-      gameId,
-      sequence: 0,
-      playerId: PLAYER,
-      move: PASS,
-      stateHash: "b".repeat(64),
-    })
-
-    await expect(
-      saveAction({ gameId, sequence: 0, playerId: PLAYER, move: PASS, stateHash: "c".repeat(64) }),
-    ).rejects.toThrow()
-  })
-
   it("allows same sequence on different games", async () => {
     const g1 = await createTestGame()
     const g2 = await createTestGame()

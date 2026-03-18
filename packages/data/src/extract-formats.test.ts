@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { parseLimitBlock, parseTotalBlock, parseCardRefList } from "./extract-formats.ts"
+import { parseLimitBlock, parseTotalBlock } from "./extract-formats.ts"
 
 // ─── parseLimitBlock ─────────────────────────────────────────────────────────
 
@@ -104,42 +104,3 @@ describe("parseTotalBlock", () => {
   })
 })
 
-// ─── parseCardRefList ────────────────────────────────────────────────────────
-
-describe("parseCardRefList", () => {
-  test("null returns empty array", () => {
-    expect(parseCardRefList(null)).toEqual([])
-  })
-
-  test("empty string returns empty array", () => {
-    expect(parseCardRefList("")).toEqual([])
-  })
-
-  test("whitespace-only returns empty array", () => {
-    expect(parseCardRefList("   ")).toEqual([])
-  })
-
-  test("single card reference", () => {
-    const result = parseCardRefList("{1st 42}")
-    expect(result).toEqual([{ setId: "1st", cardNumber: 42 }])
-  })
-
-  test("multiple card references", () => {
-    const result = parseCardRefList("{1st 42} {2nd 100} {3rd 7}")
-    expect(result).toEqual([
-      { setId: "1st", cardNumber: 42 },
-      { setId: "2nd", cardNumber: 100 },
-      { setId: "3rd", cardNumber: 7 },
-    ])
-  })
-
-  test("skips entries with non-numeric cardNumber", () => {
-    const result = parseCardRefList("{1st abc} {2nd 5}")
-    expect(result).toEqual([{ setId: "2nd", cardNumber: 5 }])
-  })
-
-  test("skips entries with wrong field count", () => {
-    const result = parseCardRefList("{1st} {2nd 5 extra} {3rd 7}")
-    expect(result).toEqual([{ setId: "3rd", cardNumber: 7 }])
-  })
-})

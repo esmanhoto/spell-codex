@@ -100,14 +100,13 @@ describe("getCombatRealmContext", () => {
 })
 
 describe("getCombatLevels", () => {
-  test("returns numeric attacker and defender levels", () => {
-    const state = makeCombatState()
+  test("returns expected base levels from champion cards", () => {
+    const state = makeCombatState({ attackerWorld: 0, realmWorld: 0 }) // no world bonus
     const { attackerLevel, defenderLevel } = getCombatLevels(state, state.combatState!)
 
-    expect(typeof attackerLevel).toBe("number")
-    expect(typeof defenderLevel).toBe("number")
-    expect(attackerLevel).toBeGreaterThanOrEqual(0)
-    expect(defenderLevel).toBeGreaterThanOrEqual(0)
+    // CHAMPION_CLERIC_FR has level 6, CHAMPION_HERO_GENERIC has level 5
+    expect(attackerLevel).toBe(6)
+    expect(defenderLevel).toBe(5)
   })
 
   test("attacker gets world bonus when worlds match", () => {

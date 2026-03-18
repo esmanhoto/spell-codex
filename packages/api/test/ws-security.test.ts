@@ -94,39 +94,22 @@ beforeEach(() => {
 // ─── Malformed JSON ──────────────────────────────────────────────────────────
 
 describe("malformed WS JSON", () => {
-  it("returns PARSE_ERROR for invalid JSON string", async () => {
-    const ws = notJoinedSocket()
-    await wsHandlers.message(ws as unknown as ServerWebSocket<WsData>, "{bad json")
-    const err = ws.received[0] as { type: string; code: string }
-    expect(err.type).toBe("ERROR")
-    expect(err.code).toBe("PARSE_ERROR")
-  })
+  const cases: Array<[string, string | Buffer]> = [
+    ["invalid JSON string", "{bad json"],
+    ["empty string", ""],
+    ["binary garbage", Buffer.from([0xff, 0xfe, 0x00, 0x01])],
+    ["1MB non-JSON payload", "x".repeat(1_000_000)],
+  ]
 
-  it("returns PARSE_ERROR for empty string", async () => {
-    const ws = notJoinedSocket()
-    await wsHandlers.message(ws as unknown as ServerWebSocket<WsData>, "")
-    const err = ws.received[0] as { type: string; code: string }
-    expect(err.type).toBe("ERROR")
-    expect(err.code).toBe("PARSE_ERROR")
-  })
-
-  it("returns PARSE_ERROR for binary garbage", async () => {
-    const ws = notJoinedSocket()
-    const buf = Buffer.from([0xff, 0xfe, 0x00, 0x01])
-    await wsHandlers.message(ws as unknown as ServerWebSocket<WsData>, buf)
-    const err = ws.received[0] as { type: string; code: string }
-    expect(err.type).toBe("ERROR")
-    expect(err.code).toBe("PARSE_ERROR")
-  })
-
-  it("handles large garbage payload without crashing", async () => {
-    const ws = notJoinedSocket()
-    const garbage = "x".repeat(1_000_000) // 1MB of non-JSON
-    await wsHandlers.message(ws as unknown as ServerWebSocket<WsData>, garbage)
-    const err = ws.received[0] as { type: string; code: string }
-    expect(err.type).toBe("ERROR")
-    expect(err.code).toBe("PARSE_ERROR")
-  })
+  for (const [label, payload] of cases) {
+    it(`returns PARSE_ERROR for ${label}`, async () => {
+      const ws = notJoinedSocket()
+      await wsHandlers.message(ws as unknown as ServerWebSocket<WsData>, payload)
+      const err = ws.received[0] as { type: string; code: string }
+      expect(err.type).toBe("ERROR")
+      expect(err.code).toBe("PARSE_ERROR")
+    })
+  }
 })
 
 // ─── Unknown message type ────────────────────────────────────────────────────
@@ -441,35 +424,28 @@ describe("filterStateForPlayer", () => {
     },
   } as unknown as GameState
 
-  it("preserves the viewer's own hand and drawPile", () => {
-    const filtered = filterStateForPlayer(fullState, P1)
-    expect(filtered.players[P1]!.hand).toHaveLength(2)
-    expect(filtered.players[P1]!.drawPile).toHaveLength(3)
-  })
+  it("hides opponent hand/drawPile, preserves viewer and non-hidden zones, works symmetrically", () => {
+    const p1View = filterStateForPlayer(fullState, P1)
+    // Viewer zones preserved
+    expect(p1View.players[P1]!.hand).toHaveLength(2)
+    expect(p1View.players[P1]!.drawPile).toHaveLength(3)
+    // Opponent hidden zones emptied
+    expect(p1View.players[P2]!.hand).toHaveLength(0)
+    expect(p1View.players[P2]!.drawPile).toHaveLength(0)
+    // Opponent non-hidden zones preserved
+    expect(p1View.players[P2]!.discardPile).toHaveLength(1)
 
-  it("empties opponent hand and drawPile", () => {
-    const filtered = filterStateForPlayer(fullState, P1)
-    expect(filtered.players[P2]!.hand).toHaveLength(0)
-    expect(filtered.players[P2]!.drawPile).toHaveLength(0)
-  })
-
-  it("preserves opponent's non-hidden zones (discardPile, formation, etc.)", () => {
-    const filtered = filterStateForPlayer(fullState, P1)
-    expect(filtered.players[P2]!.discardPile).toHaveLength(1)
-    expect(filtered.players[P2]!.id).toBe(P2)
+    // Symmetric for P2
+    const p2View = filterStateForPlayer(fullState, P2)
+    expect(p2View.players[P2]!.hand).toHaveLength(1)
+    expect(p2View.players[P2]!.drawPile).toHaveLength(2)
+    expect(p2View.players[P1]!.hand).toHaveLength(0)
+    expect(p2View.players[P1]!.drawPile).toHaveLength(0)
   })
 
   it("does not mutate the original state", () => {
     const before = fullState.players[P2]!.hand.length
     filterStateForPlayer(fullState, P1)
     expect(fullState.players[P2]!.hand).toHaveLength(before)
-  })
-
-  it("works symmetrically for P2 as viewer", () => {
-    const filtered = filterStateForPlayer(fullState, P2)
-    expect(filtered.players[P2]!.hand).toHaveLength(1)
-    expect(filtered.players[P2]!.drawPile).toHaveLength(2)
-    expect(filtered.players[P1]!.hand).toHaveLength(0)
-    expect(filtered.players[P1]!.drawPile).toHaveLength(0)
   })
 })

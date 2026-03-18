@@ -67,7 +67,7 @@ describe("loadGameState", () => {
     expect(loaded!.state).toBeDefined()
     expect(loaded!.playerIds).toContain(PLAYER_A)
     expect(loaded!.playerIds).toContain(PLAYER_B)
-    expect(loaded!.sequence).toBeGreaterThanOrEqual(-1) // -1 = no actions yet
+    expect(loaded!.sequence).toBe(-1) // no actions yet
   })
 
   it("loads from cache on second call", async () => {

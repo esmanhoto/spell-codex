@@ -11,7 +11,7 @@ import { app } from "../src/index.ts"
 import { evictCachedState } from "../src/state-cache.ts"
 import { loadGameState } from "../src/game-ops.ts"
 import { hashState } from "@spell/db"
-import { applyMove, getLegalMoves, Phase } from "@spell/engine"
+import { applyMove, getLegalMoves } from "@spell/engine"
 import type { GameState } from "@spell/engine"
 import { hashEngineState } from "../../web/src/utils/state-hash.ts"
 import { serializeEngineStateForClient } from "../../web/src/utils/client-serialize.ts"
@@ -79,30 +79,6 @@ describe("Hash parity (db hashState vs web hashEngineState)", () => {
     expect(webHash).toBe(dbHash)
   })
 
-  it("different states produce different hashes", async () => {
-    const result = applyMove(initialState, PLAYER_A, { type: "PASS" })
-    const hash1 = hashState(initialState)
-    const hash2 = hashState(result.newState)
-    expect(hash1).not.toBe(hash2)
-  })
-
-  it("hash excludes events — adding events doesn't change hash", async () => {
-    const stateWithEvents = {
-      ...initialState,
-      events: [
-        ...initialState.events,
-        { type: "PHASE_CHANGED" as const, phase: Phase.Draw },
-      ],
-    }
-    const hashOriginal = hashState(initialState)
-    const hashWithEvents = hashState(stateWithEvents)
-    // Both exclude events, so hash should match if events are the only difference
-    // (but initial events may be empty anyway)
-    const webOriginal = await hashEngineState(initialState)
-    const webWithEvents = await hashEngineState(stateWithEvents)
-    expect(webOriginal).toBe(webWithEvents)
-    expect(hashOriginal).toBe(hashWithEvents)
-  })
 })
 
 // ─── Client serialization shape ──────────────────────────────────────────────

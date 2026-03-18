@@ -1,6 +1,6 @@
 import { describe, test, expect } from "bun:test"
 import { getLegalRealmSlots } from "../../src/legal-moves.ts"
-import type { Formation } from "../../src/types.ts"
+import type { Formation, FormationSlot } from "../../src/types.ts"
 import { inst, makeRealm } from "../scenario-builders.ts"
 
 function makeSlot(id: string) {
@@ -11,188 +11,54 @@ function makeSlot(id: string) {
   }
 }
 
-// ─── Size 6 formation slots (already partially covered) ─────────────────────
+function formation(size: 6 | 8 | 10, filled: string[]): Formation {
+  return {
+    size,
+    slots: Object.fromEntries(filled.map((id) => [id, makeSlot(id.toLowerCase())])),
+  }
+}
 
-describe("getLegalRealmSlots: size 6", () => {
-  test("empty formation: only A legal", () => {
-    const f: Formation = { size: 6, slots: {} }
-    expect(getLegalRealmSlots(f)).toEqual(["A"])
-  })
+describe("getLegalRealmSlots", () => {
+  const cases: Array<{ size: 6 | 8 | 10; filled: string[]; expected: FormationSlot[]; label: string }> = [
+    // Size 6
+    { size: 6, filled: [], expected: ["A"], label: "size 6: empty → only A" },
+    { size: 6, filled: ["A"], expected: ["B", "C"], label: "size 6: A → B,C" },
+    { size: 6, filled: ["A", "B"], expected: ["C"], label: "size 6: A+B → C" },
+    { size: 6, filled: ["A", "B", "C"], expected: ["D", "E", "F"], label: "size 6: A+B+C → D,E,F" },
+    { size: 6, filled: ["A", "B", "C", "D", "E", "F"], expected: [], label: "size 6: full → none" },
+    // Size 8
+    { size: 8, filled: ["A", "B", "C", "D", "E", "F"], expected: ["G", "H"], label: "size 8: D+E+F filled → G,H" },
+    { size: 8, filled: ["A", "B", "C", "D", "E", "F", "G", "H"], expected: [], label: "size 8: full → none" },
+    // Size 10
+    { size: 10, filled: ["A", "B", "C", "D", "E", "F", "G", "H"], expected: ["I", "J"], label: "size 10: G+H filled → I,J" },
+    { size: 10, filled: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"], expected: [], label: "size 10: full → none" },
+  ]
 
-  test("A filled: B and C legal", () => {
-    const f: Formation = { size: 6, slots: { A: makeSlot("a") } }
-    expect(getLegalRealmSlots(f)).toEqual(["B", "C"])
-  })
+  for (const { size, filled, expected, label } of cases) {
+    test(label, () => {
+      expect(getLegalRealmSlots(formation(size, filled))).toEqual(expected)
+    })
+  }
 
-  test("A+B filled: C legal but not D/E/F", () => {
-    const f: Formation = { size: 6, slots: { A: makeSlot("a"), B: makeSlot("b") } }
-    expect(getLegalRealmSlots(f)).toEqual(["C"])
-  })
-
-  test("A+B+C filled: D, E, F legal", () => {
-    const f: Formation = {
-      size: 6,
-      slots: { A: makeSlot("a"), B: makeSlot("b"), C: makeSlot("c") },
-    }
-    expect(getLegalRealmSlots(f)).toEqual(["D", "E", "F"])
-  })
-
-  test("full size 6: no legal slots", () => {
-    const f: Formation = {
-      size: 6,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-        F: makeSlot("f"),
-      },
-    }
-    expect(getLegalRealmSlots(f)).toEqual([])
-  })
-})
-
-// ─── Size 8 formation slots ─────────────────────────────────────────────────
-
-describe("getLegalRealmSlots: size 8", () => {
-  test("D+E+F filled: G and H become legal", () => {
-    const f: Formation = {
-      size: 8,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-        F: makeSlot("f"),
-      },
-    }
-    expect(getLegalRealmSlots(f)).toEqual(["G", "H"])
-  })
-
-  test("D+E filled but not F: G and H NOT legal", () => {
-    const f: Formation = {
-      size: 8,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-      },
-    }
-    const legal = getLegalRealmSlots(f)
+  test("size 8: D+E filled but not F → F legal, G/H not", () => {
+    const legal = getLegalRealmSlots(formation(8, ["A", "B", "C", "D", "E"]))
     expect(legal).toContain("F")
     expect(legal).not.toContain("G")
     expect(legal).not.toContain("H")
   })
 
-  test("full size 8: no legal slots", () => {
-    const f: Formation = {
-      size: 8,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-        F: makeSlot("f"),
-        G: makeSlot("g"),
-        H: makeSlot("h"),
-      },
-    }
-    expect(getLegalRealmSlots(f)).toEqual([])
-  })
-
-  test("size 6 with D+E+F: G and H NOT legal (size too small)", () => {
-    const f: Formation = {
-      size: 6,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-        F: makeSlot("f"),
-      },
-    }
-    expect(getLegalRealmSlots(f)).toEqual([])
-  })
-})
-
-// ─── Size 10 formation slots ────────────────────────────────────────────────
-
-describe("getLegalRealmSlots: size 10", () => {
-  test("G+H filled: I and J become legal", () => {
-    const f: Formation = {
-      size: 10,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-        F: makeSlot("f"),
-        G: makeSlot("g"),
-        H: makeSlot("h"),
-      },
-    }
-    expect(getLegalRealmSlots(f)).toEqual(["I", "J"])
-  })
-
-  test("G filled but not H: I and J NOT legal", () => {
-    const f: Formation = {
-      size: 10,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-        F: makeSlot("f"),
-        G: makeSlot("g"),
-      },
-    }
-    const legal = getLegalRealmSlots(f)
+  test("size 10: G filled but not H → H legal, I/J not", () => {
+    const legal = getLegalRealmSlots(formation(10, ["A", "B", "C", "D", "E", "F", "G"]))
     expect(legal).toContain("H")
     expect(legal).not.toContain("I")
     expect(legal).not.toContain("J")
   })
 
-  test("full size 10: no legal slots", () => {
-    const f: Formation = {
-      size: 10,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-        F: makeSlot("f"),
-        G: makeSlot("g"),
-        H: makeSlot("h"),
-        I: makeSlot("i"),
-        J: makeSlot("j"),
-      },
-    }
-    expect(getLegalRealmSlots(f)).toEqual([])
+  test("size 6 with D+E+F: G/H not legal (size too small)", () => {
+    expect(getLegalRealmSlots(formation(6, ["A", "B", "C", "D", "E", "F"]))).toEqual([])
   })
 
-  test("size 8 with G+H: I and J NOT legal (size too small)", () => {
-    const f: Formation = {
-      size: 8,
-      slots: {
-        A: makeSlot("a"),
-        B: makeSlot("b"),
-        C: makeSlot("c"),
-        D: makeSlot("d"),
-        E: makeSlot("e"),
-        F: makeSlot("f"),
-        G: makeSlot("g"),
-        H: makeSlot("h"),
-      },
-    }
-    expect(getLegalRealmSlots(f)).toEqual([])
+  test("size 8 with G+H: I/J not legal (size too small)", () => {
+    expect(getLegalRealmSlots(formation(8, ["A", "B", "C", "D", "E", "F", "G", "H"]))).toEqual([])
   })
 })

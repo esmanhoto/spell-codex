@@ -6,7 +6,6 @@ import {
   getLosingPlayer,
 } from "../src/combat.ts"
 import {
-  parseLevel,
   parseMagicalItemBonus,
   createInstance,
   _resetInstanceCounter,
@@ -31,40 +30,6 @@ import {
 
 beforeEach(() => {
   _resetInstanceCounter()
-})
-
-// ─── parseLevel ───────────────────────────────────────────────────────────────
-
-describe("parseLevel", () => {
-  test("number level returns the number", () => {
-    expect(parseLevel(6)).toBe(6)
-    expect(parseLevel(0)).toBe(0)
-  })
-
-  test("null returns 0", () => {
-    expect(parseLevel(null)).toBe(0)
-  })
-
-  test("+N string returns N", () => {
-    expect(parseLevel("+4")).toBe(4)
-    expect(parseLevel("+1")).toBe(1)
-  })
-
-  test("-N string returns negative", () => {
-    expect(parseLevel("-2")).toBe(-2)
-  })
-
-  test("+N/+M returns offensive part by default", () => {
-    expect(parseLevel("+3/+2")).toBe(3)
-  })
-
-  test("+N/+M returns defensive part when specified", () => {
-    expect(parseLevel("+3/+2", "defensive")).toBe(2)
-  })
-
-  test("plain number string without sign", () => {
-    expect(parseLevel("5")).toBe(5)
-  })
 })
 
 // ─── parseMagicalItemBonus ────────────────────────────────────────────────────

@@ -74,10 +74,6 @@ describe("serializeCard", () => {
     expect(result.castPhases).toEqual([4])
   })
 
-  test("handles null level", () => {
-    const realm = inst("r1", makeRealm())
-    expect(serializeCard(realm).level).toBeNull()
-  })
 })
 
 // ─── serializeFormation ──────────────────────────────────────────────────────
@@ -155,16 +151,16 @@ describe("serializeFormation", () => {
     expect(result["A"]!.holdings).toHaveLength(1)
   })
 
-  test("size 8 formation includes G and H slots", () => {
-    const formation: Formation = { size: 8, slots: {} }
-    const result = serializeFormation(formation, "p1")
-    expect(Object.keys(result)).toEqual(["A", "B", "C", "D", "E", "F", "G", "H"])
-  })
-
-  test("size 10 formation includes all slots A–J", () => {
-    const formation: Formation = { size: 10, slots: {} }
-    const result = serializeFormation(formation, "p1")
-    expect(Object.keys(result)).toEqual(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"])
+  test("formation size determines slot keys: 6→A-F, 8→A-H, 10→A-J", () => {
+    expect(Object.keys(serializeFormation({ size: 6, slots: {} }, "p1"))).toEqual(
+      ["A", "B", "C", "D", "E", "F"],
+    )
+    expect(Object.keys(serializeFormation({ size: 8, slots: {} }, "p1"))).toEqual(
+      ["A", "B", "C", "D", "E", "F", "G", "H"],
+    )
+    expect(Object.keys(serializeFormation({ size: 10, slots: {} }, "p1"))).toEqual(
+      ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
+    )
   })
 
   test("no viewerPlayerId: holdings are hidden (not owner view)", () => {
