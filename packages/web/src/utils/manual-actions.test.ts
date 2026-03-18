@@ -259,7 +259,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
     const spell = makeCard({ typeId: 19, instanceId: "spell1", name: "Fireball" })
 
     it("returns Cast Spell (enabled when caster in pool)", () => {
-      let castId: string | null = null
+      let castId = ""
       const actions = buildHandContextActions({
         ...CASTER_ARGS,
         phase: "COMBAT", // default castPhases=[] → [4] (combat)
@@ -818,7 +818,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
     })
 
     it("Cast Spell triggers requestSpellCast callback", () => {
-      let castId: string | null = null
+      let castId = ""
       const actions = buildHandContextActions({
         ...CASTER_ARGS,
         phase: "COMBAT", // default castPhases=[] → [4] (combat)
