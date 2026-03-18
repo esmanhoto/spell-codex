@@ -728,7 +728,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
       moves.push({ type: "PLAY_COMBAT_CARD", cardInstanceId: card.instanceId })
     }
   }
-  moves.push({ type: "CONCEDE_COMBAT" })
+  moves.push({ type: "STOP_PLAYING" })
   // Both players may play events during card play
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))
