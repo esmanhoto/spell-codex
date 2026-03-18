@@ -108,6 +108,7 @@ describe("serializeFormation", () => {
     expect(slotA.realm.instanceId).toBe("r1")
     expect(slotA.holdings).toHaveLength(1)
     expect(slotA.holdings[0].instanceId).toBe("h1")
+    expect(slotA.holdingCount).toBe(1)
     expect(slotA.isRazed).toBe(false)
   })
 
@@ -123,6 +124,21 @@ describe("serializeFormation", () => {
 
     const result = serializeFormation(formation, "p1", "p2") // opponent viewing
     expect(result["A"]!.holdings).toHaveLength(0)
+  })
+
+  test("holdingCount reflects real count even when holdings are hidden from opponent", () => {
+    const realm = inst("r1", makeRealm())
+    const holding = inst("h1", makeHolding())
+    const formation: Formation = {
+      size: 6,
+      slots: {
+        A: { realm, isRazed: false, holdings: [holding] },
+      },
+    }
+
+    const result = serializeFormation(formation, "p1", "p2") // opponent viewing
+    expect(result["A"]!.holdings).toHaveLength(0)
+    expect(result["A"]!.holdingCount).toBe(1)
   })
 
   test("shows holdings to opponent when holdingRevealedToAll is true", () => {

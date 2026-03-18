@@ -11,11 +11,13 @@ export function CardTooltip({
   cards,
   children,
   razed,
+  hasHiddenHolding,
 }: {
   card?: CardInfo
   cards?: CardInfo[]
   children: React.ReactNode
   razed?: boolean
+  hasHiddenHolding?: boolean
 }) {
   const [show, setShow] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -70,6 +72,9 @@ export function CardTooltip({
                 </div>
               </div>
             ))}
+            {hasHiddenHolding && (
+              <div className={styles.hiddenHoldingNote}>* has a holding</div>
+            )}
           </div>,
           document.body,
         )}
