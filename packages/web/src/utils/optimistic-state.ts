@@ -35,6 +35,7 @@ export function applyOptimisticMove(
       const slot: SlotState = {
         realm: card,
         holdings: [],
+        holdingCount: 0,
         isRazed: false,
         holdingRevealedToAll: false,
       }

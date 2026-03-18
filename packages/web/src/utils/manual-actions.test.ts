@@ -785,8 +785,8 @@ describe("buildHandContextActions — always returns all applicable actions", ()
         myBoard: {
           hand: [], handCount: 0, handHidden: false,
           formation: {
-            A: { realm: makeCard({ instanceId: "ra", name: "Waterdeep" }), holdings: [], isRazed: false, holdingRevealedToAll: false },
-            B: { realm: makeCard({ instanceId: "rb", name: "Village" }), holdings: [], isRazed: false, holdingRevealedToAll: false },
+            A: { realm: makeCard({ instanceId: "ra", name: "Waterdeep" }), holdings: [], holdingCount: 0, isRazed: false, holdingRevealedToAll: false },
+            B: { realm: makeCard({ instanceId: "rb", name: "Village" }), holdings: [], holdingCount: 0, isRazed: false, holdingRevealedToAll: false },
           },
           pool: [], drawPileCount: 0, discardCount: 0, discardPile: [], lastingEffects: [],
         },
