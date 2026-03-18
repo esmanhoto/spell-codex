@@ -13,6 +13,7 @@ import { CombatContext } from "../context/CombatContext.tsx"
 import { MovesContext } from "../context/MovesContext.tsx"
 import { UIContext } from "../context/UIContext.tsx"
 import type { ContextMenuState } from "../context/types.ts"
+import type { TargetPickerState } from "../context/UIContext.tsx"
 import { useAuth } from "../auth.tsx"
 import { GameBoard } from "../components/game/GameBoard.tsx"
 import { GameLoadingScreen } from "../components/game/GameLoadingScreen.tsx"
@@ -183,6 +184,12 @@ export function Game() {
     [],
   )
   const closeContextMenu = useCallback(() => setContextMenu(null), [])
+  const [targetPicker, setTargetPicker] = useState<TargetPickerState | null>(null)
+  const openTargetPicker = useCallback(
+    (title: string, targets: TargetPickerState["targets"]) => setTargetPicker({ title, targets }),
+    [],
+  )
+  const closeTargetPicker = useCallback(() => setTargetPicker(null), [])
   const showWarning = useCallback(
     (
       message: string,
@@ -818,6 +825,9 @@ export function Game() {
       setRebuildTarget,
       submitRebuild,
       requestSpellCast,
+      targetPicker,
+      openTargetPicker,
+      closeTargetPicker,
     }),
     [
       selectedId,
@@ -832,6 +842,9 @@ export function Game() {
       setRebuildTarget,
       submitRebuild,
       requestSpellCast,
+      targetPicker,
+      openTargetPicker,
+      closeTargetPicker,
     ],
   )
 

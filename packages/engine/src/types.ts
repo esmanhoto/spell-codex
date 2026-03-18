@@ -284,6 +284,8 @@ export interface CombatState {
    */
   attackerManualLevel: number | null
   defenderManualLevel: number | null
+  /** Players who have issued STOP_PLAYING — combat resolves when both stop */
+  stoppedPlayers: PlayerId[]
 }
 
 // ─── Phases ───────────────────────────────────────────────────────────────────

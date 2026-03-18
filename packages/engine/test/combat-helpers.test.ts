@@ -53,6 +53,7 @@ function makeCombatState(opts?: {
     attackerWins: 0,
     attackerManualLevel: opts?.attackerManualLevel ?? null,
     defenderManualLevel: opts?.defenderManualLevel ?? null,
+    stoppedPlayers: [],
   }
 
   return {

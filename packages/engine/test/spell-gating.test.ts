@@ -126,6 +126,7 @@ function withCombatCardPlayState(params: {
       attackerWins: 0,
       attackerManualLevel: null,
       defenderManualLevel: null,
+      stoppedPlayers: [],
     },
   }
 }

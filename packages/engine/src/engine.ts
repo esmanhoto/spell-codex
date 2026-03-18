@@ -298,7 +298,12 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
   }
 
   if (combat.roundPhase === "CARD_PLAY" && isCombatParticipant) {
-    return move.type === "SET_COMBAT_LEVEL" || move.type === "SWITCH_COMBAT_SIDE"
+    return (
+      move.type === "SET_COMBAT_LEVEL" ||
+      move.type === "SWITCH_COMBAT_SIDE" ||
+      move.type === "PLAY_COMBAT_CARD" ||
+      move.type === "STOP_PLAYING"
+    )
   }
 
   return false
@@ -715,7 +720,10 @@ function handlePlaceChampion(
   move: Extract<Move, { type: "PLACE_CHAMPION" }>,
   events: GameEvent[],
 ): GameState {
-  // Auto-advance from PlayRealm to Pool
+  // Auto-advance to Pool from earlier phases
+  if (state.phase === Phase.StartOfTurn) {
+    state = advanceToPhase(state, playerId, Phase.PlayRealm, events)
+  }
   if (state.phase === Phase.PlayRealm) {
     state = advanceToPhase(state, playerId, Phase.Pool, events)
   }
@@ -744,7 +752,10 @@ function handleAttachItem(
   move: Extract<Move, { type: "ATTACH_ITEM" }>,
   events: GameEvent[],
 ): GameState {
-  // Auto-advance from PlayRealm to Pool
+  // Auto-advance to Pool from earlier phases
+  if (state.phase === Phase.StartOfTurn) {
+    state = advanceToPhase(state, playerId, Phase.PlayRealm, events)
+  }
   if (state.phase === Phase.PlayRealm) {
     state = advanceToPhase(state, playerId, Phase.Pool, events)
   }
@@ -877,12 +888,17 @@ function handleDiscardCard(
   move: Extract<Move, { type: "DISCARD_CARD" }>,
   events: GameEvent[],
 ): GameState {
-  // Auto-advance from PlayRealm, Pool, or Combat to PhaseFive
-  if (
-    state.phase === Phase.PlayRealm ||
-    state.phase === Phase.Pool ||
-    state.phase === Phase.Combat
-  ) {
+  // Auto-advance to PhaseFive from any earlier phase
+  if (state.phase === Phase.StartOfTurn) {
+    state = advanceToPhase(state, playerId, Phase.PlayRealm, events)
+  }
+  if (state.phase === Phase.PlayRealm) {
+    state = advanceToPhase(state, playerId, Phase.Pool, events)
+  }
+  if (state.phase === Phase.Pool) {
+    state = advanceToPhase(state, playerId, Phase.Combat, events)
+  }
+  if (state.phase === Phase.Combat) {
     state = advanceToPhase(state, playerId, Phase.PhaseFive, events)
   }
   assertPhase(state, Phase.PhaseFive)
@@ -911,8 +927,14 @@ function handleDeclareAttack(
   move: Extract<Move, { type: "DECLARE_ATTACK" }>,
   events: GameEvent[],
 ): GameState {
-  // Auto-advance from PlayRealm or Pool to Combat phase
-  if (state.phase === Phase.PlayRealm || state.phase === Phase.Pool) {
+  // Auto-advance to Combat from earlier phases
+  if (state.phase === Phase.StartOfTurn) {
+    state = advanceToPhase(state, playerId, Phase.PlayRealm, events)
+  }
+  if (state.phase === Phase.PlayRealm) {
+    state = advanceToPhase(state, playerId, Phase.Pool, events)
+  }
+  if (state.phase === Phase.Pool) {
     state = advanceToPhase(state, playerId, Phase.Combat, events)
   }
   assertPhase(state, Phase.Combat)
@@ -961,6 +983,7 @@ function handleDeclareAttack(
     attackerWins: 0,
     attackerManualLevel: null,
     defenderManualLevel: null,
+    stoppedPlayers: [],
   }
 
   return {
@@ -1085,11 +1108,12 @@ function handlePlayCombatCard(
   events: GameEvent[],
 ): GameState {
   assertCombatPhase(state, "CARD_PLAY")
-  if (playerId !== state.activePlayer) {
-    throw new EngineError("NOT_ACTIVE_PLAYER", "Only the losing player can play combat cards")
-  }
   const combat = state.combatState!
   const isAttacker = playerId === combat.attackingPlayer
+  const isParticipant = isAttacker || playerId === combat.defendingPlayer
+  if (!isParticipant) {
+    throw new EngineError("NOT_COMBAT_PARTICIPANT", "Only combat participants can play combat cards")
+  }
 
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
@@ -1118,10 +1142,14 @@ function handlePlayCombatCard(
 
   events.push({ type: "COMBAT_CARD_PLAYED", playerId, instanceId: card.instanceId })
 
-  // Add card to the appropriate side's combat cards
+  // Add card to the appropriate side's combat cards; un-stop this player
+  const baseCombat: CombatState = {
+    ...combat,
+    stoppedPlayers: combat.stoppedPlayers.filter((p) => p !== playerId),
+  }
   const newCombat: CombatState = isAttacker
-    ? { ...combat, attackerCards: [...combat.attackerCards, card] }
-    : { ...combat, defenderCards: [...combat.defenderCards, card] }
+    ? { ...baseCombat, attackerCards: [...combat.attackerCards, card] }
+    : { ...baseCombat, defenderCards: [...combat.defenderCards, card] }
 
   const s = updatePlayer({ ...state, combatState: newCombat }, playerId, { hand: newHand })
 
@@ -1133,11 +1161,28 @@ function handlePlayCombatCard(
 
 function handleStopPlaying(state: GameState, playerId: PlayerId, events: GameEvent[]): GameState {
   assertCombatPhase(state, "CARD_PLAY")
-  if (playerId !== state.activePlayer) {
-    throw new EngineError("NOT_ACTIVE_PLAYER", "Only the losing player can stop card play")
-  }
   const combat = state.combatState!
 
+  const isParticipant =
+    playerId === combat.attackingPlayer || playerId === combat.defendingPlayer
+  if (!isParticipant) {
+    throw new EngineError("NOT_COMBAT_PARTICIPANT", "Only combat participants can stop playing")
+  }
+  if (combat.stoppedPlayers.includes(playerId)) {
+    throw new EngineError("ALREADY_STOPPED", "Player has already stopped playing")
+  }
+
+  const stoppedPlayers = [...combat.stoppedPlayers, playerId]
+
+  // If only one player stopped, update state and wait for the other
+  if (stoppedPlayers.length < 2) {
+    return {
+      ...state,
+      combatState: { ...combat, stoppedPlayers },
+    }
+  }
+
+  // Both players stopped — resolve combat
   const { attackerLevel, defenderLevel } = getCombatLevels(state, combat)
   const outcome = resolveCombatRound(attackerLevel, defenderLevel)
   events.push({ type: "COMBAT_RESOLVED", outcome, attackerLevel, defenderLevel })
@@ -1181,6 +1226,7 @@ function handleContinueAttack(
     championsUsedThisBattle: [...combat.championsUsedThisBattle, move.championId],
     attackerManualLevel: null,
     defenderManualLevel: null,
+    stoppedPlayers: [],
   }
 
   return {
@@ -1856,7 +1902,7 @@ function checkWinCondition(state: GameState, events: GameEvent[]): GameState {
 // ─── Phase Advancement Helper ─────────────────────────────────────────────────
 
 /** Phase order for auto-advancement */
-const PHASE_ORDER = [Phase.PlayRealm, Phase.Pool, Phase.Combat, Phase.PhaseFive] as const
+const PHASE_ORDER = [Phase.StartOfTurn, Phase.PlayRealm, Phase.Pool, Phase.Combat, Phase.PhaseFive] as const
 
 /**
  * Advances through intermediate phases from the current phase to the target phase,

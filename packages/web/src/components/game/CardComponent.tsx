@@ -47,7 +47,7 @@ export const CardComponent = memo(function CardComponent({
             : undefined
         }
         onContextMenu={
-          contextActions?.length
+          contextActions
             ? (e) => {
                 e.preventDefault()
                 openContextMenu(e.clientX, e.clientY, contextActions)

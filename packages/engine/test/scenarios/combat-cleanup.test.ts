@@ -32,7 +32,8 @@ describe("combat cleanup: winner retains items/artifacts from combatCards", () =
       combatState: { ...base.combatState!, attackerCards: [item, ally] },
     }
 
-    const { newState } = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    const { newState } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
 
     const p1Pool = newState.players["p1"]!.pool
     expect(p1Pool).toHaveLength(1)
@@ -54,7 +55,8 @@ describe("combat cleanup: winner retains items/artifacts from combatCards", () =
       combatState: { ...base.combatState!, attackerCards: [artifact] },
     }
 
-    const { newState } = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    const { newState } = applyMove(afterFirst.newState, "p1", { type: "STOP_PLAYING" })
 
     const p1Pool = newState.players["p1"]!.pool
     expect(p1Pool[0]!.attachments.some((a) => a.instanceId === "art")).toBe(true)
@@ -75,7 +77,8 @@ describe("combat cleanup: winner retains items/artifacts from combatCards", () =
       combatState: { ...base.combatState!, defenderCards: [item, ally] },
     }
 
-    const { newState } = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const { newState } = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
 
     const p2Pool = newState.players["p2"]!.pool
     expect(p2Pool).toHaveLength(1)
@@ -96,7 +99,8 @@ describe("combat cleanup: winner retains items/artifacts from combatCards", () =
       combatState: { ...base.combatState!, defenderCards: [artifact] },
     }
 
-    const { newState } = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const { newState } = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
 
     const p2Pool = newState.players["p2"]!.pool
     expect(p2Pool[0]!.attachments.some((a) => a.instanceId === "art")).toBe(true)
@@ -113,7 +117,8 @@ describe("combat cleanup: loser discards everything", () => {
     const realm = inst("realm", makeRealm())
 
     const state = buildCombatCardPlayState({ attacker, defender, targetRealm: realm })
-    const { newState } = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const { newState } = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
 
     expect(newState.players["p1"]!.pool).toHaveLength(0)
     expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "att")).toBe(true)
@@ -132,7 +137,8 @@ describe("combat cleanup: loser discards everything", () => {
       attackerAttachments: [poolItem],
     })
 
-    const { newState } = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const { newState } = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
 
     expect(newState.players["p1"]!.pool).toHaveLength(0)
     expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "pool-item")).toBe(true)
@@ -150,7 +156,8 @@ describe("combat cleanup: loser discards everything", () => {
       combatState: { ...base.combatState!, attackerCards: [combatItem] },
     }
 
-    const { newState } = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const { newState } = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
 
     expect(newState.players["p1"]!.pool).toHaveLength(0)
     expect(newState.players["p1"]!.discardPile.some((c) => c.instanceId === "combat-item")).toBe(

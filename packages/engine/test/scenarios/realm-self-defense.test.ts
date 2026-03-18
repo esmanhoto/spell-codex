@@ -48,7 +48,8 @@ describe("realm self-defense: combat outcomes", () => {
       targetRealm: inst("chult", CHULT),
     })
 
-    const result = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const result = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
 
     const resolved = result.events.find((e) => e.type === "COMBAT_RESOLVED")
     expect(resolved).toBeDefined()
@@ -69,7 +70,8 @@ describe("realm self-defense: combat outcomes", () => {
     })
 
     // Round 1: realm self-defends and loses
-    const afterRound1 = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirstStop = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterRound1 = applyMove(afterFirstStop.newState, "p2", { type: "STOP_PLAYING" })
     expect(afterRound1.newState.combatState?.roundPhase).toBe("AWAITING_ATTACKER")
 
     // Add a second attacker to the pool so the attacker can continue
@@ -105,7 +107,8 @@ describe("realm self-defense: combat outcomes", () => {
       targetRealm: inst("chult", CHULT),
     })
 
-    const result = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    const result = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
 
     const resolved = result.events.find((e) => e.type === "COMBAT_RESOLVED")
     expect(resolved).toBeDefined()

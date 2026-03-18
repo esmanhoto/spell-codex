@@ -226,6 +226,7 @@ export function buildCombatCardPlayState(params: CombatCardPlayParams): GameStat
       attackerWins: 0,
       attackerManualLevel: null,
       defenderManualLevel: null,
+      stoppedPlayers: [],
     },
   }
 }
@@ -281,6 +282,7 @@ export function buildRealmSelfDefenseState(params: RealmSelfDefenseParams): Game
       attackerWins: 0,
       attackerManualLevel: null,
       defenderManualLevel: null,
+      stoppedPlayers: [],
     },
   }
 }

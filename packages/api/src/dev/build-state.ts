@@ -105,6 +105,7 @@ function buildCombatState(
     attackerWins: 0,
     attackerManualLevel: null,
     defenderManualLevel: null,
+    stoppedPlayers: [],
   }
 }
 

@@ -265,6 +265,7 @@ export function Formation({
                 label: string
                 move?: (typeof legalMoves)[number]
                 action?: () => void
+                disabled?: boolean
               }[] = []
               const razeOwnMove =
                 s && !s.isRazed && !isOpponent
@@ -272,31 +273,51 @@ export function Formation({
                       (m) => m.type === "RAZE_OWN_REALM" && (m as { slot: string }).slot === slot,
                     )
                   : undefined
-              if (rebuildMove)
-                contextMenuItems.push({
-                  label: "Rebuild Realm (discard 3)",
-                  action: () => setRebuildTarget(slot),
-                })
-              if (razeOwnMove)
-                contextMenuItems.push({
-                  label: "Raze Realm",
-                  move: razeOwnMove,
-                })
-              if (discardRazedMove)
-                contextMenuItems.push({
-                  label: "Discard Realm",
-                  move: discardRazedMove,
-                })
-              if (toggleHoldingMove)
-                contextMenuItems.push({
-                  label: s?.holdingRevealedToAll ? "Hide holding" : "Reveal holding",
-                  move: toggleHoldingMove,
-                })
-              if (realmDefenseMove)
-                contextMenuItems.push({
-                  label: `Defend with realm (level ${s!.realm.level ?? "?"})`,
-                  move: realmDefenseMove,
-                })
+
+              if (s && !isOpponent) {
+                // Rebuild — only for razed realms
+                if (s.isRazed) {
+                  contextMenuItems.push(
+                    rebuildMove
+                      ? { label: "Rebuild Realm (discard 3)", action: () => setRebuildTarget(slot) }
+                      : { label: "Rebuild Realm (discard 3)", disabled: true },
+                  )
+                }
+
+                // Raze — only for unrazed realms
+                if (!s.isRazed) {
+                  contextMenuItems.push(
+                    razeOwnMove
+                      ? { label: "Raze Realm", move: razeOwnMove }
+                      : { label: "Raze Realm", disabled: true },
+                  )
+                }
+
+                // Discard razed realm
+                if (s.isRazed) {
+                  contextMenuItems.push(
+                    discardRazedMove
+                      ? { label: "Discard Realm", move: discardRazedMove }
+                      : { label: "Discard Realm", disabled: true },
+                  )
+                }
+
+                // Toggle holding reveal
+                if (s.holdings.length > 0) {
+                  contextMenuItems.push(
+                    toggleHoldingMove
+                      ? { label: s.holdingRevealedToAll ? "Hide holding" : "Reveal holding", move: toggleHoldingMove }
+                      : { label: "Reveal holding", disabled: true },
+                  )
+                }
+
+                // Defend with realm
+                contextMenuItems.push(
+                  realmDefenseMove
+                    ? { label: `Defend with realm (level ${s.realm.level ?? "?"})`, move: realmDefenseMove }
+                    : { label: `Defend with realm (level ${s.realm.level ?? "?"})`, disabled: true },
+                )
+              }
               const tooltipCards = s ? [s.realm, ...s.holdings] : []
               const showHoldingStack = !!(s && s.holdings.length > 0 && s.holdingRevealedToAll)
               const holdingForStack = showHoldingStack ? s.holdings[0] : null
@@ -322,7 +343,7 @@ export function Formation({
                   onDragLeave={() => setDragOverSlot(null)}
                   onDrop={(e) => handleSlotDrop(e, slot)}
                   onContextMenu={
-                    contextMenuItems.length > 0
+                    s && !isOpponent && contextMenuItems.length > 0
                       ? (e) => {
                           e.preventDefault()
                           openContextMenu(e.clientX, e.clientY, contextMenuItems)
