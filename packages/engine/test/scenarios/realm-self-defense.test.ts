@@ -48,12 +48,8 @@ describe("realm self-defense: combat outcomes", () => {
       targetRealm: inst("chult", CHULT),
     })
 
-    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
-    const result = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
-
-    const resolved = result.events.find((e) => e.type === "COMBAT_RESOLVED")
-    expect(resolved).toBeDefined()
-    expect((resolved as { outcome: string }).outcome).toBe("ATTACKER_WINS")
+    // Attacker is winning (6 > 5), realm (defender) concedes
+    const result = applyMove(state, "p2", { type: "STOP_PLAYING" })
 
     // Realm must NOT be razed yet
     const razed = result.events.find((e) => e.type === "REALM_RAZED")
@@ -69,9 +65,8 @@ describe("realm self-defense: combat outcomes", () => {
       targetRealm: inst("chult", CHULT),
     })
 
-    // Round 1: realm self-defends and loses
-    const afterFirstStop = applyMove(state, "p1", { type: "STOP_PLAYING" })
-    const afterRound1 = applyMove(afterFirstStop.newState, "p2", { type: "STOP_PLAYING" })
+    // Round 1: realm self-defends and loses — realm concedes
+    const afterRound1 = applyMove(state, "p2", { type: "STOP_PLAYING" })
     expect(afterRound1.newState.combatState?.roundPhase).toBe("AWAITING_ATTACKER")
 
     // Add a second attacker to the pool so the attacker can continue
@@ -107,12 +102,8 @@ describe("realm self-defense: combat outcomes", () => {
       targetRealm: inst("chult", CHULT),
     })
 
-    const afterFirst = applyMove(state, "p1", { type: "STOP_PLAYING" })
-    const result = applyMove(afterFirst.newState, "p2", { type: "STOP_PLAYING" })
-
-    const resolved = result.events.find((e) => e.type === "COMBAT_RESOLVED")
-    expect(resolved).toBeDefined()
-    expect((resolved as { outcome: string }).outcome).toBe("DEFENDER_WINS")
+    // Attacker ties realm level → attacker concedes (ties go to defender)
+    const result = applyMove(state, "p1", { type: "STOP_PLAYING" })
 
     const razed = result.events.find((e) => e.type === "REALM_RAZED")
     expect(razed).toBeUndefined()

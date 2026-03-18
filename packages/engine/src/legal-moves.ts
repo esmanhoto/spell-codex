@@ -568,6 +568,10 @@ function getCombatDeclOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
   const isRoundOne = state.currentTurn <= state.playerOrder.length
   if (isRoundOne || state.hasAttackedThisTurn) return moves
 
+  // Must have at least one unrazed realm to attack
+  const hasRealm = Object.values(player.formation.slots).some((s) => s && !s.isRazed)
+  if (!hasRealm) return moves
+
   // Candidates: pool champions + hand champions
   const poolChampions = player.pool.map((e) => e.champion)
   const handChampions = player.hand
@@ -724,9 +728,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
       moves.push({ type: "PLAY_COMBAT_CARD", cardInstanceId: card.instanceId })
     }
   }
-  if (!combat.stoppedPlayers.includes(playerId)) {
-    moves.push({ type: "STOP_PLAYING" })
-  }
+  moves.push({ type: "STOP_PLAYING" })
   // Both players may play events during card play
   moves.push(...getEventMoves(player))
   moves.push(...getHoldingRevealMoves(player))

@@ -7,6 +7,11 @@ async function passThroughTurn(page: Page): Promise<void> {
     if ((await btn.count()) === 0) break
     const isEndTurn = (await btn.getAttribute("data-move-type")) === "END_TURN"
     await btn.click()
+    // Dismiss START_OF_TURN warning if it appears
+    const proceed = page.getByTestId("warning-proceed")
+    if (await proceed.isVisible({ timeout: 500 }).catch(() => false)) {
+      await proceed.click()
+    }
     await page.waitForTimeout(300)
     if (isEndTurn) break
   }

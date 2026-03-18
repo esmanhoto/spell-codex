@@ -500,11 +500,58 @@ export function Game() {
     }
   }, [gameId, effectiveIdentity, handleWsMessage])
 
+  const DRAW_PHASE_ALLOWED = new Set(["PASS", "REBUILD_REALM", "DISCARD_RAZED_REALM"])
+
   const sendMove = useCallback(
     (m: Move | Move[]) => {
       if (!effectiveIdentity) return
       const moves = Array.isArray(m) ? m : [m]
       if (moves.length === 0) return
+
+      // Warn when doing anything other than draw/rebuild during START_OF_TURN
+      const cur = currentDataRef.current
+      if (
+        moves.length === 1 &&
+        cur?.phase === "START_OF_TURN" &&
+        cur.activePlayer === myPlayerId &&
+        !DRAW_PHASE_ALLOWED.has(moves[0]!.type)
+      ) {
+        showWarning(
+          "You are in Phase 1 (drawing). Proceed without drawing first?",
+          undefined,
+          false,
+          () => {
+            // re-enter sendMove bypassing this check by advancing phase optimistically
+            setSelectedId(null)
+            const currentState = currentDataRef.current
+            if (currentState) {
+              const optimistic = applyOptimisticMove(currentState, myPlayerId, moves[0]!)
+              if (optimistic) {
+                lastConfirmedStateRef.current = currentState
+                qc.setQueryData(["game", gameId, myPlayerId], optimistic)
+              }
+            }
+            if (wsRef.current?.sendMove(moves[0]!)) return
+            submitMove(gameId!, effectiveIdentity!, moves[0]!)
+              .then(() => {
+                lastConfirmedStateRef.current = null
+                return refetch()
+              })
+              .catch((err: unknown) => {
+                const confirmed = lastConfirmedStateRef.current
+                if (confirmed) {
+                  qc.setQueryData(["game", gameId, myPlayerId], confirmed)
+                  lastConfirmedStateRef.current = null
+                }
+                const raw = err instanceof Error ? err.message : String(err)
+                showWarning(raw, classifyWarningCode(raw))
+                console.error(err)
+              })
+          },
+        )
+        return
+      }
+
       setSelectedId(null)
 
       // Single move: apply optimistic state before sending

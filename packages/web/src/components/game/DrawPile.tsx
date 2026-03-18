@@ -12,14 +12,22 @@ export function DrawPile({
   disabled?: boolean
   handCount: number
 }) {
-  const { legalMoves, onMove } = useMoves()
-  const { handMaxSize } = useBoard()
-  const { openContextMenu } = useGameUI()
+  const { legalMoves, onMove, activePlayer } = useMoves()
+  const { handMaxSize, myPlayerId, playerBName } = useBoard()
+  const { openContextMenu, showWarning } = useGameUI()
 
   function handleClick() {
     if (disabled) return
     const passMove = legalMoves.find((m) => m.type === "PASS")
-    if (passMove) onMove(passMove)
+    if (passMove) {
+      onMove(passMove)
+      return
+    }
+    // Not your turn — show whose turn it is
+    if (activePlayer && activePlayer !== myPlayerId) {
+      const opponentName = playerBName
+      showWarning(`It's ${opponentName || "your opponent"}'s turn.`)
+    }
   }
 
   function handleContextMenu(e: React.MouseEvent) {

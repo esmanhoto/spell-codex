@@ -2,47 +2,36 @@ import { describe, test, expect, beforeEach } from "bun:test"
 import { getLegalMoves } from "../src/legal-moves.ts"
 import { applyMove } from "../src/engine.ts"
 import { _resetInstanceCounter } from "../src/utils.ts"
-import {
-  inst,
-  makeChampion,
-  makeRealm,
-  buildCombatCardPlayState,
-} from "./scenario-builders.ts"
-import { ALLY_PLUS4 } from "./fixtures.ts"
+import { inst, makeChampion, makeRealm, buildCombatCardPlayState } from "./scenario-builders.ts"
 
 beforeEach(() => {
   _resetInstanceCounter()
 })
 
-describe("stoppedPlayers combat mechanics", () => {
+describe("STOP_PLAYING ends combat immediately", () => {
   const attacker = inst("att", makeChampion({ level: 6, name: "Attacker" }))
   const defender = inst("def", makeChampion({ level: 4, name: "Defender" }))
   const realm = inst("realm", makeRealm())
 
-  test("playing a card un-stops the player", () => {
-    const ally = inst("ally", ALLY_PLUS4)
-    const state = buildCombatCardPlayState({
-      attacker,
-      defender,
-      targetRealm: realm,
-      attackerHand: [ally],
-    })
-
-    const s1 = applyMove(state, "p1", { type: "STOP_PLAYING" }).newState
-    expect(s1.combatState!.stoppedPlayers).toContain("p1")
-
-    const s2 = applyMove(s1, "p1", { type: "PLAY_COMBAT_CARD", cardInstanceId: "ally" }).newState
-    expect(s2.combatState!.stoppedPlayers).not.toContain("p1")
+  test("attacker STOP_PLAYING means defender wins", () => {
+    const state = buildCombatCardPlayState({ attacker, defender, targetRealm: realm })
+    const { newState } = applyMove(state, "p1", { type: "STOP_PLAYING" })
+    // Attacker champion discarded
+    expect(newState.players["p1"]!.pool.some((e) => e.champion.instanceId === "att")).toBe(false)
+    expect(newState.combatState).toBeNull()
   })
 
-  test("STOP_PLAYING hidden after player already stopped", () => {
+  test("defender STOP_PLAYING means attacker wins", () => {
     const state = buildCombatCardPlayState({ attacker, defender, targetRealm: realm })
+    const { newState } = applyMove(state, "p2", { type: "STOP_PLAYING" })
+    // Defender champion discarded
+    expect(newState.players["p2"]!.pool.some((e) => e.champion.instanceId === "def")).toBe(false)
+    expect(newState.combatState!.roundPhase).toBe("AWAITING_ATTACKER")
+  })
 
-    const s1 = applyMove(state, "p1", { type: "STOP_PLAYING" }).newState
-    const p1Moves = getLegalMoves(s1, "p1")
-    expect(p1Moves.filter((m) => m.type === "STOP_PLAYING")).toHaveLength(0)
-    // p2 still has it
-    const p2Moves = getLegalMoves(s1, "p2")
-    expect(p2Moves.filter((m) => m.type === "STOP_PLAYING")).toHaveLength(1)
+  test("STOP_PLAYING available to both players during CARD_PLAY", () => {
+    const state = buildCombatCardPlayState({ attacker, defender, targetRealm: realm })
+    expect(getLegalMoves(state, "p1").some((m) => m.type === "STOP_PLAYING")).toBe(true)
+    expect(getLegalMoves(state, "p2").some((m) => m.type === "STOP_PLAYING")).toBe(true)
   })
 })

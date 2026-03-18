@@ -25,7 +25,6 @@ import {
 import {
   calculateCombatLevel,
   hasWorldMatch,
-  resolveCombatRound,
   getLosingPlayer,
   getPoolAttachments,
   getCombatLevels,
@@ -1112,7 +1111,10 @@ function handlePlayCombatCard(
   const isAttacker = playerId === combat.attackingPlayer
   const isParticipant = isAttacker || playerId === combat.defendingPlayer
   if (!isParticipant) {
-    throw new EngineError("NOT_COMBAT_PARTICIPANT", "Only combat participants can play combat cards")
+    throw new EngineError(
+      "NOT_COMBAT_PARTICIPANT",
+      "Only combat participants can play combat cards",
+    )
   }
 
   const player = state.players[playerId]!
@@ -1142,14 +1144,10 @@ function handlePlayCombatCard(
 
   events.push({ type: "COMBAT_CARD_PLAYED", playerId, instanceId: card.instanceId })
 
-  // Add card to the appropriate side's combat cards; un-stop this player
-  const baseCombat: CombatState = {
-    ...combat,
-    stoppedPlayers: combat.stoppedPlayers.filter((p) => p !== playerId),
-  }
+  // Add card to the appropriate side's combat cards
   const newCombat: CombatState = isAttacker
-    ? { ...baseCombat, attackerCards: [...combat.attackerCards, card] }
-    : { ...baseCombat, defenderCards: [...combat.defenderCards, card] }
+    ? { ...combat, attackerCards: [...combat.attackerCards, card] }
+    : { ...combat, defenderCards: [...combat.defenderCards, card] }
 
   const s = updatePlayer({ ...state, combatState: newCombat }, playerId, { hand: newHand })
 
@@ -1163,34 +1161,17 @@ function handleStopPlaying(state: GameState, playerId: PlayerId, events: GameEve
   assertCombatPhase(state, "CARD_PLAY")
   const combat = state.combatState!
 
-  const isParticipant =
-    playerId === combat.attackingPlayer || playerId === combat.defendingPlayer
-  if (!isParticipant) {
+  const isAttacker = playerId === combat.attackingPlayer
+  const isDefender = playerId === combat.defendingPlayer
+  if (!isAttacker && !isDefender) {
     throw new EngineError("NOT_COMBAT_PARTICIPANT", "Only combat participants can stop playing")
   }
-  if (combat.stoppedPlayers.includes(playerId)) {
-    throw new EngineError("ALREADY_STOPPED", "Player has already stopped playing")
-  }
 
-  const stoppedPlayers = [...combat.stoppedPlayers, playerId]
-
-  // If only one player stopped, update state and wait for the other
-  if (stoppedPlayers.length < 2) {
-    return {
-      ...state,
-      combatState: { ...combat, stoppedPlayers },
-    }
-  }
-
-  // Both players stopped — resolve combat
-  const { attackerLevel, defenderLevel } = getCombatLevels(state, combat)
-  const outcome = resolveCombatRound(attackerLevel, defenderLevel)
-  events.push({ type: "COMBAT_RESOLVED", outcome, attackerLevel, defenderLevel })
-
-  if (outcome === "ATTACKER_WINS") {
-    return handleAttackerWins(state, combat, playerId, events)
-  } else {
+  // Conceding player loses immediately
+  if (isAttacker) {
     return handleDefenderWins(state, combat, events)
+  } else {
+    return handleAttackerWins(state, combat, playerId, events)
   }
 }
 
@@ -1902,7 +1883,13 @@ function checkWinCondition(state: GameState, events: GameEvent[]): GameState {
 // ─── Phase Advancement Helper ─────────────────────────────────────────────────
 
 /** Phase order for auto-advancement */
-const PHASE_ORDER = [Phase.StartOfTurn, Phase.PlayRealm, Phase.Pool, Phase.Combat, Phase.PhaseFive] as const
+const PHASE_ORDER = [
+  Phase.StartOfTurn,
+  Phase.PlayRealm,
+  Phase.Pool,
+  Phase.Combat,
+  Phase.PhaseFive,
+] as const
 
 /**
  * Advances through intermediate phases from the current phase to the target phase,

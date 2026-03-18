@@ -31,6 +31,11 @@ test("two authenticated users can create/join and receive realtime updates", asy
     )
 
     await page.getByTestId("pass-btn").click() // End Turn (skips draw and all phases)
+    // Dismiss draw-phase warning modal
+    const proceed = page.getByTestId("warning-proceed")
+    if (await proceed.isVisible({ timeout: 500 }).catch(() => false)) {
+      await proceed.click()
+    }
 
     await expect(pageB.getByTestId("turn-info")).toContainText("Turn 2", { timeout: 8_000 })
     await expect(pageB.getByTestId("active-player-label")).toContainText("'s Turn")
