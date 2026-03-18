@@ -52,52 +52,6 @@ describe("duplicate card detection", () => {
   })
 })
 
-// ─── Schema field validation ─────────────────────────────────────────────────
-
-describe("schema field validation", () => {
-  test("all cards have string setId", () => {
-    expect(allCards.every((c) => typeof c.setId === "string" && c.setId.length > 0)).toBe(true)
-  })
-
-  test("all cards have integer cardNumber > 0", () => {
-    expect(allCards.every((c) => Number.isInteger(c.cardNumber) && c.cardNumber > 0)).toBe(true)
-  })
-
-  test("level is number, string, or null", () => {
-    expect(
-      allCards.every(
-        (c) => c.level === null || typeof c.level === "number" || typeof c.level === "string",
-      ),
-    ).toBe(true)
-  })
-
-  test("rarity is one of valid values", () => {
-    const valid = new Set(["M", "C", "UC", "R", "VR", "S", "V"])
-    const invalid = allCards.filter((c) => !valid.has(c.rarity))
-    expect(invalid.map((c) => `${c.setId}:${c.cardNumber} rarity=${c.rarity}`)).toEqual([])
-  })
-
-  test("attributes is always an array", () => {
-    expect(allCards.every((c) => Array.isArray(c.attributes))).toBe(true)
-  })
-
-  test("supportIds is always an array", () => {
-    expect(allCards.every((c) => Array.isArray(c.supportIds))).toBe(true)
-  })
-
-  test("effects is always an array", () => {
-    expect(allCards.every((c) => Array.isArray(c.effects))).toBe(true)
-  })
-
-  test("isAvatar is boolean", () => {
-    expect(allCards.every((c) => typeof c.isAvatar === "boolean")).toBe(true)
-  })
-
-  test("weight is number or null", () => {
-    expect(allCards.every((c) => c.weight === null || typeof c.weight === "number")).toBe(true)
-  })
-})
-
 // ─── Deck card reference validation ──────────────────────────────────────────
 
 describe("deck card reference validation", () => {

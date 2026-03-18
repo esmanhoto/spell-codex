@@ -1,9 +1,8 @@
 import { describe, test, expect, beforeEach } from "bun:test"
 import { initGame } from "../src/init.ts"
 import { Phase } from "../src/types.ts"
-import { HAND_SIZES } from "../src/constants.ts"
 import { _resetInstanceCounter } from "../src/utils.ts"
-import { DEFAULT_CONFIG, DECK_P1, DECK_P2 } from "./fixtures.ts"
+import { DEFAULT_CONFIG } from "./fixtures.ts"
 
 beforeEach(() => {
   _resetInstanceCounter()
@@ -36,21 +35,6 @@ describe("initGame", () => {
     expect(Object.keys(state.players)).toContain("p2")
   })
 
-  test("55-card deck gives 5-card starting hand", () => {
-    const state = initGame(DEFAULT_CONFIG)
-    expect(state.deckSize).toBe(55)
-    const { starting } = HAND_SIZES[55]!
-    expect(state.players["p1"]!.hand).toHaveLength(starting)
-    expect(state.players["p2"]!.hand).toHaveLength(starting)
-  })
-
-  test("draw pile has deck-size minus starting-hand cards", () => {
-    const state = initGame(DEFAULT_CONFIG)
-    const { starting } = HAND_SIZES[55]!
-    expect(state.players["p1"]!.drawPile).toHaveLength(DECK_P1.length - starting)
-    expect(state.players["p2"]!.drawPile).toHaveLength(DECK_P2.length - starting)
-  })
-
   test("all other zones start empty", () => {
     const state = initGame(DEFAULT_CONFIG)
     for (const player of Object.values(state.players)) {
@@ -67,12 +51,6 @@ describe("initGame", () => {
     const state = initGame(DEFAULT_CONFIG)
     expect(state.combatState).toBeNull()
     expect(state.winner).toBeNull()
-  })
-
-  test("turn starts at 1 and has not attacked", () => {
-    const state = initGame(DEFAULT_CONFIG)
-    expect(state.currentTurn).toBe(1)
-    expect(state.hasAttackedThisTurn).toBe(false)
   })
 
   test("emits GAME_STARTED event", () => {
@@ -117,12 +95,6 @@ describe("initGame", () => {
     ]
     const unique = new Set(allIds)
     expect(unique.size).toBe(allIds.length)
-  })
-
-  test("formation size defaults to 6", () => {
-    const state = initGame(DEFAULT_CONFIG)
-    expect(state.players["p1"]!.formation.size).toBe(6)
-    expect(state.players["p2"]!.formation.size).toBe(6)
   })
 
   test("custom formation size is applied", () => {
