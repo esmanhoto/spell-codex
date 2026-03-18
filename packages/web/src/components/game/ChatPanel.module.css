@@ -1,23 +1,26 @@
 .panel {
   position: fixed;
-  bottom: 20px;
-  right: 66px; /* 16px edge + 42px chatbar + 8px gap */
+  bottom: 8px;
+  left: 54px;
   width: 340px;
   max-width: calc(100vw - 100px);
   height: 400px;
   max-height: 65vh;
+  overflow: hidden;
+  min-width: 260px;
+  min-height: 250px;
   background: rgba(10, 18, 12, 0.97);
   border: 1px solid var(--bg-panel-border);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   z-index: var(--z-overlay);
-  animation: slideFromRight 0.2s ease;
+  animation: slideFromLeft 0.2s ease;
 }
 
-@keyframes slideFromRight {
+@keyframes slideFromLeft {
   from {
-    transform: translateX(20px);
+    transform: translateX(-20px);
     opacity: 0;
   }
   to {
@@ -145,4 +148,31 @@
 
 .sendBtn:hover {
   background: rgba(201, 168, 76, 0.15);
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: ne-resize;
+  z-index: 10;
+}
+
+.resizeHandle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid var(--text-dim);
+  border-right: 2px solid var(--text-dim);
+  opacity: 0.5;
+}
+
+.resizeHandle:hover::after {
+  opacity: 1;
+  border-color: var(--gold);
 }
