@@ -235,7 +235,7 @@ describe("combat cleanup: interrupt returns items/artifacts to pool", () => {
 
 // ─── Pool attachment switch/discard during combat ─────────────────────────────
 
-describe("pool attachment SWITCH_COMBAT_SIDE / DISCARD_COMBAT_CARD", () => {
+describe("pool attachment SWITCH_COMBAT_SIDE / DISCARD_CARD", () => {
   test("SWITCH_COMBAT_SIDE on attacker pool attachment: removed from pool, added to defenderCards", () => {
     const attacker = inst("att", makeChampion({ level: 5 }))
     const defender = inst("def", makeChampion({ level: 5 }))
@@ -282,7 +282,7 @@ describe("pool attachment SWITCH_COMBAT_SIDE / DISCARD_COMBAT_CARD", () => {
     expect(newState.combatState!.defenderCards.some((c) => c.instanceId === "item")).toBe(false)
   })
 
-  test("DISCARD_COMBAT_CARD on pool attachment: removed from pool, into owner's discard", () => {
+  test("DISCARD_CARD on pool attachment: removed from pool, into owner's discard", () => {
     const attacker = inst("att", makeChampion({ level: 3 }))
     const defender = inst("def", makeChampion({ level: 10 }))
     const realm = inst("realm", makeRealm())
@@ -297,7 +297,7 @@ describe("pool attachment SWITCH_COMBAT_SIDE / DISCARD_COMBAT_CARD", () => {
     })
 
     const { newState } = applyMove(state, "p1", {
-      type: "DISCARD_COMBAT_CARD",
+      type: "DISCARD_CARD",
       cardInstanceId: "item",
     })
 

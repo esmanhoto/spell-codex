@@ -354,7 +354,6 @@ export type Move =
       slot: FormationSlot
       cardInstanceIds: [CardInstanceId, CardInstanceId, CardInstanceId]
     }
-  | { type: "DISCARD_RAZED_REALM"; slot: FormationSlot }
   | { type: "RAZE_OWN_REALM"; slot: FormationSlot }
   | { type: "PLAY_HOLDING"; cardInstanceId: CardInstanceId; realmSlot: FormationSlot }
   | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: FormationSlot }
@@ -387,7 +386,7 @@ export type Move =
 
   // Phase 5 — end phase
   | { type: "PLAY_PHASE5_CARD"; cardInstanceId: CardInstanceId }
-  | { type: "DISCARD_CARD"; cardInstanceId: CardInstanceId } // discard to meet hand limit
+  | { type: "DISCARD_CARD"; cardInstanceId: CardInstanceId } // discard from hand, pool, combat, or formation
 
   // Any phase
   | { type: "PLAY_EVENT"; cardInstanceId: CardInstanceId }
@@ -413,8 +412,6 @@ export type Move =
   | { type: "SET_COMBAT_LEVEL"; playerId: PlayerId; level: number }
   /** Move a card from attacker's combat cards to defender's (or vice versa) */
   | { type: "SWITCH_COMBAT_SIDE"; cardInstanceId: CardInstanceId }
-  /** Discard a card from either side of the combat zone */
-  | { type: "DISCARD_COMBAT_CARD"; cardInstanceId: CardInstanceId }
   /** Return a card from any player's discard pile to hand, deck, or pool */
   | {
       type: "RETURN_FROM_DISCARD"
@@ -494,7 +491,6 @@ export type GameEvent =
       discardedIds: CardInstanceId[]
     }
   | { type: "REALM_RAZED"; playerId: PlayerId; slot: FormationSlot; realmName: string }
-  | { type: "REALM_DISCARDED"; playerId: PlayerId; slot: FormationSlot; realmName: string }
   | { type: "HOLDING_PLAYED"; playerId: PlayerId; instanceId: CardInstanceId; slot: FormationSlot }
   | {
       type: "HOLDING_REVEAL_TOGGLED"
@@ -552,7 +548,6 @@ export type GameEvent =
     }
   | { type: "COMBAT_LEVEL_SET"; playerId: PlayerId; level: number }
   | { type: "COMBAT_INTERRUPTED"; playerId: PlayerId }
-  | { type: "COMBAT_CARD_DISCARDED"; playerId: PlayerId; instanceId: CardInstanceId }
   | {
       type: "RETURNED_FROM_DISCARD"
       playerId: PlayerId

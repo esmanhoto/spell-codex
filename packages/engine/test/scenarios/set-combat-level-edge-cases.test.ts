@@ -115,9 +115,9 @@ describe("SET_COMBAT_LEVEL", () => {
   })
 })
 
-// ─── DISCARD_COMBAT_CARD edge cases ──────────────────────────────────────────
+// ─── DISCARD_CARD in combat edge cases ───────────────────────────────────────
 
-describe("DISCARD_COMBAT_CARD", () => {
+describe("DISCARD_CARD in combat", () => {
   test("discard attacker combat card: removed from attackerCards, added to discard", () => {
     const attacker = inst("att", makeChampion({ level: 3 }))
     const defender = inst("def", makeChampion({ level: 10, cardNumber: 9001 }))
@@ -131,7 +131,7 @@ describe("DISCARD_COMBAT_CARD", () => {
     }
 
     const { newState } = applyMove(state, "p1", {
-      type: "DISCARD_COMBAT_CARD",
+      type: "DISCARD_CARD",
       cardInstanceId: "ally",
     })
 
@@ -153,7 +153,7 @@ describe("DISCARD_COMBAT_CARD", () => {
     }
 
     const { newState } = applyMove(state, "p2", {
-      type: "DISCARD_COMBAT_CARD",
+      type: "DISCARD_CARD",
       cardInstanceId: "ally",
     })
 
@@ -161,7 +161,7 @@ describe("DISCARD_COMBAT_CARD", () => {
     expect(newState.players["p2"]!.discardPile.some((c) => c.instanceId === "ally")).toBe(true)
   })
 
-  test("discard card not in combat throws TARGET_NOT_FOUND", () => {
+  test("discard card not found anywhere throws TARGET_NOT_FOUND", () => {
     const attacker = inst("att", makeChampion({ level: 5 }))
     const defender = inst("def", makeChampion({ level: 5, cardNumber: 9001 }))
     const realm = inst("realm", makeRealm())
@@ -170,26 +170,10 @@ describe("DISCARD_COMBAT_CARD", () => {
 
     expect(() =>
       applyMove(state, "p1", {
-        type: "DISCARD_COMBAT_CARD",
+        type: "DISCARD_CARD",
         cardInstanceId: "nonexistent",
       }),
-    ).toThrow("Card is not in active combat")
-  })
-
-  test("DISCARD_COMBAT_CARD outside combat throws NOT_IN_COMBAT", () => {
-    const attacker = inst("att", makeChampion({ level: 5 }))
-    const defender = inst("def", makeChampion({ level: 5, cardNumber: 9001 }))
-    const realm = inst("realm", makeRealm())
-
-    const base = buildCombatCardPlayState({ attacker, defender, targetRealm: realm })
-    const state = { ...base, combatState: null }
-
-    expect(() =>
-      applyMove(state, "p1", {
-        type: "DISCARD_COMBAT_CARD",
-        cardInstanceId: "att",
-      }),
-    ).toThrow("DISCARD_COMBAT_CARD requires active combat")
+    ).toThrow("not found in hand, pool, combat, or formation")
   })
 })
 

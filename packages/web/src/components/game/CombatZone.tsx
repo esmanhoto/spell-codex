@@ -75,16 +75,30 @@ export function CombatZone() {
 
   function buildContextActions(card: CardInfo): ContextMenuAction[] {
     if (!canEditLevel) return []
-    return [
+    // Champions don't get switch/discard — ending a champion's combat uses accept defeat
+    const isChampion =
+      card.instanceId === combat?.attacker?.instanceId ||
+      card.instanceId === combat?.defender?.instanceId
+    if (isChampion) return []
+    const actions: ContextMenuAction[] = [
       {
         label: "Switch sides",
         move: { type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId },
       },
-      {
-        label: "Discard",
-        move: { type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId },
-      },
     ]
+    // Only offer discard for own cards
+    const hasDiscard = legalMoves.some(
+      (m) =>
+        m.type === "DISCARD_CARD" &&
+        (m as { cardInstanceId: string }).cardInstanceId === card.instanceId,
+    )
+    if (hasDiscard) {
+      actions.push({
+        label: "Discard",
+        move: { type: "DISCARD_CARD", cardInstanceId: card.instanceId },
+      })
+    }
+    return actions
   }
 
   function handleCardContextMenu(e: React.MouseEvent, card: CardInfo) {

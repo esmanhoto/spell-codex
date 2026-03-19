@@ -38,8 +38,6 @@ export function labelMove(m: Move, nameOf: (id: string) => string): string {
       return `Play ${nameOf(a.cardInstanceId)} \u2192 slot ${a.slot}`
     case "REBUILD_REALM":
       return `Rebuild slot ${a.slot} (discard 3)`
-    case "DISCARD_RAZED_REALM":
-      return `Discard razed realm in slot ${a.slot}`
     case "PLAY_HOLDING":
       return `Play ${nameOf(a.cardInstanceId)} \u2192 slot ${a.realmSlot}`
     case "TOGGLE_HOLDING_REVEAL":
@@ -108,5 +106,4 @@ export const ANCHOR_FREE_TYPES = new Set([
   "INTERRUPT_COMBAT",
   "DECLINE_DEFENSE",
   "REBUILD_REALM",
-  "DISCARD_RAZED_REALM",
 ])

@@ -119,9 +119,6 @@ export function applyMove(
     case "REBUILD_REALM":
       newState = handleRebuildRealm(state, playerId, move, events)
       break
-    case "DISCARD_RAZED_REALM":
-      newState = handleDiscardRazedRealm(state, playerId, move, events)
-      break
     case "RAZE_OWN_REALM":
       newState = handleRazeOwnRealm(state, playerId, move, events)
       break
@@ -193,9 +190,6 @@ export function applyMove(
       break
     case "SWITCH_COMBAT_SIDE":
       newState = handleSwitchCombatSide(state, playerId, move, events)
-      break
-    case "DISCARD_COMBAT_CARD":
-      newState = handleDiscardCombatCard(state, playerId, move, events)
       break
     case "RETURN_FROM_DISCARD":
       newState = handleReturnFromDiscard(state, playerId, move, events)
@@ -275,6 +269,10 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
     if (move.type === "PLAY_EVENT") return true
     if (move.type === "USE_POOL_COUNTER") return true
   }
+
+  // Discard and raze are always available for any player
+  if (move.type === "DISCARD_CARD") return true
+  if (move.type === "RAZE_OWN_REALM") return true
 
   // Events are always playable by any player out of combat
   if (move.type === "PLAY_EVENT" && !state.combatState) {
@@ -533,49 +531,6 @@ function handleRebuildRealm(
   }
 
   // Auto-advance to Pool phase after rebuilding
-  if (s.phase === Phase.PlayRealm) {
-    s = advanceToPhase(s, playerId, Phase.Pool, events)
-  }
-  return s
-}
-
-function handleDiscardRazedRealm(
-  state: GameState,
-  playerId: PlayerId,
-  move: Extract<Move, { type: "DISCARD_RAZED_REALM" }>,
-  events: GameEvent[],
-): GameState {
-  if (state.phase !== Phase.StartOfTurn && state.phase !== Phase.PlayRealm) {
-    throw new EngineError(
-      "WRONG_PHASE",
-      `Expected START_OF_TURN or PLAY_REALM, got ${state.phase as string}`,
-    )
-  }
-  const player = state.players[playerId]!
-  const realmSlot = player.formation.slots[move.slot]
-
-  if (!realmSlot?.isRazed) {
-    throw new EngineError("NOT_RAZED", `Slot ${move.slot} is not a razed realm`)
-  }
-
-  events.push({
-    type: "REALM_DISCARDED",
-    playerId,
-    slot: move.slot,
-    realmName: realmSlot.realm.card.name,
-  })
-
-  const newSlots = { ...player.formation.slots }
-  delete newSlots[move.slot]
-
-  let s = {
-    ...updatePlayer(state, playerId, {
-      discardPile: [...player.discardPile, realmSlot.realm],
-      formation: { ...player.formation, slots: newSlots },
-    }),
-    hasPlayedRealmThisTurn: true,
-  }
-
   if (s.phase === Phase.PlayRealm) {
     s = advanceToPhase(s, playerId, Phase.Pool, events)
   }
@@ -887,20 +842,71 @@ function handleDiscardCard(
   move: Extract<Move, { type: "DISCARD_CARD" }>,
   events: GameEvent[],
 ): GameState {
-  // Auto-advance to PhaseFive from any earlier phase
-  if (state.phase === Phase.StartOfTurn) {
-    state = advanceToPhase(state, playerId, Phase.PlayRealm, events)
+  const { cardInstanceId } = move
+
+  // 1. Hand
+  const player = state.players[playerId]!
+  const handIdx = player.hand.findIndex((c) => c.instanceId === cardInstanceId)
+  if (handIdx >= 0) {
+    return discardFromHand(state, playerId, move, events)
   }
-  if (state.phase === Phase.PlayRealm) {
-    state = advanceToPhase(state, playerId, Phase.Pool, events)
+
+  // 2. Pool (champion or attachment)
+  for (const entry of player.pool) {
+    if (entry.champion.instanceId === cardInstanceId) {
+      return discardPoolChampion(state, playerId, entry, events)
+    }
+    const attIdx = entry.attachments.findIndex((a) => a.instanceId === cardInstanceId)
+    if (attIdx >= 0) {
+      return discardPoolAttachment(state, playerId, entry, cardInstanceId, events)
+    }
   }
-  if (state.phase === Phase.Pool) {
-    state = advanceToPhase(state, playerId, Phase.Combat, events)
+
+  // 3. Combat zone (attackerCards / defenderCards)
+  if (state.combatState) {
+    const combat = state.combatState
+    const inAttacker = combat.attackerCards.some((c) => c.instanceId === cardInstanceId)
+    const inDefender = combat.defenderCards.some((c) => c.instanceId === cardInstanceId)
+    if (inAttacker || inDefender) {
+      return discardCombatCard(state, cardInstanceId, inAttacker, events)
+    }
   }
-  if (state.phase === Phase.Combat) {
-    state = advanceToPhase(state, playerId, Phase.PhaseFive, events)
+
+  // 4. Formation (razed realm)
+  for (const [slot, s] of Object.entries(player.formation.slots)) {
+    if (s?.realm.instanceId === cardInstanceId) {
+      if (!s.isRazed) {
+        throw new EngineError("NOT_RAZED", `Realm in slot ${slot} is not razed — use RAZE_OWN_REALM first`)
+      }
+      return discardRazedRealm(state, playerId, slot as FormationSlot, s, events)
+    }
   }
-  assertPhase(state, Phase.PhaseFive)
+
+  throw new EngineError("TARGET_NOT_FOUND", `Card ${cardInstanceId} not found in hand, pool, combat, or formation`)
+}
+
+function discardFromHand(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "DISCARD_CARD" }>,
+  events: GameEvent[],
+): GameState {
+  // Auto-advance to PhaseFive when discarding from hand (only for active player, not during combat)
+  if (playerId === state.activePlayer && !state.combatState) {
+    if (state.phase === Phase.StartOfTurn) {
+      state = advanceToPhase(state, playerId, Phase.PlayRealm, events)
+    }
+    if (state.phase === Phase.PlayRealm) {
+      state = advanceToPhase(state, playerId, Phase.Pool, events)
+    }
+    if (state.phase === Phase.Pool) {
+      state = advanceToPhase(state, playerId, Phase.Combat, events)
+    }
+    if (state.phase === Phase.Combat) {
+      state = advanceToPhase(state, playerId, Phase.PhaseFive, events)
+    }
+  }
+
   const player = state.players[playerId]!
   const [card, newHand] = removeFromHand(player.hand, move.cardInstanceId)
 
@@ -915,6 +921,95 @@ function handleDiscardCard(
     hand: newHand,
     discardPile: isEvent ? player.discardPile : [...player.discardPile, card],
     abyss: isEvent ? [...player.abyss, card] : player.abyss,
+  })
+}
+
+function discardPoolChampion(
+  state: GameState,
+  playerId: PlayerId,
+  entry: { champion: CardInstance; attachments: CardInstance[] },
+  events: GameEvent[],
+): GameState {
+  const allCards = [entry.champion, ...entry.attachments]
+  const player = state.players[playerId]!
+
+  events.push({
+    type: "CARDS_DISCARDED",
+    playerId,
+    instanceIds: allCards.map((c) => c.instanceId),
+  })
+
+  return updatePlayer(state, playerId, {
+    pool: player.pool.filter((e) => e.champion.instanceId !== entry.champion.instanceId),
+    discardPile: [...player.discardPile, ...allCards],
+  })
+}
+
+function discardPoolAttachment(
+  state: GameState,
+  playerId: PlayerId,
+  entry: { champion: CardInstance; attachments: CardInstance[] },
+  cardInstanceId: CardInstanceId,
+  events: GameEvent[],
+): GameState {
+  const card = entry.attachments.find((a) => a.instanceId === cardInstanceId)!
+  const player = state.players[playerId]!
+
+  events.push({ type: "CARDS_DISCARDED", playerId, instanceIds: [cardInstanceId] })
+
+  const newPool = player.pool.map((e) =>
+    e.champion.instanceId === entry.champion.instanceId
+      ? { ...e, attachments: e.attachments.filter((a) => a.instanceId !== cardInstanceId) }
+      : e,
+  )
+
+  return updatePlayer(state, playerId, {
+    pool: newPool,
+    discardPile: [...player.discardPile, card],
+  })
+}
+
+function discardCombatCard(
+  state: GameState,
+  cardInstanceId: CardInstanceId,
+  inAttacker: boolean,
+  events: GameEvent[],
+): GameState {
+  const combat = state.combatState!
+  const ownerId = inAttacker ? combat.attackingPlayer : combat.defendingPlayer
+  const cards = inAttacker ? combat.attackerCards : combat.defenderCards
+  const card = cards.find((c) => c.instanceId === cardInstanceId)!
+  const owner = state.players[ownerId]!
+
+  events.push({ type: "CARDS_DISCARDED", playerId: ownerId, instanceIds: [cardInstanceId] })
+
+  const newCombat: CombatState = inAttacker
+    ? { ...combat, attackerCards: combat.attackerCards.filter((c) => c.instanceId !== cardInstanceId) }
+    : { ...combat, defenderCards: combat.defenderCards.filter((c) => c.instanceId !== cardInstanceId) }
+
+  return {
+    ...updatePlayer(state, ownerId, { discardPile: [...owner.discardPile, card] }),
+    combatState: newCombat,
+  }
+}
+
+function discardRazedRealm(
+  state: GameState,
+  playerId: PlayerId,
+  slot: FormationSlot,
+  realmSlot: { realm: CardInstance; isRazed: boolean; holdings: CardInstance[] },
+  events: GameEvent[],
+): GameState {
+  const player = state.players[playerId]!
+
+  events.push({ type: "CARDS_DISCARDED", playerId, instanceIds: [realmSlot.realm.instanceId] })
+
+  const newSlots = { ...player.formation.slots }
+  delete newSlots[slot]
+
+  return updatePlayer(state, playerId, {
+    discardPile: [...player.discardPile, realmSlot.realm],
+    formation: { ...player.formation, slots: newSlots },
   })
 }
 
@@ -1395,82 +1490,6 @@ function handleSwitchCombatSide(
   return { ...state, combatState: newCombat }
 }
 
-function handleDiscardCombatCard(
-  state: GameState,
-  _playerId: PlayerId,
-  move: Extract<Move, { type: "DISCARD_COMBAT_CARD" }>,
-  events: GameEvent[],
-): GameState {
-  if (!state.combatState) {
-    throw new EngineError("NOT_IN_COMBAT", "DISCARD_COMBAT_CARD requires active combat")
-  }
-  const combat = state.combatState
-  const { cardInstanceId } = move
-
-  const inAttacker = combat.attackerCards.some((c) => c.instanceId === cardInstanceId)
-  const inDefender = combat.defenderCards.some((c) => c.instanceId === cardInstanceId)
-
-  // Also check pool attachments on active champions
-  const attackerAttachments = combat.attacker
-    ? getPoolAttachments(state, combat.attackingPlayer, combat.attacker.instanceId)
-    : []
-  const defenderAttachments = combat.defender
-    ? getPoolAttachments(state, combat.defendingPlayer, combat.defender.instanceId)
-    : []
-  const inAttackerPool = attackerAttachments.some((c) => c.instanceId === cardInstanceId)
-  const inDefenderPool = defenderAttachments.some((c) => c.instanceId === cardInstanceId)
-
-  if (!inAttacker && !inDefender && !inAttackerPool && !inDefenderPool) {
-    throw new EngineError("TARGET_NOT_FOUND", "Card is not in active combat")
-  }
-
-  const ownerId = inAttacker || inAttackerPool ? combat.attackingPlayer : combat.defendingPlayer
-  const card = (
-    inAttacker
-      ? combat.attackerCards
-      : inDefender
-        ? combat.defenderCards
-        : inAttackerPool
-          ? attackerAttachments
-          : defenderAttachments
-  ).find((c) => c.instanceId === cardInstanceId)!
-
-  events.push({ type: "COMBAT_CARD_DISCARDED", playerId: ownerId, instanceId: cardInstanceId })
-
-  const owner = state.players[ownerId]!
-
-  // For pool attachments: remove from champion's pool and add to owner's discard
-  if (inAttackerPool || inDefenderPool) {
-    const championId = inAttackerPool ? combat.attacker!.instanceId : combat.defender!.instanceId
-    const newPool = owner.pool.map((entry) =>
-      entry.champion.instanceId === championId
-        ? {
-            ...entry,
-            attachments: entry.attachments.filter((a) => a.instanceId !== cardInstanceId),
-          }
-        : entry,
-    )
-    return {
-      ...updatePlayer(state, ownerId, { pool: newPool, discardPile: [...owner.discardPile, card] }),
-      combatState: combat,
-    }
-  }
-
-  const newCombat: CombatState = inAttacker
-    ? {
-        ...combat,
-        attackerCards: combat.attackerCards.filter((c) => c.instanceId !== cardInstanceId),
-      }
-    : {
-        ...combat,
-        defenderCards: combat.defenderCards.filter((c) => c.instanceId !== cardInstanceId),
-      }
-
-  return {
-    ...updatePlayer(state, ownerId, { discardPile: [...owner.discardPile, card] }),
-    combatState: newCombat,
-  }
-}
 
 function handleReturnFromDiscard(
   state: GameState,
