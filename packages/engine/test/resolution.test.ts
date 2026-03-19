@@ -1125,7 +1125,8 @@ describe("non-active player events out-of-combat", () => {
     }
     const moves = getLegalMoves(withCards, "p2")
     expect(moves.length).toBeGreaterThan(0)
-    expect(moves.every((m) => m.type === "PLAY_EVENT")).toBe(true)
+    expect(moves.every((m) => m.type === "PLAY_EVENT" || m.type === "DISCARD_CARD")).toBe(true)
+    expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
   })
 
   test("non-active player can successfully applyMove PLAY_EVENT during opponent's turn", () => {

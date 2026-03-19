@@ -348,10 +348,11 @@ describe("TOGGLE_HOLDING_REVEAL", () => {
 // ─── getLegalMoves ────────────────────────────────────────────────────────────
 
 describe("getLegalMoves", () => {
-  test("non-active player gets no legal moves (out of combat)", () => {
+  test("non-active player gets only discard moves (out of combat)", () => {
     const state = initGame(DEFAULT_CONFIG)
     const moves = getLegalMoves(state, "p2")
-    expect(moves).toHaveLength(0)
+    expect(moves.length).toBeGreaterThan(0)
+    expect(moves.every((m) => m.type === "DISCARD_CARD")).toBe(true)
   })
 
   test("START_OF_TURN always includes PASS", () => {
