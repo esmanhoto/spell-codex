@@ -744,8 +744,10 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     }
   }
 
+  const myCombatCards = isAttacker ? combat.attackerCards : combat.defenderCards
   for (const card of player.hand) {
-    if (canPlayInCombat(card, activeChampion, spellContext)) {
+    if (!isUniqueInPlay(card.card, state)) continue
+    if (canPlayInCombat(card, activeChampion, spellContext, myCombatCards)) {
       moves.push({ type: "PLAY_COMBAT_CARD", cardInstanceId: card.instanceId })
     }
   }
@@ -1003,12 +1005,23 @@ export function canPlayInCombat(
   card: CardInstance,
   activeChampion: CardInstance | null,
   context: SpellCastContext = {},
+  combatCards: CardInstance[] = [],
 ): boolean {
   const { typeId } = card.card
   if (!COMBAT_SUPPORT_TYPE_IDS.has(typeId)) return false
 
   // Allies and magical items can always be played (no spell access check)
   if (typeId === CardTypeId.Ally || typeId === CardTypeId.MagicalItem) return true
+
+  // Artifacts: world-compatible with active champion, max 1 per champion
+  if (typeId === CardTypeId.Artifact) {
+    if (!activeChampion) return false
+    if (!worldCompatible(card.card, activeChampion.card)) return false
+    const hasArtifact =
+      (context.attachments ?? []).some((a) => a.typeId === CardTypeId.Artifact) ||
+      combatCards.some((c) => c.card.typeId === CardTypeId.Artifact)
+    return !hasArtifact
+  }
 
   // Spells must be castable in phase 4 and usable by this champion.
   if (isSpellType(typeId)) {
