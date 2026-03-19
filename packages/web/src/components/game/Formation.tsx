@@ -249,7 +249,8 @@ export function Formation({
                 s?.isRazed && !isOpponent
                   ? legalMoves.find(
                       (m) =>
-                        m.type === "DISCARD_RAZED_REALM" && (m as { slot: string }).slot === slot,
+                        m.type === "DISCARD_CARD" &&
+                        (m as { cardInstanceId: string }).cardInstanceId === s.realm.instanceId,
                     )
                   : undefined
               const contextMenuItems: {

@@ -41,8 +41,6 @@ export const EventLog = memo(function EventLog({ events }: { events: GameEvent[]
         return `  ${p} realm slot ${e.slot as string} razed!`
       case "REALM_REBUILT":
         return `  ${p} rebuilt realm slot ${e.slot as string}`
-      case "REALM_DISCARDED":
-        return `  ${p} discarded razed realm from slot ${e.slot as string}`
       case "HOLDING_PLAYED":
         return `  ${p} played holding`
       case "HOLDING_REVEAL_TOGGLED":

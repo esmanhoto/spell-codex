@@ -129,7 +129,6 @@ export type Move =
   | { type: "END_TURN" }
   | { type: "PLAY_REALM"; cardInstanceId: string; slot: string }
   | { type: "REBUILD_REALM"; slot: string; cardInstanceIds: [string, string, string] }
-  | { type: "DISCARD_RAZED_REALM"; slot: string }
   | { type: "RAZE_OWN_REALM"; slot: string }
   | { type: "PLAY_HOLDING"; cardInstanceId: string; realmSlot: string }
   | { type: "TOGGLE_HOLDING_REVEAL"; realmSlot: string }
@@ -157,7 +156,6 @@ export type Move =
   | { type: "DISCARD_CARD"; cardInstanceId: string }
   | { type: "SET_COMBAT_LEVEL"; playerId: string; level: number }
   | { type: "SWITCH_COMBAT_SIDE"; cardInstanceId: string }
-  | { type: "DISCARD_COMBAT_CARD"; cardInstanceId: string }
   | {
       type: "RETURN_FROM_DISCARD"
       playerId: string

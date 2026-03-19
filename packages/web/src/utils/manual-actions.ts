@@ -143,10 +143,9 @@ export function buildHandContextActions(args: {
     }
   }
 
-  // ─── Discard (always shown, disabled during combat) ────────────────────
+  // ─── Discard (always available) ─────────────────────────────────────────
   const discardMove = findCardMove(legalMoves, "DISCARD_CARD", id)
-  const discardDisabled = !discardMove || inCombat
-  actions.push(discardDisabled ? { label: "Discard", disabled: true } : { label: "Discard", move: discardMove })
+  actions.push(discardMove ? { label: "Discard", move: discardMove } : { label: "Discard", disabled: true })
 
   return actions
 }

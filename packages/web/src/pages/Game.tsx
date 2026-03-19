@@ -500,7 +500,7 @@ export function Game() {
     }
   }, [gameId, effectiveIdentity, handleWsMessage])
 
-  const DRAW_PHASE_ALLOWED = new Set(["PASS", "REBUILD_REALM", "DISCARD_RAZED_REALM"])
+  const DRAW_PHASE_ALLOWED = new Set(["PASS", "REBUILD_REALM", "DISCARD_CARD"])
 
   const sendMove = useCallback(
     (m: Move | Move[]) => {
