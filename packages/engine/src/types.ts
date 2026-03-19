@@ -412,6 +412,10 @@ export type Move =
   | { type: "SET_COMBAT_LEVEL"; playerId: PlayerId; level: number }
   /** Move a card from attacker's combat cards to defender's (or vice versa) */
   | { type: "SWITCH_COMBAT_SIDE"; cardInstanceId: CardInstanceId }
+  /** Return the main combat champion to its owner's pool (champion escapes combat) */
+  | { type: "RETURN_COMBAT_CARD_TO_POOL"; cardInstanceId: CardInstanceId }
+  /** Return a combat card (ally, spell, etc.) to its owner's hand */
+  | { type: "RETURN_COMBAT_CARD_TO_HAND"; cardInstanceId: CardInstanceId }
   /** Return a card from any player's discard pile to hand, deck, or pool */
   | {
       type: "RETURN_FROM_DISCARD"
@@ -548,6 +552,18 @@ export type GameEvent =
     }
   | { type: "COMBAT_LEVEL_SET"; playerId: PlayerId; level: number }
   | { type: "COMBAT_INTERRUPTED"; playerId: PlayerId }
+  | {
+      type: "COMBAT_CHAMPION_RETURNED_TO_POOL"
+      playerId: PlayerId
+      instanceId: CardInstanceId
+      cardName: string
+    }
+  | {
+      type: "COMBAT_CARD_RETURNED_TO_HAND"
+      playerId: PlayerId
+      instanceId: CardInstanceId
+      cardName: string
+    }
   | {
       type: "RETURNED_FROM_DISCARD"
       playerId: PlayerId

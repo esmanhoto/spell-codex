@@ -191,6 +191,12 @@ export function applyMove(
     case "SWITCH_COMBAT_SIDE":
       newState = handleSwitchCombatSide(state, playerId, move, events)
       break
+    case "RETURN_COMBAT_CARD_TO_POOL":
+      newState = handleReturnCombatCardToPool(state, playerId, move, events)
+      break
+    case "RETURN_COMBAT_CARD_TO_HAND":
+      newState = handleReturnCombatCardToHand(state, playerId, move, events)
+      break
     case "RETURN_FROM_DISCARD":
       newState = handleReturnFromDiscard(state, playerId, move, events)
       break
@@ -299,7 +305,9 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
       move.type === "SET_COMBAT_LEVEL" ||
       move.type === "SWITCH_COMBAT_SIDE" ||
       move.type === "PLAY_COMBAT_CARD" ||
-      move.type === "STOP_PLAYING"
+      move.type === "STOP_PLAYING" ||
+      move.type === "RETURN_COMBAT_CARD_TO_POOL" ||
+      move.type === "RETURN_COMBAT_CARD_TO_HAND"
     )
   }
 
@@ -1490,6 +1498,99 @@ function handleSwitchCombatSide(
   return { ...state, combatState: newCombat }
 }
 
+function handleReturnCombatCardToPool(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "RETURN_COMBAT_CARD_TO_POOL" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.combatState) {
+    throw new EngineError("NOT_IN_COMBAT", "RETURN_COMBAT_CARD_TO_POOL requires active combat")
+  }
+  const combat = state.combatState
+  const { cardInstanceId } = move
+  const isParticipant = playerId === combat.attackingPlayer || playerId === combat.defendingPlayer
+  if (!isParticipant) {
+    throw new EngineError("INVALID_PLAYER", "Player is not a combat participant")
+  }
+
+  const isAttackerChampion = combat.attacker?.instanceId === cardInstanceId
+  const isDefenderChampion = combat.defender?.instanceId === cardInstanceId
+  if (!isAttackerChampion && !isDefenderChampion) {
+    throw new EngineError("TARGET_NOT_FOUND", "Card is not a main combat champion")
+  }
+
+  const ownerId = isAttackerChampion ? combat.attackingPlayer : combat.defendingPlayer
+  const champion = isAttackerChampion ? combat.attacker! : combat.defender!
+
+  events.push({
+    type: "COMBAT_CHAMPION_RETURNED_TO_POOL",
+    playerId: ownerId,
+    instanceId: cardInstanceId,
+    cardName: champion.card.name,
+  })
+
+  // Split combat cards: items/artifacts go with champion, rest stays in combat
+  const combatCards = isAttackerChampion ? combat.attackerCards : combat.defenderCards
+  const { toAttach, toDiscard: remaining } = splitCombatCards(combatCards)
+
+  let s = state
+  if (toAttach.length > 0) {
+    s = attachToPoolChampion(s, ownerId, cardInstanceId, toAttach)
+  }
+
+  const newCombat: CombatState = {
+    ...combat,
+    ...(isAttackerChampion
+      ? { attacker: null, attackerManualLevel: null, attackerCards: remaining }
+      : { defender: null, defenderManualLevel: null, defenderCards: remaining }),
+  }
+
+  return { ...s, combatState: newCombat }
+}
+
+function handleReturnCombatCardToHand(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "RETURN_COMBAT_CARD_TO_HAND" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.combatState) {
+    throw new EngineError("NOT_IN_COMBAT", "RETURN_COMBAT_CARD_TO_HAND requires active combat")
+  }
+  const combat = state.combatState
+  const { cardInstanceId } = move
+  const isParticipant = playerId === combat.attackingPlayer || playerId === combat.defendingPlayer
+  if (!isParticipant) {
+    throw new EngineError("INVALID_PLAYER", "Player is not a combat participant")
+  }
+
+  const inAttacker = combat.attackerCards.find((c) => c.instanceId === cardInstanceId)
+  const inDefender = combat.defenderCards.find((c) => c.instanceId === cardInstanceId)
+  if (!inAttacker && !inDefender) {
+    throw new EngineError("TARGET_NOT_FOUND", "Card not found in combat cards")
+  }
+
+  const card = (inAttacker ?? inDefender)!
+  const ownerId = inAttacker ? combat.attackingPlayer : combat.defendingPlayer
+  const owner = state.players[ownerId]!
+
+  events.push({
+    type: "COMBAT_CARD_RETURNED_TO_HAND",
+    playerId: ownerId,
+    instanceId: cardInstanceId,
+    cardName: card.card.name,
+  })
+
+  const newCombat: CombatState = inAttacker
+    ? { ...combat, attackerCards: combat.attackerCards.filter((c) => c.instanceId !== cardInstanceId) }
+    : { ...combat, defenderCards: combat.defenderCards.filter((c) => c.instanceId !== cardInstanceId) }
+
+  return {
+    ...updatePlayer(state, ownerId, { hand: [...owner.hand, card] }),
+    combatState: newCombat,
+  }
+}
 
 function handleReturnFromDiscard(
   state: GameState,
@@ -1586,6 +1687,7 @@ function handleAttackerWins(
   // Check if the defender is the self-defending realm (not a pool champion)
   const targetRealmSlot = defendingPlayer.formation.slots[combat.targetRealmSlot]
   const isRealmDefender =
+    combat.defender !== null &&
     !defendingPlayer.pool.some((e) => e.champion.instanceId === combat.defender!.instanceId) &&
     targetRealmSlot?.realm.instanceId === combat.defender!.instanceId
 
@@ -1602,22 +1704,15 @@ function handleAttackerWins(
   }
 
   let s = state
-  s = attachToPoolChampion(
-    s,
-    combat.attackingPlayer,
-    combat.attacker!.instanceId,
-    attackerItemsToKeep,
-  )
+  if (combat.attacker) {
+    s = attachToPoolChampion(s, combat.attackingPlayer, combat.attacker.instanceId, attackerItemsToKeep)
+  }
   const attackingPlayer = s.players[combat.attackingPlayer]!
   s = updatePlayer(s, combat.attackingPlayer, {
     discardPile: [...attackingPlayer.discardPile, ...attackerDiscards],
   })
 
   if (isRealmDefender) {
-    // Realm self-defended and lost — discard combat cards; realm stays in formation.
-    // The self-defense is already spent (realm.instanceId is in championsUsedThisBattle).
-    // Battle continues to AWAITING_ATTACKER; if the defender has no other champion
-    // available they will DECLINE_DEFENSE next round, which razes the realm then.
     const defenderCardDiscards = combat.defenderCards
     if (defenderCardDiscards.length > 0) {
       events.push({
@@ -1643,9 +1738,10 @@ function handleAttackerWins(
   }
 
   // Discard defender champion + pool entry attachments + all combat cards
-  const defenderEntry = defendingPlayer.pool.find(
-    (e) => e.champion.instanceId === combat.defender!.instanceId,
-  )
+  // (skip if champion was already returned to pool via RETURN_COMBAT_CARD_TO_POOL)
+  const defenderEntry = combat.defender
+    ? defendingPlayer.pool.find((e) => e.champion.instanceId === combat.defender!.instanceId)
+    : null
   const allDefenderDiscards: CardInstanceId[] = []
 
   if (defenderEntry) {
@@ -1665,9 +1761,11 @@ function handleAttackerWins(
     ...(defenderEntry ? [defenderEntry.champion, ...defenderEntry.attachments] : []),
     ...combat.defenderCards,
   ]
-  const newDefenderPool = s.players[combat.defendingPlayer]!.pool.filter(
-    (e) => e.champion.instanceId !== combat.defender!.instanceId,
-  )
+  const newDefenderPool = combat.defender
+    ? s.players[combat.defendingPlayer]!.pool.filter(
+        (e) => e.champion.instanceId !== combat.defender!.instanceId,
+      )
+    : s.players[combat.defendingPlayer]!.pool
   const dp2 = s.players[combat.defendingPlayer]!
   s = updatePlayer(s, combat.defendingPlayer, {
     pool: newDefenderPool,
@@ -1684,6 +1782,9 @@ function handleAttackerWins(
   }
 
   // First win — attacker may continue with a different champion
+  const usedChampions = [...combat.championsUsedThisBattle]
+  if (combat.defender) usedChampions.push(combat.defender.instanceId)
+
   const newCombat: CombatState = {
     ...combat,
     roundPhase: "AWAITING_ATTACKER",
@@ -1691,7 +1792,7 @@ function handleAttackerWins(
     defender: null,
     attackerCards: [],
     defenderCards: [],
-    championsUsedThisBattle: [...combat.championsUsedThisBattle, combat.defender!.instanceId],
+    championsUsedThisBattle: usedChampions,
     attackerWins: newAttackerWins,
   }
 
@@ -1706,9 +1807,10 @@ function handleDefenderWins(state: GameState, combat: CombatState, events: GameE
   const attackingPlayer = state.players[combat.attackingPlayer]!
 
   // Discard attacker champion + pool entry attachments + all combat cards
-  const attackerEntry = attackingPlayer.pool.find(
-    (e) => e.champion.instanceId === combat.attacker!.instanceId,
-  )
+  // (skip if champion was already returned to pool via RETURN_COMBAT_CARD_TO_POOL)
+  const attackerEntry = combat.attacker
+    ? attackingPlayer.pool.find((e) => e.champion.instanceId === combat.attacker!.instanceId)
+    : null
 
   if (attackerEntry) {
     events.push({
@@ -1722,9 +1824,9 @@ function handleDefenderWins(state: GameState, combat: CombatState, events: GameE
     ...(attackerEntry ? [attackerEntry.champion, ...attackerEntry.attachments] : []),
     ...combat.attackerCards,
   ]
-  const newAttackerPool = attackingPlayer.pool.filter(
-    (e) => e.champion.instanceId !== combat.attacker!.instanceId,
-  )
+  const newAttackerPool = combat.attacker
+    ? attackingPlayer.pool.filter((e) => e.champion.instanceId !== combat.attacker!.instanceId)
+    : attackingPlayer.pool
 
   // Defender survives: items/artifacts from combat round re-attach to pool; allies/spells discard
   const { toAttach: defenderItemsToKeep, toDiscard: defenderDiscards } = splitCombatCards(
@@ -1736,12 +1838,9 @@ function handleDefenderWins(state: GameState, combat: CombatState, events: GameE
     discardPile: [...attackingPlayer.discardPile, ...attackerDiscardCards],
   })
 
-  s = attachToPoolChampion(
-    s,
-    combat.defendingPlayer,
-    combat.defender!.instanceId,
-    defenderItemsToKeep,
-  )
+  if (combat.defender) {
+    s = attachToPoolChampion(s, combat.defendingPlayer, combat.defender.instanceId, defenderItemsToKeep)
+  }
   const defendingPlayer = s.players[combat.defendingPlayer]!
   s = updatePlayer(s, combat.defendingPlayer, {
     discardPile: [...defendingPlayer.discardPile, ...defenderDiscards],
