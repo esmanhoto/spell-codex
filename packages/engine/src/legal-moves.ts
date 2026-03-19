@@ -770,11 +770,24 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     // Switch sides available for all combat cards; discard only for own cards
     for (const card of combat.attackerCards) {
       moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+      if (card.card.typeId === CardTypeId.Ally) {
+        moves.push({ type: "RETURN_COMBAT_CARD_TO_HAND", cardInstanceId: card.instanceId })
+      }
       if (isAttacker) moves.push({ type: "DISCARD_CARD", cardInstanceId: card.instanceId })
     }
     for (const card of combat.defenderCards) {
       moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
+      if (card.card.typeId === CardTypeId.Ally) {
+        moves.push({ type: "RETURN_COMBAT_CARD_TO_HAND", cardInstanceId: card.instanceId })
+      }
       if (isDefender) moves.push({ type: "DISCARD_CARD", cardInstanceId: card.instanceId })
+    }
+    // Return main champion to pool — either participant can trigger this on either champion
+    if (combat.attacker) {
+      moves.push({ type: "RETURN_COMBAT_CARD_TO_POOL", cardInstanceId: combat.attacker.instanceId })
+    }
+    if (combat.defender) {
+      moves.push({ type: "RETURN_COMBAT_CARD_TO_POOL", cardInstanceId: combat.defender.instanceId })
     }
     // Pool attachments on active champions — switch for both, discard own only
     if (combat.attacker) {

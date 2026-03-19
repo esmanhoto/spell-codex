@@ -79,6 +79,10 @@ export const EventLog = memo(function EventLog({ events }: { events: GameEvent[]
         return `  ${p} champion returned to pool`
       case "COMBAT_CARD_SWITCHED":
         return `  Combat card switched sides`
+      case "COMBAT_CHAMPION_RETURNED_TO_POOL":
+        return `  ${p} champion returned to pool`
+      case "COMBAT_CARD_RETURNED_TO_HAND":
+        return `  ${p} card returned to hand`
       case "GAME_OVER":
         return `${playerLabel(e.winner as string)} WINS!`
       default:

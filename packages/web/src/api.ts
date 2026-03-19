@@ -156,6 +156,8 @@ export type Move =
   | { type: "DISCARD_CARD"; cardInstanceId: string }
   | { type: "SET_COMBAT_LEVEL"; playerId: string; level: number }
   | { type: "SWITCH_COMBAT_SIDE"; cardInstanceId: string }
+  | { type: "RETURN_COMBAT_CARD_TO_POOL"; cardInstanceId: string }
+  | { type: "RETURN_COMBAT_CARD_TO_HAND"; cardInstanceId: string }
   | {
       type: "RETURN_FROM_DISCARD"
       playerId: string

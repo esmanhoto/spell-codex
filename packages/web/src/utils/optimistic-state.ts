@@ -20,6 +20,8 @@ export function applyOptimisticMove(
     case "STOP_PLAYING":
     case "END_ATTACK":
     case "INTERRUPT_COMBAT":
+    case "RETURN_COMBAT_CARD_TO_POOL":
+    case "RETURN_COMBAT_CARD_TO_HAND":
       return { ...state, legalMoves: [] }
 
     case "PLAY_REALM": {
