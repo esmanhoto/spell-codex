@@ -95,9 +95,14 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   // Spoil may be claimed at any time outside combat/resolution (even when not active player)
   const spoilMove: Move[] = state.pendingSpoil === playerId ? [{ type: "CLAIM_SPOIL" }] : []
 
-  // 2. Out-of-combat: non-active player may play events at any phase
+  // 2. Out-of-combat: non-active player may play events, discard, and raze realms at any phase
   if (state.activePlayer !== playerId) {
-    return dedupeMoves([...spoilMove, ...getEventMoves(state.players[playerId]!)])
+    return dedupeMoves([
+      ...spoilMove,
+      ...getEventMoves(state.players[playerId]!),
+      ...getDiscardMoves(state.players[playerId]!),
+      ...getRazeOwnRealmMoves(state.players[playerId]!, playerId),
+    ])
   }
 
   // Active player may always return cards from any discard pile
@@ -374,12 +379,28 @@ function getForwardPhaseMoves(state: GameState, playerId: PlayerId, fromPhase: P
   return moves
 }
 
-/** Discard moves — one per hand card */
+/** Discard moves — hand, pool (champions + attachments), and razed realms */
 function getDiscardMoves(player: PlayerState): Move[] {
-  return player.hand.map((card) => ({
-    type: "DISCARD_CARD" as const,
-    cardInstanceId: card.instanceId,
-  }))
+  const moves: Move[] = []
+
+  for (const card of player.hand) {
+    moves.push({ type: "DISCARD_CARD" as const, cardInstanceId: card.instanceId })
+  }
+
+  for (const entry of player.pool) {
+    moves.push({ type: "DISCARD_CARD" as const, cardInstanceId: entry.champion.instanceId })
+    for (const att of entry.attachments) {
+      moves.push({ type: "DISCARD_CARD" as const, cardInstanceId: att.instanceId })
+    }
+  }
+
+  for (const [, s] of Object.entries(player.formation.slots)) {
+    if (s?.isRazed) {
+      moves.push({ type: "DISCARD_CARD" as const, cardInstanceId: s.realm.instanceId })
+    }
+  }
+
+  return moves
 }
 
 // ─── Phase Move Generators ────────────────────────────────────────────────────
@@ -464,12 +485,6 @@ function getRealmOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
             cardInstanceIds: defaultIds,
           })
         }
-      }
-    }
-
-    for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
-      if (realmSlot?.isRazed) {
-        moves.push({ type: "DISCARD_RAZED_REALM", slot: slot as FormationSlot })
       }
     }
 
@@ -610,20 +625,26 @@ function getCombatDeclOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
 
 function getCombatMoves(state: GameState, playerId: PlayerId): Move[] {
   const combat = state.combatState!
+  const player = state.players[playerId]!
 
+  let moves: Move[]
   switch (combat.roundPhase) {
     case "AWAITING_ATTACKER":
-      return getAttackerContinueMoves(state, playerId, combat)
-
+      moves = getAttackerContinueMoves(state, playerId, combat)
+      break
     case "AWAITING_DEFENDER":
-      return getDefenderMoves(state, playerId, combat)
-
+      moves = getDefenderMoves(state, playerId, combat)
+      break
     case "CARD_PLAY":
-      return getCardPlayMoves(state, playerId, combat)
-
+      moves = getCardPlayMoves(state, playerId, combat)
+      break
     default:
-      return []
+      moves = []
   }
+
+  // All players can always discard during combat
+  moves.push(...getDiscardMoves(player))
+  return moves
 }
 
 function getAttackerContinueMoves(
@@ -746,15 +767,16 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
       playerId,
       level: isAttacker ? attackerLevel : defenderLevel,
     })
+    // Switch sides available for all combat cards; discard only for own cards
     for (const card of combat.attackerCards) {
       moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
-      moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+      if (isAttacker) moves.push({ type: "DISCARD_CARD", cardInstanceId: card.instanceId })
     }
     for (const card of combat.defenderCards) {
       moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
-      moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+      if (isDefender) moves.push({ type: "DISCARD_CARD", cardInstanceId: card.instanceId })
     }
-    // Pool attachments on active champions also count toward combat level and can be switched/discarded
+    // Pool attachments on active champions — switch for both, discard own only
     if (combat.attacker) {
       for (const card of getPoolAttachments(
         state,
@@ -762,7 +784,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
         combat.attacker.instanceId,
       )) {
         moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
-        moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+        if (isAttacker) moves.push({ type: "DISCARD_CARD", cardInstanceId: card.instanceId })
       }
     }
     if (combat.defender) {
@@ -772,7 +794,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
         combat.defender.instanceId,
       )) {
         moves.push({ type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId })
-        moves.push({ type: "DISCARD_COMBAT_CARD", cardInstanceId: card.instanceId })
+        if (isDefender) moves.push({ type: "DISCARD_CARD", cardInstanceId: card.instanceId })
       }
     }
   }
@@ -787,9 +809,7 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
   const moves: Move[] = []
 
   // Must discard to meet hand limit before ending turn; voluntary discard is always allowed
-  for (const card of player.hand) {
-    moves.push({ type: "DISCARD_CARD" as const, cardInstanceId: card.instanceId })
-  }
+  moves.push(...getDiscardMoves(player))
 
   if (player.hand.length > maxEnd) {
     // Forced discard — only discard moves are legal
