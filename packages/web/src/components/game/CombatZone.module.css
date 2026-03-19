@@ -121,6 +121,24 @@
   display: block;
 }
 
+/* Placeholder when champion has been returned to pool */
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(42, 16, 16, 0.85);
+  border-style: dashed;
+}
+
+.placeholderText {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
 /* Support cards — absolutely positioned, full size, behind the champion */
 .supportCard {
   position: absolute;
@@ -175,6 +193,7 @@
   transition: color 0.3s;
   cursor: pointer;
   user-select: none;
+  margin-bottom: 20px;
 }
 
 .levelDisplay:hover {

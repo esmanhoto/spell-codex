@@ -11,6 +11,8 @@ export function moveInvolves(m: Move, id: string): boolean {
     case "PLAY_EVENT":
     case "PLAY_COMBAT_CARD":
     case "DISCARD_CARD":
+    case "RETURN_COMBAT_CARD_TO_POOL":
+    case "RETURN_COMBAT_CARD_TO_HAND":
       return (m as { cardInstanceId: string }).cardInstanceId === id
     case "ATTACH_ITEM":
       return (
@@ -76,6 +78,10 @@ export function labelMove(m: Move, nameOf: (id: string) => string): string {
       return `Set level ${a.level}`
     case "SWITCH_COMBAT_SIDE":
       return `Switch side: ${nameOf(a.cardInstanceId)}`
+    case "RETURN_COMBAT_CARD_TO_POOL":
+      return `Return ${nameOf(a.cardInstanceId)} to pool`
+    case "RETURN_COMBAT_CARD_TO_HAND":
+      return `Return ${nameOf(a.cardInstanceId)} to hand`
     case "RESOLVE_DONE":
       return "Done resolving"
     case "RESOLVE_SET_CARD_DESTINATION":

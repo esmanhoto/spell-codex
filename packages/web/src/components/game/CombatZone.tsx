@@ -43,10 +43,12 @@ export function CombatZone() {
   const roleB = aIsAttacker ? "Defender" : "Attacker"
 
   const hasLevels = combat.attacker !== null && combat.defender !== null
+  const champAPresent = (aIsAttacker ? combat.attacker : combat.defender) !== null
+  const champBPresent = (aIsAttacker ? combat.defender : combat.attacker) !== null
   const tie = hasLevels && levelA === levelB
   // On a tie the defender wins — color the defending side as winning
-  const aWinning = levelA > levelB || (tie && !aIsAttacker)
-  const bWinning = levelB > levelA || (tie && aIsAttacker)
+  const aWinning = hasLevels && (levelA > levelB || (tie && !aIsAttacker))
+  const bWinning = hasLevels && (levelB > levelA || (tie && aIsAttacker))
 
   const canEditLevel = legalMoves.some((m) => m.type === "SET_COMBAT_LEVEL")
   const canAcceptDefeat =
@@ -75,17 +77,38 @@ export function CombatZone() {
 
   function buildContextActions(card: CardInfo): ContextMenuAction[] {
     if (!canEditLevel) return []
-    // Champions don't get switch/discard — ending a champion's combat uses accept defeat
     const isChampion =
       card.instanceId === combat?.attacker?.instanceId ||
       card.instanceId === combat?.defender?.instanceId
-    if (isChampion) return []
+    if (isChampion) {
+      // Champion: offer return to pool
+      const hasReturn = legalMoves.some(
+        (m) =>
+          m.type === "RETURN_COMBAT_CARD_TO_POOL" &&
+          (m as { cardInstanceId: string }).cardInstanceId === card.instanceId,
+      )
+      return hasReturn
+        ? [{ label: "Return to pool", move: { type: "RETURN_COMBAT_CARD_TO_POOL", cardInstanceId: card.instanceId } }]
+        : []
+    }
     const actions: ContextMenuAction[] = [
       {
         label: "Switch sides",
         move: { type: "SWITCH_COMBAT_SIDE", cardInstanceId: card.instanceId },
       },
     ]
+    // Return combat card to hand
+    const hasReturnHand = legalMoves.some(
+      (m) =>
+        m.type === "RETURN_COMBAT_CARD_TO_HAND" &&
+        (m as { cardInstanceId: string }).cardInstanceId === card.instanceId,
+    )
+    if (hasReturnHand) {
+      actions.push({
+        label: "Return to hand",
+        move: { type: "RETURN_COMBAT_CARD_TO_HAND", cardInstanceId: card.instanceId },
+      })
+    }
     // Only offer discard for own cards
     const hasDiscard = legalMoves.some(
       (m) =>
@@ -151,8 +174,8 @@ export function CombatZone() {
         className={styles.cardStack}
         style={{ paddingBottom: totalSupportHeight, paddingTop: 0 }}
       >
-        {/* Champion — always on top (highest z-index) */}
-        {champion && (
+        {/* Champion — always on top (highest z-index), or placeholder when returned to pool */}
+        {champion ? (
           <div className={styles.championCard}>
             <CombatTooltip card={champion}>
               <div
@@ -174,6 +197,10 @@ export function CombatZone() {
                 />
               </div>
             </CombatTooltip>
+          </div>
+        ) : (
+          <div className={`${styles.championCard} ${styles.placeholder}`}>
+            <span className={styles.placeholderText}>Returned to pool</span>
           </div>
         )}
 
@@ -254,16 +281,16 @@ export function CombatZone() {
       <div className={styles.sideSection}>
         {renderCardStack(champB, displayCardsB)}
         <div className={styles.infoPanel}>
-          {hasLevels && (
+          {(hasLevels || !champBPresent) && (
             <>
               <span
-                className={`${styles.levelDisplay} ${levelColorClass(bWinning, aWinning)}`}
-                onClick={() => canEditLevel && setEditingB(true)}
-                title={canEditLevel ? "Click to override level" : undefined}
+                className={`${styles.levelDisplay} ${champBPresent ? levelColorClass(bWinning, aWinning) : styles.neutral}`}
+                onClick={() => canEditLevel && champBPresent && setEditingB(true)}
+                title={canEditLevel && champBPresent ? "Click to override level" : undefined}
               >
-                {levelB}
+                {champBPresent ? levelB : "X"}
               </span>
-              {manualB != null && <span className={styles.manualTag}>manual</span>}
+              {manualB != null && champBPresent && <span className={styles.manualTag}>manual</span>}
             </>
           )}
           <span className={styles.roleLabel}>{roleB}</span>
@@ -322,16 +349,16 @@ export function CombatZone() {
               Accept Defeat
             </button>
           )}
-          {hasLevels && (
+          {(hasLevels || !champAPresent) && (
             <>
               <span
-                className={`${styles.levelDisplay} ${levelColorClass(aWinning, bWinning)}`}
-                onClick={() => canEditLevel && setEditingA(true)}
-                title={canEditLevel ? "Click to override level" : undefined}
+                className={`${styles.levelDisplay} ${champAPresent ? levelColorClass(aWinning, bWinning) : styles.neutral}`}
+                onClick={() => canEditLevel && champAPresent && setEditingA(true)}
+                title={canEditLevel && champAPresent ? "Click to override level" : undefined}
               >
-                {levelA}
+                {champAPresent ? levelA : "X"}
               </span>
-              {manualA != null && <span className={styles.manualTag}>manual</span>}
+              {manualA != null && champAPresent && <span className={styles.manualTag}>manual</span>}
             </>
           )}
           {editingA && canEditLevel && (
@@ -366,6 +393,17 @@ export function CombatZone() {
               </button>
             </div>
           )}
+          {/* Combat action buttons — placed below score in the info panel */}
+          {canStopPlaying && (
+            <button className={styles.defeatBtn} onClick={() => onMove({ type: "STOP_PLAYING" })}>
+              Accept defeat
+            </button>
+          )}
+          {canInterrupt && (
+            <button className={styles.defeatBtn} onClick={() => onMove({ type: "INTERRUPT_COMBAT" })}>
+              Interrupt combat
+            </button>
+          )}
         </div>
       </div>
 
@@ -373,15 +411,6 @@ export function CombatZone() {
       <div className={styles.targetInfo}>
         Player A attacking Player B's realm <strong>{combat.targetSlot}</strong>
       </div>
-
-      {/* Accept defeat — stop playing combat cards and resolve */}
-      {canStopPlaying && (
-        <div className={styles.actionRow}>
-          <button className={styles.defeatBtn} onClick={() => onMove({ type: "STOP_PLAYING" })}>
-            Accept defeat
-          </button>
-        </div>
-      )}
 
       {/* Attacker continuation — after winning a round */}
       {(canEndAttack || continueAttackMoves.length > 0) && (
@@ -396,15 +425,6 @@ export function CombatZone() {
               Continue with {nameOfCard(m.championId, allBoards)}
             </button>
           ))}
-        </div>
-      )}
-
-      {/* Interrupt — end combat with no winner; champions return intact */}
-      {canInterrupt && (
-        <div className={styles.actionRow}>
-          <button className={styles.defeatBtn} onClick={() => onMove({ type: "INTERRUPT_COMBAT" })}>
-            Interrupt combat
-          </button>
         </div>
       )}
     </div>
