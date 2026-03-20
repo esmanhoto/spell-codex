@@ -286,6 +286,8 @@ export interface CombatState {
   defenderManualLevel: number | null
   /** Players who have issued STOP_PLAYING — combat resolves when both stop */
   stoppedPlayers: PlayerId[]
+  /** Champions borrowed from another player via cross-player moves — maps instanceId → original owner */
+  borrowedChampions: Record<CardInstanceId, PlayerId>
 }
 
 // ─── Phases ───────────────────────────────────────────────────────────────────

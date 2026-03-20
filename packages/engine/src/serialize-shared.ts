@@ -69,5 +69,6 @@ export function serializeCombat(state: GameState) {
     attackerManualLevel: c.attackerManualLevel,
     defenderManualLevel: c.defenderManualLevel,
     championsUsedThisBattle: c.championsUsedThisBattle,
+    borrowedChampions: c.borrowedChampions,
   }
 }
