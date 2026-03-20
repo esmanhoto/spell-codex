@@ -1098,6 +1098,7 @@ function handleDeclareAttack(
     attackerManualLevel: null,
     defenderManualLevel: null,
     stoppedPlayers: [],
+    borrowedChampions: {},
   }
 
   return {
@@ -1182,11 +1183,17 @@ function handleDeclareDefense(
     ? combat.championsUsedThisBattle
     : [...combat.championsUsedThisBattle, defenderChampion.instanceId]
 
+  // Track borrowed champion if cross-player
+  const borrowed = sourcePlayerId !== playerId
+    ? { ...combat.borrowedChampions, [defenderChampion.instanceId]: sourcePlayerId }
+    : combat.borrowedChampions
+
   const newCombat: CombatState = {
     ...combat,
     roundPhase: "CARD_PLAY",
     defender: defenderChampion,
     championsUsedThisBattle: usedList,
+    borrowedChampions: borrowed,
   }
 
   // Set active player to the one currently losing
@@ -1354,6 +1361,11 @@ function handleContinueAttack(
     ? combat.championsUsedThisBattle
     : [...combat.championsUsedThisBattle, move.championId]
 
+  // Track borrowed champion if cross-player
+  const borrowed = sourcePlayerId !== playerId
+    ? { ...combat.borrowedChampions, [continueChampion.instanceId]: sourcePlayerId }
+    : combat.borrowedChampions
+
   const newCombat: CombatState = {
     ...combat,
     roundPhase: "AWAITING_DEFENDER",
@@ -1365,6 +1377,7 @@ function handleContinueAttack(
     attackerManualLevel: null,
     defenderManualLevel: null,
     stoppedPlayers: [],
+    borrowedChampions: borrowed,
   }
 
   return {
@@ -1758,6 +1771,7 @@ function handleSwapCombatChampion(
 
   // Find and place new champion
   let newChampion: CardInstance
+  let newChampionSourcePlayer: PlayerId = ownerId
   switch (move.newChampionSource) {
     case "pool": {
       // Scan all players for the champion in pool
@@ -1766,6 +1780,7 @@ function handleSwapCombatChampion(
         const entry = p.pool.find((e) => e.champion.instanceId === move.newChampionId)
         if (entry) {
           newChampion = entry.champion
+          newChampionSourcePlayer = pid
           // Bring pool attachments into combat player's pool
           if (pid !== ownerId) {
             s = updatePlayer(s, pid, {
@@ -1791,6 +1806,7 @@ function handleSwapCombatChampion(
           const card = p.hand[idx]!
           if (!isChampionType(card.card.typeId)) throw new EngineError("NOT_A_CHAMPION")
           newChampion = card
+          newChampionSourcePlayer = pid
           const newHand = p.hand.filter((c) => c.instanceId !== move.newChampionId)
           s = updatePlayer(s, pid, { hand: newHand })
           // Add to owning side's pool
@@ -1811,6 +1827,7 @@ function handleSwapCombatChampion(
         if (card) {
           if (!isChampionType(card.card.typeId)) throw new EngineError("NOT_A_CHAMPION")
           newChampion = card
+          newChampionSourcePlayer = pid
           s = updatePlayer(s, pid, {
             discardPile: p.discardPile.filter((c) => c.instanceId !== move.newChampionId),
           })
@@ -1851,6 +1868,9 @@ function handleSwapCombatChampion(
           defenderManualLevel: null,
         }),
     championsUsedThisBattle: [...combat.championsUsedThisBattle, move.newChampionId],
+    borrowedChampions: newChampionSourcePlayer !== ownerId
+      ? { ...combat.borrowedChampions, [move.newChampionId]: newChampionSourcePlayer }
+      : combat.borrowedChampions,
   }
 
   return { ...s, combatState: newCombat }
@@ -2040,6 +2060,7 @@ function handleAttackerWins(
         discardPile: [...dp.discardPile, ...defenderCardDiscards],
       })
     }
+    const { state: s2, remaining } = returnBorrowedChampions(s, combat.borrowedChampions, events)
     const newCombat: CombatState = {
       ...combat,
       roundPhase: "AWAITING_ATTACKER",
@@ -2048,8 +2069,9 @@ function handleAttackerWins(
       attackerCards: [],
       defenderCards: [],
       attackerWins: combat.attackerWins + 1,
+      borrowedChampions: remaining,
     }
-    return { ...s, activePlayer: combat.attackingPlayer, combatState: newCombat }
+    return { ...s2, activePlayer: combat.attackingPlayer, combatState: newCombat }
   }
 
   // Discard defender champion + pool entry attachments + all combat cards
@@ -2100,6 +2122,9 @@ function handleAttackerWins(
   const usedChampions = [...combat.championsUsedThisBattle]
   if (combat.defender) usedChampions.push(combat.defender.instanceId)
 
+  // Return borrowed champions to their original owners between rounds
+  const { state: s2, remaining } = returnBorrowedChampions(s, combat.borrowedChampions, events)
+
   const newCombat: CombatState = {
     ...combat,
     roundPhase: "AWAITING_ATTACKER",
@@ -2109,10 +2134,11 @@ function handleAttackerWins(
     defenderCards: [],
     championsUsedThisBattle: usedChampions,
     attackerWins: newAttackerWins,
+    borrowedChampions: remaining,
   }
 
   return {
-    ...s,
+    ...s2,
     activePlayer: combat.attackingPlayer,
     combatState: newCombat,
   }
@@ -2224,9 +2250,40 @@ function handleClaimSpoil(state: GameState, playerId: PlayerId, events: GameEven
   }
 }
 
-function endBattle(state: GameState, nextActivePlayer: PlayerId, _events: GameEvent[]): GameState {
+/** Return all borrowed champions (still in pool) to their original owners. Returns updated state and cleared borrowed map. */
+function returnBorrowedChampions(
+  state: GameState,
+  borrowed: Record<CardInstanceId, PlayerId>,
+  events: GameEvent[],
+): { state: GameState; remaining: Record<CardInstanceId, PlayerId> } {
+  let s = state
+  const remaining: Record<CardInstanceId, PlayerId> = {}
+  for (const [instanceId, originalOwner] of Object.entries(borrowed)) {
+    let found = false
+    for (const [pid, player] of Object.entries(s.players)) {
+      if (pid === originalOwner) continue
+      const entry = player.pool.find((e) => e.champion.instanceId === instanceId)
+      if (entry) {
+        s = updatePlayer(s, pid, {
+          pool: player.pool.filter((e) => e.champion.instanceId !== instanceId),
+        })
+        s = updatePlayer(s, originalOwner, {
+          pool: [...s.players[originalOwner]!.pool, entry],
+        })
+        events.push({ type: "CHAMPION_RETURNED_TO_POOL", playerId: originalOwner, instanceId, cardName: entry.champion.card.name })
+        found = true
+        break
+      }
+    }
+    if (!found) remaining[instanceId] = originalOwner
+  }
+  return { state: s, remaining }
+}
+
+function endBattle(state: GameState, nextActivePlayer: PlayerId, events: GameEvent[]): GameState {
+  const { state: s } = returnBorrowedChampions(state, state.combatState?.borrowedChampions ?? {}, events)
   return {
-    ...state,
+    ...s,
     activePlayer: nextActivePlayer,
     phase: Phase.Combat,
     combatState: null,
