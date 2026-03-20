@@ -220,6 +220,9 @@ export function PoolEntry({ entry, isOpponent }: { entry: PoolEntryType; isOppon
         })}
       </div>
       {championInCombat && <span className={styles.combatBadge}>IN COMBAT</span>}
+      {combat?.borrowedChampions?.[entry.champion.instanceId] && (
+        <span className={styles.borrowedBadge}>BORROWED</span>
+      )}
     </div>
   )
 }

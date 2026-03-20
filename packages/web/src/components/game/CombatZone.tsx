@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { createPortal } from "react-dom"
 import { useBoard } from "../../context/BoardContext.tsx"
 import { useCombat } from "../../context/CombatContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
@@ -8,10 +9,11 @@ import type { CardInfo, Move } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/types.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
 import { CombatTooltip } from "./CombatTooltip.tsx"
+import { Modal, modalStyles } from "./Modal.tsx"
 import styles from "./CombatZone.module.css"
 
 export function CombatZone() {
-  const { playerA, playerB, allBoards } = useBoard()
+  const { playerA, playerB, allBoards, playerBName } = useBoard()
   const { combat } = useCombat()
   const { legalMoves, onMove } = useMoves()
   const { openContextMenu, requestSpellCast } = useGameUI()
@@ -19,10 +21,8 @@ export function CombatZone() {
   const [inputB, setInputB] = useState("")
   const [editingA, setEditingA] = useState(false)
   const [editingB, setEditingB] = useState(false)
-  const [moreActionsOpen, setMoreActionsOpen] = useState(false)
   const [swapOpen, setSwapOpen] = useState(false)
-  const [swapChampionId, setSwapChampionId] = useState<string | null>(null)
-  const [swapSource, setSwapSource] = useState<"pool" | "hand" | "discard" | null>(null)
+  const [specialOptionsOpen, setSpecialOptionsOpen] = useState(false)
 
   if (!combat) return null
 
@@ -81,83 +81,72 @@ export function CombatZone() {
   const hasSwapMoves = swapMoves.length > 0
   const mySide = combat.attackingPlayer === playerA ? "attacker" : "defender"
 
-  // "More Actions" moves — used champions, cross-player picks, require new champion
-  const moreActionMoves = useMemo(() => {
-    const moves: { label: string; move: Move }[] = []
+  // "Special options" — grouped by owner like the swap modal
+  const specialOptionGroups = useMemo(() => {
+    const own: { label: string; move: Move }[] = []
+    const opponent: { label: string; move: Move }[] = []
+    const other: { label: string; move: Move }[] = []
+    const verb = (m: Move) => (m.type === "CONTINUE_ATTACK" ? "Continue with" : "Defend with")
     for (const m of legalMoves) {
       if (m.type === "REQUIRE_NEW_CHAMPION") {
         const a = m as Extract<Move, { type: "REQUIRE_NEW_CHAMPION" }>
-        moves.push({ label: `Require new ${a.side} champion`, move: m })
+        other.push({ label: `Require new ${a.side} champion`, move: m })
       } else if (
-        m.type === "CONTINUE_ATTACK" &&
+        (m.type === "CONTINUE_ATTACK" || m.type === "DECLARE_DEFENSE") &&
         !(m as { fromPlayerId?: string }).fromPlayerId &&
         usedIds.includes((m as { championId: string }).championId)
       ) {
-        // Used own champion — show in More Actions
-        const a = m as Extract<Move, { type: "CONTINUE_ATTACK" }>
-        moves.push({
-          label: `Continue with ${nameOfCard(a.championId, allBoards)} (fought before)`,
-          move: m,
-        })
-      } else if (m.type === "CONTINUE_ATTACK" && (m as { fromPlayerId?: string }).fromPlayerId) {
-        const a = m as Extract<Move, { type: "CONTINUE_ATTACK" }>
-        moves.push({
-          label: `Continue with ${nameOfCard(a.championId, allBoards)} (opponent's)`,
-          move: m,
-        })
+        const a = m as { championId: string }
+        own.push({ label: `${verb(m)} ${nameOfCard(a.championId, allBoards)} (fought before)`, move: m })
       } else if (
-        m.type === "DECLARE_DEFENSE" &&
-        !(m as { fromPlayerId?: string }).fromPlayerId &&
-        usedIds.includes((m as { championId: string }).championId)
+        (m.type === "CONTINUE_ATTACK" || m.type === "DECLARE_DEFENSE") &&
+        (m as { fromPlayerId?: string }).fromPlayerId
       ) {
-        const a = m as Extract<Move, { type: "DECLARE_DEFENSE" }>
-        moves.push({
-          label: `Defend with ${nameOfCard(a.championId, allBoards)} (fought before)`,
-          move: m,
-        })
-      } else if (m.type === "DECLARE_DEFENSE" && (m as { fromPlayerId?: string }).fromPlayerId) {
-        const a = m as Extract<Move, { type: "DECLARE_DEFENSE" }>
-        moves.push({
-          label: `Defend with ${nameOfCard(a.championId, allBoards)} (opponent's)`,
-          move: m,
-        })
+        const a = m as { championId: string }
+        opponent.push({ label: `${verb(m)} ${nameOfCard(a.championId, allBoards)}`, move: m })
       }
     }
-    return moves
-  }, [legalMoves, allBoards, usedIds])
+    const groups: { title: string; items: { label: string; move: Move }[] }[] = []
+    if (own.length > 0) groups.push({ title: "Your champions", items: own })
+    if (opponent.length > 0) groups.push({ title: `${playerBName || "Opponent"}'s champions`, items: opponent })
+    if (other.length > 0) groups.push({ title: "Other", items: other })
+    return groups
+  }, [legalMoves, allBoards, usedIds, playerBName])
+  const hasSpecialOptions = specialOptionGroups.some((g) => g.items.length > 0)
 
-  // Group swap champions by source for the sub-panel
+  // Group swap champions by owner for the modal
   const swapCandidates = useMemo(() => {
-    if (!swapOpen) return { pool: [] as { id: string; name: string }[], hand: [] as { id: string; name: string }[], discard: [] as { id: string; name: string }[] }
+    if (!swapOpen) return [] as { ownerId: string; ownerName: string; champions: { id: string; name: string; source: "pool" | "hand" | "discard" }[] }[]
     const seen = new Set<string>()
-    const pool: { id: string; name: string }[] = []
-    const hand: { id: string; name: string }[] = []
-    const discard: { id: string; name: string }[] = []
+    const byOwner = new Map<string, { id: string; name: string; source: "pool" | "hand" | "discard" }[]>()
     for (const m of swapMoves) {
       if (m.side !== mySide) continue
       if (seen.has(m.newChampionId)) continue
       seen.add(m.newChampionId)
-      const name = nameOfCard(m.newChampionId, allBoards)
-      if (m.newChampionSource === "pool") pool.push({ id: m.newChampionId, name })
-      else if (m.newChampionSource === "hand") hand.push({ id: m.newChampionId, name })
-      else if (m.newChampionSource === "discard") discard.push({ id: m.newChampionId, name })
+      // Find which player owns this champion
+      let ownerId = ""
+      for (const [pid, board] of Object.entries(allBoards)) {
+        const inPool = board.pool.some((e) => e.champion.instanceId === m.newChampionId)
+        const inHand = board.hand.some((c) => c.instanceId === m.newChampionId)
+        const inDiscard = board.discardPile.some((c) => c.instanceId === m.newChampionId)
+        if (inPool || inHand || inDiscard) { ownerId = pid; break }
+      }
+      if (!byOwner.has(ownerId)) byOwner.set(ownerId, [])
+      byOwner.get(ownerId)!.push({ id: m.newChampionId, name: nameOfCard(m.newChampionId, allBoards), source: m.newChampionSource })
     }
-    return { pool, hand, discard }
-  }, [swapOpen, swapMoves, mySide, allBoards])
+    // Own champions first, then opponents
+    const result: { ownerId: string; ownerName: string; champions: { id: string; name: string; source: "pool" | "hand" | "discard" }[] }[] = []
+    if (byOwner.has(playerA)) {
+      result.push({ ownerId: playerA, ownerName: "Your champions", champions: byOwner.get(playerA)! })
+      byOwner.delete(playerA)
+    }
+    for (const [pid, champs] of byOwner) {
+      const name = pid === playerB ? playerBName : pid
+      result.push({ ownerId: pid, ownerName: `${name}'s champions`, champions: champs })
+    }
+    return result
+  }, [swapOpen, swapMoves, mySide, allBoards, playerA, playerB, playerBName])
 
-  function executeSwap(dest: "pool" | "discard" | "abyss" | "hand") {
-    if (!swapChampionId || !swapSource) return
-    onMove({
-      type: "SWAP_COMBAT_CHAMPION",
-      side: mySide,
-      newChampionId: swapChampionId,
-      newChampionSource: swapSource,
-      oldChampionDestination: dest,
-    })
-    setSwapOpen(false)
-    setSwapChampionId(null)
-    setSwapSource(null)
-  }
 
   function submitLevel(
     playerId: string,
@@ -296,11 +285,11 @@ export function CombatZone() {
               </div>
             </CombatTooltip>
           </div>
-        ) : (
+        ) : supportCards.length > 0 ? (
           <div className={`${styles.championCard} ${styles.placeholder}`}>
             <span className={styles.placeholderText}>Returned to pool</span>
           </div>
-        )}
+        ) : null}
 
         {/* Support cards — full size, positioned so only PEEK px peek below champion */}
         {supportCards.map((c, i) => {
@@ -368,6 +357,7 @@ export function CombatZone() {
   }
 
   return (
+    <>
     <div className={styles.combat} data-combat-panel>
       {/* Header */}
       <div className={styles.header}>
@@ -526,91 +516,75 @@ export function CombatZone() {
         </div>
       )}
 
-      {/* More Actions — collapsible panel for advanced combat moves */}
-      {(moreActionMoves.length > 0 || hasSwapMoves) && (
+      {/* Special Options — buttons that open modals */}
+      {(hasSpecialOptions || hasSwapMoves) && (
         <div className={styles.moreActions}>
-          <button
-            className={styles.moreActionsToggle}
-            onClick={() => { setMoreActionsOpen((v) => !v); setSwapOpen(false); setSwapChampionId(null) }}
-          >
-            {moreActionsOpen ? "\u25B4 Less Actions" : "\u2699 More Actions \u25BE"}
-          </button>
-          {moreActionsOpen && (
-            <div className={styles.moreActionsPanel}>
-              {/* Swap champion — single button that opens sub-panel */}
-              {hasSwapMoves && !swapOpen && (
-                <button
-                  className={styles.moreActionBtn}
-                  onClick={() => setSwapOpen(true)}
-                >
-                  Swap {mySide} champion...
-                </button>
-              )}
-              {swapOpen && !swapChampionId && (
-                <div className={styles.swapPanel}>
-                  <div className={styles.swapHeader}>
-                    Select new champion:
-                    <button className={styles.swapClose} onClick={() => setSwapOpen(false)}>X</button>
-                  </div>
-                  {swapCandidates.pool.length > 0 && (
-                    <>
-                      <div className={styles.swapGroupLabel}>From pool</div>
-                      {swapCandidates.pool.map((c) => (
-                        <button key={c.id} className={styles.moreActionBtn} onClick={() => { setSwapChampionId(c.id); setSwapSource("pool") }}>
-                          {c.name}
-                        </button>
-                      ))}
-                    </>
-                  )}
-                  {swapCandidates.hand.length > 0 && (
-                    <>
-                      <div className={styles.swapGroupLabel}>From hand</div>
-                      {swapCandidates.hand.map((c) => (
-                        <button key={c.id} className={styles.moreActionBtn} onClick={() => { setSwapChampionId(c.id); setSwapSource("hand") }}>
-                          {c.name}
-                        </button>
-                      ))}
-                    </>
-                  )}
-                  {swapCandidates.discard.length > 0 && (
-                    <>
-                      <div className={styles.swapGroupLabel}>From discard</div>
-                      {swapCandidates.discard.map((c) => (
-                        <button key={c.id} className={styles.moreActionBtn} onClick={() => { setSwapChampionId(c.id); setSwapSource("discard") }}>
-                          {c.name}
-                        </button>
-                      ))}
-                    </>
-                  )}
-                </div>
-              )}
-              {swapOpen && swapChampionId && (
-                <div className={styles.swapPanel}>
-                  <div className={styles.swapHeader}>
-                    Send old champion to:
-                    <button className={styles.swapClose} onClick={() => { setSwapChampionId(null) }}>Back</button>
-                  </div>
-                  <button className={styles.moreActionBtn} onClick={() => executeSwap("pool")}>Pool</button>
-                  <button className={styles.moreActionBtn} onClick={() => executeSwap("discard")}>Discard pile</button>
-                  <button className={styles.moreActionBtn} onClick={() => executeSwap("hand")}>Hand</button>
-                  <button className={styles.moreActionBtn} onClick={() => executeSwap("abyss")}>Abyss</button>
-                </div>
-              )}
-
-              {/* Other more actions */}
-              {moreActionMoves.map((item, i) => (
-                <button
-                  key={i}
-                  className={styles.moreActionBtn}
-                  onClick={() => onMove(item.move)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+          {hasSwapMoves && (
+            <button className={styles.moreActionBtn} onClick={() => setSwapOpen(true)}>
+              Swap {mySide} champion...
+            </button>
+          )}
+          {hasSpecialOptions && (
+            <button className={styles.moreActionsToggle} onClick={() => setSpecialOptionsOpen(true)}>
+              {"\u2699"} Special options
+            </button>
           )}
         </div>
       )}
+
     </div>
+
+      {/* Swap champion modal — portaled to body so it escapes the combat panel's stacking context */}
+      {swapOpen && createPortal(
+        <Modal title={`Swap ${mySide} champion`} onClose={() => { setSwapOpen(false) }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {swapCandidates.map((group) => (
+              <div key={group.ownerId} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div className={styles.swapGroupLabel}>{group.ownerName}</div>
+                {group.champions.map((c) => (
+                  <button key={c.id} className={modalStyles.button} style={{ display: "block", width: "100%", textAlign: "left" }} onClick={() => {
+                    onMove({
+                      type: "SWAP_COMBAT_CHAMPION",
+                      side: mySide,
+                      newChampionId: c.id,
+                      newChampionSource: c.source,
+                      oldChampionDestination: "pool",
+                    })
+                    setSwapOpen(false)
+                  }}>
+                    {c.name} <span style={{ opacity: 0.5, fontSize: 11 }}>({c.source})</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </Modal>,
+        document.body,
+      )}
+
+      {/* Special options modal */}
+      {specialOptionsOpen && createPortal(
+        <Modal title="Special options" onClose={() => setSpecialOptionsOpen(false)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {specialOptionGroups.map((group) => (
+              <div key={group.title} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div className={styles.swapGroupLabel}>{group.title}</div>
+                {group.items.map((item, i) => (
+                  <button
+                    key={i}
+                    className={modalStyles.button}
+                    style={{ display: "block", width: "100%", textAlign: "left" }}
+                    onClick={() => { onMove(item.move); setSpecialOptionsOpen(false) }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </Modal>,
+        document.body,
+      )}
+    </>
   )
 }
