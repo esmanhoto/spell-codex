@@ -132,7 +132,7 @@ describe("multi-round combat: attacker beats two champions to raze realm", () =>
     expect(events.some((e) => e.type === "REALM_RAZED")).toBe(true)
   })
 
-  test("CONTINUE_ATTACK rejects champion already used in this battle", () => {
+  test("CONTINUE_ATTACK allows champion reuse when still in pool", () => {
     const att1 = inst("att1", makeChampion({ level: 10 }))
     const def1 = inst("def1", makeChampion({ level: 3, cardNumber: 9001 }))
     const realm = inst("realm", makeRealm())
@@ -155,12 +155,13 @@ describe("multi-round combat: attacker beats two champions to raze realm", () =>
       activePlayer: "p1",
     }
 
-    expect(() =>
-      applyMove(state, "p1", {
-        type: "CONTINUE_ATTACK",
-        championId: "att1",
-      }),
-    ).toThrow("Cannot reuse a champion in the same battle")
+    // Champion reuse is now allowed — att1 is still in pool so it works
+    const result = applyMove(state, "p1", {
+      type: "CONTINUE_ATTACK",
+      championId: "att1",
+    })
+    expect(result.newState.combatState!.attacker!.instanceId).toBe("att1")
+    expect(result.newState.combatState!.roundPhase).toBe("AWAITING_DEFENDER")
   })
 
   test("END_ATTACK after first win: attacker chooses not to continue", () => {
