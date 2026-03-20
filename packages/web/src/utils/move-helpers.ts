@@ -13,7 +13,10 @@ export function moveInvolves(m: Move, id: string): boolean {
     case "DISCARD_CARD":
     case "RETURN_COMBAT_CARD_TO_POOL":
     case "RETURN_COMBAT_CARD_TO_HAND":
+    case "ALLOW_CHAMPION_REUSE":
       return (m as { cardInstanceId: string }).cardInstanceId === id
+    case "SWAP_COMBAT_CHAMPION":
+      return (m as { newChampionId: string }).newChampionId === id
     case "ATTACH_ITEM":
       return (
         (m as { cardInstanceId: string; championId: string }).cardInstanceId === id ||
@@ -98,6 +101,12 @@ export function labelMove(m: Move, nameOf: (id: string) => string): string {
       return `Move ${nameOf(a.cardInstanceId)} to ${(a.destination as { zone: string }).zone}`
     case "RESOLVE_ATTACH_CARD":
       return `Attach ${nameOf(a.cardInstanceId)} to ${nameOf(a.targetInstanceId)}`
+    case "SWAP_COMBAT_CHAMPION":
+      return `Swap ${a.side} champion → ${nameOf(a.newChampionId)} (old → ${a.oldChampionDestination})`
+    case "REQUIRE_NEW_CHAMPION":
+      return `Require new ${a.side} champion`
+    case "ALLOW_CHAMPION_REUSE":
+      return `Allow ${nameOf(a.cardInstanceId)} to fight again`
     default:
       return m.type as string
   }
