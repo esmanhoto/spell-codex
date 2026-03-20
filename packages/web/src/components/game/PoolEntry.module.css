@@ -43,3 +43,21 @@
   white-space: nowrap;
   z-index: 10;
 }
+
+.borrowedBadge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-35deg);
+  background: rgba(180, 140, 30, 0.85);
+  color: #fff;
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  padding: 2px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 11;
+  pointer-events: none;
+}
