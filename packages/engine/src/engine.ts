@@ -197,6 +197,15 @@ export function applyMove(
     case "RETURN_COMBAT_CARD_TO_HAND":
       newState = handleReturnCombatCardToHand(state, playerId, move, events)
       break
+    case "SWAP_COMBAT_CHAMPION":
+      newState = handleSwapCombatChampion(state, playerId, move, events)
+      break
+    case "REQUIRE_NEW_CHAMPION":
+      newState = handleRequireNewChampion(state, playerId, move, events)
+      break
+    case "ALLOW_CHAMPION_REUSE":
+      newState = handleAllowChampionReuse(state, playerId, move, events)
+      break
     case "RETURN_FROM_DISCARD":
       newState = handleReturnFromDiscard(state, playerId, move, events)
       break
@@ -307,7 +316,10 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
       move.type === "PLAY_COMBAT_CARD" ||
       move.type === "STOP_PLAYING" ||
       move.type === "RETURN_COMBAT_CARD_TO_POOL" ||
-      move.type === "RETURN_COMBAT_CARD_TO_HAND"
+      move.type === "RETURN_COMBAT_CARD_TO_HAND" ||
+      move.type === "SWAP_COMBAT_CHAMPION" ||
+      move.type === "REQUIRE_NEW_CHAMPION" ||
+      move.type === "ALLOW_CHAMPION_REUSE"
     )
   }
 
@@ -1086,6 +1098,7 @@ function handleDeclareAttack(
     attackerManualLevel: null,
     defenderManualLevel: null,
     stoppedPlayers: [],
+    borrowedChampions: {},
   }
 
   return {
@@ -1110,11 +1123,25 @@ function handleDeclareDefense(
 
   let s = state
   let defenderChampion: CardInstance
+  const sourcePlayerId = move.fromPlayerId ?? playerId
   // Pool or hand promotion
-  const poolEntry = s.players[playerId]!.pool.find((e) => e.champion.instanceId === move.championId)
+  const poolEntry = s.players[sourcePlayerId]!.pool.find(
+    (e) => e.champion.instanceId === move.championId,
+  )
   if (poolEntry) {
     defenderChampion = poolEntry.champion
-  } else {
+    // Cross-player: remove from source player's pool
+    if (sourcePlayerId !== playerId) {
+      s = updatePlayer(s, sourcePlayerId, {
+        pool: s.players[sourcePlayerId]!.pool.filter(
+          (e) => e.champion.instanceId !== move.championId,
+        ),
+      })
+      s = updatePlayer(s, playerId, {
+        pool: [...s.players[playerId]!.pool, { champion: defenderChampion, attachments: poolEntry.attachments }],
+      })
+    }
+  } else if (sourcePlayerId === playerId) {
     const player = s.players[playerId]!
     const handIdx = player.hand.findIndex((c) => c.instanceId === move.championId)
     if (handIdx !== -1) {
@@ -1142,19 +1169,31 @@ function handleDeclareDefense(
         )
       }
     }
-  }
-
-  if (combat.championsUsedThisBattle.includes(defenderChampion.instanceId)) {
-    throw new EngineError("CHAMPION_ALREADY_USED", "This champion already fought in this battle")
+  } else {
+    throw new EngineError(
+      "CHAMPION_NOT_FOUND",
+      "Champion not found in source player's pool",
+    )
   }
 
   events.push({ type: "DEFENSE_DECLARED", playerId, championId: defenderChampion.instanceId })
+
+  // Add to championsUsedThisBattle (if not already there — reuse is allowed via More Actions)
+  const usedList = combat.championsUsedThisBattle.includes(defenderChampion.instanceId)
+    ? combat.championsUsedThisBattle
+    : [...combat.championsUsedThisBattle, defenderChampion.instanceId]
+
+  // Track borrowed champion if cross-player
+  const borrowed = sourcePlayerId !== playerId
+    ? { ...combat.borrowedChampions, [defenderChampion.instanceId]: sourcePlayerId }
+    : combat.borrowedChampions
 
   const newCombat: CombatState = {
     ...combat,
     roundPhase: "CARD_PLAY",
     defender: defenderChampion,
-    championsUsedThisBattle: [...combat.championsUsedThisBattle, defenderChampion.instanceId],
+    championsUsedThisBattle: usedList,
+    borrowedChampions: borrowed,
   }
 
   // Set active player to the one currently losing
@@ -1291,15 +1330,41 @@ function handleContinueAttack(
     throw new EngineError("NOT_ATTACKER")
   }
 
-  const [continueChampion, s] = findOrPromoteChampion(
-    state,
-    playerId,
-    move.championId,
-    "Attacker champion not in pool or hand",
-  )
-  if (combat.championsUsedThisBattle.includes(move.championId)) {
-    throw new EngineError("CHAMPION_ALREADY_USED", "Cannot reuse a champion in the same battle")
+  const sourcePlayerId = move.fromPlayerId ?? playerId
+  let continueChampion: CardInstance
+  let s: GameState
+  if (sourcePlayerId !== playerId) {
+    // Cross-player: take from their pool
+    const sourcePool = state.players[sourcePlayerId]
+    if (!sourcePool) throw new EngineError("PLAYER_NOT_FOUND")
+    const entry = sourcePool.pool.find((e) => e.champion.instanceId === move.championId)
+    if (!entry) {
+      throw new EngineError("CHAMPION_NOT_FOUND", "Champion not in source player's pool")
+    }
+    continueChampion = entry.champion
+    s = updatePlayer(state, sourcePlayerId, {
+      pool: sourcePool.pool.filter((e) => e.champion.instanceId !== move.championId),
+    })
+    s = updatePlayer(s, playerId, {
+      pool: [...s.players[playerId]!.pool, { champion: continueChampion, attachments: entry.attachments }],
+    })
+  } else {
+    ;[continueChampion, s] = findOrPromoteChampion(
+      state,
+      playerId,
+      move.championId,
+      "Attacker champion not in pool or hand",
+    )
   }
+  // Add to championsUsedThisBattle (if not already there — reuse is allowed via More Actions)
+  const usedList = combat.championsUsedThisBattle.includes(move.championId)
+    ? combat.championsUsedThisBattle
+    : [...combat.championsUsedThisBattle, move.championId]
+
+  // Track borrowed champion if cross-player
+  const borrowed = sourcePlayerId !== playerId
+    ? { ...combat.borrowedChampions, [continueChampion.instanceId]: sourcePlayerId }
+    : combat.borrowedChampions
 
   const newCombat: CombatState = {
     ...combat,
@@ -1308,10 +1373,11 @@ function handleContinueAttack(
     defender: null,
     attackerCards: [],
     defenderCards: [],
-    championsUsedThisBattle: [...combat.championsUsedThisBattle, move.championId],
+    championsUsedThisBattle: usedList,
     attackerManualLevel: null,
     defenderManualLevel: null,
     stoppedPlayers: [],
+    borrowedChampions: borrowed,
   }
 
   return {
@@ -1637,6 +1703,274 @@ function handleReturnFromDiscard(
   }
 }
 
+// ─── Combat Champion Manipulation Handlers ──────────────────────────────────
+
+function handleSwapCombatChampion(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "SWAP_COMBAT_CHAMPION" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.combatState) {
+    throw new EngineError("NOT_IN_COMBAT", "SWAP_COMBAT_CHAMPION requires active combat")
+  }
+  const combat = state.combatState
+  const isParticipant = playerId === combat.attackingPlayer || playerId === combat.defendingPlayer
+  if (!isParticipant) {
+    throw new EngineError("INVALID_PLAYER", "Player is not a combat participant")
+  }
+
+  const isAttackerSide = move.side === "attacker"
+  const oldChampion = isAttackerSide ? combat.attacker : combat.defender
+  const ownerId = isAttackerSide ? combat.attackingPlayer : combat.defendingPlayer
+
+  // Remove old champion: split combat cards (items go with champion, rest stays)
+  let s = state
+  const combatCards = isAttackerSide ? combat.attackerCards : combat.defenderCards
+  const { toAttach, toDiscard: remaining } = splitCombatCards(combatCards)
+
+  if (oldChampion) {
+    // Send old champion + items to destination
+    const oldCards = [oldChampion, ...toAttach]
+    const owner = s.players[ownerId]!
+    switch (move.oldChampionDestination) {
+      case "pool": {
+        // Re-attach to pool entry
+        const existingEntry = owner.pool.find(
+          (e) => e.champion.instanceId === oldChampion.instanceId,
+        )
+        if (existingEntry) {
+          s = attachToPoolChampion(s, ownerId, oldChampion.instanceId, toAttach)
+        } else {
+          s = updatePlayer(s, ownerId, {
+            pool: [...owner.pool, { champion: oldChampion, attachments: toAttach }],
+          })
+        }
+        break
+      }
+      case "discard":
+        s = updatePlayer(s, ownerId, {
+          discardPile: [...owner.discardPile, ...oldCards],
+          pool: owner.pool.filter((e) => e.champion.instanceId !== oldChampion.instanceId),
+        })
+        break
+      case "abyss":
+        s = updatePlayer(s, ownerId, {
+          abyss: [...owner.abyss, ...oldCards],
+          pool: owner.pool.filter((e) => e.champion.instanceId !== oldChampion.instanceId),
+        })
+        break
+      case "hand":
+        s = updatePlayer(s, ownerId, {
+          hand: [...owner.hand, ...oldCards],
+          pool: owner.pool.filter((e) => e.champion.instanceId !== oldChampion.instanceId),
+        })
+        break
+    }
+  }
+
+  // Find and place new champion
+  let newChampion: CardInstance
+  let newChampionSourcePlayer: PlayerId = ownerId
+  switch (move.newChampionSource) {
+    case "pool": {
+      // Scan all players for the champion in pool
+      let found = false
+      for (const [pid, p] of Object.entries(s.players)) {
+        const entry = p.pool.find((e) => e.champion.instanceId === move.newChampionId)
+        if (entry) {
+          newChampion = entry.champion
+          newChampionSourcePlayer = pid
+          // Bring pool attachments into combat player's pool
+          if (pid !== ownerId) {
+            s = updatePlayer(s, pid, {
+              pool: p.pool.filter((e) => e.champion.instanceId !== move.newChampionId),
+            })
+            s = updatePlayer(s, ownerId, {
+              pool: [...s.players[ownerId]!.pool, { champion: newChampion, attachments: entry.attachments }],
+            })
+          }
+          found = true
+          break
+        }
+      }
+      if (!found!) throw new EngineError("CHAMPION_NOT_FOUND", "New champion not found in any pool")
+      break
+    }
+    case "hand": {
+      // Find in any player's hand, promote to pool
+      let found = false
+      for (const [pid, p] of Object.entries(s.players)) {
+        const idx = p.hand.findIndex((c) => c.instanceId === move.newChampionId)
+        if (idx !== -1) {
+          const card = p.hand[idx]!
+          if (!isChampionType(card.card.typeId)) throw new EngineError("NOT_A_CHAMPION")
+          newChampion = card
+          newChampionSourcePlayer = pid
+          const newHand = p.hand.filter((c) => c.instanceId !== move.newChampionId)
+          s = updatePlayer(s, pid, { hand: newHand })
+          // Add to owning side's pool
+          s = updatePlayer(s, ownerId, {
+            pool: [...s.players[ownerId]!.pool, { champion: newChampion, attachments: [] }],
+          })
+          found = true
+          break
+        }
+      }
+      if (!found!) throw new EngineError("CHAMPION_NOT_FOUND", "New champion not found in any hand")
+      break
+    }
+    case "discard": {
+      let found = false
+      for (const [pid, p] of Object.entries(s.players)) {
+        const card = p.discardPile.find((c) => c.instanceId === move.newChampionId)
+        if (card) {
+          if (!isChampionType(card.card.typeId)) throw new EngineError("NOT_A_CHAMPION")
+          newChampion = card
+          newChampionSourcePlayer = pid
+          s = updatePlayer(s, pid, {
+            discardPile: p.discardPile.filter((c) => c.instanceId !== move.newChampionId),
+          })
+          s = updatePlayer(s, ownerId, {
+            pool: [...s.players[ownerId]!.pool, { champion: newChampion, attachments: [] }],
+          })
+          found = true
+          break
+        }
+      }
+      if (!found!) throw new EngineError("CHAMPION_NOT_FOUND", "New champion not found in any discard")
+      break
+    }
+  }
+
+  events.push({
+    type: "COMBAT_CHAMPION_SWAPPED",
+    playerId: ownerId,
+    side: move.side,
+    oldChampionId: oldChampion?.instanceId ?? null,
+    oldChampionName: oldChampion?.card.name ?? null,
+    newChampionId: newChampion!.instanceId,
+    newChampionName: newChampion!.card.name,
+    source: move.newChampionSource,
+  })
+
+  const newCombat: CombatState = {
+    ...combat,
+    ...(isAttackerSide
+      ? {
+          attacker: newChampion!,
+          attackerCards: remaining,
+          attackerManualLevel: null,
+        }
+      : {
+          defender: newChampion!,
+          defenderCards: remaining,
+          defenderManualLevel: null,
+        }),
+    championsUsedThisBattle: [...combat.championsUsedThisBattle, move.newChampionId],
+    borrowedChampions: newChampionSourcePlayer !== ownerId
+      ? { ...combat.borrowedChampions, [move.newChampionId]: newChampionSourcePlayer }
+      : combat.borrowedChampions,
+  }
+
+  return { ...s, combatState: newCombat }
+}
+
+function handleRequireNewChampion(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "REQUIRE_NEW_CHAMPION" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.combatState) {
+    throw new EngineError("NOT_IN_COMBAT", "REQUIRE_NEW_CHAMPION requires active combat")
+  }
+  const combat = state.combatState
+  const isParticipant = playerId === combat.attackingPlayer || playerId === combat.defendingPlayer
+  if (!isParticipant) {
+    throw new EngineError("INVALID_PLAYER", "Player is not a combat participant")
+  }
+
+  const isAttackerSide = move.side === "attacker"
+  const champion = isAttackerSide ? combat.attacker : combat.defender
+  if (champion !== null) {
+    throw new EngineError(
+      "CHAMPION_PRESENT",
+      "Cannot require new champion when one is already present — remove the champion first",
+    )
+  }
+
+  const targetPlayer = isAttackerSide ? combat.attackingPlayer : combat.defendingPlayer
+
+  events.push({
+    type: "COMBAT_CHAMPION_REQUIRED",
+    playerId: targetPlayer,
+    side: move.side,
+  })
+
+  const newCombat: CombatState = {
+    ...combat,
+    roundPhase: isAttackerSide ? "AWAITING_ATTACKER" : "AWAITING_DEFENDER",
+    stoppedPlayers: [],
+  }
+
+  return { ...state, activePlayer: targetPlayer, combatState: newCombat }
+}
+
+function handleAllowChampionReuse(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "ALLOW_CHAMPION_REUSE" }>,
+  events: GameEvent[],
+): GameState {
+  if (!state.combatState) {
+    throw new EngineError("NOT_IN_COMBAT", "ALLOW_CHAMPION_REUSE requires active combat")
+  }
+  const combat = state.combatState
+  const isParticipant = playerId === combat.attackingPlayer || playerId === combat.defendingPlayer
+  if (!isParticipant) {
+    throw new EngineError("INVALID_PLAYER", "Player is not a combat participant")
+  }
+
+  if (!combat.championsUsedThisBattle.includes(move.cardInstanceId)) {
+    throw new EngineError(
+      "CHAMPION_NOT_USED",
+      "Champion is not in championsUsedThisBattle",
+    )
+  }
+
+  // Find champion name for the event
+  let cardName = "Unknown"
+  for (const p of Object.values(state.players)) {
+    const entry = p.pool.find((e) => e.champion.instanceId === move.cardInstanceId)
+    if (entry) {
+      cardName = entry.champion.card.name
+      break
+    }
+    const disc = p.discardPile.find((c) => c.instanceId === move.cardInstanceId)
+    if (disc) {
+      cardName = disc.card.name
+      break
+    }
+  }
+
+  events.push({
+    type: "CHAMPION_REUSE_ALLOWED",
+    playerId,
+    instanceId: move.cardInstanceId,
+    cardName,
+  })
+
+  const newCombat: CombatState = {
+    ...combat,
+    championsUsedThisBattle: combat.championsUsedThisBattle.filter(
+      (id) => id !== move.cardInstanceId,
+    ),
+  }
+
+  return { ...state, combatState: newCombat }
+}
+
 // ─── Combat Resolution Helpers ────────────────────────────────────────────────
 
 /**
@@ -1726,6 +2060,7 @@ function handleAttackerWins(
         discardPile: [...dp.discardPile, ...defenderCardDiscards],
       })
     }
+    const { state: s2, remaining } = returnBorrowedChampions(s, combat.borrowedChampions, events)
     const newCombat: CombatState = {
       ...combat,
       roundPhase: "AWAITING_ATTACKER",
@@ -1734,8 +2069,9 @@ function handleAttackerWins(
       attackerCards: [],
       defenderCards: [],
       attackerWins: combat.attackerWins + 1,
+      borrowedChampions: remaining,
     }
-    return { ...s, activePlayer: combat.attackingPlayer, combatState: newCombat }
+    return { ...s2, activePlayer: combat.attackingPlayer, combatState: newCombat }
   }
 
   // Discard defender champion + pool entry attachments + all combat cards
@@ -1786,6 +2122,9 @@ function handleAttackerWins(
   const usedChampions = [...combat.championsUsedThisBattle]
   if (combat.defender) usedChampions.push(combat.defender.instanceId)
 
+  // Return borrowed champions to their original owners between rounds
+  const { state: s2, remaining } = returnBorrowedChampions(s, combat.borrowedChampions, events)
+
   const newCombat: CombatState = {
     ...combat,
     roundPhase: "AWAITING_ATTACKER",
@@ -1795,10 +2134,11 @@ function handleAttackerWins(
     defenderCards: [],
     championsUsedThisBattle: usedChampions,
     attackerWins: newAttackerWins,
+    borrowedChampions: remaining,
   }
 
   return {
-    ...s,
+    ...s2,
     activePlayer: combat.attackingPlayer,
     combatState: newCombat,
   }
@@ -1910,9 +2250,40 @@ function handleClaimSpoil(state: GameState, playerId: PlayerId, events: GameEven
   }
 }
 
-function endBattle(state: GameState, nextActivePlayer: PlayerId, _events: GameEvent[]): GameState {
+/** Return all borrowed champions (still in pool) to their original owners. Returns updated state and cleared borrowed map. */
+function returnBorrowedChampions(
+  state: GameState,
+  borrowed: Record<CardInstanceId, PlayerId>,
+  events: GameEvent[],
+): { state: GameState; remaining: Record<CardInstanceId, PlayerId> } {
+  let s = state
+  const remaining: Record<CardInstanceId, PlayerId> = {}
+  for (const [instanceId, originalOwner] of Object.entries(borrowed)) {
+    let found = false
+    for (const [pid, player] of Object.entries(s.players)) {
+      if (pid === originalOwner) continue
+      const entry = player.pool.find((e) => e.champion.instanceId === instanceId)
+      if (entry) {
+        s = updatePlayer(s, pid, {
+          pool: player.pool.filter((e) => e.champion.instanceId !== instanceId),
+        })
+        s = updatePlayer(s, originalOwner, {
+          pool: [...s.players[originalOwner]!.pool, entry],
+        })
+        events.push({ type: "CHAMPION_RETURNED_TO_POOL", playerId: originalOwner, instanceId, cardName: entry.champion.card.name })
+        found = true
+        break
+      }
+    }
+    if (!found) remaining[instanceId] = originalOwner
+  }
+  return { state: s, remaining }
+}
+
+function endBattle(state: GameState, nextActivePlayer: PlayerId, events: GameEvent[]): GameState {
+  const { state: s } = returnBorrowedChampions(state, state.combatState?.borrowedChampions ?? {}, events)
   return {
-    ...state,
+    ...s,
     activePlayer: nextActivePlayer,
     phase: Phase.Combat,
     combatState: null,

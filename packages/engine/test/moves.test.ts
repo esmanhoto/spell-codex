@@ -1408,6 +1408,7 @@ describe("combat: attacker champion from hand", () => {
         attackerManualLevel: null,
         defenderManualLevel: null,
         stoppedPlayers: [],
+        borrowedChampions: {},
       },
     }
 
@@ -1455,6 +1456,7 @@ describe("combat: attacker champion from hand", () => {
         attackerManualLevel: null,
         defenderManualLevel: null,
         stoppedPlayers: [],
+        borrowedChampions: {},
       },
     }
 
@@ -1504,6 +1506,7 @@ describe("combat: defender champion from hand", () => {
         attackerManualLevel: null,
         defenderManualLevel: null,
         stoppedPlayers: [],
+        borrowedChampions: {},
       },
       activePlayer: "p1",
     }
@@ -1548,6 +1551,7 @@ describe("combat: defender champion from hand", () => {
         attackerManualLevel: null,
         defenderManualLevel: null,
         stoppedPlayers: [],
+        borrowedChampions: {},
       },
       activePlayer: "p1",
     }

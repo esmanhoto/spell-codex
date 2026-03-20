@@ -1,17 +1,19 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
+import { createPortal } from "react-dom"
 import { useBoard } from "../../context/BoardContext.tsx"
 import { useCombat } from "../../context/CombatContext.tsx"
 import { useMoves } from "../../context/MovesContext.tsx"
 import { useGameUI } from "../../context/UIContext.tsx"
 import { cardImageUrl, nameOfCard, findHandCard } from "../../utils/card-helpers.ts"
-import type { CardInfo } from "../../api.ts"
+import type { CardInfo, Move } from "../../api.ts"
 import type { ContextMenuAction } from "../../context/types.ts"
 import { isSpellCard } from "../../utils/spell-casting.ts"
 import { CombatTooltip } from "./CombatTooltip.tsx"
+import { Modal, modalStyles } from "./Modal.tsx"
 import styles from "./CombatZone.module.css"
 
 export function CombatZone() {
-  const { playerA, playerB, allBoards } = useBoard()
+  const { playerA, playerB, allBoards, playerBName } = useBoard()
   const { combat } = useCombat()
   const { legalMoves, onMove } = useMoves()
   const { openContextMenu, requestSpellCast } = useGameUI()
@@ -19,6 +21,8 @@ export function CombatZone() {
   const [inputB, setInputB] = useState("")
   const [editingA, setEditingA] = useState(false)
   const [editingB, setEditingB] = useState(false)
+  const [swapOpen, setSwapOpen] = useState(false)
+  const [specialOptionsOpen, setSpecialOptionsOpen] = useState(false)
 
   if (!combat) return null
 
@@ -57,9 +61,92 @@ export function CombatZone() {
   const canStopPlaying = legalMoves.some((m) => m.type === "STOP_PLAYING")
   const canEndAttack = legalMoves.some((m) => m.type === "END_ATTACK")
   const canInterrupt = legalMoves.some((m) => m.type === "INTERRUPT_COMBAT")
+  const usedIds = combat.championsUsedThisBattle ?? []
+
+  // Main buttons: unused own champions (no fromPlayerId, not in championsUsedThisBattle)
   const continueAttackMoves = legalMoves.filter(
-    (m): m is Extract<typeof m, { type: "CONTINUE_ATTACK" }> => m.type === "CONTINUE_ATTACK",
+    (m): m is Extract<typeof m, { type: "CONTINUE_ATTACK" }> =>
+      m.type === "CONTINUE_ATTACK" &&
+      !(m as { fromPlayerId?: string }).fromPlayerId &&
+      !usedIds.includes((m as { championId: string }).championId),
   )
+
+  // Swap moves (grouped by destination — only default "pool" destination shown)
+  const swapMoves = useMemo(() => {
+    return legalMoves.filter(
+      (m): m is Extract<Move, { type: "SWAP_COMBAT_CHAMPION" }> =>
+        m.type === "SWAP_COMBAT_CHAMPION",
+    )
+  }, [legalMoves])
+  const hasSwapMoves = swapMoves.length > 0
+  const mySide = combat.attackingPlayer === playerA ? "attacker" : "defender"
+
+  // "Special options" — grouped by owner like the swap modal
+  const specialOptionGroups = useMemo(() => {
+    const own: { label: string; move: Move }[] = []
+    const opponent: { label: string; move: Move }[] = []
+    const other: { label: string; move: Move }[] = []
+    const verb = (m: Move) => (m.type === "CONTINUE_ATTACK" ? "Continue with" : "Defend with")
+    for (const m of legalMoves) {
+      if (m.type === "REQUIRE_NEW_CHAMPION") {
+        const a = m as Extract<Move, { type: "REQUIRE_NEW_CHAMPION" }>
+        other.push({ label: `Require new ${a.side} champion`, move: m })
+      } else if (
+        (m.type === "CONTINUE_ATTACK" || m.type === "DECLARE_DEFENSE") &&
+        !(m as { fromPlayerId?: string }).fromPlayerId &&
+        usedIds.includes((m as { championId: string }).championId)
+      ) {
+        const a = m as { championId: string }
+        own.push({ label: `${verb(m)} ${nameOfCard(a.championId, allBoards)} (fought before)`, move: m })
+      } else if (
+        (m.type === "CONTINUE_ATTACK" || m.type === "DECLARE_DEFENSE") &&
+        (m as { fromPlayerId?: string }).fromPlayerId
+      ) {
+        const a = m as { championId: string }
+        opponent.push({ label: `${verb(m)} ${nameOfCard(a.championId, allBoards)}`, move: m })
+      }
+    }
+    const groups: { title: string; items: { label: string; move: Move }[] }[] = []
+    if (own.length > 0) groups.push({ title: "Your champions", items: own })
+    if (opponent.length > 0) groups.push({ title: `${playerBName || "Opponent"}'s champions`, items: opponent })
+    if (other.length > 0) groups.push({ title: "Other", items: other })
+    return groups
+  }, [legalMoves, allBoards, usedIds, playerBName])
+  const hasSpecialOptions = specialOptionGroups.some((g) => g.items.length > 0)
+
+  // Group swap champions by owner for the modal
+  const swapCandidates = useMemo(() => {
+    if (!swapOpen) return [] as { ownerId: string; ownerName: string; champions: { id: string; name: string; source: "pool" | "hand" | "discard" }[] }[]
+    const seen = new Set<string>()
+    const byOwner = new Map<string, { id: string; name: string; source: "pool" | "hand" | "discard" }[]>()
+    for (const m of swapMoves) {
+      if (m.side !== mySide) continue
+      if (seen.has(m.newChampionId)) continue
+      seen.add(m.newChampionId)
+      // Find which player owns this champion
+      let ownerId = ""
+      for (const [pid, board] of Object.entries(allBoards)) {
+        const inPool = board.pool.some((e) => e.champion.instanceId === m.newChampionId)
+        const inHand = board.hand.some((c) => c.instanceId === m.newChampionId)
+        const inDiscard = board.discardPile.some((c) => c.instanceId === m.newChampionId)
+        if (inPool || inHand || inDiscard) { ownerId = pid; break }
+      }
+      if (!byOwner.has(ownerId)) byOwner.set(ownerId, [])
+      byOwner.get(ownerId)!.push({ id: m.newChampionId, name: nameOfCard(m.newChampionId, allBoards), source: m.newChampionSource })
+    }
+    // Own champions first, then opponents
+    const result: { ownerId: string; ownerName: string; champions: { id: string; name: string; source: "pool" | "hand" | "discard" }[] }[] = []
+    if (byOwner.has(playerA)) {
+      result.push({ ownerId: playerA, ownerName: "Your champions", champions: byOwner.get(playerA)! })
+      byOwner.delete(playerA)
+    }
+    for (const [pid, champs] of byOwner) {
+      const name = pid === playerB ? playerBName : pid
+      result.push({ ownerId: pid, ownerName: `${name}'s champions`, champions: champs })
+    }
+    return result
+  }, [swapOpen, swapMoves, mySide, allBoards, playerA, playerB, playerBName])
+
 
   function submitLevel(
     playerId: string,
@@ -198,11 +285,11 @@ export function CombatZone() {
               </div>
             </CombatTooltip>
           </div>
-        ) : (
+        ) : supportCards.length > 0 ? (
           <div className={`${styles.championCard} ${styles.placeholder}`}>
             <span className={styles.placeholderText}>Returned to pool</span>
           </div>
-        )}
+        ) : null}
 
         {/* Support cards — full size, positioned so only PEEK px peek below champion */}
         {supportCards.map((c, i) => {
@@ -270,6 +357,7 @@ export function CombatZone() {
   }
 
   return (
+    <>
     <div className={styles.combat} data-combat-panel>
       {/* Header */}
       <div className={styles.header}>
@@ -427,6 +515,76 @@ export function CombatZone() {
           ))}
         </div>
       )}
+
+      {/* Special Options — buttons that open modals */}
+      {(hasSpecialOptions || hasSwapMoves) && (
+        <div className={styles.moreActions}>
+          {hasSwapMoves && (
+            <button className={styles.moreActionBtn} onClick={() => setSwapOpen(true)}>
+              Swap {mySide} champion...
+            </button>
+          )}
+          {hasSpecialOptions && (
+            <button className={styles.moreActionsToggle} onClick={() => setSpecialOptionsOpen(true)}>
+              {"\u2699"} Special options
+            </button>
+          )}
+        </div>
+      )}
+
     </div>
+
+      {/* Swap champion modal — portaled to body so it escapes the combat panel's stacking context */}
+      {swapOpen && createPortal(
+        <Modal title={`Swap ${mySide} champion`} onClose={() => { setSwapOpen(false) }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {swapCandidates.map((group) => (
+              <div key={group.ownerId} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div className={styles.swapGroupLabel}>{group.ownerName}</div>
+                {group.champions.map((c) => (
+                  <button key={c.id} className={modalStyles.button} style={{ display: "block", width: "100%", textAlign: "left" }} onClick={() => {
+                    onMove({
+                      type: "SWAP_COMBAT_CHAMPION",
+                      side: mySide,
+                      newChampionId: c.id,
+                      newChampionSource: c.source,
+                      oldChampionDestination: "pool",
+                    })
+                    setSwapOpen(false)
+                  }}>
+                    {c.name} <span style={{ opacity: 0.5, fontSize: 11 }}>({c.source})</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </Modal>,
+        document.body,
+      )}
+
+      {/* Special options modal */}
+      {specialOptionsOpen && createPortal(
+        <Modal title="Special options" onClose={() => setSpecialOptionsOpen(false)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {specialOptionGroups.map((group) => (
+              <div key={group.title} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div className={styles.swapGroupLabel}>{group.title}</div>
+                {group.items.map((item, i) => (
+                  <button
+                    key={i}
+                    className={modalStyles.button}
+                    style={{ display: "block", width: "100%", textAlign: "left" }}
+                    onClick={() => { onMove(item.move); setSpecialOptionsOpen(false) }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </Modal>,
+        document.body,
+      )}
+    </>
   )
 }

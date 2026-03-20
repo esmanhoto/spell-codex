@@ -661,16 +661,27 @@ function getAttackerContinueMoves(
   const moves: Move[] = [{ type: "END_ATTACK" }, { type: "INTERRUPT_COMBAT" }]
   const player = state.players[playerId]!
 
+  // Own pool: unused champions go to main buttons, used ones are also legal (UI puts them in More Actions)
   for (const entry of player.pool) {
-    if (combat.championsUsedThisBattle.includes(entry.champion.instanceId)) continue
     moves.push({ type: "CONTINUE_ATTACK", championId: entry.champion.instanceId })
   }
 
   for (const card of player.hand) {
     if (!isChampionType(card.card.typeId)) continue
     if (!isUniqueInPlay(card.card, state)) continue
-    if (combat.championsUsedThisBattle.includes(card.instanceId)) continue
     moves.push({ type: "CONTINUE_ATTACK", championId: card.instanceId })
+  }
+
+  // Cross-player: opponent's pool champions
+  for (const [otherPid, otherPlayer] of Object.entries(state.players)) {
+    if (otherPid === playerId) continue
+    for (const entry of otherPlayer.pool) {
+      moves.push({
+        type: "CONTINUE_ATTACK",
+        championId: entry.champion.instanceId,
+        fromPlayerId: otherPid,
+      })
+    }
   }
 
   return moves
@@ -686,9 +697,8 @@ function getDefenderMoves(state: GameState, playerId: PlayerId, combat: CombatSt
   const moves: Move[] = [{ type: "DECLINE_DEFENSE" }, { type: "INTERRUPT_COMBAT" }]
   const player = state.players[playerId]!
 
-  // Defend with pool champion
+  // Defend with pool champion (used ones also legal — UI puts them in More Actions)
   for (const entry of player.pool) {
-    if (combat.championsUsedThisBattle.includes(entry.champion.instanceId)) continue
     moves.push({ type: "DECLARE_DEFENSE", championId: entry.champion.instanceId })
   }
 
@@ -702,13 +712,20 @@ function getDefenderMoves(state: GameState, playerId: PlayerId, combat: CombatSt
 
   // Self-defending realm — realm can act as its own defender if it has a level
   const targetSlot = player.formation.slots[combat.targetRealmSlot]
-  if (
-    targetSlot &&
-    !targetSlot.isRazed &&
-    targetSlot.realm.card.level != null &&
-    !combat.championsUsedThisBattle.includes(targetSlot.realm.instanceId)
-  ) {
+  if (targetSlot && !targetSlot.isRazed && targetSlot.realm.card.level != null) {
     moves.push({ type: "DECLARE_DEFENSE", championId: targetSlot.realm.instanceId })
+  }
+
+  // Cross-player: opponent's pool champions
+  for (const [otherPid, otherPlayer] of Object.entries(state.players)) {
+    if (otherPid === playerId) continue
+    for (const entry of otherPlayer.pool) {
+      moves.push({
+        type: "DECLARE_DEFENSE",
+        championId: entry.champion.instanceId,
+        fromPlayerId: otherPid,
+      })
+    }
   }
 
   return moves
@@ -791,6 +808,63 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
     if (combat.defender) {
       moves.push({ type: "RETURN_COMBAT_CARD_TO_POOL", cardInstanceId: combat.defender.instanceId })
     }
+    // SWAP_COMBAT_CHAMPION — only for your own side
+    {
+      const mySide = isAttacker ? "attacker" : "defender"
+      for (const dest of ["pool", "discard", "abyss", "hand"] as const) {
+        // New champion candidates from all players' pools
+        for (const [, p] of Object.entries(state.players)) {
+          for (const entry of p.pool) {
+            const isCurrent =
+              entry.champion.instanceId === combat.attacker?.instanceId ||
+              entry.champion.instanceId === combat.defender?.instanceId
+            if (isCurrent) continue
+            moves.push({
+              type: "SWAP_COMBAT_CHAMPION",
+              side: mySide,
+              newChampionId: entry.champion.instanceId,
+              newChampionSource: "pool",
+              oldChampionDestination: dest,
+            })
+          }
+        }
+        // From hand (champion types only)
+        for (const [, p] of Object.entries(state.players)) {
+          for (const card of p.hand) {
+            if (!isChampionType(card.card.typeId)) continue
+            moves.push({
+              type: "SWAP_COMBAT_CHAMPION",
+              side: mySide,
+              newChampionId: card.instanceId,
+              newChampionSource: "hand",
+              oldChampionDestination: dest,
+            })
+          }
+        }
+        // From discard (champion types only)
+        for (const [, p] of Object.entries(state.players)) {
+          for (const card of p.discardPile) {
+            if (!isChampionType(card.card.typeId)) continue
+            moves.push({
+              type: "SWAP_COMBAT_CHAMPION",
+              side: mySide,
+              newChampionId: card.instanceId,
+              newChampionSource: "discard",
+              oldChampionDestination: dest,
+            })
+          }
+        }
+      }
+    }
+
+    // REQUIRE_NEW_CHAMPION — only when that side has no champion
+    if (combat.attacker === null) {
+      moves.push({ type: "REQUIRE_NEW_CHAMPION", side: "attacker" })
+    }
+    if (combat.defender === null) {
+      moves.push({ type: "REQUIRE_NEW_CHAMPION", side: "defender" })
+    }
+
     // Pool attachments on active champions — switch for both, discard own only
     if (combat.attacker) {
       for (const card of getPoolAttachments(
