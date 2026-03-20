@@ -64,6 +64,7 @@ export interface CombatInfo {
   attackerManualLevel: number | null
   defenderManualLevel: number | null
   championsUsedThisBattle: string[]
+  borrowedChampions: Record<string, string>
 }
 
 export interface ResolutionContextInfo {
