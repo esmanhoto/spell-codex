@@ -389,6 +389,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
       defenderLevel: 5,
       attackerManualLevel: null,
       defenderManualLevel: null,
+      championsUsedThisBattle: [],
     }
 
     it("champion: Place in Pool is disabled during combat", () => {
@@ -973,6 +974,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
         defenderLevel: 4,
         attackerManualLevel: null,
         defenderManualLevel: null,
+        championsUsedThisBattle: [],
       }
       const board: PlayerBoard = {
         ...emptyBoard,
@@ -1010,6 +1012,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
         defenderLevel: 4,
         attackerManualLevel: null,
         defenderManualLevel: null,
+        championsUsedThisBattle: [],
       }
       const board: PlayerBoard = {
         ...emptyBoard,
