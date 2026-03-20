@@ -1241,7 +1241,8 @@ function handlePlayCombatCard(
       }
     }
   }
-  if (!canPlayInCombat(card, activeChampion, spellContext)) {
+  const myCombatCards = isAttacker ? combat.attackerCards : combat.defenderCards
+  if (!canPlayInCombat(card, activeChampion, spellContext, myCombatCards)) {
     throw new EngineError("INVALID_COMBAT_CARD", "Card cannot be played in combat")
   }
 

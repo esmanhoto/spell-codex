@@ -66,8 +66,8 @@ export function buildHandContextActions(args: {
     )
   }
 
-  // ─── Combat support: Play in Combat ────────────────────────────────────
-  if (COMBAT_SUPPORT_TYPES.has(card.typeId) || isSpellCard(card)) {
+  // ─── Combat support: Play in Combat (non-spell types only) ─────────────
+  if (COMBAT_SUPPORT_TYPES.has(card.typeId)) {
     const move = findCardMove(legalMoves, "PLAY_COMBAT_CARD", id)
     actions.push(move ? { label: "Play in Combat", move } : { label: "Play in Combat", disabled: true })
   }
