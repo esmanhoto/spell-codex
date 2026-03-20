@@ -227,6 +227,7 @@ export function buildCombatCardPlayState(params: CombatCardPlayParams): GameStat
       attackerManualLevel: null,
       defenderManualLevel: null,
       stoppedPlayers: [],
+      borrowedChampions: {},
     },
   }
 }
@@ -283,6 +284,7 @@ export function buildRealmSelfDefenseState(params: RealmSelfDefenseParams): Game
       attackerManualLevel: null,
       defenderManualLevel: null,
       stoppedPlayers: [],
+      borrowedChampions: {},
     },
   }
 }

@@ -54,6 +54,7 @@ function makeCombatState(opts?: {
     attackerManualLevel: opts?.attackerManualLevel ?? null,
     defenderManualLevel: opts?.defenderManualLevel ?? null,
     stoppedPlayers: [],
+    borrowedChampions: {},
   }
 
   return {
