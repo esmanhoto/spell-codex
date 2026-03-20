@@ -376,11 +376,11 @@ export type Move =
       targetRealmSlot: FormationSlot
       targetPlayerId: PlayerId
     }
-  | { type: "DECLARE_DEFENSE"; championId: CardInstanceId }
+  | { type: "DECLARE_DEFENSE"; championId: CardInstanceId; fromPlayerId?: PlayerId }
   | { type: "DECLINE_DEFENSE" } // concede realm
   | { type: "PLAY_COMBAT_CARD"; cardInstanceId: CardInstanceId } // losing player plays a card
   | { type: "STOP_PLAYING" } // done playing combat cards
-  | { type: "CONTINUE_ATTACK"; championId: CardInstanceId } // new round vs same realm
+  | { type: "CONTINUE_ATTACK"; championId: CardInstanceId; fromPlayerId?: PlayerId } // new round vs same realm
   | { type: "END_ATTACK" } // attacker stops voluntarily
   | { type: "INTERRUPT_COMBAT" } // end combat with no winner — all champions return intact
 
@@ -416,6 +416,19 @@ export type Move =
   | { type: "RETURN_COMBAT_CARD_TO_POOL"; cardInstanceId: CardInstanceId }
   /** Return a combat card (ally, spell, etc.) to its owner's hand */
   | { type: "RETURN_COMBAT_CARD_TO_HAND"; cardInstanceId: CardInstanceId }
+  /** Atomically replace one side's combat champion with a new one */
+  | {
+      type: "SWAP_COMBAT_CHAMPION"
+      side: "attacker" | "defender"
+      newChampionId: CardInstanceId
+      newChampionSource: "pool" | "hand" | "discard"
+      oldChampionDestination: "pool" | "discard" | "abyss" | "hand"
+    }
+  /** Transition roundPhase back to AWAITING, forcing a re-pick after champion removal */
+  | { type: "REQUIRE_NEW_CHAMPION"; side: "attacker" | "defender" }
+  /** Remove a champion from championsUsedThisBattle, allowing reuse */
+  | { type: "ALLOW_CHAMPION_REUSE"; cardInstanceId: CardInstanceId }
+
   /** Return a card from any player's discard pile to hand, deck, or pool */
   | {
       type: "RETURN_FROM_DISCARD"
@@ -569,6 +582,27 @@ export type GameEvent =
       playerId: PlayerId
       instanceId: CardInstanceId
       destination: "hand" | "deck" | "pool"
+    }
+  | {
+      type: "COMBAT_CHAMPION_SWAPPED"
+      playerId: PlayerId
+      side: "attacker" | "defender"
+      oldChampionId: CardInstanceId | null
+      oldChampionName: string | null
+      newChampionId: CardInstanceId
+      newChampionName: string
+      source: "pool" | "hand" | "discard"
+    }
+  | {
+      type: "COMBAT_CHAMPION_REQUIRED"
+      playerId: PlayerId
+      side: "attacker" | "defender"
+    }
+  | {
+      type: "CHAMPION_REUSE_ALLOWED"
+      playerId: PlayerId
+      instanceId: CardInstanceId
+      cardName: string
     }
   | {
       type: "PHASE3_SPELL_CAST"
