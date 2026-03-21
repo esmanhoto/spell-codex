@@ -23,6 +23,7 @@ export interface CardInfo {
   supportIds: Array<number | string>
   spellNature: "offensive" | "defensive" | null
   castPhases: Array<3 | 4 | 5>
+  effects: Array<{ type: string }>
 }
 
 export interface SlotState {

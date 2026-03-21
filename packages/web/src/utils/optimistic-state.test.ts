@@ -15,6 +15,7 @@ function makeCard(instanceId: string, typeId = 0): CardInfo {
     supportIds: [],
     spellNature: null,
     castPhases: [],
+    effects: [],
   }
 }
 

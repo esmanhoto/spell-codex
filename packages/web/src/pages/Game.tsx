@@ -697,7 +697,7 @@ export function Game() {
         const isOutOfTurnSpell =
           spell.typeId === 4 ||
           spell.typeId === 19 ||
-          (spell.effects as Array<{ type?: string }>).some((e) => e.type === "counter_spell")
+          spell.effects.some((e) => e.type === "counter_spell")
         if (!isOutOfTurnSpell) {
           showWarning("Not your turn.")
           return

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react"
-import type { Move, ResolutionContextInfo, ResolutionDeclarationInfo, PlayerBoard, CardInfo } from "../../api.ts"
+import type { Move, ResolutionContextInfo, ResolutionDeclarationInfo, PlayerBoard } from "../../api.ts"
 import { CHAMPION_TYPE_IDS } from "@spell/engine"
 import styles from "./ResolutionPanel.module.css"
 
