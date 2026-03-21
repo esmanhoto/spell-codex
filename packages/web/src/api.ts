@@ -178,6 +178,7 @@ export type Move =
       cardInstanceId: string
       destination: "hand" | "deck" | "pool"
     }
+  | { type: "SHUFFLE_DISCARD_INTO_DRAW_PILE"; playerId: string }
   | { type: "RESOLVE_DONE"; declarations?: ResolutionDeclarationInfo[] }
   | { type: "RESOLVE_SET_CARD_DESTINATION"; destination: "discard" | "abyss" | "void" | "in_play" }
   | { type: "RESOLVE_RAZE_REALM"; playerId: string; slot: string }

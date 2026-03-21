@@ -34,6 +34,27 @@
   font-size: 14px;
 }
 
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: 10px 14px;
+  border-top: 1px solid #2a3020;
+}
+
+.shuffleBtn {
+  border: 1px solid #4a6a3a;
+  background: #1e2a1a;
+  color: #a0c080;
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.shuffleBtn:hover {
+  background: #2a3a24;
+}
+
 .closeBtn {
   background: none;
   border: none;
@@ -68,6 +89,7 @@
   align-items: center;
   gap: 4px;
   width: 100px;
+  cursor: context-menu;
 }
 
 .image {
@@ -82,25 +104,4 @@
   font-size: 10px;
   text-align: center;
   line-height: 1.3;
-}
-
-.actions {
-  display: flex;
-  gap: 3px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.btn {
-  border: 1px solid #4a3a32;
-  background: #2a211f;
-  color: #c9b99a;
-  border-radius: 4px;
-  padding: 3px 6px;
-  font-size: 10px;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background: #352a27;
 }

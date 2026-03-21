@@ -37,8 +37,8 @@
   --z-hover: 50;
   --z-overlay: 100;
   --z-tooltip: 200;
-  --z-context-menu: 300;
   --z-modal: 400;
+  --z-context-menu: 500;
 }
 
 @keyframes pulse-target {
