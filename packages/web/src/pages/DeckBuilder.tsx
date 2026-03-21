@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { Link, useSearchParams, useNavigate } from "react-router-dom"
-import { useQuery } from "@tanstack/react-query"
+import { useFetch } from "../hooks/useFetch.ts"
 import { getSetCards, type SetCardData } from "../api.ts"
 import { CustomDecksPanel } from "../components/deck-builder/CustomDecksPanel.tsx"
 import { DeckStrip } from "../components/deck-builder/DeckStrip.tsx"
@@ -30,9 +30,8 @@ function DeckBuilderInner() {
   const { identity } = useAuth()
   const userId = identity?.userId ?? ""
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["set-cards", "1st"],
-    queryFn: () => getSetCards("1st"),
+  const { data, isLoading } = useFetch({
+    fn: () => getSetCards("1st"),
   })
 
   const allCards = data?.cards ?? []

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, LogIn, Users, Swords, Hammer } from "lucide-react"
 import {
   listDecks,
@@ -12,6 +11,7 @@ import {
   getMyProfile,
   updateNickname,
 } from "../api.ts"
+import { useFetch, useMutation } from "../hooks/useFetch.ts"
 import { useAuth } from "../auth.tsx"
 import { MusicPlayer } from "../components/MusicPlayer.tsx"
 import { getCustomDecks } from "../components/deck-builder/deck-storage.ts"
@@ -24,8 +24,6 @@ type LobbyMode = "create" | "join" | null
 export function NewGame() {
   const navigate = useNavigate()
   const { identity, signOut } = useAuth()
-  const qc = useQueryClient()
-
   const [mode, setMode] = useState<LobbyMode>(null)
   const [createDeck, setCreateDeck] = useState("1st_edition_starter_deck_a-1")
   const [joinDeck, setJoinDeck] = useState("1st_edition_starter_deck_b-1")
@@ -38,14 +36,10 @@ export function NewGame() {
   const [nicknameInput, setNicknameInput] = useState("")
   const [editingName, setEditingName] = useState(false)
 
-  const { data: deckList } = useQuery({
-    queryKey: ["decks"],
-    queryFn: listDecks,
-  })
+  const { data: deckList } = useFetch({ fn: listDecks })
 
-  const { data: profileData } = useQuery({
-    queryKey: ["my-profile", identity?.userId],
-    queryFn: () => getMyProfile(identity!),
+  const { data: profileData, refetch: refetchProfile } = useFetch({
+    fn: () => getMyProfile(identity!),
     enabled: !!identity,
   })
 
@@ -56,15 +50,14 @@ export function NewGame() {
   }, [profileData, nicknameInput])
 
   const { mutate: saveNickname } = useMutation({
-    mutationFn: (n: string) => updateNickname(identity!, n),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-profile", identity?.userId] }),
+    fn: (n: string) => updateNickname(identity!, n),
+    onSuccess: () => void refetchProfile(),
   })
 
-  const { data: lobbyStatus } = useQuery({
-    queryKey: ["lobby-status", waitingGameId, identity?.userId],
-    queryFn: () => getLobbyStatus(waitingGameId!, identity!),
+  const { data: lobbyStatus } = useFetch({
+    fn: () => getLobbyStatus(waitingGameId!, identity!),
     enabled: !!waitingGameId && !!identity,
-    refetchInterval: (q) => (q.state.data?.status === "waiting" ? 1500 : false),
+    refetchInterval: (d) => (d?.status === "waiting" ? 1500 : false),
   })
 
   useEffect(() => {

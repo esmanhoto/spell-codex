@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { useParams, useLocation, useNavigate } from "react-router-dom"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useFetch } from "../hooks/useFetch.ts"
 import { applyMove } from "@spell/engine"
 import type { GameState as EngineGameState } from "@spell/engine"
 import { getGameState, submitMove, createWsClient, loadDevScenario } from "../api.ts"
@@ -91,7 +91,6 @@ export function Game() {
   const devAs = bypass ? searchParams.get("devAs") : null
   const devScenarioId = bypass ? searchParams.get("scenario") : null
   const effectiveIdentity: typeof identity = devAs ? { userId: devAs, accessToken: null } : identity
-  const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [eventLog, setEventLog] = useState<GameEvent[]>([])
   const [wsError, setWsError] = useState<string | null>(null)
@@ -256,14 +255,12 @@ export function Game() {
     navigate(target)
   }
 
-  const { data, error, isLoading, refetch } = useQuery<GameState>({
-    queryKey: ["game", gameId, myPlayerId],
-    queryFn: () => getGameState(gameId!, effectiveIdentity!),
+  const { data, error, isLoading, refetch, setData: setGameData } = useFetch<GameState>({
+    fn: () => getGameState(gameId!, effectiveIdentity!),
     enabled: !!gameId && !!effectiveIdentity,
-    staleTime: Infinity,
     // Safety-net poll — MOVE_APPLIED delta handles real-time updates (Phase 6).
     // This only matters if WS drops silently without triggering a reconnect.
-    refetchInterval: (query) => (query.state.data?.winner ? false : 60_000),
+    refetchInterval: (d) => (d?.winner ? false : 60_000),
   })
   // Keep ref in sync so sendMove can access current state without a stale closure
   currentDataRef.current = data
@@ -409,7 +406,7 @@ export function Game() {
         // Preserve players (nicknames) — WS STATE_UPDATE doesn't include them
         const prev = currentDataRef.current
         const merged = prev?.players ? { ...state, players: prev.players } : state
-        qc.setQueryData(["game", gameId, myPlayerId], merged)
+        setGameData(merged)
         if (state.events?.length) processIncomingEvents(state.events)
       } else if (msg.type === "MOVE_APPLIED") {
         const engineState = localEngineStateRef.current
@@ -458,13 +455,13 @@ export function Game() {
         }
         // Server confirmed — clear rollback snapshot
         lastConfirmedStateRef.current = null
-        qc.setQueryData(["game", gameId, myPlayerId], merged)
+        setGameData(merged)
         if (newEngineState.events.length) processIncomingEvents(newEngineState.events)
       } else if (msg.type === "ERROR") {
         // Rollback optimistic state if we have a confirmed snapshot
         const confirmed = lastConfirmedStateRef.current
         if (confirmed) {
-          qc.setQueryData(["game", gameId, myPlayerId], confirmed)
+          setGameData(confirmed)
           lastConfirmedStateRef.current = null
         }
         setWsError(`${msg.code}: ${msg.message}`)
@@ -476,7 +473,7 @@ export function Game() {
         onChatWsMessage(msg)
       }
     },
-    [gameId, myPlayerId, onChatWsMessage, processIncomingEvents, qc, showWarning],
+    [gameId, myPlayerId, onChatWsMessage, processIncomingEvents, setGameData, showWarning],
   )
 
   useEffect(() => {
@@ -530,7 +527,7 @@ export function Game() {
               const optimistic = applyOptimisticMove(currentState, myPlayerId, moves[0]!)
               if (optimistic) {
                 lastConfirmedStateRef.current = currentState
-                qc.setQueryData(["game", gameId, myPlayerId], optimistic)
+                setGameData(optimistic)
               }
             }
             if (wsRef.current?.sendMove(moves[0]!)) return
@@ -542,7 +539,7 @@ export function Game() {
               .catch((err: unknown) => {
                 const confirmed = lastConfirmedStateRef.current
                 if (confirmed) {
-                  qc.setQueryData(["game", gameId, myPlayerId], confirmed)
+                  setGameData(confirmed)
                   lastConfirmedStateRef.current = null
                 }
                 const raw = err instanceof Error ? err.message : String(err)
@@ -563,7 +560,7 @@ export function Game() {
           const optimistic = applyOptimisticMove(currentState, myPlayerId, moves[0]!)
           if (optimistic) {
             lastConfirmedStateRef.current = currentState
-            qc.setQueryData(["game", gameId, myPlayerId], optimistic)
+            setGameData(optimistic)
           }
         }
       }
@@ -582,7 +579,7 @@ export function Game() {
             // Rollback optimistic state on HTTP error
             const confirmed = lastConfirmedStateRef.current
             if (confirmed) {
-              qc.setQueryData(["game", gameId, myPlayerId], confirmed)
+              setGameData(confirmed)
               lastConfirmedStateRef.current = null
             }
             const raw = err instanceof Error ? err.message : String(err)
@@ -638,7 +635,7 @@ export function Game() {
           console.error(err)
         })
     },
-    [gameId, effectiveIdentity, myPlayerId, qc, refetch, showWarning],
+    [gameId, effectiveIdentity, myPlayerId, setGameData, refetch, showWarning],
   )
 
   const submitRebuild = useCallback(
