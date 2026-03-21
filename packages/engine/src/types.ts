@@ -157,6 +157,8 @@ export interface PlayerState {
    * not yet attached to a specific champion or realm).
    */
   lastingEffects: CardInstance[]
+  /** Per-player hand size override — set by CHANGE_HAND_SIZE. undefined = use deckSize default. */
+  maxHandSizeOverride?: number | undefined
 }
 
 // ─── Turn-Triggered Ability System ───────────────────────────────────────────
@@ -420,6 +422,10 @@ export type Move =
   | { type: "CLAIM_SPOIL" }
   /** Skip remaining phases and end the turn (only when hand ≤ maxEnd) */
   | { type: "END_TURN" }
+  /** Draw N extra cards from own draw pile (manual tool for card effects) */
+  | { type: "DRAW_EXTRA_CARDS"; count: number }
+  /** Override this player's max hand size (manual tool for card effects) */
+  | { type: "CHANGE_HAND_SIZE"; newSize: number }
 
   // Combat moves — only legal during CARD_PLAY combat phase
   /** Override the auto-computed combat level for a participant */
@@ -661,6 +667,8 @@ export type GameEvent =
       destination: string
       declarations?: ResolutionDeclaration[]
     }
+  | { type: "EXTRA_CARDS_DRAWN"; playerId: PlayerId; count: number }
+  | { type: "HAND_SIZE_CHANGED"; playerId: PlayerId; newSize: number }
   | { type: "TURN_ENDED"; playerId: PlayerId }
   | { type: "GAME_OVER"; winner: PlayerId }
   | {

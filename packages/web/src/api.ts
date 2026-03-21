@@ -210,6 +210,8 @@ export type Move =
     }
   | { type: "REQUIRE_NEW_CHAMPION"; side: "attacker" | "defender" }
   | { type: "ALLOW_CHAMPION_REUSE"; cardInstanceId: string }
+  | { type: "DRAW_EXTRA_CARDS"; count: number }
+  | { type: "CHANGE_HAND_SIZE"; newSize: number }
   | { type: string; [key: string]: unknown }
 
 // ─── API calls ────────────────────────────────────────────────────────────────

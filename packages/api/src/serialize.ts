@@ -78,7 +78,10 @@ export function serializeGameState(
     turnNumber: state.currentTurn,
     turnDeadline,
     winner: state.winner ?? null,
-    handMaxSize: HAND_SIZES[state.deckSize]?.maxEnd ?? 8,
+    handMaxSize: (() => {
+      const pid = viewerPlayerId ?? state.activePlayer
+      return state.players[pid]?.maxHandSizeOverride ?? HAND_SIZES[state.deckSize]?.maxEnd ?? 8
+    })(),
     legalMoves: getLegalMoves(state, viewerPlayerId ?? state.activePlayer),
     legalMovesPerPlayer,
     board: serializeBoard(state, viewerPlayerId),
