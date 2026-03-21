@@ -106,6 +106,7 @@ function buildCombatState(
     attackerManualLevel: null,
     defenderManualLevel: null,
     stoppedPlayers: [],
+    borrowedChampions: {},
   }
 }
 

@@ -127,6 +127,7 @@ function withCombatCardPlayState(params: {
       attackerManualLevel: null,
       defenderManualLevel: null,
       stoppedPlayers: [],
+      borrowedChampions: {},
     },
   }
 }

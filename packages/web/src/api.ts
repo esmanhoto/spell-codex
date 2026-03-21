@@ -63,6 +63,8 @@ export interface CombatInfo {
   defenderLevel: number
   attackerManualLevel: number | null
   defenderManualLevel: number | null
+  championsUsedThisBattle: string[]
+  borrowedChampions: Record<string, string>
 }
 
 export interface ResolutionDeclarationInfo {
@@ -158,11 +160,11 @@ export type Move =
   | { type: "PLAY_RULE_CARD"; cardInstanceId: string }
   | { type: "PLAY_EVENT"; cardInstanceId: string }
   | { type: "DECLARE_ATTACK"; championId: string; targetPlayerId: string; targetRealmSlot: string }
-  | { type: "DECLARE_DEFENSE"; championId: string }
+  | { type: "DECLARE_DEFENSE"; championId: string; fromPlayerId?: string }
   | { type: "DECLINE_DEFENSE" }
   | { type: "PLAY_COMBAT_CARD"; cardInstanceId: string }
   | { type: "STOP_PLAYING" }
-  | { type: "CONTINUE_ATTACK"; championId: string }
+  | { type: "CONTINUE_ATTACK"; championId: string; fromPlayerId?: string }
   | { type: "END_ATTACK" }
   | { type: "INTERRUPT_COMBAT" }
   | { type: "DISCARD_CARD"; cardInstanceId: string }
@@ -199,6 +201,15 @@ export type Move =
   | { type: "RESOLVE_TRIGGER_DONE" }
   | { type: "PASS_COUNTER" }
   | { type: "USE_POOL_COUNTER"; cardInstanceId: string }
+  | {
+      type: "SWAP_COMBAT_CHAMPION"
+      side: "attacker" | "defender"
+      newChampionId: string
+      newChampionSource: "pool" | "hand" | "discard"
+      oldChampionDestination: "pool" | "discard" | "abyss" | "hand"
+    }
+  | { type: "REQUIRE_NEW_CHAMPION"; side: "attacker" | "defender" }
+  | { type: "ALLOW_CHAMPION_REUSE"; cardInstanceId: string }
   | { type: string; [key: string]: unknown }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
