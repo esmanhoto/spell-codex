@@ -425,8 +425,7 @@ export function handleResolveDone(
   return s
 }
 
-/** Place the resolved card in its destination while keeping resolutionContext open. */
-/** Place the resolved card after clearing the context. */
+/** Place the resolved card in its destination. */
 function placeResolvedCardCleared(
   state: GameState,
   resolvingPlayer: PlayerId,

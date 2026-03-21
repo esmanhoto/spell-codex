@@ -655,17 +655,6 @@ export type GameEvent =
       cancelledCardName: string
     }
   | {
-      type: "DECLARATION_SUBMITTED"
-      playerId: PlayerId
-      cardInstanceId: CardInstanceId
-      declarations: ResolutionDeclaration[]
-    }
-  | {
-      type: "DECLARATION_ACCEPTED"
-      playerId: PlayerId
-      cardInstanceId: CardInstanceId
-    }
-  | {
       type: "RESOLUTION_COMPLETED"
       playerId: PlayerId
       cardInstanceId: CardInstanceId

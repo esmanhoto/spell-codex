@@ -151,7 +151,6 @@ export type Move =
   | {
       type: "PLAY_PHASE3_CARD"
       cardInstanceId: string
-      keepInPlay?: boolean
       casterInstanceId?: string
       targetCardInstanceId?: string
       targetOwner?: "self" | "opponent"

@@ -1,7 +1,7 @@
 import { cardImageUrl } from "../../utils/card-helpers.ts"
 import type { CardInfo } from "../../api.ts"
 import { Modal, modalStyles as base } from "./Modal.tsx"
-import styles from "./SpellCastAnnouncementModal.module.css"
+import styles from "./ResolutionOutcomeModal.module.css"
 
 export interface ResolutionOutcome {
   card: CardInfo
