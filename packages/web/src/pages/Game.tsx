@@ -21,10 +21,6 @@ import { CasterSelectModal } from "../components/game/CasterSelectModal.tsx"
 import { ResolutionPanel } from "../components/game/ResolutionPanel.tsx"
 import { TriggerPanel } from "../components/game/TriggerPanel.tsx"
 import {
-  SpellCastAnnouncementModal,
-  type SpellCastAnnouncement,
-} from "../components/game/SpellCastAnnouncementModal.tsx"
-import {
   ResolutionOutcomeModal,
   type ResolutionOutcome,
 } from "../components/game/ResolutionOutcomeModal.tsx"
@@ -62,20 +58,6 @@ function filterLocalState(state: EngineGameState, viewerId: string): EngineGameS
   return { ...state, players }
 }
 
-type Phase3SpellCastEvent = {
-  type: "PHASE3_SPELL_CAST"
-  playerId: string
-  instanceId: string
-  setId: string
-  cardNumber: number
-  cardName: string
-  cardTypeId: number
-  keepInPlay?: boolean
-}
-
-function isPhase3SpellCastEvent(event: GameEvent): event is GameEvent & Phase3SpellCastEvent {
-  return event.type === "PHASE3_SPELL_CAST"
-}
 
 function collectCardImageUrls(deckCardImages?: Array<[string, number]>): string[] {
   const urls = new Set<string>()
@@ -128,8 +110,6 @@ export function Game() {
     casters: CardInfo[]
     target?: { cardInstanceId: string; owner: "self" | "opponent" }
   } | null>(null)
-  const [announcementQueue, setAnnouncementQueue] = useState<SpellCastAnnouncement[]>([])
-  const [activeAnnouncement, setActiveAnnouncement] = useState<SpellCastAnnouncement | null>(null)
   const [resolutionOutcome, setResolutionOutcome] = useState<ResolutionOutcome | null>(null)
   const [counterReveal, setCounterReveal] = useState<{
     setId: string
@@ -230,8 +210,6 @@ export function Game() {
   useEffect(() => {
     processedEventsRef.current = 0
     setEventLog([])
-    setAnnouncementQueue([])
-    setActiveAnnouncement(null)
   }, [gameId])
 
   // Cross-tab scenario restart: when another tab reloads a scenario, navigate here too
@@ -321,20 +299,7 @@ export function Game() {
       processedEventsRef.current = events.length
       setEventLog((prev) => [...prev, ...newEvents])
 
-      const announcements: SpellCastAnnouncement[] = []
       for (const event of newEvents) {
-        if (isPhase3SpellCastEvent(event)) {
-          if (event.playerId !== myPlayerId) {
-            announcements.push({
-              playerId: event.playerId,
-              playerLabel: "Opponent",
-              cardName: event.cardName,
-              setId: event.setId,
-              cardNumber: event.cardNumber,
-              keepInPlay: event.keepInPlay ?? false,
-            })
-          }
-        }
         // Accumulate effects while watching an opponent resolve
         if (resolutionWatchRef.current) {
           const watched = resolutionWatchRef.current
@@ -380,18 +345,32 @@ export function Game() {
         if (event.type === "RESOLUTION_COMPLETED" && event.playerId !== myPlayerId) {
           const watched = resolutionWatchRef.current
           if (watched && watched.playerId === event.playerId) {
+            const declEffects = ((event.declarations ?? []) as Array<Record<string, unknown>>).map(
+              (d) => {
+                switch (d.action) {
+                  case "raze_realm": return `Raze ${d.realmName ?? "realm"} (slot ${d.slot})`
+                  case "rebuild_realm": return `Rebuild ${d.realmName ?? "realm"} (slot ${d.slot})`
+                  case "discard_card": return `Discard ${d.cardName ?? "card"}`
+                  case "draw_cards": return `Draw ${d.count ?? 1} card(s)`
+                  case "return_to_pool": return `Return ${d.cardName ?? "champion"} to pool`
+                  case "move_card": return `Move ${d.cardName ?? "card"} to ${d.destination ?? "zone"}`
+                  case "other": return `${d.text ?? "Custom effect"}`
+                  default: return `${d.action}`
+                }
+              },
+            )
             setResolutionOutcome({
               card: watched.card,
               destination: event.destination as string,
               effects: watched.effects,
+              declarations: declEffects,
+              casterName: "your opponent",
             })
             resolutionWatchRef.current = null
           }
         }
       }
-      if (announcements.length > 0) {
-        setAnnouncementQueue((prev) => [...prev, ...announcements])
-      }
+
     },
     [myPlayerId, showWarning],
   )
@@ -652,11 +631,7 @@ export function Game() {
     if (data?.events?.length) processIncomingEvents(data.events)
   }, [data?.events, processIncomingEvents])
 
-  useEffect(() => {
-    if (activeAnnouncement || announcementQueue.length === 0) return
-    setActiveAnnouncement(announcementQueue[0]!)
-    setAnnouncementQueue((prev) => prev.slice(1))
-  }, [activeAnnouncement, announcementQueue])
+
 
   const dispatchSpellMove = useCallback(
     (args: {
@@ -716,11 +691,23 @@ export function Game() {
         return
       }
       if (game.activePlayer !== spellOwnerId) {
-        showWarning("Not your turn.")
-        return
+        // Allow out-of-turn casting for wizard spells, cleric spells, and counter_spell cards
+        const isOutOfTurnSpell =
+          spell.typeId === 4 ||
+          spell.typeId === 19 ||
+          (spell.effects as Array<{ type?: string }>).some((e) => e.type === "counter_spell")
+        if (!isOutOfTurnSpell) {
+          showWarning("Not your turn.")
+          return
+        }
       }
 
-      const move = resolveSpellMove(game.legalMoves, spell.instanceId)
+      let move = resolveSpellMove(game.legalMoves, spell.instanceId)
+      const isOutOfTurn = game.activePlayer !== spellOwnerId
+      // Out-of-turn spells won't appear in legalMoves (active-player only) — construct move directly
+      if (!move && isOutOfTurn) {
+        move = { type: "PLAY_PHASE3_CARD", cardInstanceId: spell.instanceId }
+      }
       const poolCasters = spellCastersInPool(spell, spellOwnerBoard)
       const combatCaster = spellCasterInCombat(
         spell,
@@ -973,44 +960,14 @@ export function Game() {
                 onClose={handleToggleChat}
               />
             )}
-            {data.resolutionContext &&
-              (() => {
-                // Build counter options from legalMoves for the waiting view
-                const myBoard = data.board.players[myPlayerId]
-                const counterOptions = data.legalMoves
-                  .filter((m) => m.type === "PLAY_EVENT" || m.type === "USE_POOL_COUNTER")
-                  .map((m) => {
-                    let card: CardInfo | null = null
-                    if (m.type === "PLAY_EVENT" && "cardInstanceId" in m) {
-                      card = myBoard?.hand.find((c) => c.instanceId === m.cardInstanceId) ?? null
-                    } else if (m.type === "USE_POOL_COUNTER" && "cardInstanceId" in m) {
-                      for (const entry of myBoard?.pool ?? []) {
-                        if (entry.champion.instanceId === m.cardInstanceId) {
-                          card = entry.champion
-                          break
-                        }
-                        const att = entry.attachments.find(
-                          (a: CardInfo) => a.instanceId === m.cardInstanceId,
-                        )
-                        if (att) {
-                          card = att
-                          break
-                        }
-                      }
-                    }
-                    return card ? { card, move: m } : null
-                  })
-                  .filter((x): x is { card: CardInfo; move: Move } => x !== null)
-                return (
-                  <ResolutionPanel
-                    ctx={data.resolutionContext}
-                    allBoards={data.board.players}
-                    myPlayerId={myPlayerId}
-                    counterOptions={counterOptions}
-                    onMove={sendMove}
-                  />
-                )
-              })()}
+            {data.resolutionContext && (
+              <ResolutionPanel
+                ctx={data.resolutionContext}
+                allBoards={data.board.players}
+                myPlayerId={myPlayerId}
+                onMove={sendMove}
+              />
+            )}
             {!data.resolutionContext && data.pendingTriggers && data.pendingTriggers.length > 0 && (
               <TriggerPanel
                 trigger={data.pendingTriggers[0]}
@@ -1033,14 +990,6 @@ export function Game() {
                   setCasterPrompt(null)
                 }}
                 onClose={() => setCasterPrompt(null)}
-              />
-            )}
-            {activeAnnouncement && (
-              <SpellCastAnnouncementModal
-                announcement={activeAnnouncement}
-                canCounter={false}
-                onCounter={() => {}}
-                onClose={() => setActiveAnnouncement(null)}
               />
             )}
             {resolutionOutcome && (
