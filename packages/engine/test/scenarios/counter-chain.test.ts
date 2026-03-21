@@ -23,6 +23,7 @@ function stateWithCounterWindow(): GameState {
     resolvingPlayer: "p1",
     cardDestination: "abyss",
     counterWindowOpen: true,
+    declarations: [],
   }
   return {
     ...base,
@@ -50,27 +51,11 @@ describe("counter window: legal moves", () => {
     }
   })
 
-  test("non-resolving player gets PASS_COUNTER + counter card moves", () => {
+  test("non-resolving player gets no legal moves (counter window is replay-only)", () => {
     const state = stateWithCounterWindow()
     const moves = getLegalMoves(state, "p2")
-
-    expect(moves.some((m) => m.type === "PASS_COUNTER")).toBe(true)
-    expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
-    // No other move types
-    const types = new Set(moves.map((m) => m.type))
-    expect(types.size).toBeLessThanOrEqual(2)
-  })
-
-  test("non-resolving player without counter cards only gets PASS_COUNTER", () => {
-    const state = {
-      ...stateWithCounterWindow(),
-      players: {
-        ...stateWithCounterWindow().players,
-        p2: { ...stateWithCounterWindow().players["p2"]!, hand: [] },
-      },
-    }
-    const moves = getLegalMoves(state, "p2")
-    expect(moves).toEqual([{ type: "PASS_COUNTER" }])
+    // Counter moves are no longer generated via legal moves — handlers are kept for replay only
+    expect(moves).toEqual([])
   })
 })
 

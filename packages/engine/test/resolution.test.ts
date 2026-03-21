@@ -16,8 +16,6 @@ import {
   MAGICAL_ITEM_PLUS2_PLUS1,
   HOLDING_FR,
   COUNTER_EVENT_CARD,
-  COUNTER_SPELL_CARD,
-  ARTIFACT_COUNTER_EVENT,
 } from "./fixtures.ts"
 
 // A Phase-3 offensive wizard spell (castable in Pool phase)
@@ -158,19 +156,72 @@ describe("legal moves during resolution", () => {
     expect(dests).toContain("in_play")
   })
 
-  test("RESOLVE_RAZE_REALM included for each unrazed realm", () => {
+  test("RESOLVE_RAZE_REALM included for resolving player's own unrazed realms only", () => {
     const s = openResolution()
     const moves = getLegalMoves(s, "p1")
     const razeMoves = moves.filter((m) => m.type === "RESOLVE_RAZE_REALM")
-    // p2 has 2 unrazed realms (A, B)
-    expect(razeMoves).toHaveLength(2)
+    // p1 has no realms in this setup, so no raze moves
+    expect(razeMoves).toHaveLength(0)
+    // p2's realms are NOT included (only the resolving player's own realms appear)
+    expect(razeMoves.every((m) => (m as { playerId: string }).playerId === "p1")).toBe(true)
   })
 
-  test("RESOLVE_REBUILD_REALM included for razed realms", () => {
-    let s = openResolution()
-    // Raze p2's realm A first
-    s = applyMove(s, "p1", { type: "RESOLVE_RAZE_REALM", playerId: "p2", slot: "A" }).newState
-    const moves = getLegalMoves(s, "p1")
+  test("RESOLVE_RAZE_REALM includes own realms when present", () => {
+    // Build a state where p1 has realms in formation
+    const event = ci("ev-1", EVENT_CARD)
+    const s = initGame(DEFAULT_CONFIG)
+    const state: GameState = {
+      ...s,
+      phase: Phase.Pool,
+      activePlayer: "p1",
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [event],
+          pool: [{ champion: ci("wiz-1", CHAMPION_WIZARD_FR), attachments: [] }],
+          formation: {
+            size: 6,
+            slots: {
+              A: { realm: ci("realm-p1-a", REALM_GENERIC), isRazed: false, holdings: [] },
+              B: { realm: ci("realm-p1-b", REALM_GENERIC), isRazed: false, holdings: [] },
+            },
+          },
+        },
+      },
+    }
+    const opened = applyMove(state, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
+    const moves = getLegalMoves(opened, "p1")
+    const razeMoves = moves.filter((m) => m.type === "RESOLVE_RAZE_REALM")
+    expect(razeMoves).toHaveLength(2)
+    expect(razeMoves.every((m) => (m as { playerId: string }).playerId === "p1")).toBe(true)
+  })
+
+  test("RESOLVE_REBUILD_REALM included for own razed realms", () => {
+    // Build a state where p1 has a razed realm
+    const event = ci("ev-1", EVENT_CARD)
+    const s = initGame(DEFAULT_CONFIG)
+    const state: GameState = {
+      ...s,
+      phase: Phase.Pool,
+      activePlayer: "p1",
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          hand: [event],
+          pool: [{ champion: ci("wiz-1", CHAMPION_WIZARD_FR), attachments: [] }],
+          formation: {
+            size: 6,
+            slots: {
+              A: { realm: ci("realm-p1-a", REALM_GENERIC), isRazed: true, holdings: [] },
+            },
+          },
+        },
+      },
+    }
+    const opened = applyMove(state, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
+    const moves = getLegalMoves(opened, "p1")
     const rebuildMoves = moves.filter((m) => m.type === "RESOLVE_REBUILD_REALM")
     expect(rebuildMoves).toHaveLength(1)
     expect((rebuildMoves[0] as { slot: string }).slot).toBe("A")
@@ -791,206 +842,35 @@ describe("resolution events", () => {
     expect(evt).toBeDefined()
     expect((evt as { destination: string }).destination).toBe("abyss")
   })
-})
 
-// ─── Counter window ───────────────────────────────────────────────────────────
-
-describe("counter window", () => {
-  /** p1 plays an event; p2 has a counter event card in hand. */
-  function buildStateWithCounterInHand(): GameState {
-    const s = initGame(DEFAULT_CONFIG)
-    return {
-      ...s,
-      phase: Phase.Pool,
-      activePlayer: "p1",
-      players: {
-        ...s.players,
-        p1: {
-          ...s.players["p1"]!,
-          hand: [ci("ev-1", EVENT_CARD)],
-          pool: [{ champion: ci("wiz-1", CHAMPION_WIZARD_FR), attachments: [] }],
-        },
-        p2: {
-          ...s.players["p2"]!,
-          hand: [ci("calm-1", COUNTER_EVENT_CARD)],
-        },
-      },
-    }
-  }
-
-  /** p1 plays an event; p2 has a counter artifact attached to a champion in pool. */
-  function buildStateWithCounterInPool(): GameState {
-    const s = initGame(DEFAULT_CONFIG)
-    return {
-      ...s,
-      phase: Phase.Pool,
-      activePlayer: "p1",
-      players: {
-        ...s.players,
-        p1: {
-          ...s.players["p1"]!,
-          hand: [ci("ev-1", EVENT_CARD)],
-          pool: [{ champion: ci("wiz-1", CHAMPION_WIZARD_FR), attachments: [] }],
-        },
-        p2: {
-          ...s.players["p2"]!,
-          pool: [
-            {
-              champion: ci("cleric-1", CHAMPION_CLERIC_FR),
-              attachments: [ci("rod-1", ARTIFACT_COUNTER_EVENT)],
-            },
-          ],
-        },
-      },
-    }
-  }
-
-  test("counterWindowOpen is true when opponent has a counter card in hand", () => {
-    const s = buildStateWithCounterInHand()
-    const { newState } = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" })
-    expect(newState.resolutionContext!.counterWindowOpen).toBe(true)
-  })
-
-  test("counterWindowOpen is false when opponent has no counter cards", () => {
+  test("RESOLVE_DONE with declarations clears context and includes declarations in event", () => {
     const event = ci("ev-1", EVENT_CARD)
     const s = buildPoolState({ handCard: event })
-    const { newState } = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" })
-    expect(newState.resolutionContext!.counterWindowOpen).toBe(false)
-  })
-
-  test("counterWindowOpen is true when opponent has a counter artifact in pool", () => {
-    const s = buildStateWithCounterInPool()
-    const { newState } = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" })
-    expect(newState.resolutionContext!.counterWindowOpen).toBe(true)
-  })
-
-  test("PASS_COUNTER closes the counter window", () => {
-    const s = buildStateWithCounterInHand()
     let state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    expect(state.resolutionContext!.counterWindowOpen).toBe(true)
-    state = applyMove(state, "p2", { type: "PASS_COUNTER" }).newState
-    expect(state.resolutionContext!.counterWindowOpen).toBe(false)
-    // resolution context still open — resolving player must still RESOLVE_DONE
     expect(state.resolutionContext).not.toBeNull()
-  })
 
-  test("PASS_COUNTER gives resolving player RESOLVE_* moves after window closes", () => {
-    const s = buildStateWithCounterInHand()
-    let state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    state = applyMove(state, "p2", { type: "PASS_COUNTER" }).newState
-    const moves = getLegalMoves(state, "p1")
-    expect(moves.some((m) => m.type === "RESOLVE_DONE")).toBe(true)
-  })
-
-  test("PASS_COUNTER throws when counter window not open", () => {
-    const event = ci("ev-1", EVENT_CARD)
-    const s = buildPoolState({ handCard: event })
-    const state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    // counter window is already false (no counter cards)
-    expect(() => applyMove(state, "p2", { type: "PASS_COUNTER" })).toThrow(EngineError)
-  })
-
-  test("PLAY_EVENT as counter (from hand) cancels the pending card", () => {
-    const s = buildStateWithCounterInHand()
-    let state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    // p2 counters with Calm
-    const { newState } = applyMove(state, "p2", {
-      type: "PLAY_EVENT",
-      cardInstanceId: "calm-1",
+    const { newState, events } = applyMove(state, "p1", {
+      type: "RESOLVE_DONE",
+      declarations: [{ action: "draw_cards", playerId: "p1", count: 2 }],
     })
+
     expect(newState.resolutionContext).toBeNull()
-    // counter card goes to abyss (event type)
-    expect(newState.players["p2"]!.abyss.some((c) => c.instanceId === "calm-1")).toBe(true)
-    // original pending card also goes to abyss (event type default)
-    expect(newState.players["p1"]!.abyss.some((c) => c.instanceId === "ev-1")).toBe(true)
-  })
-
-  test("PLAY_EVENT as counter emits COUNTER_PLAYED event", () => {
-    const s = buildStateWithCounterInHand()
-    let state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    const { events } = applyMove(state, "p2", { type: "PLAY_EVENT", cardInstanceId: "calm-1" })
-    const ev = events.find((e) => e.type === "COUNTER_PLAYED")
-    expect(ev).toBeDefined()
-    expect(ev!.cardName).toBe(COUNTER_EVENT_CARD.name)
-    expect(ev!.cancelledCardName).toBe(EVENT_CARD.name)
-  })
-
-  test("USE_POOL_COUNTER via artifact cancels the pending card and keeps card in pool", () => {
-    const s = buildStateWithCounterInPool()
-    let state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    expect(state.resolutionContext!.counterWindowOpen).toBe(true)
-
-    const { newState } = applyMove(state, "p2", {
-      type: "USE_POOL_COUNTER",
-      cardInstanceId: "rod-1",
-    })
-    expect(newState.resolutionContext).toBeNull()
-    // Rod stays in pool attachment
-    const p2Pool = newState.players["p2"]!.pool
-    expect(p2Pool.some((e) => e.attachments.some((a) => a.instanceId === "rod-1"))).toBe(true)
-    // original event goes to abyss
-    expect(newState.players["p1"]!.abyss.some((c) => c.instanceId === "ev-1")).toBe(true)
-  })
-
-  test("USE_POOL_COUNTER emits COUNTER_PLAYED event", () => {
-    const s = buildStateWithCounterInPool()
-    let state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    const { events } = applyMove(state, "p2", {
-      type: "USE_POOL_COUNTER",
-      cardInstanceId: "rod-1",
-    })
-    const ev = events.find((e) => e.type === "COUNTER_PLAYED")
-    expect(ev).toBeDefined()
-    expect(ev!.cardName).toBe(ARTIFACT_COUNTER_EVENT.name)
-  })
-
-  test("counter_spell card opens counter window (engine checks card presence, not card-vs-card match)", () => {
-    // The engine opens the counter window whenever any opponent has a counter card —
-    // it doesn't filter by whether the counter card matches the played card type.
-    // Actual applicability (spell vs event) is enforced at play time by handleCounterPlay.
-    const s = initGame(DEFAULT_CONFIG)
-    const state: GameState = {
-      ...s,
-      phase: Phase.Pool,
-      activePlayer: "p1",
-      players: {
-        ...s.players,
-        p1: {
-          ...s.players["p1"]!,
-          hand: [ci("ev-1", EVENT_CARD)],
-          pool: [{ champion: ci("wiz-1", CHAMPION_WIZARD_FR), attachments: [] }],
-        },
-        p2: {
-          ...s.players["p2"]!,
-          hand: [ci("dispel-1", COUNTER_SPELL_CARD)],
-        },
-      },
-    }
-    const afterPlay = applyMove(state, "p1", {
-      type: "PLAY_EVENT",
-      cardInstanceId: "ev-1",
-    }).newState
-    expect(afterPlay.resolutionContext!.counterWindowOpen).toBe(true)
-  })
-
-  test("p2 counter options visible in legal moves during counter window", () => {
-    const s = buildStateWithCounterInHand()
-    const state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    const moves = getLegalMoves(state, "p2")
-    expect(moves.some((m) => m.type === "PASS_COUNTER")).toBe(true)
-    expect(moves.some((m) => m.type === "PLAY_EVENT")).toBe(true)
-  })
-
-  test("resolving player still gets RESOLVE_* moves while counter window is open", () => {
-    // Both players can act simultaneously: resolving player with RESOLVE_*, opponent with counter moves
-    const s = buildStateWithCounterInHand()
-    const state = applyMove(s, "p1", { type: "PLAY_EVENT", cardInstanceId: "ev-1" }).newState
-    expect(state.resolutionContext!.counterWindowOpen).toBe(true)
-    const moves = getLegalMoves(state, "p1")
-    expect(moves.some((m) => m.type === "RESOLVE_DONE")).toBe(true)
-    expect(moves.some((m) => m.type === "PASS")).toBe(false)
+    const evt = events.find((e) => e.type === "RESOLUTION_COMPLETED")
+    expect(evt).toBeDefined()
+    expect((evt as { declarations: unknown[] }).declarations).toHaveLength(1)
+    expect(
+      (evt as { declarations: Array<{ action: string; count: number }> }).declarations[0]!.action,
+    ).toBe("draw_cards")
+    expect(
+      (evt as { declarations: Array<{ action: string; count: number }> }).declarations[0]!.count,
+    ).toBe(2)
   })
 })
+
+// Counter window mechanics (PASS_COUNTER, PLAY_EVENT as counter, USE_POOL_COUNTER)
+// are tested in counter-chain.test.ts.
+// counterWindowOpen is a deprecated field kept only for replay compatibility — it is
+// no longer set by openResolutionContext in new games.
 
 // ─── DEV_GIVE_CARD ────────────────────────────────────────────────────────────
 
