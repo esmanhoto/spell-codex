@@ -334,6 +334,27 @@ export function Game() {
               break
           }
         }
+        // Set resolution watch synchronously when opponent casts a spell (avoids race with useEffect)
+        if (event.type === "PHASE3_SPELL_CAST" && event.playerId !== myPlayerId) {
+          resolutionWatchRef.current = {
+            card: {
+              instanceId: event.instanceId as string,
+              name: event.cardName as string,
+              typeId: event.cardTypeId as number,
+              worldId: 0,
+              level: null,
+              setId: event.setId as string,
+              cardNumber: event.cardNumber as number,
+              description: "",
+              supportIds: [],
+              spellNature: null,
+              castPhases: [],
+              effects: [],
+            },
+            playerId: event.playerId as string,
+            effects: [],
+          }
+        }
         if (event.type === "COUNTER_PLAYED" && event.playerId !== myPlayerId) {
           setCounterReveal({
             setId: event.setId as string,

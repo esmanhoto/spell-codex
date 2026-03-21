@@ -28,7 +28,7 @@ export function ResolutionOutcomeModal({
   const label = cardLabel(outcome.card.typeId)
 
   return (
-    <Modal title={label.title} onClose={onClose}>
+    <Modal title={label.title} onClose={onClose} testId="spell-cast-modal">
       <div className={base.message}>
         Opponent {label.verb} <strong>{outcome.card.name}</strong>
         {/[.!?]$/.test(outcome.card.name) ? "" : "."}

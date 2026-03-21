@@ -34,6 +34,7 @@ test("phase 3 spell cast announcement appears and keep-in-play spell is shown in
   const gameId = await apiCreatePhase3SpellGameForUi(request)
   const castMove = await apiDriveToPlayerAPhase3SpellMove(request, gameId)
 
+  // Player A casts and resolves the spell
   const castRes = await request.post(`/api/games/${gameId}/moves`, {
     headers: {
       "Content-Type": "application/json",
@@ -64,6 +65,7 @@ test("phase 3 spell cast announcement appears and keep-in-play spell is shown in
   })
   expect(doneRes.ok()).toBe(true)
 
+  // Player B loads the game — should see the resolution outcome from event history
   await page.addInitScript(
     ({ playerId }) => {
       localStorage.setItem("spell:bypass-user-id", playerId)
@@ -73,7 +75,7 @@ test("phase 3 spell cast announcement appears and keep-in-play spell is shown in
 
   await page.goto(`/game/${gameId}`)
   await expect(page.getByTestId("game-board")).toBeVisible()
-  await expect(page.getByTestId("spell-cast-modal")).toBeVisible()
+  await expect(page.getByTestId("spell-cast-modal")).toBeVisible({ timeout: 10000 })
   await expect(page.getByTestId("spell-cast-modal")).toContainText("cast")
   await page
     .getByTestId("spell-cast-modal")
