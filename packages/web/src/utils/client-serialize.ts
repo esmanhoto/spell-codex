@@ -62,7 +62,8 @@ export function serializeEngineStateForClient(
     turnNumber: state.currentTurn,
     turnDeadline: extra.turnDeadline,
     winner: extra.winner,
-    handMaxSize: HAND_SIZES[state.deckSize]?.maxEnd ?? 8,
+    handMaxSize: state.players[viewerPlayerId]?.maxHandSizeOverride
+      ?? HAND_SIZES[state.deckSize]?.maxEnd ?? 8,
     legalMoves,
     legalMovesPerPlayer: { [viewerPlayerId]: legalMoves },
     board,
