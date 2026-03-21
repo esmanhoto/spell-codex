@@ -14,6 +14,7 @@ import {
 } from "../components/deck-builder/deck-constants.ts"
 import { loadSavedDecks, persistDecks } from "../components/deck-builder/deck-storage.ts"
 import type { CardRef } from "../components/deck-builder/deck-storage.ts"
+import { useAuth } from "../auth.tsx"
 import styles from "./DeckBuilder.module.css"
 
 export function DeckBuilder() {
@@ -26,6 +27,8 @@ function DeckBuilderInner() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const editName = searchParams.get("edit")
+  const { identity } = useAuth()
+  const userId = identity?.userId ?? ""
 
   const { data, isLoading } = useQuery({
     queryKey: ["set-cards", "1st"],
@@ -36,7 +39,7 @@ function DeckBuilderInner() {
 
   const [selected, setSelected] = useState<Set<number>>(() => {
     if (editName) {
-      const saved = loadSavedDecks().find((d) => d.name === editName)
+      const saved = loadSavedDecks(userId).find((d) => d.name === editName)
       if (saved) return new Set(saved.cards.map((c) => c.cardNumber))
     }
     return new Set()
@@ -46,7 +49,7 @@ function DeckBuilderInner() {
   const [worldFilter, setWorldFilter] = useState<Set<number>>(new Set())
   const [deckName, setDeckName] = useState(editName ?? "")
   const [toast, setToast] = useState<string | null>(null)
-  const [savedDecks, setSavedDecks] = useState(loadSavedDecks)
+  const [savedDecks, setSavedDecks] = useState(() => loadSavedDecks(userId))
 
   const cardsByCategory = useMemo(() => {
     const map = new Map<string, SetCardData[]>()
@@ -152,8 +155,8 @@ function DeckBuilderInner() {
   }
 
   function deleteDeck(name: string) {
-    const decks = loadSavedDecks().filter((d) => d.name !== name)
-    persistDecks(decks)
+    const decks = loadSavedDecks(userId).filter((d) => d.name !== name)
+    persistDecks(userId, decks)
     setSavedDecks(decks)
     if (editName === name) {
       navigate("/deck-builder", { replace: true })
@@ -170,9 +173,9 @@ function DeckBuilderInner() {
     const cards: CardRef[] = allCards
       .filter((c) => selected.has(c.cardNumber))
       .map((c) => ({ setId: c.setId, cardNumber: c.cardNumber }))
-    const decks = loadSavedDecks().filter((d) => d.name !== name)
+    const decks = loadSavedDecks(userId).filter((d) => d.name !== name)
     decks.push({ name, cards })
-    persistDecks(decks)
+    persistDecks(userId, decks)
     setSavedDecks(decks)
     setToast(`Deck "${name}" saved`)
     setTimeout(() => setToast(null), 2500)

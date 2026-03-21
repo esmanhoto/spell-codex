@@ -168,7 +168,7 @@ export function NewGame() {
   }
 
   const decks = deckList?.decks ?? []
-  const customDecks = getCustomDecks()
+  const customDecks = getCustomDecks(identity?.userId ?? "")
 
   function DeckOptions() {
     return (
