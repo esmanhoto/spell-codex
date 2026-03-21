@@ -193,6 +193,20 @@ export interface TriggerEntry {
 // ─── Resolution System ────────────────────────────────────────────────────────
 
 /**
+ * A declared effect that the resolving player wants to happen.
+ * Informational only — the engine stores but does not execute these.
+ * The opponent sees the declarations and manually performs them after acceptance.
+ */
+export type ResolutionDeclaration =
+  | { action: "raze_realm"; playerId: PlayerId; slot: FormationSlot; realmName: string }
+  | { action: "rebuild_realm"; playerId: PlayerId; slot: FormationSlot; realmName: string }
+  | { action: "discard_card"; playerId: PlayerId; cardInstanceId: CardInstanceId; cardName: string }
+  | { action: "draw_cards"; playerId: PlayerId; count: number }
+  | { action: "return_to_pool"; playerId: PlayerId; cardInstanceId: CardInstanceId; cardName: string }
+  | { action: "move_card"; cardInstanceId: CardInstanceId; cardName: string; destination: string }
+  | { action: "other"; text: string }
+
+/**
  * Where RESOLVE_MOVE_CARD places a card.
  * "void" semantically removes from the game (mapped to abyss in engine).
  */
@@ -230,12 +244,10 @@ export interface ResolutionContext {
   cardDestination: "discard" | "abyss" | "void" | "in_play"
   /** If in_play, where it attaches (optional) */
   attachTarget?: AttachTarget
-  /**
-   * True when at least one opponent has a tagged counter card in hand and has not yet
-   * acknowledged. While true, the resolving player cannot apply resolution effects.
-   * Opponents may send PASS_COUNTER (acknowledge) or play a counter card.
-   */
-  counterWindowOpen: boolean
+  /** @deprecated Kept for replay compatibility — no longer set in new games. */
+  counterWindowOpen?: boolean
+  /** Declared effects the resolving player wants to happen (informational only). */
+  declarations: ResolutionDeclaration[]
 }
 
 // ─── Combat ───────────────────────────────────────────────────────────────────
@@ -447,8 +459,9 @@ export type Move =
       destination: "discard" | "abyss" | "void" | "in_play"
       attachTarget?: AttachTarget
     }
-  /** Finish resolution — places the resolved card in its destination */
-  | { type: "RESOLVE_DONE" }
+  /** Finish resolution — places the resolved card in its destination.
+   *  Optional declarations are stored in the RESOLUTION_COMPLETED event for opponent notification. */
+  | { type: "RESOLVE_DONE"; declarations?: ResolutionDeclaration[] }
 
   // Trigger resolution moves — only legal when pendingTriggers is non-empty.
   // These are generic tools; players choose what applies to their card's text.
@@ -606,10 +619,22 @@ export type GameEvent =
       cancelledCardName: string
     }
   | {
+      type: "DECLARATION_SUBMITTED"
+      playerId: PlayerId
+      cardInstanceId: CardInstanceId
+      declarations: ResolutionDeclaration[]
+    }
+  | {
+      type: "DECLARATION_ACCEPTED"
+      playerId: PlayerId
+      cardInstanceId: CardInstanceId
+    }
+  | {
       type: "RESOLUTION_COMPLETED"
       playerId: PlayerId
       cardInstanceId: CardInstanceId
       destination: string
+      declarations?: ResolutionDeclaration[]
     }
   | { type: "TURN_ENDED"; playerId: PlayerId }
   | { type: "GAME_OVER"; winner: PlayerId }
