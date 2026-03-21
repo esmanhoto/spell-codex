@@ -29,6 +29,9 @@
     "bench": "bun test --cwd packages/engine --filter perf && bun --env-file=.env --cwd packages/api test --filter perf",
     "perf:parse": "bun scripts/parse-server-perf.ts"
   },
+  "dependencies": {
+    "@tanstack/react-query": "^5.80.7"
+  },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
     "eslint": "^9.23.0",
