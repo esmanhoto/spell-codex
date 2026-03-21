@@ -7,12 +7,8 @@
     "jsx": "react-jsx",
     "allowImportingTsExtensions": true,
     "paths": {
-      "@tanstack/react-query": [
-        "./node_modules/@tanstack/react-query/build/modern/index.d.ts"
-      ],
-      "@tanstack/query-core": [
-        "./node_modules/@tanstack/query-core/build/modern/index.d.ts"
-      ]
+      "@tanstack/react-query": ["./node_modules/@tanstack/react-query/build/modern/index.d.ts"],
+      "@tanstack/query-core": ["./node_modules/@tanstack/query-core/build/modern/index.d.ts"]
     }
   },
   "include": ["src"]
