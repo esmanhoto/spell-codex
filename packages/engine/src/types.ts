@@ -456,6 +456,8 @@ export type Move =
       cardInstanceId: CardInstanceId
       destination: "hand" | "deck" | "pool"
     }
+  /** Shuffle entire discard pile into draw pile */
+  | { type: "SHUFFLE_DISCARD_INTO_DRAW_PILE"; playerId: PlayerId }
 
   // Resolution moves — only legal when resolutionContext is active
   /** Move any in-play or in-zone card to a destination */
@@ -603,6 +605,11 @@ export type GameEvent =
       playerId: PlayerId
       instanceId: CardInstanceId
       destination: "hand" | "deck" | "pool"
+    }
+  | {
+      type: "DISCARD_SHUFFLED_INTO_DRAW"
+      playerId: PlayerId
+      count: number
     }
   | {
       type: "COMBAT_CHAMPION_SWAPPED"

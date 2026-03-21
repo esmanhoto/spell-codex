@@ -84,6 +84,12 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
   // Active player may always return cards from any discard pile
   const returnFromDiscardMoves: Move[] = []
   for (const [ownerId, player] of Object.entries(state.players)) {
+    if (player.discardPile.length > 0) {
+      returnFromDiscardMoves.push({
+        type: "SHUFFLE_DISCARD_INTO_DRAW_PILE",
+        playerId: ownerId,
+      })
+    }
     for (const card of player.discardPile) {
       returnFromDiscardMoves.push({
         type: "RETURN_FROM_DISCARD",

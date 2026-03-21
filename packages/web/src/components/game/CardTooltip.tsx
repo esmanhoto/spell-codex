@@ -46,7 +46,7 @@ export function CardTooltip({
       {children}
       {show &&
         createPortal(
-          <div className={styles.tooltip} style={{ ...getTooltipStyle(), zIndex: 500 }}>
+          <div className={styles.tooltip} style={{ ...getTooltipStyle(), zIndex: 450 }}>
             {list.map((c) => (
               <div key={c.instanceId} className={styles.item}>
                 <div className={styles.icon}>
