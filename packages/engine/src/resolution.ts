@@ -399,6 +399,7 @@ export function handleResolveSetCardDestination(
 export function handleResolveDone(
   state: GameState,
   _playerId: PlayerId,
+  move: Extract<Move, { type: "RESOLVE_DONE" }>,
   events: GameEvent[],
 ): GameState {
   assertResolution(state)
@@ -406,23 +407,48 @@ export function handleResolveDone(
   const ctx = state.resolutionContext!
   const { pendingCard, cardDestination, resolvingPlayer, attachTarget } = ctx
 
+  // Merge any declarations from the move into the context
+  const declarations = move.declarations ?? ctx.declarations
+
+  // Clear context and place the card
   let s: GameState = { ...state, resolutionContext: null }
-  const player = s.players[resolvingPlayer]!
+  s = placeResolvedCardCleared(s, resolvingPlayer, pendingCard, cardDestination, attachTarget, events)
+
+  events.push({
+    type: "RESOLUTION_COMPLETED",
+    playerId: resolvingPlayer,
+    cardInstanceId: pendingCard.instanceId,
+    destination: cardDestination,
+    declarations,
+  })
+
+  return s
+}
+
+/** Place the resolved card in its destination while keeping resolutionContext open. */
+/** Place the resolved card after clearing the context. */
+function placeResolvedCardCleared(
+  state: GameState,
+  resolvingPlayer: PlayerId,
+  pendingCard: CardInstance,
+  cardDestination: ResolutionContext["cardDestination"],
+  attachTarget: ResolutionContext["attachTarget"],
+  events: GameEvent[],
+): GameState {
+  const player = state.players[resolvingPlayer]!
 
   switch (cardDestination) {
     case "discard":
-      s = updatePlayer(s, resolvingPlayer, { discardPile: [...player.discardPile, pendingCard] })
-      break
+      return updatePlayer(state, resolvingPlayer, { discardPile: [...player.discardPile, pendingCard] })
 
     case "abyss":
     case "void":
-      s = updatePlayer(s, resolvingPlayer, { abyss: [...player.abyss, pendingCard] })
-      break
+      return updatePlayer(state, resolvingPlayer, { abyss: [...player.abyss, pendingCard] })
 
     case "in_play": {
       if (attachTarget?.zone === "pool" && attachTarget.targetInstanceId) {
         const owner = attachTarget.owner
-        const ownerPlayer = s.players[owner]!
+        const ownerPlayer = state.players[owner]!
         const poolIdx = ownerPlayer.pool.findIndex(
           (e) => e.champion.instanceId === attachTarget.targetInstanceId,
         )
@@ -436,55 +462,24 @@ export function handleResolveDone(
             itemId: pendingCard.instanceId,
             championId: attachTarget.targetInstanceId,
           })
-          s = updatePlayer(s, owner, { pool: newPool })
-          break
+          return updatePlayer(state, owner, { pool: newPool })
         }
       }
-      // Fallback / no attachTarget: keep in lasting effects zone
-      s = updatePlayer(s, resolvingPlayer, {
+      return updatePlayer(state, resolvingPlayer, {
         lastingEffects: [...player.lastingEffects, pendingCard],
       })
-      break
     }
 
     default:
-      s = updatePlayer(s, resolvingPlayer, { discardPile: [...player.discardPile, pendingCard] })
+      return updatePlayer(state, resolvingPlayer, { discardPile: [...player.discardPile, pendingCard] })
   }
-
-  events.push({
-    type: "RESOLUTION_COMPLETED",
-    playerId: resolvingPlayer,
-    cardInstanceId: pendingCard.instanceId,
-    destination: cardDestination,
-  })
-
-  return s
 }
 
 // ─── Resolution context opener ────────────────────────────────────────────────
 
-const COUNTER_EFFECT_TYPES = new Set(["counter_event", "counter_spell"])
-
-function opponentsHaveCounterCards(state: GameState, initiatingPlayer: PlayerId): boolean {
-  for (const [pid, player] of Object.entries(state.players)) {
-    if (pid === initiatingPlayer) continue
-    const hasEffect = (inst: CardInstance) =>
-      inst.card.effects.some((e) => COUNTER_EFFECT_TYPES.has(e.type))
-    // Hand: Dispel Magic, Calm, etc.
-    if (player.hand.some(hasEffect)) return true
-    // Pool: champion abilities (Delsenora) and attached artifacts (Rod, Dori's Cape)
-    for (const entry of player.pool) {
-      if (hasEffect(entry.champion)) return true
-      if (entry.attachments.some(hasEffect)) return true
-    }
-  }
-  return false
-}
-
 /**
  * Opens a resolution context after a card is played.
  * The card is removed from hand by the caller; its instance is stored here.
- * Sets counterWindowOpen if any opponent has a tagged counter card in hand or pool.
  */
 export function openResolutionContext(
   state: GameState,
@@ -508,12 +503,14 @@ export function openResolutionContext(
       initiatingPlayer: playerId,
       resolvingPlayer: playerId,
       cardDestination: defaultDestination,
-      counterWindowOpen: opponentsHaveCounterCards(state, playerId),
+      declarations: [],
     },
   }
 }
 
-// ─── Counter window handlers ──────────────────────────────────────────────────
+// ─── Counter window handlers (kept for replay compatibility) ─────────────────
+
+const COUNTER_EFFECT_TYPES = new Set(["counter_event", "counter_spell"])
 
 /**
  * Non-resolving player passes on the counter window, allowing resolution to proceed.
