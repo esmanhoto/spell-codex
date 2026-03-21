@@ -1,8 +1,6 @@
-import { useState, useEffect, useMemo } from "react"
-import type { Move, ResolutionContextInfo, PlayerBoard, CardInfo } from "../../api.ts"
+import { useState, useEffect, useMemo, useRef } from "react"
+import type { Move, ResolutionContextInfo, ResolutionDeclarationInfo, PlayerBoard } from "../../api.ts"
 import { CHAMPION_TYPE_IDS } from "@spell/engine"
-import { cardImageUrl } from "../../utils/card-helpers.ts"
-import { CardTooltip } from "./CardTooltip.tsx"
 import styles from "./ResolutionPanel.module.css"
 
 const DEST_LABELS: Record<string, string> = {
@@ -32,7 +30,7 @@ const CATEGORY_LABELS: Record<ActionCategory, string> = {
   discard_holding: "Discard/Remove Holding",
   draw_cards: "Draw Cards",
   return_to_play: "Return Champion to Pool",
-  other: "Other / Manual Effect",
+  other: "Other Effects",
 }
 
 const ALLY_TYPE_ID = 1
@@ -141,24 +139,24 @@ export function ResolutionPanel({
   ctx,
   allBoards,
   myPlayerId,
-  counterOptions,
   onMove,
 }: {
   ctx: ResolutionContextInfo
   allBoards: Record<string, PlayerBoard>
   myPlayerId: string
-  /** Counter cards available to use (hand + pool), derived from legalMoves in Game.tsx */
-  counterOptions?: Array<{ card: CardInfo; move: Move }>
   onMove: (m: Move | Move[]) => void
 }) {
   const [selectedCategory, setSelectedCategory] = useState<ActionCategory | null>(null)
   const [checkedCards, setCheckedCards] = useState<Set<string>>(new Set())
   const [checkedRealms, setCheckedRealms] = useState<Set<string>>(new Set())
   const [drawCount, setDrawCount] = useState(1)
-  const [waitingDismissed, setWaitingDismissed] = useState(false)
+  const [otherText, setOtherText] = useState("")
   const [pendingDone, setPendingDone] = useState(false)
   const [localDestination, setLocalDestination] = useState<string | null>(null)
-  const [selectedCounterIdx, setSelectedCounterIdx] = useState(0)
+  // Declarations accumulated from draw_cards actions
+  const [declarations, setDeclarations] = useState<ResolutionDeclarationInfo[]>([])
+  // Self-affecting moves collected at Done time, sent with final batch
+  const pendingSelfMovesRef = useRef<Move[]>([])
   const isMyResolution = ctx.resolvingPlayer === myPlayerId
   const targets = useMemo(() => collectTargets(allBoards), [allBoards])
   const availableCategories = getAvailableCategories(targets)
@@ -168,81 +166,15 @@ export function ResolutionPanel({
     setCheckedCards(new Set())
     setCheckedRealms(new Set())
     setDrawCount(1)
-    setWaitingDismissed(false)
     setPendingDone(false)
     setLocalDestination(null)
-    setSelectedCounterIdx(0)
+    setDeclarations([])
+    pendingSelfMovesRef.current = []
   }, [ctx.cardInstanceId])
 
-  // Waiting view for non-resolving player
+  // Non-resolving player: nothing to show (they'll get a notification modal via events)
   if (!isMyResolution) {
-    if (waitingDismissed) return null
-    const hasCounterWindow = ctx.counterWindowOpen && (counterOptions?.length ?? 0) > 0
-    const selectedCounter = counterOptions?.[selectedCounterIdx] ?? counterOptions?.[0]
-    return (
-      <div className={styles.overlayModal}>
-        <div className={styles.panelModal}>
-          <div className={styles.header}>
-            <div className={styles.label}>Resolving Effect</div>
-            <div className={styles.cardName}>{ctx.pendingCard.name}</div>
-            {ctx.pendingCard.description && (
-              <div className={styles.cardDesc}>{ctx.pendingCard.description}</div>
-            )}
-          </div>
-          <img
-            src={cardImageUrl(ctx.pendingCard.setId, ctx.pendingCard.cardNumber)}
-            alt={ctx.pendingCard.name}
-            className={styles.cardImgSmall}
-          />
-          {hasCounterWindow && counterOptions && (
-            <div className={styles.counterSection}>
-              <div className={styles.counterLabel}>You MAY be able to counter with:</div>
-              {counterOptions.map((opt, i) => (
-                <CardTooltip key={i} card={opt.card}>
-                  <div
-                    className={
-                      i === selectedCounterIdx
-                        ? styles.counterCardNameSelected
-                        : styles.counterCardName
-                    }
-                    onClick={() => setSelectedCounterIdx(i)}
-                  >
-                    {opt.card.name}
-                  </div>
-                </CardTooltip>
-              ))}
-            </div>
-          )}
-          <div className={styles.counterActions}>
-            {hasCounterWindow ? (
-              <>
-                <button
-                  className={styles.counterBtn}
-                  onClick={() => selectedCounter && onMove(selectedCounter.move)}
-                >
-                  Counter
-                </button>
-                <button
-                  className={styles.allowBtn}
-                  onClick={() => onMove({ type: "PASS_COUNTER" })}
-                >
-                  Allow
-                </button>
-              </>
-            ) : ctx.counterWindowOpen ? (
-              // Counter window open but no usable cards — must allow
-              <button className={styles.allowBtn} onClick={() => onMove({ type: "PASS_COUNTER" })}>
-                Allow
-              </button>
-            ) : (
-              <button className={styles.okBtn} onClick={() => setWaitingDismissed(true)}>
-                Ok
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    )
+    return null
   }
 
   // ── Post-Done: card destination picker ──────────────────────────────────
@@ -274,11 +206,12 @@ export function ResolutionPanel({
             className={styles.doneBtn}
             onClick={() => {
               const dest = localDestination ?? ctx.cardDestination
-              const moves: Move[] = []
+              const moves: Move[] = [...pendingSelfMovesRef.current]
               if (dest !== ctx.cardDestination) {
                 moves.push({ type: "RESOLVE_SET_CARD_DESTINATION", destination: dest })
               }
-              moves.push({ type: "RESOLVE_DONE" })
+              const allDecls = declarations.length > 0 ? declarations : undefined
+              moves.push({ type: "RESOLVE_DONE", declarations: allDecls })
               onMove(moves.length === 1 ? moves[0]! : moves)
             }}
           >
@@ -298,8 +231,6 @@ export function ResolutionPanel({
 
   function handleCategoryChange(value: string) {
     setSelectedCategory(value === "" ? null : (value as ActionCategory))
-    setCheckedCards(new Set())
-    setCheckedRealms(new Set())
   }
 
   function toggleCard(instanceId: string) {
@@ -320,42 +251,94 @@ export function ResolutionPanel({
     })
   }
 
-  // ── Apply handlers ──────────────────────────────────────────────────────
-
-  function applyMoveCards(cards: TargetCard[]) {
-    const moves: Move[] = cards
-      .filter((c) => checkedCards.has(c.instanceId))
-      .map((c) => ({
-        type: "RESOLVE_MOVE_CARD" as const,
-        cardInstanceId: c.instanceId,
-        destination: { zone: "discard", playerId: c.playerId },
-      }))
-    if (moves.length > 0) onMove(moves)
-    setCheckedCards(new Set())
+  function isOpponent(playerId: string) {
+    return playerId !== myPlayerId
   }
 
-  function applyRaze() {
-    const moves: Move[] = targets.unrazedRealms
-      .filter((r) => checkedRealms.has(`${r.playerId}-${r.slot}`))
-      .map((r) => ({ type: "RESOLVE_RAZE_REALM" as const, playerId: r.playerId, slot: r.slot }))
-    if (moves.length > 0) onMove(moves)
-    setCheckedRealms(new Set())
+  /** Collect all checked items across all categories, split into self moves + opponent declarations */
+  function collectAllChecked(): { selfMoves: Move[]; opponentDecls: ResolutionDeclarationInfo[] } {
+    const selfMoves: Move[] = []
+    const opponentDecls: ResolutionDeclarationInfo[] = []
+
+    const allCardTargets = [
+      ...targets.champions,
+      ...targets.allies,
+      ...targets.items,
+      ...targets.holdings,
+    ]
+    for (const c of allCardTargets) {
+      if (!checkedCards.has(c.instanceId)) continue
+      if (isOpponent(c.playerId)) {
+        opponentDecls.push({
+          action: "discard_card",
+          playerId: c.playerId,
+          cardInstanceId: c.instanceId,
+          cardName: c.name,
+        })
+      } else {
+        selfMoves.push({
+          type: "RESOLVE_MOVE_CARD",
+          cardInstanceId: c.instanceId,
+          destination: { zone: "discard", playerId: c.playerId },
+        })
+      }
+    }
+
+    for (const c of targets.discardChampions) {
+      if (!checkedCards.has(c.instanceId)) continue
+      if (isOpponent(c.playerId)) {
+        opponentDecls.push({
+          action: "return_to_pool",
+          playerId: c.playerId,
+          cardInstanceId: c.instanceId,
+          cardName: c.name,
+        })
+      } else {
+        selfMoves.push({ type: "RESOLVE_RETURN_TO_POOL", cardInstanceId: c.instanceId })
+      }
+    }
+
+    for (const r of targets.unrazedRealms) {
+      const key = `${r.playerId}-${r.slot}`
+      if (!checkedRealms.has(key)) continue
+      if (isOpponent(r.playerId)) {
+        opponentDecls.push({
+          action: "raze_realm",
+          playerId: r.playerId,
+          slot: r.slot,
+          realmName: r.realmName,
+        })
+      } else {
+        selfMoves.push({ type: "RESOLVE_RAZE_REALM", playerId: r.playerId, slot: r.slot })
+      }
+    }
+    for (const r of targets.razedRealms) {
+      const key = `${r.playerId}-${r.slot}`
+      if (!checkedRealms.has(key)) continue
+      if (isOpponent(r.playerId)) {
+        opponentDecls.push({
+          action: "rebuild_realm",
+          playerId: r.playerId,
+          slot: r.slot,
+          realmName: r.realmName,
+        })
+      } else {
+        selfMoves.push({ type: "RESOLVE_REBUILD_REALM", playerId: r.playerId, slot: r.slot })
+      }
+    }
+
+    return { selfMoves, opponentDecls }
   }
 
-  function applyRebuild() {
-    const moves: Move[] = targets.razedRealms
-      .filter((r) => checkedRealms.has(`${r.playerId}-${r.slot}`))
-      .map((r) => ({ type: "RESOLVE_REBUILD_REALM" as const, playerId: r.playerId, slot: r.slot }))
-    if (moves.length > 0) onMove(moves)
-    setCheckedRealms(new Set())
-  }
-
-  function applyReturnToPool() {
-    const moves: Move[] = targets.discardChampions
-      .filter((c) => checkedCards.has(c.instanceId))
-      .map((c) => ({ type: "RESOLVE_RETURN_TO_POOL" as const, cardInstanceId: c.instanceId }))
-    if (moves.length > 0) onMove(moves)
-    setCheckedCards(new Set())
+  function handleDoneResolving() {
+    const { selfMoves, opponentDecls } = collectAllChecked()
+    const allDecls = [...declarations, ...opponentDecls]
+    if (otherText.trim()) {
+      allDecls.push({ action: "other", text: otherText.trim() })
+    }
+    setDeclarations(allDecls)
+    pendingSelfMovesRef.current = selfMoves
+    setPendingDone(true)
   }
 
   // ── Checkbox list renderer ──────────────────────────────────────────────
@@ -388,7 +371,7 @@ export function ResolutionPanel({
   }
 
   function renderCheckboxList(cards: TargetCard[]) {
-    const { mine, theirs } = groupByOwner(cards, myPlayerId)
+    const { theirs } = groupByOwner(cards, myPlayerId)
     const cardItem = (c: TargetCard) => ({
       key: c.instanceId,
       checked: checkedCards.has(c.instanceId),
@@ -400,16 +383,11 @@ export function ResolutionPanel({
         </>
       ),
     })
-    return (
-      <>
-        {renderOwnerGroup(mine, "Your cards", cardItem)}
-        {renderOwnerGroup(theirs, "Opponent's cards", cardItem)}
-      </>
-    )
+    return renderOwnerGroup(theirs, "Opponent's cards", cardItem)
   }
 
   function renderRealmCheckboxList(realms: RealmTarget[]) {
-    const { mine, theirs } = groupByOwner(realms, myPlayerId)
+    const { theirs } = groupByOwner(realms, myPlayerId)
     const realmItem = (r: RealmTarget) => ({
       key: `${r.playerId}-${r.slot}`,
       checked: checkedRealms.has(`${r.playerId}-${r.slot}`),
@@ -420,12 +398,7 @@ export function ResolutionPanel({
         </>
       ),
     })
-    return (
-      <>
-        {renderOwnerGroup(mine, "Your realms", realmItem)}
-        {renderOwnerGroup(theirs, "Opponent's realms", realmItem)}
-      </>
-    )
+    return renderOwnerGroup(theirs, "Opponent's realms", realmItem)
   }
 
   // ── Category content ────────────────────────────────────────────────────
@@ -435,94 +408,22 @@ export function ResolutionPanel({
 
     switch (effectiveCategory) {
       case "raze_realm":
-        return (
-          <>
-            {renderRealmCheckboxList(targets.unrazedRealms)}
-            <button
-              className={styles.applyBtn}
-              disabled={checkedRealms.size === 0}
-              onClick={applyRaze}
-            >
-              Apply Effect
-            </button>
-          </>
-        )
-
+        return renderRealmCheckboxList(targets.unrazedRealms)
       case "rebuild_realm":
-        return (
-          <>
-            {renderRealmCheckboxList(targets.razedRealms)}
-            <button
-              className={styles.applyBtn}
-              disabled={checkedRealms.size === 0}
-              onClick={applyRebuild}
-            >
-              Apply Effect
-            </button>
-          </>
-        )
-
+        return renderRealmCheckboxList(targets.razedRealms)
       case "discard_champion":
-        return (
-          <>
-            {renderCheckboxList(targets.champions)}
-            <button
-              className={styles.applyBtn}
-              disabled={checkedCards.size === 0}
-              onClick={() => applyMoveCards(targets.champions)}
-            >
-              Apply Effect
-            </button>
-          </>
-        )
-
+        return renderCheckboxList(targets.champions)
       case "discard_ally":
-        return (
-          <>
-            {renderCheckboxList(targets.allies)}
-            <button
-              className={styles.applyBtn}
-              disabled={checkedCards.size === 0}
-              onClick={() => applyMoveCards(targets.allies)}
-            >
-              Apply Effect
-            </button>
-          </>
-        )
-
+        return renderCheckboxList(targets.allies)
       case "discard_item":
-        return (
-          <>
-            {renderCheckboxList(targets.items)}
-            <button
-              className={styles.applyBtn}
-              disabled={checkedCards.size === 0}
-              onClick={() => applyMoveCards(targets.items)}
-            >
-              Apply Effect
-            </button>
-          </>
-        )
-
+        return renderCheckboxList(targets.items)
       case "discard_holding":
-        return (
-          <>
-            {renderCheckboxList(targets.holdings)}
-            <button
-              className={styles.applyBtn}
-              disabled={checkedCards.size === 0}
-              onClick={() => applyMoveCards(targets.holdings)}
-            >
-              Apply Effect
-            </button>
-          </>
-        )
-
+        return renderCheckboxList(targets.holdings)
       case "draw_cards":
         return (
           <>
-            {Object.keys(allBoards).map((playerId) => (
-              <div key={playerId} className={styles.drawRow}>
+            {Object.keys(allBoards).map((pid) => (
+              <div key={pid} className={styles.drawRow}>
                 <input
                   type="number"
                   min={1}
@@ -533,45 +434,56 @@ export function ResolutionPanel({
                 />
                 <button
                   className={styles.actionBtn}
-                  onClick={() => onMove({ type: "RESOLVE_DRAW_CARDS", playerId, count: drawCount })}
+                  onClick={() => {
+                    if (pid === myPlayerId) {
+                      onMove({ type: "RESOLVE_DRAW_CARDS", playerId: pid, count: drawCount })
+                    } else {
+                      setDeclarations((prev) => [
+                        ...prev,
+                        { action: "draw_cards", playerId: pid, count: drawCount },
+                      ])
+                    }
+                  }}
                 >
-                  {playerId === myPlayerId ? "Draw for me" : "Draw for opponent"}
+                  {pid === myPlayerId ? "Draw for me" : "Declare draw for opponent"}
                 </button>
               </div>
             ))}
           </>
         )
-
       case "return_to_play":
-        return (
-          <>
-            {renderCheckboxList(targets.discardChampions)}
-            <button
-              className={styles.applyBtn}
-              disabled={checkedCards.size === 0}
-              onClick={applyReturnToPool}
-            >
-              Apply Effect
-            </button>
-          </>
-        )
-
+        return renderCheckboxList(targets.discardChampions)
       case "other":
         return (
-          <div className={styles.cardDesc} style={{ fontSize: "12px", color: "#b0a080" }}>
-            Use right-click menus and game board actions to apply this effect manually. Coordinate
-            with your opponent via chat if needed. Click &ldquo;Done Resolving&rdquo; when finished.
+          <div>
+            <div className={styles.cardDesc} style={{ fontSize: "12px", color: "#b0a080", marginBottom: 6 }}>
+              Describe what should happen. Your opponent will see this in the notification.
+            </div>
+            <textarea
+              value={otherText}
+              onChange={(e) => setOtherText(e.target.value)}
+              placeholder="e.g. Discard 2 cards from hand..."
+              rows={2}
+              style={{
+                width: "100%",
+                background: "#1a1410",
+                color: "#eadfcb",
+                border: "1px solid #845a4f",
+                borderRadius: 4,
+                padding: "6px 8px",
+                fontSize: 12,
+                resize: "vertical",
+                fontFamily: "inherit",
+              }}
+            />
           </div>
         )
     }
   }
 
-  const counterBlocked = ctx.counterWindowOpen
-
   return (
     <div className={styles.overlay}>
       <div className={styles.panel}>
-        {/* Card being resolved */}
         <div className={styles.header}>
           <div className={styles.label}>Resolving Effect</div>
           <div className={styles.cardName}>{ctx.pendingCard.name}</div>
@@ -580,19 +492,12 @@ export function ResolutionPanel({
           )}
         </div>
 
-        {/* Counter window waiting indicator */}
-        {counterBlocked && (
-          <div className={styles.counterWaitBanner}>Waiting for opponent&hellip;</div>
-        )}
-
-        {/* Action category selector */}
         <div className={styles.section}>
           <div className={styles.sectionLabel}>Action:</div>
           <select
             className={styles.categorySelect}
             value={effectiveCategory ?? ""}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            disabled={counterBlocked}
           >
             {availableCategories.length > 1 && <option value="">Select action...</option>}
             {availableCategories.map((cat) => (
@@ -603,17 +508,11 @@ export function ResolutionPanel({
           </select>
         </div>
 
-        {/* Dynamic content */}
-        {effectiveCategory && !counterBlocked && (
+        {effectiveCategory && (
           <div className={styles.section}>{renderCategoryContent()}</div>
         )}
 
-        {/* Done → goes to card destination step */}
-        <button
-          className={styles.doneBtn}
-          disabled={counterBlocked}
-          onClick={() => setPendingDone(true)}
-        >
+        <button className={styles.doneBtn} onClick={handleDoneResolving}>
           Done Resolving
         </button>
       </div>

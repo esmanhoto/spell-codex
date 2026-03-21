@@ -55,34 +55,10 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
     return []
   }
 
-  // 0b. Resolution context — only the resolving player may act, with RESOLVE_* moves only
+  // 0b. Resolution context — resolver gets RESOLVE_* moves, others get nothing
   if (state.resolutionContext) {
     if (playerId === state.resolutionContext.resolvingPlayer) {
       return dedupeMoves(getResolutionMoves(state, playerId))
-    }
-    // Non-resolving player: during counter window they may acknowledge or use a counter card
-    if (state.resolutionContext.counterWindowOpen) {
-      const isCounter = (e: { type: string }) =>
-        e.type === "counter_event" || e.type === "counter_spell"
-      const moves: Move[] = [{ type: "PASS_COUNTER" }]
-      // Hand counter cards (Calm, Dispel Magic, etc.) — played and discarded
-      for (const inst of player.hand) {
-        if (inst.card.effects.some(isCounter)) {
-          moves.push({ type: "PLAY_EVENT", cardInstanceId: inst.instanceId })
-        }
-      }
-      // Pool counter cards (Rod of Dispel Magic, Dori's Cape, Delsenora) — stay in pool
-      for (const entry of player.pool) {
-        if (entry.champion.card.effects.some(isCounter)) {
-          moves.push({ type: "USE_POOL_COUNTER", cardInstanceId: entry.champion.instanceId })
-        }
-        for (const att of entry.attachments) {
-          if (att.card.effects.some(isCounter)) {
-            moves.push({ type: "USE_POOL_COUNTER", cardInstanceId: att.instanceId })
-          }
-        }
-      }
-      return moves
     }
     return []
   }
@@ -194,7 +170,7 @@ function dedupeMoves(moves: Move[]): Move[] {
 
 // ─── Resolution Moves ────────────────────────────────────────────────────────
 
-function getResolutionMoves(state: GameState, _playerId: PlayerId): Move[] {
+function getResolutionMoves(state: GameState, playerId: PlayerId): Move[] {
   const moves: Move[] = [{ type: "RESOLVE_DONE" }]
 
   // Destination choices for the resolved card
@@ -202,132 +178,125 @@ function getResolutionMoves(state: GameState, _playerId: PlayerId): Move[] {
     moves.push({ type: "RESOLVE_SET_CARD_DESTINATION", destination: dest })
   }
 
-  // Raze any unrazed realm
-  for (const [ownerId, player] of Object.entries(state.players)) {
-    for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
-      if (realmSlot && !realmSlot.isRazed) {
-        moves.push({
-          type: "RESOLVE_RAZE_REALM",
-          playerId: ownerId,
-          slot: slot as FormationSlot,
-        })
-      }
+  // Self-affecting RESOLVE_* moves — only for the resolving player's own cards.
+  // Opponent-affecting actions are declared via RESOLVE_DONE { declarations } instead.
+
+  // Raze own unrazed realms only
+  const self = state.players[playerId]!
+  for (const [slot, realmSlot] of Object.entries(self.formation.slots)) {
+    if (realmSlot && !realmSlot.isRazed) {
+      moves.push({
+        type: "RESOLVE_RAZE_REALM",
+        playerId,
+        slot: slot as FormationSlot,
+      })
     }
   }
 
-  // Rebuild any razed realm
-  for (const [ownerId, player] of Object.entries(state.players)) {
-    for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
-      if (realmSlot && realmSlot.isRazed) {
-        moves.push({
-          type: "RESOLVE_REBUILD_REALM",
-          playerId: ownerId,
-          slot: slot as FormationSlot,
-        })
-      }
+  // Rebuild own razed realms only
+  for (const [slot, realmSlot] of Object.entries(self.formation.slots)) {
+    if (realmSlot && realmSlot.isRazed) {
+      moves.push({
+        type: "RESOLVE_REBUILD_REALM",
+        playerId,
+        slot: slot as FormationSlot,
+      })
     }
   }
 
-  // Return champions from any discard pile to pool
-  for (const [, player] of Object.entries(state.players)) {
-    for (const card of player.discardPile) {
-      if (isChampionType(card.card.typeId)) {
-        moves.push({ type: "RESOLVE_RETURN_TO_POOL", cardInstanceId: card.instanceId })
-      }
+  // Return own champions from own discard pile to pool
+  for (const card of self.discardPile) {
+    if (isChampionType(card.card.typeId)) {
+      moves.push({ type: "RESOLVE_RETURN_TO_POOL", cardInstanceId: card.instanceId })
     }
   }
 
-  // Draw cards (1–4) for each player
-  for (const ownerId of Object.keys(state.players)) {
-    for (let n = 1; n <= 4; n++) {
-      moves.push({ type: "RESOLVE_DRAW_CARDS", playerId: ownerId, count: n })
+  // Draw cards for self only
+  for (let n = 1; n <= 4; n++) {
+    moves.push({ type: "RESOLVE_DRAW_CARDS", playerId, count: n })
+  }
+
+  // Move own pool champions to discard / limbo / abyss
+  for (const entry of self.pool) {
+    moves.push({
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: entry.champion.instanceId,
+      destination: { zone: "discard", playerId },
+    })
+    moves.push({
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: entry.champion.instanceId,
+      destination: {
+        zone: "limbo",
+        playerId,
+        returnsOnTurn: state.currentTurn + 1,
+      },
+    })
+    moves.push({
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: entry.champion.instanceId,
+      destination: { zone: "abyss", playerId },
+    })
+
+    for (const att of entry.attachments) {
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: att.instanceId,
+        destination: { zone: "discard", playerId },
+      })
+      moves.push({
+        type: "RESOLVE_MOVE_CARD",
+        cardInstanceId: att.instanceId,
+        destination: { zone: "abyss", playerId },
+      })
     }
   }
 
-  // Move pool champions to discard / limbo / abyss
-  for (const [ownerId, player] of Object.entries(state.players)) {
-    for (const entry of player.pool) {
+  // Own formation holdings to discard / abyss
+  for (const realmSlot of Object.values(self.formation.slots)) {
+    if (!realmSlot) continue
+    for (const holding of realmSlot.holdings) {
       moves.push({
         type: "RESOLVE_MOVE_CARD",
-        cardInstanceId: entry.champion.instanceId,
-        destination: { zone: "discard", playerId: ownerId },
+        cardInstanceId: holding.instanceId,
+        destination: { zone: "discard", playerId },
       })
       moves.push({
         type: "RESOLVE_MOVE_CARD",
-        cardInstanceId: entry.champion.instanceId,
-        destination: {
-          zone: "limbo",
-          playerId: ownerId,
-          returnsOnTurn: state.currentTurn + 1,
-        },
+        cardInstanceId: holding.instanceId,
+        destination: { zone: "abyss", playerId },
       })
-      moves.push({
-        type: "RESOLVE_MOVE_CARD",
-        cardInstanceId: entry.champion.instanceId,
-        destination: { zone: "abyss", playerId: ownerId },
-      })
+    }
+  }
 
-      // Pool attachments (allies, items, artifacts) to discard / abyss
-      for (const att of entry.attachments) {
-        moves.push({
-          type: "RESOLVE_MOVE_CARD",
-          cardInstanceId: att.instanceId,
-          destination: { zone: "discard", playerId: ownerId },
-        })
-        moves.push({
-          type: "RESOLVE_MOVE_CARD",
-          cardInstanceId: att.instanceId,
-          destination: { zone: "abyss", playerId: ownerId },
-        })
-      }
-    }
+  // Own lasting effects to discard / abyss
+  for (const card of self.lastingEffects) {
+    moves.push({
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: card.instanceId,
+      destination: { zone: "discard", playerId },
+    })
+    moves.push({
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: card.instanceId,
+      destination: { zone: "abyss", playerId },
+    })
+  }
 
-    // Formation holdings to discard / abyss
-    for (const realmSlot of Object.values(player.formation.slots)) {
-      if (!realmSlot) continue
-      for (const holding of realmSlot.holdings) {
-        moves.push({
-          type: "RESOLVE_MOVE_CARD",
-          cardInstanceId: holding.instanceId,
-          destination: { zone: "discard", playerId: ownerId },
-        })
-        moves.push({
-          type: "RESOLVE_MOVE_CARD",
-          cardInstanceId: holding.instanceId,
-          destination: { zone: "abyss", playerId: ownerId },
-        })
-      }
-    }
-
-    // Lasting effects to discard / abyss
-    for (const card of player.lastingEffects) {
-      moves.push({
-        type: "RESOLVE_MOVE_CARD",
-        cardInstanceId: card.instanceId,
-        destination: { zone: "discard", playerId: ownerId },
-      })
-      moves.push({
-        type: "RESOLVE_MOVE_CARD",
-        cardInstanceId: card.instanceId,
-        destination: { zone: "abyss", playerId: ownerId },
-      })
-    }
-
-    // Move discard / abyss cards back to hand
-    for (const card of player.discardPile) {
-      moves.push({
-        type: "RESOLVE_MOVE_CARD",
-        cardInstanceId: card.instanceId,
-        destination: { zone: "hand", playerId: ownerId },
-      })
-    }
-    for (const card of player.abyss) {
-      moves.push({
-        type: "RESOLVE_MOVE_CARD",
-        cardInstanceId: card.instanceId,
-        destination: { zone: "hand", playerId: ownerId },
-      })
-    }
+  // Move own discard / abyss cards back to hand
+  for (const card of self.discardPile) {
+    moves.push({
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: card.instanceId,
+      destination: { zone: "hand", playerId },
+    })
+  }
+  for (const card of self.abyss) {
+    moves.push({
+      type: "RESOLVE_MOVE_CARD",
+      cardInstanceId: card.instanceId,
+      destination: { zone: "hand", playerId },
+    })
   }
 
   return moves

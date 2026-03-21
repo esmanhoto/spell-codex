@@ -17,6 +17,7 @@ function makeCard(overrides: Partial<CardInfo> = {}): CardInfo {
     supportIds: [],
     spellNature: null,
     castPhases: [],
+    effects: [],
     ...overrides,
   }
 }

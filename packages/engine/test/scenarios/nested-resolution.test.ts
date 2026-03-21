@@ -21,6 +21,7 @@ function stateWithActiveResolution(): GameState {
     resolvingPlayer: "p1",
     cardDestination: "abyss",
     counterWindowOpen: false,
+    declarations: [],
   }
   return {
     ...base,

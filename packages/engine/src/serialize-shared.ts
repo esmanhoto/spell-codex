@@ -18,6 +18,7 @@ export function serializeCard(inst: CardInstance) {
     supportIds: inst.card.supportIds,
     spellNature: inst.card.spellNature ?? null,
     castPhases: inst.card.castPhases ?? [],
+    effects: inst.card.effects,
   }
 }
 

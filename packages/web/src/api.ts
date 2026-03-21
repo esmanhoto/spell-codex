@@ -23,6 +23,7 @@ export interface CardInfo {
   supportIds: Array<number | string>
   spellNature: "offensive" | "defensive" | null
   castPhases: Array<3 | 4 | 5>
+  effects: Array<{ type: string }>
 }
 
 export interface SlotState {
@@ -67,6 +68,18 @@ export interface CombatInfo {
   borrowedChampions: Record<string, string>
 }
 
+export interface ResolutionDeclarationInfo {
+  action: string
+  playerId?: string
+  slot?: string
+  realmName?: string
+  cardInstanceId?: string
+  cardName?: string
+  count?: number
+  destination?: string
+  text?: string
+}
+
 export interface ResolutionContextInfo {
   cardInstanceId: string
   pendingCard: CardInfo
@@ -79,7 +92,7 @@ export interface ResolutionContextInfo {
     targetInstanceId?: string
     targetRealmSlot?: string
   } | null
-  counterWindowOpen: boolean
+  declarations: ResolutionDeclarationInfo[]
 }
 
 export interface GameState {
@@ -139,7 +152,6 @@ export type Move =
   | {
       type: "PLAY_PHASE3_CARD"
       cardInstanceId: string
-      keepInPlay?: boolean
       casterInstanceId?: string
       targetCardInstanceId?: string
       targetOwner?: "self" | "opponent"
@@ -166,7 +178,7 @@ export type Move =
       cardInstanceId: string
       destination: "hand" | "deck" | "pool"
     }
-  | { type: "RESOLVE_DONE" }
+  | { type: "RESOLVE_DONE"; declarations?: ResolutionDeclarationInfo[] }
   | { type: "RESOLVE_SET_CARD_DESTINATION"; destination: "discard" | "abyss" | "void" | "in_play" }
   | { type: "RESOLVE_RAZE_REALM"; playerId: string; slot: string }
   | { type: "RESOLVE_REBUILD_REALM"; playerId: string; slot: string }

@@ -231,7 +231,7 @@ export function applyMove(
       newState = handleResolveSetCardDestination(state, playerId, move, events)
       break
     case "RESOLVE_DONE":
-      newState = handleResolveDone(state, playerId, events)
+      newState = handleResolveDone(state, playerId, move, events)
       break
     case "RESOLVE_TRIGGER_PEEK":
       newState = handleResolveTriggerPeek(state, playerId, move, events)
@@ -275,11 +275,8 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
     return move.type.startsWith("RESOLVE_")
   }
 
-  // Non-resolving player may pass or play counter cards during the counter window
-  if (
-    state.resolutionContext?.counterWindowOpen &&
-    playerId !== state.resolutionContext.resolvingPlayer
-  ) {
+  // Replay compat: counter window moves (counterWindowOpen is never set in new games)
+  if (state.resolutionContext?.counterWindowOpen && playerId !== state.resolutionContext.resolvingPlayer) {
     if (move.type === "PASS_COUNTER") return true
     if (move.type === "PLAY_EVENT") return true
     if (move.type === "USE_POOL_COUNTER") return true
@@ -289,9 +286,20 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
   if (move.type === "DISCARD_CARD") return true
   if (move.type === "RAZE_OWN_REALM") return true
 
-  // Events are always playable by any player out of combat
+  // Events, wizard spells, and cleric spells are always playable by any player out of combat
   if (move.type === "PLAY_EVENT" && !state.combatState) {
     return true
+  }
+  if (move.type === "PLAY_PHASE3_CARD" && !state.combatState) {
+    const card = state.players[playerId]?.hand.find(
+      (c) => c.instanceId === move.cardInstanceId,
+    )
+    if (card) {
+      // Wizard spells and cleric spells
+      if (card.card.typeId === 4 || card.card.typeId === 19) return true
+      // Cards with counter_spell effect (e.g. Dispel Magic)
+      if (card.card.effects.some((e) => e.type === "counter_spell")) return true
+    }
   }
 
   const combat = state.combatState
