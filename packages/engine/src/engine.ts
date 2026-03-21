@@ -173,6 +173,12 @@ export function applyMove(
     case "CLAIM_SPOIL":
       newState = handleClaimSpoil(state, playerId, events)
       break
+    case "DRAW_EXTRA_CARDS":
+      newState = handleDrawExtraCards(state, playerId, move, events)
+      break
+    case "CHANGE_HAND_SIZE":
+      newState = handleChangeHandSize(state, playerId, move, events)
+      break
     case "PLAY_EVENT":
       // If a counter window is open and this player is not the resolving player,
       // treat this as a counter play (cancels original resolution, places both cards).
@@ -2258,6 +2264,39 @@ function handleClaimSpoil(state: GameState, playerId: PlayerId, events: GameEven
   }
 }
 
+function handleDrawExtraCards(
+  state: GameState,
+  playerId: PlayerId,
+  move: { type: "DRAW_EXTRA_CARDS"; count: number },
+  events: GameEvent[],
+): GameState {
+  if (move.count < 1) {
+    throw new EngineError("INVALID_COUNT", "Draw count must be at least 1")
+  }
+  const player = state.players[playerId]!
+  const [drawn, remaining] = takeCards(player.drawPile, move.count)
+  if (drawn.length > 0) {
+    events.push({ type: "EXTRA_CARDS_DRAWN", playerId, count: drawn.length })
+  }
+  return updatePlayer(state, playerId, {
+    hand: [...player.hand, ...drawn],
+    drawPile: remaining,
+  })
+}
+
+function handleChangeHandSize(
+  state: GameState,
+  playerId: PlayerId,
+  move: { type: "CHANGE_HAND_SIZE"; newSize: number },
+  events: GameEvent[],
+): GameState {
+  if (move.newSize < 1) {
+    throw new EngineError("INVALID_SIZE", "Hand size must be at least 1")
+  }
+  events.push({ type: "HAND_SIZE_CHANGED", playerId, newSize: move.newSize })
+  return updatePlayer(state, playerId, { maxHandSizeOverride: move.newSize })
+}
+
 /** Return all borrowed champions (still in pool) to their original owners. Returns updated state and cleared borrowed map. */
 function returnBorrowedChampions(
   state: GameState,
@@ -2416,7 +2455,7 @@ function handleEndTurn(state: GameState, playerId: PlayerId, events: GameEvent[]
   assertNotInCombat(state)
 
   const player = state.players[playerId]!
-  const { maxEnd } = HAND_SIZES[state.deckSize]!
+  const maxEnd = player.maxHandSizeOverride ?? HAND_SIZES[state.deckSize]!.maxEnd
   if (player.hand.length > maxEnd) {
     throw new EngineError("HAND_TOO_LARGE", `Discard down to ${maxEnd} cards before ending turn`)
   }

@@ -168,6 +168,19 @@ function dedupeMoves(moves: Move[]): Move[] {
   return out
 }
 
+/** Returns the effective max hand size for a player, respecting per-player override. */
+function getMaxHandSize(state: GameState, playerId: PlayerId): number {
+  return state.players[playerId]?.maxHandSizeOverride ?? HAND_SIZES[state.deckSize]!.maxEnd
+}
+
+/** Manual-mode tool moves — always available to active player outside combat/resolution/triggers. */
+function getManualToolMoves(state: GameState, playerId: PlayerId): Move[] {
+  return [
+    { type: "DRAW_EXTRA_CARDS", count: 1 },
+    { type: "CHANGE_HAND_SIZE", newSize: getMaxHandSize(state, playerId) },
+  ]
+}
+
 // ─── Resolution Moves ────────────────────────────────────────────────────────
 
 function getResolutionMoves(state: GameState, playerId: PlayerId): Move[] {
@@ -339,8 +352,9 @@ function getForwardPhaseMoves(state: GameState, playerId: PlayerId, fromPhase: P
   moves.push(...getHoldingRevealMoves(player))
   moves.push(...getDiscardMoves(player))
   moves.push(...getRazeOwnRealmMoves(player, playerId))
+  moves.push(...getManualToolMoves(state, playerId))
 
-  const { maxEnd } = HAND_SIZES[state.deckSize]!
+  const maxEnd = getMaxHandSize(state, playerId)
   if (player.hand.length <= maxEnd) {
     moves.push({ type: "END_TURN" })
   }
@@ -379,10 +393,12 @@ function getStartOfTurnMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]!
 
   // END_TURN is available from START_OF_TURN (draws cards then ends the turn in one step)
-  const { maxEnd } = HAND_SIZES[state.deckSize]!
+  const maxEnd = getMaxHandSize(state, playerId)
   if (player.hand.length <= maxEnd) {
     moves.push({ type: "END_TURN" })
   }
+
+  moves.push(...getManualToolMoves(state, playerId))
 
   for (const card of player.hand) {
     if (card.card.typeId === CardTypeId.Rule) {
@@ -862,7 +878,7 @@ function getCardPlayMoves(state: GameState, playerId: PlayerId, combat: CombatSt
 
 function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
   const player = state.players[playerId]!
-  const { maxEnd } = HAND_SIZES[state.deckSize]!
+  const maxEnd = getMaxHandSize(state, playerId)
 
   const moves: Move[] = []
 
@@ -889,6 +905,7 @@ function getPhaseFiveMoves(state: GameState, playerId: PlayerId): Move[] {
   }
   moves.push(...getHoldingRevealMoves(player))
   moves.push(...getRazeOwnRealmMoves(player, playerId))
+  moves.push(...getManualToolMoves(state, playerId))
 
   return moves
 }
