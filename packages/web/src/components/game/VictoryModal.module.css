@@ -1,0 +1,44 @@
+.modal {
+  position: relative;
+  text-align: center;
+  padding: 32px 14px;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.closeBtn:hover {
+  color: var(--gold);
+}
+
+.title {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.lobbyBtn {
+  background: #3a2a1a;
+  border-color: var(--gold-dim);
+  color: var(--gold);
+}
+
+.lobbyBtn:hover {
+  background: #4a3a2a;
+}
