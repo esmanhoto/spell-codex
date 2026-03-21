@@ -89,6 +89,8 @@ export const EventLog = memo(function EventLog({ events }: { events: GameEvent[]
         return `  ${p} must select new ${e.side as string}`
       case "CHAMPION_REUSE_ALLOWED":
         return `  ${e.cardName as string} may fight again`
+      case "DISCARD_SHUFFLED_INTO_DRAW":
+        return `  ${p} shuffled ${e.count as number} card(s) into draw pile`
       case "GAME_OVER":
         return `${playerLabel(e.winner as string)} WINS!`
       default:
