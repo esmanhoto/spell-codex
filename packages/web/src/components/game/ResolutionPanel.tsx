@@ -371,7 +371,7 @@ export function ResolutionPanel({
   }
 
   function renderCheckboxList(cards: TargetCard[]) {
-    const { mine, theirs } = groupByOwner(cards, myPlayerId)
+    const { theirs } = groupByOwner(cards, myPlayerId)
     const cardItem = (c: TargetCard) => ({
       key: c.instanceId,
       checked: checkedCards.has(c.instanceId),
@@ -383,16 +383,11 @@ export function ResolutionPanel({
         </>
       ),
     })
-    return (
-      <>
-        {renderOwnerGroup(mine, "Your cards", cardItem)}
-        {renderOwnerGroup(theirs, "Opponent's cards", cardItem)}
-      </>
-    )
+    return renderOwnerGroup(theirs, "Opponent's cards", cardItem)
   }
 
   function renderRealmCheckboxList(realms: RealmTarget[]) {
-    const { mine, theirs } = groupByOwner(realms, myPlayerId)
+    const { theirs } = groupByOwner(realms, myPlayerId)
     const realmItem = (r: RealmTarget) => ({
       key: `${r.playerId}-${r.slot}`,
       checked: checkedRealms.has(`${r.playerId}-${r.slot}`),
@@ -403,12 +398,7 @@ export function ResolutionPanel({
         </>
       ),
     })
-    return (
-      <>
-        {renderOwnerGroup(mine, "Your realms", realmItem)}
-        {renderOwnerGroup(theirs, "Opponent's realms", realmItem)}
-      </>
-    )
+    return renderOwnerGroup(theirs, "Opponent's realms", realmItem)
   }
 
   // ── Category content ────────────────────────────────────────────────────
