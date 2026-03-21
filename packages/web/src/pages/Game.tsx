@@ -493,7 +493,9 @@ export function Game() {
         moves.length === 1 &&
         cur?.phase === "START_OF_TURN" &&
         cur.activePlayer === myPlayerId &&
-        !DRAW_PHASE_ALLOWED.has(moves[0]!.type)
+        !DRAW_PHASE_ALLOWED.has(moves[0]!.type) &&
+        !cur.resolutionContext &&
+        !(cur.pendingTriggers && cur.pendingTriggers.length > 0)
       ) {
         showWarning(
           "You are in Phase 1 (drawing). Proceed without drawing first?",
