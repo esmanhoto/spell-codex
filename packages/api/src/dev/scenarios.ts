@@ -42,11 +42,6 @@ export interface ResolutionContextSeed {
   pendingCard: CardRef
   /** Where the card ends up after RESOLVE_DONE. */
   cardDestination: "discard" | "abyss" | "void" | "in_play"
-  /**
-   * Whether the counter window is open.
-   * Defaults to true when omitted (the normal pre-seeded-counter-window case).
-   */
-  counterWindowOpen?: boolean
 }
 
 export interface ScenarioDef {

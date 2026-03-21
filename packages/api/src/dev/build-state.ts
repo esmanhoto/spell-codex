@@ -123,7 +123,7 @@ function buildResolutionContext(
     initiatingPlayer: initiatingId,
     resolvingPlayer: initiatingId,
     cardDestination: seed.cardDestination,
-    counterWindowOpen: seed.counterWindowOpen ?? true,
+    declarations: [],
   }
 }
 
