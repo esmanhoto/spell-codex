@@ -21,6 +21,7 @@ import {
   isChampionType,
   isSpellType,
   findOrPromoteChampion,
+  seededShuffle,
 } from "./utils.ts"
 import {
   calculateCombatLevel,
@@ -214,6 +215,9 @@ export function applyMove(
       break
     case "RETURN_FROM_DISCARD":
       newState = handleReturnFromDiscard(state, playerId, move, events)
+      break
+    case "SHUFFLE_DISCARD_INTO_DRAW_PILE":
+      newState = handleShuffleDiscardIntoDraw(state, playerId, move, events)
       break
     case "RESOLVE_MOVE_CARD":
       newState = handleResolveMoveCard(state, playerId, move, events)
@@ -1715,6 +1719,28 @@ function handleReturnFromDiscard(
     deck.splice(pos, 0, card)
     return updatePlayer(state, move.playerId, { discardPile: newDiscard, drawPile: deck })
   }
+}
+
+function handleShuffleDiscardIntoDraw(
+  state: GameState,
+  _playerId: PlayerId,
+  move: Extract<Move, { type: "SHUFFLE_DISCARD_INTO_DRAW_PILE" }>,
+  events: GameEvent[],
+): GameState {
+  const player = state.players[move.playerId]
+  if (!player) throw new EngineError("PLAYER_NOT_FOUND")
+  if (player.discardPile.length === 0) throw new EngineError("INVALID_MOVE", "Discard pile is empty")
+
+  events.push({
+    type: "DISCARD_SHUFFLED_INTO_DRAW",
+    playerId: move.playerId,
+    count: player.discardPile.length,
+  })
+
+  const combined = [...player.drawPile, ...player.discardPile]
+  const seed = (state.currentTurn * 7919 + combined.length * 6271 + player.discardPile.length * 4919) >>> 0
+  const shuffled = seededShuffle(combined, seed || 1)
+  return updatePlayer(state, move.playerId, { discardPile: [], drawPile: shuffled })
 }
 
 // ─── Combat Champion Manipulation Handlers ──────────────────────────────────
