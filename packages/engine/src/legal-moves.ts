@@ -18,7 +18,6 @@ import {
   COSMOS_TYPE_IDS,
   HAND_SIZES,
   COMBAT_SUPPORT_TYPE_IDS,
-  PROTECTED_BY,
 } from "./constants.ts"
 import { isChampionType, isSpellType } from "./utils.ts"
 import { getPoolAttachments, getCombatLevels } from "./combat.ts"
@@ -660,7 +659,6 @@ function getCombatDeclOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
     for (const [slot, realmSlot] of Object.entries(otherPlayer.formation.slots)) {
       if (!realmSlot || realmSlot.isRazed) continue
       for (const champ of poolChampions) {
-        if (!isAttackable(otherPlayer.formation, slot as FormationSlot, champ)) continue
         moves.push({
           type: "DECLARE_ATTACK",
           championId: champ.instanceId,
@@ -669,7 +667,6 @@ function getCombatDeclOnlyMoves(state: GameState, playerId: PlayerId): Move[] {
         })
       }
       for (const card of handChampions) {
-        if (!isAttackable(otherPlayer.formation, slot as FormationSlot, card)) continue
         moves.push({
           type: "DECLARE_ATTACK",
           championId: card.instanceId,
@@ -1020,31 +1017,6 @@ export function getLegalRealmSlots(formation: Formation): FormationSlot[] {
   }
 
   return legal
-}
-
-/**
- * Returns true if a realm in the given slot can be attacked by the champion.
- * Applies protection rules and movement types (Flyer bypasses protection).
- */
-export function isAttackable(
-  formation: Formation,
-  slot: FormationSlot,
-  champion: CardInstance,
-): boolean {
-  const isFlyer = champion.card.attributes.includes("Flyer")
-  if (isFlyer) return true // Flyers can attack any realm
-
-  const isSwimmer = champion.card.attributes.includes("Swimmer")
-  const targetRealm = formation.slots[slot]?.realm
-  const isCoastal = targetRealm?.card.attributes.includes("Coast") ?? false
-  if (isSwimmer && isCoastal) return true // Swimmers attack any coastal realm
-
-  // Standard protection: all protecting slots must be razed or empty
-  const protectors = PROTECTED_BY[slot] ?? []
-  return protectors.every((p) => {
-    const s = formation.slots[p as FormationSlot]
-    return !s || s.isRazed
-  })
 }
 
 // ─── Rule of the Cosmos ───────────────────────────────────────────────────────

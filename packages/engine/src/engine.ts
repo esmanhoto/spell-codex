@@ -33,7 +33,6 @@ import {
 import {
   getLegalMoves,
   getLegalRealmSlots,
-  isAttackable,
   isUniqueInPlay,
   canPlayInCombat,
 } from "./legal-moves.ts"
@@ -1104,10 +1103,6 @@ function handleDeclareAttack(
     "Attacker champion not in pool or hand",
   )
   state = s0
-
-  if (!isAttackable(targetPlayer.formation, move.targetRealmSlot, attackerChampion)) {
-    throw new EngineError("REALM_PROTECTED", "Target realm is protected")
-  }
 
   events.push({
     type: "ATTACK_DECLARED",

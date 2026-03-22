@@ -2,7 +2,7 @@
 
 export { EngineError } from "./errors.ts"
 export { applyMove } from "./engine.ts"
-export { getLegalMoves, isUniqueInPlay, isAttackable, getLegalRealmSlots } from "./legal-moves.ts"
+export { getLegalMoves, isUniqueInPlay, getLegalRealmSlots } from "./legal-moves.ts"
 export {
   getSpellDirection,
   getCastPhases,
@@ -46,8 +46,6 @@ export {
   CHAMPION_TYPE_IDS,
   SPELL_TYPE_IDS,
   HAND_SIZES,
-  PROTECTS,
-  PROTECTED_BY,
   WORLD_BONUS,
 } from "./constants.ts"
 
