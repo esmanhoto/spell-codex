@@ -38,6 +38,7 @@ export {
   nextPlayer,
   opponentOf,
   findOrPromoteChampion,
+  formatEmailAsName,
 } from "./utils.ts"
 
 export {
