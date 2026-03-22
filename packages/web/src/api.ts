@@ -116,6 +116,7 @@ export interface GameState {
   players?: Array<{ userId: string; seatPosition: number; nickname: string }>
   events?: GameEvent[]
   resolutionContext: ResolutionContextInfo | null
+  pendingSpoilCard: CardInfo | null
   pendingTriggers: PendingTriggerInfo[]
   integrityErrors?: unknown[]
 }
@@ -213,6 +214,9 @@ export type Move =
   | { type: "ALLOW_CHAMPION_REUSE"; cardInstanceId: string }
   | { type: "DRAW_EXTRA_CARDS"; count: number }
   | { type: "CHANGE_HAND_SIZE"; newSize: number }
+  | { type: "SPOIL_KEEP" }
+  | { type: "SPOIL_RETURN" }
+  | { type: "SPOIL_PLAY"; slot?: string; championId?: string }
   | { type: string; [key: string]: unknown }
 
 // ─── API calls ────────────────────────────────────────────────────────────────

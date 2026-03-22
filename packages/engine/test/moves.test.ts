@@ -950,8 +950,9 @@ describe("spoil of combat", () => {
     return s
   }
 
-  test("pendingSpoil set for attacker on realm razed (DECLINE_DEFENSE)", () => {
+  test("spoil card drawn automatically on realm razed (DECLINE_DEFENSE)", () => {
     const s = buildCombatState()
+    const drawBefore = s.players["p1"]!.drawPile.length
     const { newState: s1 } = applyMove(s, "p1", {
       type: "DECLARE_ATTACK",
       championId: "att",
@@ -959,11 +960,14 @@ describe("spoil of combat", () => {
       targetPlayerId: "p2",
     })
     const { newState: s2 } = applyMove(s1, "p2", { type: "DECLINE_DEFENSE" })
+    // Spoil card drawn automatically — no CLAIM_SPOIL needed
     expect(s2.pendingSpoil).toBe("p1")
-    expect(s2.players["p1"]!.hand.length).toBe(s.players["p1"]!.hand.length) // not auto-drawn
+    expect(s2.pendingSpoilCard).not.toBeNull()
+    expect(s2.players["p1"]!.drawPile.length).toBe(drawBefore - 1)
+    expect(s2.players["p1"]!.hand.length).toBe(s.players["p1"]!.hand.length) // not in hand yet
   })
 
-  test("CLAIM_SPOIL is in legal moves when pendingSpoil matches player", () => {
+  test("spoil choice moves shown, no other moves while pendingSpoilCard is set", () => {
     const s = buildCombatState()
     const { newState: s1 } = applyMove(s, "p1", {
       type: "DECLARE_ATTACK",
@@ -972,13 +976,19 @@ describe("spoil of combat", () => {
       targetPlayerId: "p2",
     })
     const { newState: s2 } = applyMove(s1, "p2", { type: "DECLINE_DEFENSE" })
+    // Spoil owner only gets spoil choice moves
     const moves = getLegalMoves(s2, "p1")
-    expect(moves.some((m) => m.type === "CLAIM_SPOIL")).toBe(true)
-    // Opponent should not see CLAIM_SPOIL
-    expect(getLegalMoves(s2, "p2").some((m) => m.type === "CLAIM_SPOIL")).toBe(false)
+    const spoilTypes = new Set(moves.map((m) => m.type))
+    expect(spoilTypes.has("SPOIL_KEEP")).toBe(true)
+    expect(spoilTypes.has("SPOIL_RETURN")).toBe(true)
+    expect(spoilTypes.has("PASS")).toBe(false)
+    expect(spoilTypes.has("END_TURN")).toBe(false)
+    expect(spoilTypes.has("CLAIM_SPOIL")).toBe(false)
+    // Other player gets no moves
+    expect(getLegalMoves(s2, "p2")).toEqual([])
   })
 
-  test("CLAIM_SPOIL draws 1 card and clears pendingSpoil", () => {
+  test("SPOIL_KEEP moves card to hand", () => {
     const s = buildCombatState()
     const { newState: s1 } = applyMove(s, "p1", {
       type: "DECLARE_ATTACK",
@@ -988,12 +998,13 @@ describe("spoil of combat", () => {
     })
     const { newState: s2 } = applyMove(s1, "p2", { type: "DECLINE_DEFENSE" })
     const handBefore = s2.players["p1"]!.hand.length
-    const { newState: s3 } = applyMove(s2, "p1", { type: "CLAIM_SPOIL" })
+    const { newState: s3 } = applyMove(s2, "p1", { type: "SPOIL_KEEP" })
     expect(s3.pendingSpoil).toBeNull()
+    expect(s3.pendingSpoilCard).toBeNull()
     expect(s3.players["p1"]!.hand.length).toBe(handBefore + 1)
   })
 
-  test("pendingSpoil clears on turn transition without claiming", () => {
+  test("SPOIL_RETURN puts card on top of draw pile", () => {
     const s = buildCombatState()
     const { newState: s1 } = applyMove(s, "p1", {
       type: "DECLARE_ATTACK",
@@ -1002,14 +1013,109 @@ describe("spoil of combat", () => {
       targetPlayerId: "p2",
     })
     const { newState: s2 } = applyMove(s1, "p2", { type: "DECLINE_DEFENSE" })
-    expect(s2.pendingSpoil).toBe("p1")
-    // End p1's turn without claiming
-    const { newState: s3 } = applyMove(s2, "p1", { type: "END_TURN" })
+    const spoilCard = s2.pendingSpoilCard!
+    const drawBefore = s2.players["p1"]!.drawPile.length
+    const { newState: s3 } = applyMove(s2, "p1", { type: "SPOIL_RETURN" })
     expect(s3.pendingSpoil).toBeNull()
-    expect(s3.activePlayer).toBe("p2")
+    expect(s3.pendingSpoilCard).toBeNull()
+    expect(s3.players["p1"]!.drawPile.length).toBe(drawBefore + 1)
+    expect(s3.players["p1"]!.drawPile[0]!.instanceId).toBe(spoilCard.instanceId)
   })
 
-  test("defender wins — no spoil earned (only attackers earn spoils)", () => {
+  test("pendingSpoilCard cleared on turn transition", () => {
+    const s = buildCombatState()
+    const { newState: s1 } = applyMove(s, "p1", {
+      type: "DECLARE_ATTACK",
+      championId: "att",
+      targetRealmSlot: "A",
+      targetPlayerId: "p2",
+    })
+    const { newState: s2 } = applyMove(s1, "p2", { type: "DECLINE_DEFENSE" })
+    expect(s2.pendingSpoilCard).not.toBeNull()
+    // SPOIL_KEEP then END_TURN
+    const { newState: s3 } = applyMove(s2, "p1", { type: "SPOIL_KEEP" })
+    const { newState: s4 } = applyMove(s3, "p1", { type: "END_TURN" })
+    expect(s4.pendingSpoil).toBeNull()
+    expect(s4.pendingSpoilCard).toBeNull()
+  })
+
+  test("SPOIL_PLAY offered for realm with empty formation slots", () => {
+    // Put a unique realm on top of p1's draw pile
+    const spoilRealm: CardInstance = { instanceId: "spoil-realm", card: { ...REALM_FR, name: "Sembia", cardNumber: 6 } }
+    const champ: CardInstance = { instanceId: "att", card: CHAMPION_CLERIC_FR }
+    const realm: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
+    let s = initGame(DEFAULT_CONFIG)
+    s = {
+      ...s,
+      phase: Phase.Combat,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [{ champion: champ, attachments: [] }],
+          formation: { size: 6, slots: { A: { realm: { instanceId: "r-a", card: REALM_FR }, isRazed: false, holdings: [], holdingRevealedToAll: false } } },
+          drawPile: [spoilRealm, ...s.players["p1"]!.drawPile],
+        },
+        p2: {
+          ...s.players["p2"]!,
+          formation: { size: 6, slots: { A: { realm, isRazed: false, holdings: [], holdingRevealedToAll: false } } },
+        },
+      },
+    }
+    const { newState: s1 } = applyMove(s, "p1", { type: "DECLARE_ATTACK", championId: "att", targetRealmSlot: "A", targetPlayerId: "p2" })
+    const { newState: s2 } = applyMove(s1, "p2", { type: "DECLINE_DEFENSE" })
+    expect(s2.pendingSpoilCard!.card.name).toBe("Sembia")
+    const moves = getLegalMoves(s2, "p1")
+    const spoilPlays = moves.filter((m) => m.type === "SPOIL_PLAY")
+    expect(spoilPlays.length).toBeGreaterThan(0)
+    // Slot B should be offered (A is filled, B is next in pyramid)
+    expect(spoilPlays.some((m) => m.type === "SPOIL_PLAY" && (m as { slot?: string }).slot === "B")).toBe(true)
+  })
+
+  test("SPOIL_PLAY realm into razed slot replaces razed realm", () => {
+    const spoilRealm: CardInstance = { instanceId: "spoil-realm", card: { ...REALM_FR, name: "Sembia", cardNumber: 6 } }
+    const champ: CardInstance = { instanceId: "att", card: CHAMPION_CLERIC_FR }
+    const realm: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
+    let s = initGame(DEFAULT_CONFIG)
+    s = {
+      ...s,
+      phase: Phase.Combat,
+      players: {
+        ...s.players,
+        p1: {
+          ...s.players["p1"]!,
+          pool: [{ champion: champ, attachments: [] }],
+          formation: {
+            size: 6,
+            slots: {
+              A: { realm: { instanceId: "r-a", card: REALM_FR }, isRazed: false, holdings: [], holdingRevealedToAll: false },
+              B: { realm: { instanceId: "r-b", card: REALM_GENERIC }, isRazed: true, holdings: [], holdingRevealedToAll: false },
+              C: { realm: { instanceId: "r-c", card: { ...REALM_FR, name: "Cormyr", cardNumber: 5 } }, isRazed: false, holdings: [], holdingRevealedToAll: false },
+            },
+          },
+          drawPile: [spoilRealm, ...s.players["p1"]!.drawPile],
+        },
+        p2: {
+          ...s.players["p2"]!,
+          formation: { size: 6, slots: { A: { realm, isRazed: false, holdings: [], holdingRevealedToAll: false } } },
+        },
+      },
+    }
+    const { newState: s1 } = applyMove(s, "p1", { type: "DECLARE_ATTACK", championId: "att", targetRealmSlot: "A", targetPlayerId: "p2" })
+    const { newState: s2 } = applyMove(s1, "p2", { type: "DECLINE_DEFENSE" })
+    expect(s2.pendingSpoilCard!.card.name).toBe("Sembia")
+    const moves = getLegalMoves(s2, "p1")
+    const spoilPlays = moves.filter((m) => m.type === "SPOIL_PLAY")
+    // Should offer razed slot B and empty slots D/E/F
+    expect(spoilPlays.some((m) => (m as { slot?: string }).slot === "B")).toBe(true)
+    // Play into razed slot
+    const { newState: s3 } = applyMove(s2, "p1", { type: "SPOIL_PLAY", slot: "B" })
+    expect(s3.players["p1"]!.formation.slots["B"]!.realm.card.name).toBe("Sembia")
+    expect(s3.players["p1"]!.formation.slots["B"]!.isRazed).toBe(false)
+    expect(s3.pendingSpoilCard).toBeNull()
+  })
+
+  test("defender earns spoil when attacker champion is discarded", () => {
     const attacker: CardInstance = { instanceId: "att", card: CHAMPION_CLERIC_FR } // level 6
     const defender: CardInstance = { instanceId: "def", card: CHAMPION_WIZARD_FR } // level 8
     const realm: CardInstance = { instanceId: "realm-p2", card: REALM_GENERIC }
@@ -1038,8 +1144,13 @@ describe("spoil of combat", () => {
     })
     const { newState: s2 } = applyMove(s1, "p2", { type: "DECLARE_DEFENSE", championId: "def" })
     const { newState: s3 } = applyMove(s2, "p1", { type: "STOP_PLAYING" })
-    expect(s3.pendingSpoil).toBeNull()
-    expect(getLegalMoves(s3, "p2").some((m) => m.type === "CLAIM_SPOIL")).toBe(false)
+    // Defender earns spoil automatically when attacker champion is discarded
+    expect(s3.pendingSpoil).toBe("p2")
+    expect(s3.pendingSpoilCard).not.toBeNull()
+    // Defender sees spoil choice moves
+    const moves = getLegalMoves(s3, "p2")
+    expect(moves.some((m) => m.type === "SPOIL_KEEP")).toBe(true)
+    expect(moves.some((m) => m.type === "SPOIL_RETURN")).toBe(true)
   })
 })
 

@@ -98,6 +98,11 @@ export function serializeGameState(
           declarations: state.resolutionContext.declarations,
         }
       : null,
+    pendingSpoilCard: state.pendingSpoilCard
+      ? (viewerPlayerId == null || state.pendingSpoil === viewerPlayerId
+          ? serializeCard(state.pendingSpoilCard)
+          : null)
+      : null,
     pendingTriggers: state.pendingTriggers.map((t) => ({
       id: t.id,
       sourceCardInstanceId: t.sourceCardInstanceId,

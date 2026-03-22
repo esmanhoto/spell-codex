@@ -79,6 +79,9 @@ export function serializeEngineStateForClient(
           declarations: state.resolutionContext.declarations,
         }
       : null,
+    pendingSpoilCard: state.pendingSpoilCard
+      ? (state.pendingSpoil === viewerPlayerId ? serializeCard(state.pendingSpoilCard) : null)
+      : null,
     pendingTriggers: state.pendingTriggers.map((t) => ({
       id: t.id,
       sourceCardInstanceId: t.sourceCardInstanceId,

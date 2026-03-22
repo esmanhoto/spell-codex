@@ -63,13 +63,21 @@ export function getLegalMoves(state: GameState, playerId: PlayerId): Move[] {
     return []
   }
 
+  // 0c. Pending spoil card — player must choose: play, keep, or return
+  if (state.pendingSpoilCard) {
+    if (playerId === state.pendingSpoil) {
+      return dedupeMoves(getSpoilMoves(state, playerId))
+    }
+    return []
+  }
+
   // 1. During active combat, use combat-specific move set
   if (state.combatState) {
     return dedupeMoves(getCombatMoves(state, playerId))
   }
 
-  // Spoil may be claimed at any time outside combat/resolution (even when not active player)
-  const spoilMove: Move[] = state.pendingSpoil === playerId ? [{ type: "CLAIM_SPOIL" }] : []
+  // Spoils are drawn automatically in earnSpoils — no CLAIM_SPOIL needed
+  const spoilMove: Move[] = []
 
   // 2. Out-of-combat: non-active player may play events, discard, and raze realms at any phase
   if (state.activePlayer !== playerId) {
@@ -317,6 +325,67 @@ function getResolutionMoves(state: GameState, playerId: PlayerId): Move[] {
       destination: { zone: "hand", playerId },
     })
   }
+
+  return moves
+}
+
+// ─── Spoil Moves ─────────────────────────────────────────────────────────────
+
+function getSpoilMoves(state: GameState, playerId: PlayerId): Move[] {
+  const card = state.pendingSpoilCard!
+  const moves: Move[] = [{ type: "SPOIL_KEEP" }, { type: "SPOIL_RETURN" }]
+  const typeId = card.card.typeId
+  const player = state.players[playerId]!
+
+  if (typeId === CardTypeId.Realm) {
+    if (isUniqueInPlay(card.card, state)) {
+      const legalSlots = getLegalRealmSlots(player.formation)
+      for (const slot of legalSlots) {
+        if (!player.formation.slots[slot]) {
+          moves.push({ type: "SPOIL_PLAY", slot })
+        }
+      }
+      for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+        if (realmSlot?.isRazed) {
+          moves.push({ type: "SPOIL_PLAY", slot: slot as FormationSlot })
+        }
+      }
+    }
+  } else if (isChampionType(typeId)) {
+    if (isUniqueInPlay(card.card, state)) {
+      const hasUnrazedRealm = Object.values(player.formation.slots).some((s) => s && !s.isRazed)
+      if (hasUnrazedRealm) {
+        moves.push({ type: "SPOIL_PLAY" })
+      }
+    }
+  } else if (typeId === CardTypeId.Holding) {
+    if (isUniqueInPlay(card.card, state)) {
+      const isRebuilder = card.card.effects.some((e) => e.type === "rebuild_realm")
+      for (const [slot, realmSlot] of Object.entries(player.formation.slots)) {
+        if (!realmSlot) continue
+        if (realmSlot.isRazed && !isRebuilder) continue
+        if (!realmSlot.isRazed && realmSlot.holdings.length > 0) continue
+        if (!worldCompatible(card.card, realmSlot.realm.card)) continue
+        moves.push({ type: "SPOIL_PLAY", slot: slot as FormationSlot })
+      }
+    }
+  } else if (typeId === CardTypeId.Artifact) {
+    if (isUniqueInPlay(card.card, state)) {
+      for (const entry of player.pool) {
+        const alreadyHasArtifact = entry.attachments.some((a) => a.card.typeId === CardTypeId.Artifact)
+        if (alreadyHasArtifact) continue
+        if (!worldCompatible(card.card, entry.champion.card)) continue
+        moves.push({ type: "SPOIL_PLAY", championId: entry.champion.instanceId })
+      }
+    }
+  } else if (typeId === CardTypeId.MagicalItem) {
+    for (const entry of player.pool) {
+      moves.push({ type: "SPOIL_PLAY", championId: entry.champion.instanceId })
+    }
+  } else if (typeId === CardTypeId.Event) {
+    moves.push({ type: "SPOIL_PLAY" })
+  }
+  // Other types (ally, spell, rule, etc.) — no SPOIL_PLAY, must keep or return
 
   return moves
 }

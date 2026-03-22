@@ -692,6 +692,57 @@ export const DEV_SCENARIOS: Record<string, ScenarioDef> = {
   //   → P2 casts Horrors of the Abyss → P1 counters with Dispel Magic (hand) or P2 uses Rod
   //   → P1 casts Fear → P2 counters with Rod (pool) or Allow
   //   → Any event → P2 uses Cape or Delsenora to counter
+  "spoils-test": {
+    name: "Spoils of victory — combat ready",
+    description:
+      "P1 attacks P2's realm A with a champion. P2 defends. " +
+      "Both have draw piles so spoils card draw works. " +
+      "Attacker STOP_PLAYING → defender wins + earns spoil. " +
+      "Defender STOP_PLAYING → attacker wins round 1, CONTINUE_ATTACK + win round 2 → raze + spoil.",
+    phase: "COMBAT",
+    combat: {
+      attackingPlayer: "p1",
+      targetSlot: "A" as FormationSlot,
+      roundPhase: "CARD_PLAY",
+    },
+    p1: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 1 } }, // Waterdeep
+        B: { realm: { setId: "1st", cardNumber: 2 } }, // Menzoberranzan
+      },
+      pool: [
+        { card: { setId: "1st", cardNumber: 44 } }, // Elminster (Wizard, lv 9)
+        { card: { setId: "1st", cardNumber: 41 } }, // Alias (Hero, lv 6) — second champion for round 2
+      ],
+      hand: [
+        { setId: "1st", cardNumber: 54 }, // War Party ally
+      ],
+      drawPile: [
+        { setId: "1st", cardNumber: 6 }, // Sembia (Realm) — spoil: test "play realm immediately"
+        { setId: "1st", cardNumber: 346 }, // Dispel Magic — backup draw
+        { setId: "1st", cardNumber: 348 }, // Fear
+      ],
+    },
+    p2: {
+      formation: {
+        A: { realm: { setId: "1st", cardNumber: 5 } }, // Cormyr
+        B: { realm: { setId: "1st", cardNumber: 111 } }, // Free City of Greyhawk
+      },
+      pool: [
+        { card: { setId: "1st", cardNumber: 42 } }, // King Azoun IV (Hero, lv 7)
+        { card: { setId: "1st", cardNumber: 162 } }, // Mordenkainen (Wizard, lv 7) — second defender
+      ],
+      hand: [
+        { setId: "1st", cardNumber: 61 }, // Myrmidons ally
+      ],
+      drawPile: [
+        { setId: "1st", cardNumber: 99 }, // Cataclysm! — spoil card for defender
+        { setId: "1st", cardNumber: 96 }, // Horrors of the Abyss — backup
+        { setId: "1st", cardNumber: 63 }, // Karlott
+      ],
+    },
+  },
+
   "counter-window-all": {
     name: "Counter window — full setup (all counter cards)",
     description:

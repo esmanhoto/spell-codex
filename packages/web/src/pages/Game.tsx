@@ -19,6 +19,7 @@ import { GameBoard } from "../components/game/GameBoard.tsx"
 import { GameLoadingScreen } from "../components/game/GameLoadingScreen.tsx"
 import { CasterSelectModal } from "../components/game/CasterSelectModal.tsx"
 import { ResolutionPanel } from "../components/game/ResolutionPanel.tsx"
+import { SpoilModal } from "../components/game/SpoilModal.tsx"
 import { TriggerPanel } from "../components/game/TriggerPanel.tsx"
 import {
   ResolutionOutcomeModal,
@@ -785,24 +786,7 @@ export function Game() {
     [data, dispatchSpellMove, showWarning],
   )
 
-  // Auto-show spoil modal when CLAIM_SPOIL enters legal moves
-  const spoilModalShownRef = useRef(false)
-  useEffect(() => {
-    const hasSpoil = (data?.legalMoves ?? []).some((m) => m.type === "CLAIM_SPOIL")
-    if (hasSpoil && !spoilModalShownRef.current) {
-      spoilModalShownRef.current = true
-      showWarning(
-        "You earned a spoil of combat. Draw 1 card?",
-        "generic_warning",
-        false,
-        () => sendMove({ type: "CLAIM_SPOIL" }),
-        "Draw a well earned spoil",
-      )
-    }
-    if (!hasSpoil) {
-      spoilModalShownRef.current = false
-    }
-  }, [data?.legalMoves, showWarning, sendMove])
+  // Spoils are drawn automatically by the engine — SpoilModal shows when pendingSpoilCard is set
 
   const playerIds = useMemo(() => Object.keys(data?.board.players ?? {}), [data?.board.players])
   const opponentPlayerId = playerIds.find((id) => id !== myPlayerId) ?? stableOpponentIdRef.current
@@ -985,6 +969,13 @@ export function Game() {
                 playerIds={playerIds}
                 onSend={sendMessage}
                 onClose={handleToggleChat}
+              />
+            )}
+            {data.pendingSpoilCard && (
+              <SpoilModal
+                card={data.pendingSpoilCard}
+                legalMoves={data.legalMoves}
+                onMove={sendMove}
               />
             )}
             {data.resolutionContext && (
