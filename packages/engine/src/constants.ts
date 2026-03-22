@@ -48,45 +48,6 @@ export const COMBAT_SUPPORT_TYPE_IDS = new Set([1, 2, 4, 9, 11, 17, 18, 19])
  */
 export const COSMOS_TYPE_IDS = new Set([2, 5, 7, 8, 10, 12, 13, 14, 16, 20])
 
-/**
- * Formation slot protection relationships.
- * Slot X → list of slots that X protects (blocks from being attacked directly).
- *
- *       [A]        ← front (exposed)
- *     [B] [C]
- *   [D] [E] [F]   ← back row
- *
- * A protects B,C. B protects D,E. C protects E,F. (E is doubly protected.)
- */
-export const PROTECTS: Readonly<Record<string, readonly string[]>> = {
-  A: ["B", "C"],
-  B: ["D", "E"],
-  C: ["E", "F"],
-  D: [],
-  E: [],
-  F: [],
-  G: [],
-  H: [],
-  I: [],
-  J: [],
-}
-
-/**
- * Inverse of PROTECTS — which slots must be razed/empty for a given slot to be attackable.
- */
-export const PROTECTED_BY: Readonly<Record<string, readonly string[]>> = {
-  A: [],
-  B: ["A"],
-  C: ["A"],
-  D: ["B"],
-  E: ["B", "C"],
-  F: ["C"],
-  G: [],
-  H: [],
-  I: [],
-  J: [],
-}
-
 /** Hand sizes by deck size */
 export const HAND_SIZES: Readonly<
   Record<number, { starting: number; drawPerTurn: number; maxEnd: number }>
