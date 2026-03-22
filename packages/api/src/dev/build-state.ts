@@ -215,6 +215,7 @@ export function buildScenarioState(scenario: ScenarioDef): GameState {
     hasAttackedThisTurn: !!combatState,
     hasPlayedRealmThisTurn: false,
     pendingSpoil: null,
+    pendingSpoilCard: null,
   }
 
   // Pre-populate start-of-turn triggers so they appear immediately in START_OF_TURN scenarios.
