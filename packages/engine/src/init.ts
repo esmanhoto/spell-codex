@@ -51,6 +51,7 @@ export function initGame(config: GameConfig): GameState {
     hasAttackedThisTurn: false,
     hasPlayedRealmThisTurn: false,
     pendingSpoil: null,
+    pendingSpoilCard: null,
     resolutionContext: null,
     pendingTriggers: [],
     endTriggersPopulated: false,

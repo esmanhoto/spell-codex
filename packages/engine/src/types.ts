@@ -355,6 +355,8 @@ export interface GameState {
   hasPlayedRealmThisTurn: boolean
   /** Player who earned a spoil of combat and may optionally draw 1 card */
   pendingSpoil: string | null
+  /** Card drawn as spoil, awaiting player choice (play / keep / return to draw pile) */
+  pendingSpoilCard: CardInstance | null
 }
 
 // ─── Moves ────────────────────────────────────────────────────────────────────
@@ -420,6 +422,12 @@ export type Move =
   | { type: "USE_POOL_COUNTER"; cardInstanceId: CardInstanceId }
   /** Draw the 1-card spoil earned by winning combat (optional) */
   | { type: "CLAIM_SPOIL" }
+  /** Keep the drawn spoil card in hand */
+  | { type: "SPOIL_KEEP" }
+  /** Return the drawn spoil card to the top of the draw pile */
+  | { type: "SPOIL_RETURN" }
+  /** Play the drawn spoil card immediately (bypasses phase restrictions) */
+  | { type: "SPOIL_PLAY"; slot?: FormationSlot; championId?: CardInstanceId }
   /** Skip remaining phases and end the turn (only when hand ≤ maxEnd) */
   | { type: "END_TURN" }
   /** Draw N extra cards from own draw pile (manual tool for card effects) */
@@ -578,6 +586,10 @@ export type GameEvent =
       defenderLevel: number
     }
   | { type: "SPOILS_EARNED"; playerId: PlayerId }
+  | { type: "SPOIL_CARD_DRAWN"; playerId: PlayerId; cardName: string }
+  | { type: "SPOIL_CARD_PLAYED"; playerId: PlayerId; cardName: string }
+  | { type: "SPOIL_CARD_KEPT"; playerId: PlayerId; cardName: string }
+  | { type: "SPOIL_CARD_RETURNED"; playerId: PlayerId }
   | { type: "POOL_CLEARED"; playerId: PlayerId }
   | {
       type: "COMBAT_CARD_SWITCHED"
