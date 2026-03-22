@@ -39,21 +39,14 @@ const AuthContext = createContext<AuthContextType>({
   setBypassUserId: () => {},
 })
 
+import { authErrorMessage } from "./utils/auth-helpers.ts"
+
 type SupabaseAuthResponse = {
   access_token?: unknown
   user?: { id?: unknown }
   msg?: unknown
   error_description?: unknown
   error?: unknown
-}
-
-function authErrorMessage(body: SupabaseAuthResponse, fallback: string): string {
-  return (
-    (typeof body.msg === "string" && body.msg) ||
-    (typeof body.error_description === "string" && body.error_description) ||
-    (typeof body.error === "string" && body.error) ||
-    fallback
-  )
 }
 
 function consumeTokenFromUrlHash(): string | null {

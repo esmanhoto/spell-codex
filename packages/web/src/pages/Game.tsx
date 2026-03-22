@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { useParams, useLocation, useNavigate } from "react-router-dom"
 import { useFetch } from "../hooks/useFetch.ts"
-import { applyMove } from "@spell/engine"
 import type { GameState as EngineGameState } from "@spell/engine"
 import { getGameState, submitMove, createWsClient, loadDevScenario } from "../api.ts"
 import type { GameState, Move, GameEvent, WsClientMessage, CardInfo } from "../api.ts"
-import { serializeEngineStateForClient } from "../utils/client-serialize.ts"
 import { hashEngineState } from "../utils/state-hash.ts"
-import { cardImageUrl, CARD_BACK_URL } from "../utils/card-helpers.ts"
+import { cardImageUrl } from "../utils/card-helpers.ts"
+import { filterLocalState, collectCardImageUrls, buildLingeringSpellsByPlayer, applyMoveLocally } from "../utils/game-logic.ts"
 import { BoardContext } from "../context/BoardContext.tsx"
 import { CombatContext } from "../context/CombatContext.tsx"
 import { MovesContext } from "../context/MovesContext.tsx"
@@ -48,40 +47,6 @@ import { DevGiveCardPanel } from "../components/game/DevGiveCardPanel.tsx"
 import { useChat } from "../hooks/useChat.ts"
 import "../styles/game-vars.css"
 
-/** Zero-out opponent hidden zones to match server-side filterStateForPlayer. */
-function filterLocalState(state: EngineGameState, viewerId: string): EngineGameState {
-  const players = { ...state.players }
-  for (const id of Object.keys(players)) {
-    if (id !== viewerId) {
-      players[id] = { ...players[id]!, hand: [], drawPile: [] }
-    }
-  }
-  return { ...state, players }
-}
-
-
-function collectCardImageUrls(deckCardImages?: Array<[string, number]>): string[] {
-  const urls = new Set<string>()
-  urls.add(CARD_BACK_URL)
-  if (deckCardImages) {
-    for (const [setId, cardNumber] of deckCardImages) {
-      urls.add(cardImageUrl(setId, cardNumber))
-    }
-  }
-  return [...urls]
-}
-
-function buildLingeringSpellsByPlayer(
-  playerIds: string[],
-  boards: Record<string, import("../api.ts").PlayerBoard> | undefined,
-): Record<string, CardInfo[]> {
-  const result = Object.fromEntries(playerIds.map((id) => [id, [] as CardInfo[]]))
-  if (!boards) return result
-  for (const id of playerIds) {
-    result[id] = boards[id]?.lastingEffects ?? []
-  }
-  return result
-}
 
 export function Game() {
   const { id: gameId } = useParams<{ id: string }>()
@@ -420,18 +385,23 @@ export function Game() {
           wsRef.current?.sendSyncRequest(msg.gameId)
           return
         }
-        let newEngineState: EngineGameState
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const result = applyMove(engineState, msg.playerId, msg.move as any)
-          newEngineState = result.newState
-        } catch (err) {
-          console.warn("[phase6] engine error on MOVE_APPLIED — requesting sync", err)
+        const result = applyMoveLocally({
+          engineState,
+          playerId: msg.playerId,
+          move: msg.move,
+          viewerId: myPlayerId,
+          status: msg.status,
+          turnDeadline: msg.turnDeadline,
+          winner: msg.winner,
+          currentApiState: currentDataRef.current,
+        })
+        if (!result) {
+          console.warn("[phase6] engine error on MOVE_APPLIED — requesting sync")
           wsRef.current?.sendSyncRequest(msg.gameId)
           return
         }
         // Hash reconciliation — hash the filtered view (opponent hand/drawPile hidden)
-        const filteredForHash = filterLocalState(newEngineState, myPlayerId)
+        const filteredForHash = filterLocalState(result.newEngineState, myPlayerId)
         void hashEngineState(filteredForHash).then((clientHash) => {
           if (clientHash !== msg.stateHash) {
             console.warn(
@@ -440,27 +410,11 @@ export function Game() {
             wsRef.current?.sendSyncRequest(msg.gameId)
           }
         })
-        localEngineStateRef.current = newEngineState
-        // Derive API state and update React query cache
-        const currentApiState = currentDataRef.current
-        const apiState = serializeEngineStateForClient(newEngineState, myPlayerId, {
-          status: msg.status,
-          turnDeadline: msg.turnDeadline,
-          winner: msg.winner,
-          players: currentApiState?.players,
-        })
-        // Preserve deckCardImages from current state
-        const merged: GameState = {
-          ...(currentApiState ?? {}),
-          ...apiState,
-          ...(currentApiState?.deckCardImages
-            ? { deckCardImages: currentApiState.deckCardImages }
-            : {}),
-        }
+        localEngineStateRef.current = result.newEngineState
         // Server confirmed — clear rollback snapshot
         lastConfirmedStateRef.current = null
-        setGameData(merged)
-        if (newEngineState.events.length) processIncomingEvents(newEngineState.events)
+        setGameData(result.apiState)
+        if (result.newEngineState.events.length) processIncomingEvents(result.newEngineState.events)
       } else if (msg.type === "ERROR") {
         // Rollback optimistic state if we have a confirmed snapshot
         const confirmed = lastConfirmedStateRef.current

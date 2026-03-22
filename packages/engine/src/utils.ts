@@ -9,6 +9,18 @@ import type {
 import { CHAMPION_TYPE_IDS, COSMOS_TYPE_IDS, SPELL_TYPE_IDS } from "./constants.ts"
 import { EngineError } from "./errors.ts"
 
+// ─── String Helpers ──────────────────────────────────────────────────────────
+
+/** Derive a display name from an email prefix (e.g. "john.doe@x.com" → "John Doe"). */
+export function formatEmailAsName(email: string): string {
+  const prefix = email.split("@")[0] ?? email
+  return prefix
+    .split(/[._\-+]/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ")
+}
+
 // ─── Seeded Random ────────────────────────────────────────────────────────────
 
 /**
