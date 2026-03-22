@@ -174,6 +174,15 @@ export function applyMove(
     case "CLAIM_SPOIL":
       newState = handleClaimSpoil(state, playerId, events)
       break
+    case "SPOIL_KEEP":
+      newState = handleSpoilKeep(state, playerId, events)
+      break
+    case "SPOIL_RETURN":
+      newState = handleSpoilReturn(state, playerId, events)
+      break
+    case "SPOIL_PLAY":
+      newState = handleSpoilPlay(state, playerId, move, events)
+      break
     case "DRAW_EXTRA_CARDS":
       newState = handleDrawExtraCards(state, playerId, move, events)
       break
@@ -290,6 +299,11 @@ function isValidOutOfTurnMove(state: GameState, playerId: PlayerId, move: Move):
     if (move.type === "PASS_COUNTER") return true
     if (move.type === "PLAY_EVENT") return true
     if (move.type === "USE_POOL_COUNTER") return true
+  }
+
+  // Spoil moves are valid out of turn (spoil owner may not be active player)
+  if (move.type === "CLAIM_SPOIL" || move.type === "SPOIL_KEEP" || move.type === "SPOIL_RETURN" || move.type === "SPOIL_PLAY") {
+    return state.pendingSpoil === playerId
   }
 
   // Discard and raze are always available for any player
@@ -419,6 +433,7 @@ function handlePass(state: GameState, playerId: PlayerId, events: GameEvent[]): 
         hasAttackedThisTurn: false,
         hasPlayedRealmThisTurn: false,
         pendingSpoil: null,
+        pendingSpoilCard: null,
         endTriggersPopulated: false,
       }
       events.push({ type: "TURN_STARTED", playerId: nextId, turn: s.currentTurn })
@@ -2227,6 +2242,11 @@ function handleDefenderWins(state: GameState, combat: CombatState, events: GameE
     discardPile: [...defendingPlayer.discardPile, ...defenderDiscards],
   })
 
+  // Defender earns spoils when attacker champion is discarded
+  if (attackerEntry) {
+    s = earnSpoils(s, combat.defendingPlayer, events)
+  }
+
   return endBattle(s, combat.attackingPlayer, events)
 }
 
@@ -2268,26 +2288,156 @@ function razeRealm(
 
 function earnSpoils(state: GameState, playerId: PlayerId, events: GameEvent[]): GameState {
   events.push({ type: "SPOILS_EARNED", playerId })
-  // Set pendingSpoil — player may optionally claim 1 card via CLAIM_SPOIL
-  return { ...state, pendingSpoil: playerId }
+  // Draw 1 card directly into pendingSpoilCard — player chooses keep/return/play
+  const player = state.players[playerId]!
+  const [drawn, remaining] = takeCards(player.drawPile, 1)
+  if (drawn.length === 0) {
+    return state // empty draw pile, no spoil
+  }
+  const card = drawn[0]!
+  events.push({ type: "SPOIL_CARD_DRAWN", playerId, cardName: card.card.name })
+  return {
+    ...updatePlayer(state, playerId, { drawPile: remaining }),
+    pendingSpoil: playerId,
+    pendingSpoilCard: card,
+  }
 }
 
-function handleClaimSpoil(state: GameState, playerId: PlayerId, events: GameEvent[]): GameState {
+function handleClaimSpoil(state: GameState, playerId: PlayerId, _events: GameEvent[]): GameState {
+  // Replay compat — spoils are now drawn automatically in earnSpoils.
+  // If pendingSpoilCard is already set, this is a no-op.
+  if (state.pendingSpoilCard) return state
   if (state.pendingSpoil !== playerId) {
     throw new EngineError("NO_PENDING_SPOIL", "No spoil available for this player")
   }
+  return state
+}
+
+function handleSpoilKeep(state: GameState, playerId: PlayerId, events: GameEvent[]): GameState {
+  if (state.pendingSpoil !== playerId || !state.pendingSpoilCard) {
+    throw new EngineError("NO_PENDING_SPOIL_CARD", "No spoil card to keep")
+  }
+  const card = state.pendingSpoilCard
   const player = state.players[playerId]!
-  const [drawn, remaining] = takeCards(player.drawPile, 1)
-  if (drawn.length > 0) {
-    events.push({ type: "CARDS_DRAWN", playerId, count: drawn.length })
-  }
+  events.push({ type: "SPOIL_CARD_KEPT", playerId, cardName: card.card.name })
   return {
-    ...updatePlayer(state, playerId, {
-      hand: [...player.hand, ...drawn],
-      drawPile: remaining,
-    }),
+    ...updatePlayer(state, playerId, { hand: [...player.hand, card] }),
     pendingSpoil: null,
+    pendingSpoilCard: null,
   }
+}
+
+function handleSpoilReturn(state: GameState, playerId: PlayerId, events: GameEvent[]): GameState {
+  if (state.pendingSpoil !== playerId || !state.pendingSpoilCard) {
+    throw new EngineError("NO_PENDING_SPOIL_CARD", "No spoil card to return")
+  }
+  const card = state.pendingSpoilCard
+  const player = state.players[playerId]!
+  events.push({ type: "SPOIL_CARD_RETURNED", playerId })
+  return {
+    ...updatePlayer(state, playerId, { drawPile: [card, ...player.drawPile] }),
+    pendingSpoil: null,
+    pendingSpoilCard: null,
+  }
+}
+
+function handleSpoilPlay(
+  state: GameState,
+  playerId: PlayerId,
+  move: Extract<Move, { type: "SPOIL_PLAY" }>,
+  events: GameEvent[],
+): GameState {
+  if (state.pendingSpoil !== playerId || !state.pendingSpoilCard) {
+    throw new EngineError("NO_PENDING_SPOIL_CARD", "No spoil card to play")
+  }
+  const card = state.pendingSpoilCard
+  const typeId = card.card.typeId
+  let s: GameState = { ...state, pendingSpoil: null, pendingSpoilCard: null }
+
+  if (typeId === CardTypeId.Realm) {
+    if (!move.slot) throw new EngineError("MISSING_SLOT", "SPOIL_PLAY realm requires slot")
+    const player = s.players[playerId]!
+    const existing = player.formation.slots[move.slot]
+    if (existing && !existing.isRazed) {
+      throw new EngineError("SLOT_OCCUPIED", "Formation slot is occupied by an unrazed realm")
+    }
+    const newSlot = { realm: card, isRazed: false, holdings: [] }
+    s = updatePlayer(s, playerId, {
+      formation: {
+        ...player.formation,
+        slots: { ...player.formation.slots, [move.slot]: newSlot },
+      },
+    })
+    events.push({ type: "SPOIL_CARD_PLAYED", playerId, cardName: card.card.name })
+    events.push({ type: "REALM_PLAYED", playerId, instanceId: card.instanceId, slot: move.slot })
+    return s
+  }
+
+  if (isChampionType(typeId)) {
+    const player = s.players[playerId]!
+    s = updatePlayer(s, playerId, {
+      pool: [...player.pool, { champion: card, attachments: [] }],
+    })
+    events.push({ type: "SPOIL_CARD_PLAYED", playerId, cardName: card.card.name })
+    events.push({ type: "CHAMPION_PLACED", playerId, instanceId: card.instanceId })
+    return s
+  }
+
+  if (typeId === CardTypeId.Holding) {
+    if (!move.slot) throw new EngineError("MISSING_SLOT", "SPOIL_PLAY holding requires slot (realmSlot)")
+    const player = s.players[playerId]!
+    const realmSlot = player.formation.slots[move.slot]
+    if (!realmSlot || realmSlot.isRazed) {
+      throw new EngineError("INVALID_REALM_SLOT", "Holding target realm must be unrazed")
+    }
+    const newSlot = { ...realmSlot, holdings: [...realmSlot.holdings, card] }
+    s = updatePlayer(s, playerId, {
+      formation: {
+        ...player.formation,
+        slots: { ...player.formation.slots, [move.slot]: newSlot },
+      },
+    })
+    events.push({ type: "SPOIL_CARD_PLAYED", playerId, cardName: card.card.name })
+    events.push({ type: "HOLDING_PLAYED", playerId, instanceId: card.instanceId, slot: move.slot })
+    return s
+  }
+
+  if (typeId === CardTypeId.Artifact || typeId === CardTypeId.MagicalItem) {
+    if (!move.championId) throw new EngineError("MISSING_CHAMPION", "SPOIL_PLAY item requires championId")
+    const player = s.players[playerId]!
+    const entryIdx = player.pool.findIndex((e) => e.champion.instanceId === move.championId)
+    if (entryIdx < 0) throw new EngineError("CHAMPION_NOT_FOUND", "Target champion not in pool")
+    const entry = player.pool[entryIdx]!
+    const newPool = [...player.pool]
+    newPool[entryIdx] = { ...entry, attachments: [...entry.attachments, card] }
+    s = updatePlayer(s, playerId, { pool: newPool })
+    events.push({ type: "SPOIL_CARD_PLAYED", playerId, cardName: card.card.name })
+    events.push({ type: "ITEM_ATTACHED", playerId, itemId: card.instanceId, championId: move.championId })
+    return s
+  }
+
+  if (typeId === CardTypeId.Event) {
+    events.push({ type: "SPOIL_CARD_PLAYED", playerId, cardName: card.card.name })
+    events.push({
+      type: "RESOLUTION_STARTED",
+      playerId,
+      cardInstanceId: card.instanceId,
+      cardName: card.card.name,
+    })
+    return {
+      ...s,
+      resolutionContext: {
+        cardInstanceId: card.instanceId,
+        pendingCard: card,
+        initiatingPlayer: playerId,
+        resolvingPlayer: playerId,
+        cardDestination: "discard",
+        declarations: [],
+      },
+    }
+  }
+
+  throw new EngineError("CANNOT_PLAY_SPOIL", `Card type ${typeId} cannot be played as spoil`)
 }
 
 function handleDrawExtraCards(
