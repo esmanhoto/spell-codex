@@ -4,6 +4,7 @@ import { z } from "zod"
 import { applyMove, EngineError } from "@spell/engine"
 import type { AppVariables } from "../auth.ts"
 import { loadGameState, persistMoveResult } from "../game-ops.ts"
+import { resolveGame } from "../utils.ts"
 
 // ─── Move schema ──────────────────────────────────────────────────────────────
 // We accept any JSON object with a `type` string — the engine validates the rest.
@@ -24,8 +25,12 @@ export const movesRouter = new Hono<{ Variables: AppVariables }>()
 movesRouter.post("/:id/moves", zValidator("json", MoveSchema), async (c) => {
   const t0 = performance.now()
   const userId = c.get("userId")
-  const gameId = c.req.param("id")
+  const idOrSlug = c.req.param("id")
   const move = { ...c.req.valid("json"), playerId: userId } as { type: string }
+
+  const game = await resolveGame(idOrSlug)
+  if (!game) return c.json({ error: "Game not found" }, 404)
+  const gameId = game.id
 
   const loaded = await loadGameState(gameId)
   if (!loaded) return c.json({ error: "Game not found or not active" }, 404)
