@@ -59,6 +59,14 @@ export const EventLog = memo(function EventLog({ events }: { events: GameEvent[]
         return `  Combat: ${e.attackerLevel as number} vs ${e.defenderLevel as number} → ${(e.outcome as string).replace(/_/g, " ")}`
       case "SPOILS_EARNED":
         return `  ${p} earned spoils`
+      case "SPOIL_CARD_DRAWN":
+        return `  ${p} drew spoil: ${e.cardName as string}`
+      case "SPOIL_CARD_PLAYED":
+        return `  ${p} played spoil: ${e.cardName as string}`
+      case "SPOIL_CARD_KEPT":
+        return `  ${p} kept spoil in hand`
+      case "SPOIL_CARD_RETURNED":
+        return `  ${p} returned spoil to draw pile`
       case "MANUAL_ZONE_MOVE":
         return `  ${p} moved card (${e.from as string} → ${e.to as string})`
       case "MANUAL_REALM_RAZED":

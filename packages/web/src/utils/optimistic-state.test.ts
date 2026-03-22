@@ -52,6 +52,7 @@ function makeState(p1: Partial<PlayerBoard> = {}): GameState {
       combat: null,
     },
     resolutionContext: null,
+    pendingSpoilCard: null,
     pendingTriggers: [],
   }
 }
