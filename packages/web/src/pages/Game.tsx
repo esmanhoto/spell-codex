@@ -90,7 +90,10 @@ export function Game() {
   const searchParams = new URLSearchParams(location.search)
   const devAs = bypass ? searchParams.get("devAs") : null
   const devScenarioId = bypass ? searchParams.get("scenario") : null
-  const effectiveIdentity: typeof identity = devAs ? { userId: devAs, accessToken: null } : identity
+  const effectiveIdentity: typeof identity = useMemo(
+    () => (devAs ? { userId: devAs, accessToken: null } : identity),
+    [devAs, identity],
+  )
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [eventLog, setEventLog] = useState<GameEvent[]>([])
   const [wsError, setWsError] = useState<string | null>(null)
@@ -487,15 +490,19 @@ export function Game() {
     }
   }, [data?.resolutionContext, myPlayerId])
 
+  // Stable ref so WS connection is not torn down when handleWsMessage identity changes
+  const handleWsMessageRef = useRef(handleWsMessage)
+  handleWsMessageRef.current = handleWsMessage
+
   useEffect(() => {
     if (!gameId || !effectiveIdentity) return
-    const client = createWsClient(gameId, effectiveIdentity, handleWsMessage)
+    const client = createWsClient(gameId, effectiveIdentity, (msg) => handleWsMessageRef.current(msg))
     wsRef.current = client
     return () => {
       client.close()
       wsRef.current = null
     }
-  }, [gameId, effectiveIdentity, handleWsMessage])
+  }, [gameId, effectiveIdentity])
 
   const DRAW_PHASE_ALLOWED = new Set(["PASS", "REBUILD_REALM", "DISCARD_CARD"])
 
