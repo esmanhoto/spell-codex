@@ -451,7 +451,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
       expect(attach!.disabled).toBe(true)
     })
 
-    it("Discard is disabled during combat", () => {
+    it("Discard is enabled during combat when legal move exists", () => {
       const card = makeCard({ typeId: 7, instanceId: "c1" })
       const actions = buildHandContextActions({
         ...BASE_ARGS,
@@ -462,7 +462,8 @@ describe("buildHandContextActions — always returns all applicable actions", ()
         combat,
       })
       const discard = actions.find((a) => a.label === "Discard")
-      expect(discard!.disabled).toBe(true)
+      expect(discard).toBeDefined()
+      expect(discard!.disabled).toBeUndefined()
     })
 
     it("Play in Combat is enabled during combat for combat-legal cards", () => {
@@ -565,7 +566,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
 
     // Spell types: 4(ClericSpell), 19(WizardSpell)
     for (const typeId of [4, 19]) {
-      it(`typeId ${typeId} (spell) → Cast Spell + Play in Combat + Discard`, () => {
+      it(`typeId ${typeId} (spell) → Cast Spell + Discard (no Play in Combat)`, () => {
         const card = makeCard({ typeId, instanceId: `spell-${typeId}` })
         const actions = buildHandContextActions({
         ...BASE_ARGS,
@@ -575,7 +576,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
           requestSpellCast: noopSpellCast,
         })
         expect(actions.find((a) => a.label === "Cast Spell")).toBeDefined()
-        expect(actions.find((a) => a.label === "Play in Combat")).toBeDefined()
+        expect(actions.find((a) => a.label === "Play in Combat")).toBeUndefined()
         expect(actions.find((a) => a.label === "Discard")).toBeDefined()
       })
     }
@@ -808,7 +809,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
   describe("cleric spell card (typeId 4)", () => {
     const clericSpell = makeCard({ typeId: 4, instanceId: "cs1", name: "Healing Word" })
 
-    it("has Cast Spell and Play in Combat actions", () => {
+    it("has Cast Spell action (spells don't get Play in Combat)", () => {
       const actions = buildHandContextActions({
         ...BASE_ARGS,
         card: clericSpell,
@@ -817,7 +818,7 @@ describe("buildHandContextActions — always returns all applicable actions", ()
         requestSpellCast: noopSpellCast,
       })
       expect(actions.find((a) => a.label === "Cast Spell")).toBeDefined()
-      expect(actions.find((a) => a.label === "Play in Combat")).toBeDefined()
+      expect(actions.find((a) => a.label === "Play in Combat")).toBeUndefined()
     })
 
     it("Cast Spell triggers requestSpellCast callback", () => {
