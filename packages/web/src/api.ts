@@ -221,10 +221,7 @@ export type Move =
 
 // ─── API calls ────────────────────────────────────────────────────────────────
 
-function authHeaders(identity: AuthIdentity): Record<string, string> {
-  if (identity.accessToken) return { Authorization: `Bearer ${identity.accessToken}` }
-  return { "X-User-Id": identity.userId }
-}
+import { authHeaders } from "./utils/auth-helpers.ts"
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BASE + path, init)
